@@ -9,7 +9,21 @@ interface FabricCanvasProps {
 
 export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { setCanvas, setSelectedObject, gridEnabled, rulersEnabled, backgroundColor, canvasDimensions, zoom } = useCanvas();
+  const { 
+    setCanvas, 
+    setSelectedObject, 
+    gridEnabled, 
+    rulersEnabled, 
+    backgroundColor, 
+    canvasDimensions, 
+    zoom,
+    textFont,
+    textAlign,
+    textUnderline,
+    textOverline,
+    textBold,
+    textItalic,
+  } = useCanvas();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -239,6 +253,30 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
       if (activeTool === "select") return;
 
       const pointer = fabricCanvas.getPointer(e.e);
+      
+      if (activeTool === "text") {
+        const textDecoration = [];
+        if (textUnderline) textDecoration.push('underline');
+        if (textOverline) textDecoration.push('overline');
+        
+        const text = new Textbox("Double-click to edit", {
+          left: pointer.x,
+          top: pointer.y,
+          width: 200,
+          fontSize: 24,
+          fontFamily: textFont,
+          textAlign: textAlign as any,
+          underline: textUnderline,
+          overline: textOverline,
+          fontWeight: textBold ? 'bold' : 'normal',
+          fontStyle: textItalic ? 'italic' : 'normal',
+          fill: "#000000",
+        });
+        fabricCanvas.add(text);
+        fabricCanvas.setActiveObject(text);
+        fabricCanvas.renderAll();
+        return;
+      }
       
       switch (activeTool) {
         case "rectangle":
@@ -635,21 +673,6 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           fabricCanvas.add(simpleShape);
           break;
           
-        case "text":
-          const text = new Textbox("Double-click to edit text", {
-            left: pointer.x,
-            top: pointer.y,
-            fontSize: 24,
-            fill: "#000000",
-            fontFamily: "Inter",
-            width: 200,
-          });
-          fabricCanvas.add(text);
-          fabricCanvas.setActiveObject(text);
-          text.enterEditing();
-          text.selectAll();
-          break;
-          
         case "line":
           const line = new Line([pointer.x, pointer.y, pointer.x + 100, pointer.y], {
             stroke: "#000000",
@@ -683,7 +706,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     return () => {
       fabricCanvas.off("mouse:down", handleCanvasClick);
     };
-  }, [activeTool]);
+  }, [activeTool, textFont, textAlign, textUnderline, textOverline, textBold, textItalic]);
 
   return (
     <div className="flex-1 overflow-hidden" style={{ 

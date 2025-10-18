@@ -176,7 +176,11 @@ const CanvasContent = () => {
       </header>
 
         {/* Top Toolbar */}
-        <TopToolbar onExport={handleExport} />
+        <TopToolbar 
+          onExport={handleExport} 
+          activeTool={activeTool}
+          onToolChange={setActiveTool}
+        />
 
         {/* Main Editor Area */}
         <div className="flex flex-1 overflow-hidden min-h-0">

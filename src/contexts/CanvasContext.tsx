@@ -63,6 +63,20 @@ interface CanvasContextType {
   exportAsPNGTransparent: () => void;
   exportAsJPG: () => void;
   exportAsSVG: () => void;
+  
+  // Text formatting properties
+  textFont: string;
+  setTextFont: (font: string) => void;
+  textAlign: string;
+  setTextAlign: (align: string) => void;
+  textUnderline: boolean;
+  setTextUnderline: (underline: boolean) => void;
+  textOverline: boolean;
+  setTextOverline: (overline: boolean) => void;
+  textBold: boolean;
+  setTextBold: (bold: boolean) => void;
+  textItalic: boolean;
+  setTextItalic: (italic: boolean) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -95,6 +109,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("Untitled Diagram");
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Text formatting state
+  const [textFont, setTextFont] = useState("Inter");
+  const [textAlign, setTextAlign] = useState("left");
+  const [textUnderline, setTextUnderline] = useState(false);
+  const [textOverline, setTextOverline] = useState(false);
+  const [textBold, setTextBold] = useState(false);
+  const [textItalic, setTextItalic] = useState(false);
 
   // History management
   const saveState = useCallback(() => {
@@ -539,6 +561,18 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     exportAsPNGTransparent,
     exportAsJPG,
     exportAsSVG,
+    textFont,
+    setTextFont,
+    textAlign,
+    setTextAlign,
+    textUnderline,
+    setTextUnderline,
+    textOverline,
+    setTextOverline,
+    textBold,
+    setTextBold,
+    textItalic,
+    setTextItalic,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;
