@@ -142,7 +142,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       setCanvas(null);
       canvas.dispose();
     };
-  }, [setCanvas, setSelectedObject]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle canvas dimension changes
   useEffect(() => {
