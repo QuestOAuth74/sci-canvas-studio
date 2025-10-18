@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import { iconStorage } from "@/lib/iconStorage";
 import { IconCategory, IconItem } from "@/types/icon";
 
@@ -10,6 +11,7 @@ interface ShapesLibraryProps {
 }
 
 export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
+  const [searchQuery, setSearchQuery] = useState("");
   const [expandedSections, setExpandedSections] = useState<string[]>(["arrows"]);
   const [categories, setCategories] = useState<IconCategory[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, IconItem[]>>({});
@@ -103,7 +105,21 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   );
 
   return (
-    <div className="w-56 border-r bg-card flex flex-col">
+    <div className="w-56 border-r bg-card/50 flex flex-col">
+      {/* Search Bar */}
+      <div className="p-2 border-b">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Type / to search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 pl-8 text-xs"
+          />
+        </div>
+      </div>
+
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {/* Arrows */}
