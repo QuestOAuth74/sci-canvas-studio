@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Heart, MessageCircleHeart, Globe, Sparkles, CheckCircle, Star, User } from "lucide-react";
+import { Heart, MessageCircleHeart, Globe, Sparkles, CheckCircle, Star, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +34,8 @@ const Testimonials = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
     country: "",
@@ -44,17 +46,33 @@ const Testimonials = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showForm, setShowForm] = useState(true);
 
-  useEffect(() => {
-    fetchTestimonials();
-  }, []);
+  const ITEMS_PER_PAGE = 6;
 
-  const fetchTestimonials = async () => {
+  useEffect(() => {
+    fetchTestimonials(currentPage);
+  }, [currentPage]);
+
+  const fetchTestimonials = async (page: number) => {
+    // Get total count
+    const { count } = await supabase
+      .from("testimonials")
+      .select("*", { count: "exact", head: true })
+      .eq("is_approved", true);
+
+    if (count) {
+      setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
+    }
+
+    // Get paginated data
+    const from = (page - 1) * ITEMS_PER_PAGE;
+    const to = from + ITEMS_PER_PAGE - 1;
+
     const { data, error } = await supabase
       .from("testimonials")
       .select("*")
       .eq("is_approved", true)
       .order("created_at", { ascending: false })
-      .limit(20);
+      .range(from, to);
 
     if (!error && data) {
       setTestimonials(data);
@@ -101,6 +119,7 @@ const Testimonials = () => {
 
       // Scroll to testimonials section after a brief delay
       setTimeout(() => {
+        setCurrentPage(1);
         document.getElementById("testimonials-section")?.scrollIntoView({ 
           behavior: "smooth",
           block: "start"
@@ -345,6 +364,49 @@ const Testimonials = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-8">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="h-12 px-6 font-bold uppercase border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft className="h-5 w-5 mr-2" />
+                    Previous
+                  </Button>
+
+                  <div className="flex items-center gap-2">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="lg"
+                        onClick={() => setCurrentPage(page)}
+                        className={`h-12 w-12 font-bold border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all ${
+                          currentPage === page ? "bg-primary" : ""
+                        }`}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="h-12 px-6 font-bold uppercase border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next
+                    <ChevronRight className="h-5 w-5 ml-2" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
