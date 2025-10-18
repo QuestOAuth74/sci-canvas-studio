@@ -137,8 +137,67 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
 
     window.addEventListener("addIconToCanvas", handleAddIcon as EventListener);
 
+    // Handle adding asset from library
+    const handleAddAsset = async (event: CustomEvent) => {
+      const { content, assetId } = event.detail;
+      if (!canvas || !content) return;
+
+      try {
+        toast("Loading asset...");
+        
+        // Try to parse as SVG first
+        if (content.trim().startsWith('<svg') || content.includes('xmlns="http://www.w3.org/2000/svg"')) {
+          const { objects, options } = await loadSVGFromString(content);
+          const group = util.groupSVGElements(objects, options);
+          
+          const maxW = (canvas.width || 0) * 0.6;
+          const maxH = (canvas.height || 0) * 0.6;
+          const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
+          group.scale(scale);
+          
+          group.set({
+            left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
+            top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+          });
+          
+          canvas.add(group);
+          canvas.setActiveObject(group);
+          canvas.renderAll();
+          toast.success("Asset added to canvas");
+        } else {
+          // Handle as data URL image
+          const img = new Image();
+          img.onload = () => {
+            const fabricImage = new FabricImage(img, {
+              left: (canvas.width || 0) / 2,
+              top: (canvas.height || 0) / 2,
+              originX: "center",
+              originY: "center",
+            });
+            
+            const maxW = (canvas.width || 0) * 0.6;
+            const maxH = (canvas.height || 0) * 0.6;
+            const scale = Math.min(maxW / fabricImage.width!, maxH / fabricImage.height!, 1);
+            fabricImage.scale(scale);
+            
+            canvas.add(fabricImage);
+            canvas.setActiveObject(fabricImage);
+            canvas.renderAll();
+            toast.success("Asset added to canvas");
+          };
+          img.src = content;
+        }
+      } catch (error) {
+        console.error("Error adding asset:", error);
+        toast.error("Failed to add asset to canvas");
+      }
+    };
+
+    window.addEventListener("addAssetToCanvas", handleAddAsset as EventListener);
+
     return () => {
       window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
+      window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
       setCanvas(null);
       canvas.dispose();
     };
@@ -465,6 +524,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
                 canvas.setActiveObject(group);
                 canvas.renderAll();
                 toast.success("SVG image added to canvas");
+                
+                // Prompt to save to library
+                toast("Save to your library?", {
+                  action: {
+                    label: "Save",
+                    onClick: () => {
+                      window.dispatchEvent(new CustomEvent('saveUploadToLibrary', {
+                        detail: { file, content: imgUrl }
+                      }));
+                    }
+                  },
+                  duration: 5000
+                });
+                
                 if (onShapeCreated) onShapeCreated();
               }).catch((error) => {
                 console.error("Error loading SVG:", error);
@@ -491,6 +564,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
                 canvas.setActiveObject(fabricImage);
                 canvas.renderAll();
                 toast.success("Image added to canvas");
+                
+                // Prompt to save to library
+                toast("Save to your library?", {
+                  action: {
+                    label: "Save",
+                    onClick: () => {
+                      window.dispatchEvent(new CustomEvent('saveUploadToLibrary', {
+                        detail: { file, content: imgUrl }
+                      }));
+                    }
+                  },
+                  duration: 5000
+                });
+                
                 if (onShapeCreated) onShapeCreated();
               };
               img.onerror = () => {

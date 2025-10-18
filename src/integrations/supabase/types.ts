@@ -234,6 +234,66 @@ export type Database = {
         }
         Relationships: []
       }
+      user_assets: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          height: number | null
+          id: string
+          last_used_at: string | null
+          mime_type: string
+          original_name: string
+          storage_path: string
+          tags: string[] | null
+          thumbnail_path: string | null
+          updated_at: string | null
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          height?: number | null
+          id?: string
+          last_used_at?: string | null
+          mime_type: string
+          original_name: string
+          storage_path: string
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          updated_at?: string | null
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          height?: number | null
+          id?: string
+          last_used_at?: string | null
+          mime_type?: string
+          original_name?: string
+          storage_path?: string
+          tags?: string[] | null
+          thumbnail_path?: string | null
+          updated_at?: string | null
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null

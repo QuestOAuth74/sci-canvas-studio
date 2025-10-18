@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Save, Loader2, HelpCircle } from "lucide-react";
+import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
 import { ShapesLibrary } from "@/components/canvas/ShapesLibrary";
 import { IconLibrary } from "@/components/canvas/IconLibrary";
+import { UserAssetsLibrary } from "@/components/canvas/UserAssetsLibrary";
 import { TopToolbar } from "@/components/canvas/TopToolbar";
 import { Toolbar } from "@/components/canvas/Toolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +19,7 @@ import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
+import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ const CanvasContent = () => {
   const [selectedIconCategory, setSelectedIconCategory] = useState<string>("");
   const [isIconLibraryCollapsed, setIsIconLibraryCollapsed] = useState(false);
   const [isPropertiesPanelCollapsed, setIsPropertiesPanelCollapsed] = useState(false);
+  const [leftSidebarTab, setLeftSidebarTab] = useState<"icons" | "assets">("icons");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const {
     canvas,
@@ -178,6 +181,9 @@ const CanvasContent = () => {
         onOpenChange={setShowShortcuts}
       />
 
+      {/* Save Upload Handler */}
+      <SaveUploadHandler />
+
       {/* Top Header with Menu - Glass effect */}
       <header className="glass-effect border-b border-border/40">
         <div className="px-4 py-3 flex items-center justify-between">
@@ -257,14 +263,58 @@ const CanvasContent = () => {
 
         {/* Main Editor Area */}
         <div className="flex flex-1 overflow-hidden min-h-0">
-          {/* Left Sidebar - Icon Categories */}
+          {/* Left Sidebar - Icon Categories & Assets */}
           <div className={`glass-effect border-r border-border/40 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
-            <IconLibrary 
-              selectedCategory={selectedIconCategory} 
-              onCategoryChange={setSelectedIconCategory}
-              isCollapsed={isIconLibraryCollapsed}
-              onToggleCollapse={() => setIsIconLibraryCollapsed(!isIconLibraryCollapsed)}
-            />
+            {isIconLibraryCollapsed ? (
+              <div className="p-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsIconLibraryCollapsed(false)}
+                  className="w-full"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col h-full">
+                <div className="p-2 border-b flex items-center justify-between">
+                  <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
+                    <TabsList className="grid w-full grid-cols-2 h-8">
+                      <TabsTrigger value="icons" className="text-xs">Icons</TabsTrigger>
+                      <TabsTrigger value="assets" className="text-xs">My Assets</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsIconLibraryCollapsed(true)}
+                    className="ml-1 h-8 w-8"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  {leftSidebarTab === "icons" ? (
+                    <IconLibrary 
+                      selectedCategory={selectedIconCategory} 
+                      onCategoryChange={setSelectedIconCategory}
+                      isCollapsed={false}
+                      onToggleCollapse={() => {}}
+                    />
+                  ) : (
+                    <UserAssetsLibrary 
+                      onAssetSelect={async (assetId, content) => {
+                        // Dispatch event to add asset to canvas
+                        window.dispatchEvent(new CustomEvent('addAssetToCanvas', {
+                          detail: { content, assetId }
+                        }));
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Vertical Toolbar */}
