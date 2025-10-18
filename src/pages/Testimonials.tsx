@@ -39,6 +39,7 @@ const Testimonials = () => {
     message: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showForm, setShowForm] = useState(true);
 
   useEffect(() => {
     fetchTestimonials();
@@ -87,12 +88,21 @@ const Testimonials = () => {
       if (error) throw error;
 
       setSubmitted(true);
+      setShowForm(false);
       setFormData({ name: "", country: "", scientific_discipline: "", message: "" });
       
       toast({
         title: "Thank you! 🎉",
         description: "Your kind words mean a lot! We'll review and publish your testimonial soon.",
       });
+
+      // Scroll to testimonials section after a brief delay
+      setTimeout(() => {
+        document.getElementById("testimonials-section")?.scrollIntoView({ 
+          behavior: "smooth",
+          block: "start"
+        });
+      }, 500);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -147,7 +157,7 @@ const Testimonials = () => {
           </div>
 
           {/* Form Section */}
-          {!submitted ? (
+          {showForm && !submitted && (
             <div className="bg-card border-[4px] border-foreground neo-brutalist-shadow p-8 md:p-10 max-w-3xl mx-auto">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
@@ -225,18 +235,25 @@ const Testimonials = () => {
                 </Button>
               </form>
             </div>
-          ) : (
+          )}
+
+          {/* Success Message */}
+          {submitted && !showForm && (
             <div className="bg-accent border-[4px] border-foreground neo-brutalist-shadow p-8 md:p-10 max-w-3xl mx-auto text-center space-y-6 animate-scale-in">
               <div className="w-20 h-20 bg-primary border-[4px] border-foreground rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle className="h-10 w-10 text-foreground" />
               </div>
               <h2 className="text-3xl font-black uppercase">Thank You!</h2>
               <p className="text-lg font-medium">
-                Your testimonial has been submitted and will appear after review. We appreciate your support! ❤️
+                Your testimonial has been submitted and will appear below after review. We appreciate your support! ❤️
               </p>
               <Button
                 size="lg"
-                onClick={() => setSubmitted(false)}
+                onClick={() => {
+                  setSubmitted(false);
+                  setShowForm(true);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
                 className="h-12 px-8 font-bold uppercase bg-secondary hover:bg-secondary/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none"
               >
                 Submit Another
@@ -246,7 +263,7 @@ const Testimonials = () => {
 
           {/* Testimonials Display */}
           {testimonials.length > 0 && (
-            <div className="space-y-8">
+            <div id="testimonials-section" className="space-y-8 scroll-mt-20">
               <div className="text-center">
                 <h2 className="text-4xl md:text-5xl font-black uppercase mb-4">
                   What Scientists Say
