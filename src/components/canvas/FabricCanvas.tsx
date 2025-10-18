@@ -607,7 +607,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
         document.body.removeChild(fileInput);
       }, 100);
     }
-  }, [canvas, activeTool, onShapeCreated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvas, activeTool]);
 
   // Handle pen tool (bezier curves)
   useEffect(() => {
