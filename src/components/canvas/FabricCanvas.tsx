@@ -10,6 +10,7 @@ interface FabricCanvasProps {
 export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { 
+    canvas,
     setCanvas, 
     setSelectedObject, 
     gridEnabled, 
@@ -93,53 +94,44 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
 
   // Handle canvas dimension changes
   useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current as any;
-    const fabricCanvas = canvas.__canvas as Canvas;
-    if (!fabricCanvas) return;
+    if (!canvas) return;
 
-    fabricCanvas.setDimensions({
+    canvas.setDimensions({
       width: canvasDimensions.width,
       height: canvasDimensions.height,
     });
-    fabricCanvas.renderAll();
-  }, [canvasDimensions]);
+    canvas.renderAll();
+  }, [canvas, canvasDimensions]);
 
   // Handle zoom changes
   useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current as any;
-    const fabricCanvas = canvas.__canvas as Canvas;
-    if (!fabricCanvas) return;
+    if (!canvas) return;
 
     const zoomLevel = zoom / 100;
-    fabricCanvas.setZoom(zoomLevel);
-    fabricCanvas.renderAll();
-  }, [zoom]);
+    canvas.setZoom(zoomLevel);
+    canvas.renderAll();
+  }, [canvas, zoom]);
 
   // Handle grid, rulers, and background color changes
   useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current as any;
-    const fabricCanvas = canvas.__canvas as Canvas;
-    if (!fabricCanvas) return;
+    if (!canvas) return;
 
     // Clear existing grid and ruler lines
-    const objects = fabricCanvas.getObjects();
+    const objects = canvas.getObjects();
     objects.forEach(obj => {
       if ((obj as any).isGridLine || (obj as any).isRuler) {
-        fabricCanvas.remove(obj);
+        canvas.remove(obj);
       }
     });
 
     // Update background color
-    fabricCanvas.backgroundColor = backgroundColor;
+    canvas.backgroundColor = backgroundColor;
 
     // Draw grid if enabled
     if (gridEnabled) {
       const gridSize = 20;
-      const width = fabricCanvas.width || 1200;
-      const height = fabricCanvas.height || 800;
+      const width = canvas.width || 1200;
+      const height = canvas.height || 800;
 
       // Vertical lines
       for (let i = 0; i < width / gridSize; i++) {
@@ -151,8 +143,8 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           hoverCursor: 'default',
         });
         (line as any).isGridLine = true;
-        fabricCanvas.add(line);
-        fabricCanvas.sendObjectToBack(line);
+        canvas.add(line);
+        canvas.sendObjectToBack(line);
       }
 
       // Horizontal lines
@@ -165,15 +157,15 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           hoverCursor: 'default',
         });
         (line as any).isGridLine = true;
-        fabricCanvas.add(line);
-        fabricCanvas.sendObjectToBack(line);
+        canvas.add(line);
+        canvas.sendObjectToBack(line);
       }
     }
 
     // Draw rulers if enabled
     if (rulersEnabled) {
-      const width = fabricCanvas.width || 1200;
-      const height = fabricCanvas.height || 800;
+      const width = canvas.width || 1200;
+      const height = canvas.height || 800;
 
       // Top ruler
       const topRuler = new Rect({
@@ -189,8 +181,8 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         hoverCursor: 'default',
       });
       (topRuler as any).isRuler = true;
-      fabricCanvas.add(topRuler);
-      fabricCanvas.bringObjectToFront(topRuler);
+      canvas.add(topRuler);
+      canvas.bringObjectToFront(topRuler);
 
       // Left ruler
       const leftRuler = new Rect({
@@ -206,8 +198,8 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         hoverCursor: 'default',
       });
       (leftRuler as any).isRuler = true;
-      fabricCanvas.add(leftRuler);
-      fabricCanvas.bringObjectToFront(leftRuler);
+      canvas.add(leftRuler);
+      canvas.bringObjectToFront(leftRuler);
 
       // Add ruler marks - every 50px
       for (let i = 50; i < width; i += 50) {
@@ -218,8 +210,8 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           evented: false,
         });
         (mark as any).isRuler = true;
-        fabricCanvas.add(mark);
-        fabricCanvas.bringObjectToFront(mark);
+        canvas.add(mark);
+        canvas.bringObjectToFront(mark);
       }
 
       for (let i = 50; i < height; i += 50) {
@@ -230,39 +222,32 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           evented: false,
         });
         (mark as any).isRuler = true;
-        fabricCanvas.add(mark);
-        fabricCanvas.bringObjectToFront(mark);
+        canvas.add(mark);
+        canvas.bringObjectToFront(mark);
       }
     }
 
-    fabricCanvas.renderAll();
-  }, [gridEnabled, rulersEnabled, backgroundColor]);
+    canvas.renderAll();
+  }, [canvas, gridEnabled, rulersEnabled, backgroundColor]);
 
   // Handle tool changes
   useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current as any;
-    const fabricCanvas = canvas.__canvas as Canvas;
-    if (!fabricCanvas) return;
+    if (!canvas) return;
 
-    // Set simple grid background with CSS pattern
-    fabricCanvas.backgroundColor = "#ffffff";
-    fabricCanvas.renderAll();
+    // Update cursor based on tool
+    canvas.defaultCursor = activeTool === "text" ? "text" : "default";
 
     const handleCanvasClick = (e: any) => {
-      console.log('Canvas clicked, activeTool:', activeTool);
       if (activeTool === "select") return;
 
-      const pointer = fabricCanvas.getPointer(e.e);
-      console.log('Pointer position:', pointer);
+      const pointer = canvas.getPointer(e.e);
       
       if (activeTool === "text") {
-        console.log('Creating text with font:', textFont);
         const textDecoration = [];
         if (textUnderline) textDecoration.push('underline');
         if (textOverline) textDecoration.push('overline');
         
-        const text = new Textbox("Double-click to edit", {
+        const text = new Textbox("Type here", {
           left: pointer.x,
           top: pointer.y,
           width: 200,
@@ -275,9 +260,8 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           fontStyle: textItalic ? 'italic' : 'normal',
           fill: "#000000",
         });
-        console.log('Text object created:', text);
-        fabricCanvas.add(text);
-        fabricCanvas.setActiveObject(text);
+        canvas.add(text);
+        canvas.setActiveObject(text);
         // Immediately enter editing so user can type
         if ((text as any).enterEditing) {
           (text as any).enterEditing();
@@ -285,8 +269,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             (text as any).selectAll();
           }
         }
-        fabricCanvas.requestRenderAll();
-        console.log('Text added to canvas and editing started');
+        canvas.requestRenderAll();
         return;
       }
       
@@ -302,7 +285,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(rect);
+          canvas.add(rect);
           break;
 
         case "rounded-rect":
@@ -317,7 +300,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(roundedRect);
+          canvas.add(roundedRect);
           break;
           
         case "circle":
@@ -332,7 +315,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(circle);
+          canvas.add(circle);
           break;
 
         case "rhombus":
@@ -346,7 +329,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(rhombus);
+          canvas.add(rhombus);
           break;
 
         case "parallelogram":
@@ -360,7 +343,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(parallelogram);
+          canvas.add(parallelogram);
           break;
 
         case "trapezoid":
@@ -374,7 +357,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(trapezoid);
+          canvas.add(trapezoid);
           break;
 
         case "pentagon":
@@ -391,7 +374,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(pentagon);
+          canvas.add(pentagon);
           break;
 
         case "hexagon":
@@ -408,7 +391,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(hexagon);
+          canvas.add(hexagon);
           break;
 
         case "octagon":
@@ -425,7 +408,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(octagon);
+          canvas.add(octagon);
           break;
           
         case "star":
@@ -445,7 +428,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(star);
+          canvas.add(star);
           break;
 
         case "triangle":
@@ -466,7 +449,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(triangle);
+          canvas.add(triangle);
           break;
 
         case "arrow-right":
@@ -483,7 +466,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(arrow);
+          canvas.add(arrow);
           break;
 
         case "arrow-left":
@@ -500,7 +483,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(arrowLeft);
+          canvas.add(arrowLeft);
           break;
 
         case "arrow-up":
@@ -517,7 +500,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(arrowUp);
+          canvas.add(arrowUp);
           break;
 
         case "arrow-down":
@@ -534,7 +517,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(arrowDown);
+          canvas.add(arrowDown);
           break;
 
         case "arrow-double-h":
@@ -554,7 +537,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(doubleArrowH);
+          canvas.add(doubleArrowH);
           break;
 
         case "arrow-thick":
@@ -571,7 +554,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(thickArrow);
+          canvas.add(thickArrow);
           break;
 
         case "process":
@@ -584,7 +567,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(process);
+          canvas.add(process);
           break;
 
         case "decision":
@@ -598,7 +581,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(decision);
+          canvas.add(decision);
           break;
 
         case "data":
@@ -612,7 +595,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(data);
+          canvas.add(data);
           break;
 
         case "terminator":
@@ -627,7 +610,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(terminator);
+          canvas.add(terminator);
           break;
 
         case "document":
@@ -642,7 +625,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(documentShape);
+          canvas.add(documentShape);
           break;
 
         case "database":
@@ -665,7 +648,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(dbBody, dbTop);
+          canvas.add(dbBody, dbTop);
           break;
 
         case "callout":
@@ -682,7 +665,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(simpleShape);
+          canvas.add(simpleShape);
           break;
           
         case "line":
@@ -690,7 +673,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(line);
+          canvas.add(line);
           break;
 
         default:
@@ -704,21 +687,25 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             stroke: "#000000",
             strokeWidth: 2,
           });
-          fabricCanvas.add(defaultShape);
+          canvas.add(defaultShape);
           break;
       }
       
-      fabricCanvas.renderAll();
+      canvas.renderAll();
     };
 
+    // Detach previous handler
+    canvas.off("mouse:down", handleCanvasClick);
+    
+    // Attach handler if not in select mode
     if (activeTool !== "select") {
-      fabricCanvas.on("mouse:down", handleCanvasClick);
+      canvas.on("mouse:down", handleCanvasClick);
     }
 
     return () => {
-      fabricCanvas.off("mouse:down", handleCanvasClick);
+      canvas.off("mouse:down", handleCanvasClick);
     };
-  }, [activeTool, textFont, textAlign, textUnderline, textOverline, textBold, textItalic]);
+  }, [canvas, activeTool, textFont, textAlign, textUnderline, textOverline, textBold, textItalic]);
 
   return (
     <div className="flex-1 overflow-hidden" style={{ 
