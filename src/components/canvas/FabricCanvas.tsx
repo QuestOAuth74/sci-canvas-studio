@@ -34,7 +34,24 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       width: canvasDimensions.width,
       height: canvasDimensions.height,
       backgroundColor: backgroundColor,
+      // Make corner controls larger and more distinct for easier resizing
+      controlsAboveOverlay: true,
+      centeredScaling: false,
+      centeredRotation: true,
     });
+
+    // Configure control appearance for easier object manipulation
+    canvas.set({
+      borderColor: '#0D9488',
+      cornerColor: '#0D9488',
+      cornerStrokeColor: '#ffffff',
+      cornerStyle: 'circle',
+      cornerSize: 12,
+      transparentCorners: false,
+      borderOpacityWhenMoving: 0.5,
+      borderScaleFactor: 2,
+      padding: 4,
+    } as any);
 
     canvas.isDrawingMode = false;
     
