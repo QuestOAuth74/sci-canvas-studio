@@ -402,10 +402,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const exportAsPNGTransparent = useCallback(() => {
     if (!canvas) return;
 
-    // Temporarily hide guides
+    // Temporarily hide guides and eraser paths
     const hidden: FabricObject[] = [];
     canvas.getObjects().forEach((obj) => {
-      if ((obj as any).isGridLine || (obj as any).isRuler) {
+      if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
         if (obj.visible) {
           hidden.push(obj);
           obj.visible = false;
@@ -434,10 +434,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const exportAsJPG = useCallback(() => {
     if (!canvas) return;
 
-    // Temporarily hide guides
+    // Temporarily hide guides and eraser paths
     const hidden: FabricObject[] = [];
     canvas.getObjects().forEach((obj) => {
-      if ((obj as any).isGridLine || (obj as any).isRuler) {
+      if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
         if (obj.visible) {
           hidden.push(obj);
           obj.visible = false;
@@ -462,10 +462,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const exportAsSVG = useCallback(() => {
     if (!canvas) return;
 
-    // Temporarily hide guides
+    // Temporarily hide guides and eraser paths
     const hidden: FabricObject[] = [];
     canvas.getObjects().forEach((obj) => {
-      if ((obj as any).isGridLine || (obj as any).isRuler) {
+      if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
         if (obj.visible) {
           hidden.push(obj);
           obj.visible = false;
@@ -498,10 +498,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     setIsSaving(true);
     try {
-      // Hide guides so they are not persisted as visible in saved data
+      // Hide guides and eraser paths so they are not persisted as visible in saved data
       const hidden: FabricObject[] = [];
       canvas.getObjects().forEach((obj) => {
-        if ((obj as any).isGridLine || (obj as any).isRuler) {
+        if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
           if (obj.visible) {
             hidden.push(obj);
             obj.visible = false;

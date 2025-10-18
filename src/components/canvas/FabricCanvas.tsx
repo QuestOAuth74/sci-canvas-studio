@@ -370,6 +370,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
         const path = e.path as Path;
         if (path) {
           path.globalCompositeOperation = "destination-out";
+          // Mark as eraser path so it can be hidden during exports
+          (path as any).isEraserPath = true;
           canvas.renderAll();
         }
       };
