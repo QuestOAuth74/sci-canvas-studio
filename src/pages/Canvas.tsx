@@ -8,6 +8,7 @@ import { FabricCanvas } from "@/components/canvas/FabricCanvas";
 import { ShapesLibrary } from "@/components/canvas/ShapesLibrary";
 import { IconLibrary } from "@/components/canvas/IconLibrary";
 import { TopToolbar } from "@/components/canvas/TopToolbar";
+import { Toolbar } from "@/components/canvas/Toolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertiesPanel } from "@/components/canvas/PropertiesPanel";
 import { BottomBar } from "@/components/canvas/BottomBar";
@@ -219,6 +220,9 @@ const CanvasContent = () => {
               onCategoryChange={setSelectedIconCategory}
             />
           </div>
+
+          {/* Vertical Toolbar */}
+          <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
         {/* Canvas */}
         <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} />
