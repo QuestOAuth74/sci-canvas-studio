@@ -197,7 +197,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       )}
       
       {!loading && (
-        <ScrollArea className="flex-1 px-3">
+        <ScrollArea className="flex-1 h-0 px-3">
         <Accordion type="multiple" defaultValue={categories.map(c => c.id)} className="w-full space-y-2 py-3">
           {categories.map((category) => {
             const categoryIcons = iconsByCategory[category.id] || [];
