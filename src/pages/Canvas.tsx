@@ -7,6 +7,7 @@ import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
 import { ShapesLibrary } from "@/components/canvas/ShapesLibrary";
 import { IconLibrary } from "@/components/canvas/IconLibrary";
+import { ChartLibrary } from "@/components/canvas/ChartLibrary";
 import { TopToolbar } from "@/components/canvas/TopToolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertiesPanel } from "@/components/canvas/PropertiesPanel";
@@ -23,6 +24,7 @@ const CanvasContent = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
   const [selectedIconCategory, setSelectedIconCategory] = useState<string>("");
+  const [showCharts, setShowCharts] = useState(false);
   const {
     canvas,
     undo,
@@ -57,11 +59,23 @@ const CanvasContent = () => {
 
   const handleShapeSelect = (shape: string) => {
     setActiveTool(shape);
-    toast.success(`Selected ${shape}`);
+    setShowCharts(shape.startsWith('chart-'));
+    toast.success(`Selected ${shape.replace('chart-', '').replace('-', ' ')}`);
   };
 
   const handleShapeCreated = () => {
     setActiveTool("select");
+    setShowCharts(false);
+  };
+
+  const handleChartCreate = async (chartData: any, chartType: string) => {
+    // Dispatch event to add chart to canvas
+    window.dispatchEvent(
+      new CustomEvent("addChartToCanvas", { 
+        detail: { chartData, chartType } 
+      })
+    );
+    handleShapeCreated();
   };
 
   const startEditingName = () => {
@@ -212,12 +226,19 @@ const CanvasContent = () => {
 
         {/* Main Editor Area */}
         <div className="flex flex-1 overflow-hidden min-h-0">
-          {/* Left Sidebar - Icon Categories */}
+          {/* Left Sidebar - Icon Categories or Charts */}
           <div className="w-64 glass-effect border-r border-border/40 flex flex-col overflow-hidden min-h-0">
-            <IconLibrary 
-              selectedCategory={selectedIconCategory} 
-              onCategoryChange={setSelectedIconCategory}
-            />
+            {showCharts ? (
+              <ChartLibrary 
+                chartType={activeTool}
+                onChartCreate={handleChartCreate}
+              />
+            ) : (
+              <IconLibrary 
+                selectedCategory={selectedIconCategory} 
+                onCategoryChange={setSelectedIconCategory}
+              />
+            )}
           </div>
 
         {/* Canvas */}

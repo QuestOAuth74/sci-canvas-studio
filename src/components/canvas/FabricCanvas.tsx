@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
+import { renderToString } from "react-dom/server";
+import { ChartRenderer } from "./ChartRenderer";
 
 interface FabricCanvasProps {
   activeTool: string;
@@ -101,14 +103,86 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       }
     };
 
+    // Listen for custom event to add charts to canvas
+    const handleAddChart = async (event: CustomEvent) => {
+      const { chartData, chartType } = event.detail;
+
+      try {
+        // Create an off-screen container to render the chart
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
+        container.style.width = '600px';
+        container.style.height = '400px';
+        document.body.appendChild(container);
+
+        // Dynamically import and render chart
+        const { createRoot } = await import('react-dom/client');
+        const root = createRoot(container);
+        
+        await new Promise<void>((resolve) => {
+          root.render(
+            <ChartRenderer 
+              data={chartData} 
+              type={chartType} 
+              width={600} 
+              height={400} 
+            />
+          );
+          // Give time for chart to render
+          setTimeout(() => resolve(), 1000);
+        });
+
+        // Convert to image using html2canvas
+        const html2canvas = (await import('html2canvas')).default;
+        const chartCanvas = await html2canvas(container, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+        });
+
+        // Convert canvas to data URL
+        const dataUrl = chartCanvas.toDataURL('image/png');
+
+        // Clean up
+        root.unmount();
+        document.body.removeChild(container);
+
+        // Add to Fabric canvas as image
+        FabricImage.fromURL(dataUrl, {
+          crossOrigin: 'anonymous',
+        }).then((img) => {
+          // Scale to fit within canvas
+          const maxW = (canvas.width || 0) * 0.5;
+          const maxH = (canvas.height || 0) * 0.5;
+          const scale = Math.min(maxW / (img.width || 1), maxH / (img.height || 1), 1);
+          img.scale(scale);
+          
+          // Center on canvas
+          img.set({
+            left: (canvas.width || 0) / 2 - (img.width || 0) * scale / 2,
+            top: (canvas.height || 0) / 2 - (img.height || 0) * scale / 2,
+          });
+          
+          canvas.add(img);
+          canvas.renderAll();
+          toast.success("Chart added to canvas");
+        });
+      } catch (error) {
+        console.error("Error adding chart:", error);
+        toast.error("Failed to add chart to canvas");
+      }
+    };
+
     window.addEventListener("addIconToCanvas", handleAddIcon as EventListener);
+    window.addEventListener("addChartToCanvas", handleAddChart as EventListener);
 
     return () => {
       window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
+      window.removeEventListener("addChartToCanvas", handleAddChart as EventListener);
       setCanvas(null);
       canvas.dispose();
     };
-  }, [setCanvas, setSelectedObject]);
+  }, [setCanvas, setSelectedObject, canvas]);
 
   // Handle canvas dimension changes
   useEffect(() => {
