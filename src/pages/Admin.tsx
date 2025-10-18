@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IconUploader } from "@/components/admin/IconUploader";
 import { IconManager } from "@/components/admin/IconManager";
+import { IconCleanup } from "@/components/admin/IconCleanup";
 import { CategoryManager } from "@/components/admin/CategoryManager";
 import { ThumbnailGenerator } from "@/components/admin/ThumbnailGenerator";
 import { ThumbnailRegenerator } from "@/components/admin/ThumbnailRegenerator";
@@ -52,6 +53,7 @@ const Admin = () => {
           <TabsContent value="upload" className="mt-6">
             <div className="space-y-6">
               <IconUploader />
+              <IconCleanup />
               <ThumbnailGenerator />
               <ThumbnailRegenerator />
             </div>

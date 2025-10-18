@@ -12,67 +12,81 @@ interface IconRecord {
   thumbnail: string | null;
 }
 
-// Generate optimized thumbnail from full SVG
+// Generate optimized thumbnail from full SVG (target max 50KB)
 function generateThumbnail(svgContent: string): string {
   try {
-    // Remove XML declaration and comments
+    // Step 1: Remove XML declarations, comments, metadata (aggressive cleanup)
     let optimized = svgContent
       .replace(/<\?xml[^>]*\?>/g, '')
       .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
+      .replace(/<title>[\s\S]*?<\/title>/gi, '')
+      .replace(/<desc>[\s\S]*?<\/desc>/gi, '')
+      .replace(/<defs>[\s\S]*?<\/defs>/gi, '')
       .trim();
 
-    // Extract viewBox or width/height for aspect ratio
+    // Step 2: Ensure viewBox exists for proper scaling
     const viewBoxMatch = optimized.match(/viewBox=["']([^"']*)["']/);
     const widthMatch = optimized.match(/width=["']([^"']*)["']/);
     const heightMatch = optimized.match(/height=["']([^"']*)["']/);
 
-    // Ensure viewBox exists
     if (!viewBoxMatch && widthMatch && heightMatch) {
       const width = parseFloat(widthMatch[1]);
       const height = parseFloat(heightMatch[1]);
       if (!isNaN(width) && !isNaN(height)) {
-        optimized = optimized.replace(
-          '<svg',
-          `<svg viewBox="0 0 ${width} ${height}"`
-        );
+        optimized = optimized.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
       }
     }
 
-    // Remove unnecessary attributes for thumbnails
+    // Step 3: Remove unnecessary attributes (aggressive)
     optimized = optimized
       .replace(/\s+id=["'][^"']*["']/g, '')
       .replace(/\s+class=["'][^"']*["']/g, '')
       .replace(/\s+style=["'][^"']*["']/g, '')
-      .replace(/\s+data-[^=]*=["'][^"']*["']/g, '');
+      .replace(/\s+data-[^=]*=["'][^"']*["']/g, '')
+      .replace(/\s+xmlns:[^=]*=["'][^"']*["']/g, '');
 
-    // Reduce precision of numbers (6 decimals -> 2 decimals)
-    optimized = optimized.replace(/(\d+\.\d{3,})/g, (match) => {
-      return parseFloat(match).toFixed(2);
-    });
+    // Step 4: Reduce decimal precision (1 decimal place for thumbnails)
+    optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
 
-    // Remove extra whitespace
+    // Step 5: Minify whitespace aggressively
     optimized = optimized
       .replace(/\s+/g, ' ')
       .replace(/>\s+</g, '><')
       .trim();
 
-    // If still too large, apply more aggressive optimization
-    if (optimized.length > 15000) {
-      // Remove title and desc tags
+    // Step 6: Additional optimization for large SVGs (target max 50KB)
+    if (optimized.length > 50000) {
+      // Remove fill/stroke colors (will inherit)
       optimized = optimized
-        .replace(/<title>[\s\S]*?<\/title>/gi, '')
-        .replace(/<desc>[\s\S]*?<\/desc>/gi, '');
+        .replace(/\s+fill=["'][^"']*["']/g, '')
+        .replace(/\s+stroke=["'][^"']*["']/g, '');
       
-      // Simplify path data even more (1 decimal)
-      optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => {
-        return parseFloat(match).toFixed(1);
-      });
+      // Further reduce precision to integers
+      optimized = optimized.replace(/(\d+\.\d+)/g, (match) => Math.round(parseFloat(match)).toString());
     }
+
+    // Step 7: Validate result
+    if (!optimized.includes('<svg') || !optimized.includes('</svg>')) {
+      console.warn('Optimization produced invalid SVG, using original');
+      return svgContent;
+    }
+
+    // Step 8: Final size check (reject if still too large)
+    if (optimized.length > 100000) {
+      console.error('Thumbnail too large after optimization:', optimized.length, 'bytes');
+      return svgContent.substring(0, 50000); // Truncate as last resort
+    }
+
+    const originalSize = svgContent.length;
+    const newSize = optimized.length;
+    const reduction = ((originalSize - newSize) / originalSize * 100).toFixed(1);
+    console.log(`Thumbnail optimized: ${originalSize} → ${newSize} bytes (${reduction}% reduction)`);
 
     return optimized;
   } catch (error) {
-    console.error('Error generating thumbnail:', error);
-    return svgContent; // Fallback to original
+    console.error('Thumbnail generation error:', error);
+    return svgContent;
   }
 }
 
@@ -154,7 +168,24 @@ Deno.serve(async (req) => {
     // Process icons one at a time to minimize memory usage
     for (const icon of icons as IconRecord[]) {
       try {
+        console.log(`Processing icon: ${icon.name} (${icon.id})`);
+        
+        // Validate SVG content before processing
+        if (!icon.svg_content.includes('<svg') || !icon.svg_content.includes('</svg>')) {
+          console.error(`Invalid SVG content for ${icon.name}`);
+          failed++;
+          continue;
+        }
+        
         const thumbnail = generateThumbnail(icon.svg_content);
+        
+        // Validate generated thumbnail size
+        const thumbnailSize = new TextEncoder().encode(thumbnail).length;
+        if (thumbnailSize > 100000) {
+          console.error(`Generated thumbnail too large for ${icon.name}: ${thumbnailSize} bytes`);
+          failed++;
+          continue;
+        }
         
         // Free memory immediately after processing
         icon.svg_content = '';
@@ -165,16 +196,17 @@ Deno.serve(async (req) => {
           .eq('id', icon.id);
 
         if (updateError) {
-          console.error(`Failed to update icon ${icon.name}:`, updateError);
+          console.error(`Failed to update ${icon.name}:`, updateError);
           failed++;
         } else {
+          console.log(`✓ Generated thumbnail for ${icon.name} (${thumbnailSize} bytes)`);
           processed++;
           if (processed % 10 === 0) {
             console.log(`Progress: ${processed}/${icons.length} icons processed`);
           }
         }
       } catch (error) {
-        console.error(`Error processing icon ${icon.name}:`, error);
+        console.error(`Error processing ${icon.name}:`, error);
         failed++;
       }
     }

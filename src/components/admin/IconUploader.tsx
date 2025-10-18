@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, FileArchive } from "lucide-react";
+import { Upload, FileArchive, AlertTriangle, CheckCircle } from "lucide-react";
 import JSZip from "jszip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface Category {
   id: string;
@@ -21,6 +22,9 @@ export const IconUploader = () => {
   const [file, setFile] = useState<File | null>(null);
   const [zipFile, setZipFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [fileSize, setFileSize] = useState<number>(0);
+  const [validationWarning, setValidationWarning] = useState<string>("");
 
   useEffect(() => {
     loadCategories();
@@ -37,20 +41,62 @@ export const IconUploader = () => {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setFileSize(selectedFile.size);
+      
+      // Validate and preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        
+        // Validate SVG
+        if (!content.includes('<svg') || !content.includes('</svg>')) {
+          setValidationWarning("This doesn't appear to be a valid SVG file");
+          setFilePreview(null);
+          return;
+        }
+        
+        // Warn about large files
+        if (selectedFile.size > 500000) {
+          setValidationWarning("⚠️ Large file detected (>500KB). Upload may be slow.");
+        } else if (selectedFile.size > 100000) {
+          setValidationWarning("File size is moderate. Optimization will be applied.");
+        } else {
+          setValidationWarning("");
+        }
+        
+        setFilePreview(content);
+      };
+      reader.readAsText(selectedFile);
     }
   };
+  
+  // Sanitize filename
+  const sanitizeFileName = (fileName: string): string => {
+    return fileName
+      .replace(/[^a-zA-Z0-9-_\s]/g, '')
+      .replace(/\s+/g, '-')
+      .toLowerCase()
+      .substring(0, 100);
+  };
 
-  // Generate thumbnail from full SVG
+  // Generate optimized thumbnail from full SVG (target max 50KB)
   const generateThumbnail = (svgContent: string): string => {
     try {
+      // Step 1: Remove XML declarations, comments, metadata
       let optimized = svgContent
         .replace(/<\?xml[^>]*\?>/g, '')
         .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
+        .replace(/<title>[\s\S]*?<\/title>/gi, '')
+        .replace(/<desc>[\s\S]*?<\/desc>/gi, '')
+        .replace(/<defs>[\s\S]*?<\/defs>/gi, '')
         .trim();
 
+      // Step 2: Ensure viewBox exists
       const viewBoxMatch = optimized.match(/viewBox=["']([^"']*)["']/);
       const widthMatch = optimized.match(/width=["']([^"']*)["']/);
       const heightMatch = optimized.match(/height=["']([^"']*)["']/);
@@ -63,21 +109,47 @@ export const IconUploader = () => {
         }
       }
 
+      // Step 3: Remove unnecessary attributes
       optimized = optimized
         .replace(/\s+id=["'][^"']*["']/g, '')
         .replace(/\s+class=["'][^"']*["']/g, '')
-        .replace(/\s+style=["'][^"']*["']/g, '');
+        .replace(/\s+style=["'][^"']*["']/g, '')
+        .replace(/\s+data-[^=]*=["'][^"']*["']/g, '')
+        .replace(/\s+xmlns:[^=]*=["'][^"']*["']/g, '');
 
-      optimized = optimized.replace(/(\d+\.\d{3,})/g, (match) => parseFloat(match).toFixed(2));
-      optimized = optimized.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
+      // Step 4: Reduce decimal precision aggressively
+      optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
 
-      if (optimized.length > 15000) {
+      // Step 5: Remove whitespace
+      optimized = optimized
+        .replace(/\s+/g, ' ')
+        .replace(/>\s+</g, '><')
+        .trim();
+
+      // Step 6: If still too large, apply more aggressive optimizations
+      if (optimized.length > 50000) {
+        // Remove all fill/stroke colors (will inherit)
         optimized = optimized
-          .replace(/<title>[\s\S]*?<\/title>/gi, '')
-          .replace(/<desc>[\s\S]*?<\/desc>/gi, '');
-        optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
+          .replace(/\s+fill=["'][^"']*["']/g, '')
+          .replace(/\s+stroke=["'][^"']*["']/g, '');
+        
+        // Further reduce precision
+        optimized = optimized.replace(/(\d+\.\d+)/g, (match) => Math.round(parseFloat(match)).toString());
       }
 
+      // Step 7: Validate result is still valid SVG
+      if (!optimized.includes('<svg') || !optimized.includes('</svg>')) {
+        console.warn('Optimization produced invalid SVG, using original');
+        return svgContent;
+      }
+
+      // Step 8: Final size check
+      if (optimized.length > 100000) {
+        console.warn('Thumbnail still too large after optimization:', optimized.length);
+        return svgContent.substring(0, 50000); // Truncate as last resort
+      }
+
+      console.log(`Thumbnail optimized: ${svgContent.length} → ${optimized.length} bytes`);
       return optimized;
     } catch (error) {
       console.error('Thumbnail generation error:', error);
@@ -91,15 +163,30 @@ export const IconUploader = () => {
       return;
     }
 
+    if (validationWarning.includes("valid SVG")) {
+      toast.error("Please select a valid SVG file");
+      return;
+    }
+
+    setIsUploading(true);
     const reader = new FileReader();
     reader.onload = async (e) => {
       const svgContent = e.target?.result as string;
+      
+      // Validate SVG content
+      if (!svgContent.includes('<svg') || !svgContent.includes('</svg>')) {
+        toast.error("Invalid SVG file");
+        setIsUploading(false);
+        return;
+      }
+      
       const thumbnail = generateThumbnail(svgContent);
+      const sanitizedName = sanitizeFileName(iconName);
       
       const { error } = await supabase
         .from('icons')
         .insert([{
-          name: iconName,
+          name: sanitizedName,
           category: selectedCategory,
           svg_content: svgContent,
           thumbnail: thumbnail
@@ -109,11 +196,14 @@ export const IconUploader = () => {
         toast.error("Failed to upload icon");
         console.error(error);
       } else {
-        toast.success("Icon uploaded successfully!");
+        toast.success(`Icon "${sanitizedName}" uploaded successfully!`);
         setIconName("");
         setFile(null);
+        setFilePreview(null);
+        setValidationWarning("");
         setSelectedCategory("");
       }
+      setIsUploading(false);
     };
 
     reader.readAsText(file);
@@ -140,7 +230,15 @@ export const IconUploader = () => {
         const file = zipContent.files[filename];
         if (!file.dir) {
           const content = await file.async('text');
-          const iconName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
+          
+          // Validate SVG
+          if (!content.includes('<svg') || !content.includes('</svg>')) {
+            console.warn('Skipping invalid SVG:', filename);
+            continue;
+          }
+          
+          const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
+          const iconName = sanitizeFileName(rawName);
           const thumbnail = generateThumbnail(content);
           
           const { error } = await supabase
@@ -154,6 +252,8 @@ export const IconUploader = () => {
 
           if (!error) {
             uploadedCount++;
+          } else {
+            console.error('Failed to upload:', iconName, error);
           }
         }
       }
@@ -220,11 +320,39 @@ export const IconUploader = () => {
               accept=".svg"
               onChange={handleFileChange}
             />
+            {fileSize > 0 && (
+              <p className="text-xs text-muted-foreground">
+                File size: {(fileSize / 1024).toFixed(2)} KB
+              </p>
+            )}
           </div>
 
-          <Button onClick={handleUpload} className="w-full">
+          {validationWarning && (
+            <Alert variant={validationWarning.includes("valid") ? "destructive" : "default"}>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>{validationWarning}</AlertDescription>
+            </Alert>
+          )}
+
+          {filePreview && (
+            <div className="border border-border rounded-lg p-4">
+              <Label className="text-sm font-medium mb-2 block">Preview:</Label>
+              <div className="w-24 h-24 mx-auto border border-border rounded-lg p-2 flex items-center justify-center bg-muted">
+                <div 
+                  dangerouslySetInnerHTML={{ __html: filePreview }}
+                  className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
+                />
+              </div>
+            </div>
+          )}
+
+          <Button 
+            onClick={handleUpload} 
+            className="w-full" 
+            disabled={isUploading || !file || validationWarning.includes("valid")}
+          >
             <Upload className="h-4 w-4 mr-2" />
-            Upload Icon
+            {isUploading ? "Uploading..." : "Upload Icon"}
           </Button>
         </CardContent>
       </Card>
