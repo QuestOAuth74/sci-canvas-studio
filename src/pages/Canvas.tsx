@@ -59,6 +59,10 @@ const CanvasContent = () => {
     toast.success(`Selected ${shape}`);
   };
 
+  const handleShapeCreated = () => {
+    setActiveTool("select");
+  };
+
   const startEditingName = () => {
     setTempName(projectName);
     setIsEditingName(true);
@@ -209,7 +213,7 @@ const CanvasContent = () => {
           </div>
 
         {/* Canvas */}
-        <FabricCanvas activeTool={activeTool} />
+        <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} />
 
         {/* Right Properties Panel */}
         <div className="w-64 glass-effect border-l border-border/40 flex flex-col overflow-hidden min-h-0">

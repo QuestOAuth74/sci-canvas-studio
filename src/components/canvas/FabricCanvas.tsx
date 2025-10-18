@@ -5,9 +5,10 @@ import { useCanvas } from "@/contexts/CanvasContext";
 
 interface FabricCanvasProps {
   activeTool: string;
+  onShapeCreated?: () => void;
 }
 
-export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
+export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { 
     canvas,
@@ -301,6 +302,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           }
         }
         canvas.requestRenderAll();
+        if (onShapeCreated) onShapeCreated();
         return;
       }
       
@@ -317,6 +319,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(rect);
+          canvas.setActiveObject(rect);
           break;
 
         case "rounded-rect":
@@ -332,6 +335,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(roundedRect);
+          canvas.setActiveObject(roundedRect);
           break;
           
         case "circle":
@@ -347,6 +351,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(circle);
+          canvas.setActiveObject(circle);
           break;
 
         case "rhombus":
@@ -361,6 +366,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(rhombus);
+          canvas.setActiveObject(rhombus);
           break;
 
         case "parallelogram":
@@ -375,6 +381,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(parallelogram);
+          canvas.setActiveObject(parallelogram);
           break;
 
         case "trapezoid":
@@ -389,6 +396,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(trapezoid);
+          canvas.setActiveObject(trapezoid);
           break;
 
         case "pentagon":
@@ -406,6 +414,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(pentagon);
+          canvas.setActiveObject(pentagon);
           break;
 
         case "hexagon":
@@ -423,6 +432,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(hexagon);
+          canvas.setActiveObject(hexagon);
           break;
 
         case "octagon":
@@ -440,6 +450,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(octagon);
+          canvas.setActiveObject(octagon);
           break;
           
         case "star":
@@ -460,6 +471,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(star);
+          canvas.setActiveObject(star);
           break;
 
         case "triangle":
@@ -481,6 +493,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(triangle);
+          canvas.setActiveObject(triangle);
           break;
 
         case "arrow-right":
@@ -498,6 +511,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(arrow);
+          canvas.setActiveObject(arrow);
           break;
 
         case "arrow-left":
@@ -515,6 +529,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(arrowLeft);
+          canvas.setActiveObject(arrowLeft);
           break;
 
         case "arrow-up":
@@ -532,6 +547,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(arrowUp);
+          canvas.setActiveObject(arrowUp);
           break;
 
         case "arrow-down":
@@ -549,6 +565,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(arrowDown);
+          canvas.setActiveObject(arrowDown);
           break;
 
         case "arrow-double-h":
@@ -569,6 +586,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(doubleArrowH);
+          canvas.setActiveObject(doubleArrowH);
           break;
 
         case "arrow-thick":
@@ -586,6 +604,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(thickArrow);
+          canvas.setActiveObject(thickArrow);
           break;
 
         case "process":
@@ -599,6 +618,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(process);
+          canvas.setActiveObject(process);
           break;
 
         case "decision":
@@ -613,6 +633,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(decision);
+          canvas.setActiveObject(decision);
           break;
 
         case "data":
@@ -627,6 +648,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(data);
+          canvas.setActiveObject(data);
           break;
 
         case "terminator":
@@ -642,6 +664,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(terminator);
+          canvas.setActiveObject(terminator);
           break;
 
         case "document":
@@ -657,6 +680,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(documentShape);
+          canvas.setActiveObject(documentShape);
           break;
 
         case "database":
@@ -680,6 +704,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(dbBody, dbTop);
+          canvas.setActiveObject(dbTop);
           break;
 
         case "callout":
@@ -697,6 +722,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(simpleShape);
+          canvas.setActiveObject(simpleShape);
           break;
           
         case "line":
@@ -705,6 +731,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(line);
+          canvas.setActiveObject(line);
           break;
 
         default:
@@ -719,10 +746,12 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           canvas.add(defaultShape);
+          canvas.setActiveObject(defaultShape);
           break;
       }
       
       canvas.renderAll();
+      if (onShapeCreated) onShapeCreated();
     };
 
     // Detach previous handler
