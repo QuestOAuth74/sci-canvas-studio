@@ -21,6 +21,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCanvas } from "@/contexts/CanvasContext";
+import { useEffect } from "react";
+import { Textbox } from "fabric";
 
 const GOOGLE_FONTS = [
   "Inter",
@@ -52,12 +54,85 @@ export const TextFormattingPanel = () => {
     setTextBold,
     textItalic,
     setTextItalic,
+    canvas,
+    selectedObject,
   } = useCanvas();
+
+  // Update toolbar to reflect selected text object's properties
+  useEffect(() => {
+    if (selectedObject && selectedObject.type === 'textbox') {
+      const textObj = selectedObject as Textbox;
+      if (textObj.fontFamily) setTextFont(textObj.fontFamily);
+      if (textObj.textAlign) setTextAlign(textObj.textAlign);
+      setTextBold(textObj.fontWeight === 'bold');
+      setTextItalic(textObj.fontStyle === 'italic');
+      setTextUnderline(!!textObj.underline);
+      setTextOverline(!!textObj.overline);
+    }
+  }, [selectedObject, setTextFont, setTextAlign, setTextBold, setTextItalic, setTextUnderline, setTextOverline]);
+
+  const handleFontChange = (font: string) => {
+    setTextFont(font);
+    // Update selected text object if exists
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      selectedObject.set({ fontFamily: font });
+      canvas.renderAll();
+    }
+  };
+
+  const handleBoldChange = () => {
+    const newBold = !textBold;
+    setTextBold(newBold);
+    // Update selected text object if exists
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      selectedObject.set({ fontWeight: newBold ? 'bold' : 'normal' });
+      canvas.renderAll();
+    }
+  };
+
+  const handleItalicChange = () => {
+    const newItalic = !textItalic;
+    setTextItalic(newItalic);
+    // Update selected text object if exists
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      selectedObject.set({ fontStyle: newItalic ? 'italic' : 'normal' });
+      canvas.renderAll();
+    }
+  };
+
+  const handleAlignChange = (align: string) => {
+    setTextAlign(align);
+    // Update selected text object if exists
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      selectedObject.set({ textAlign: align as any });
+      canvas.renderAll();
+    }
+  };
+
+  const handleUnderlineChange = () => {
+    const newUnderline = !textUnderline;
+    setTextUnderline(newUnderline);
+    // Update selected text object if exists
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      selectedObject.set({ underline: newUnderline });
+      canvas.renderAll();
+    }
+  };
+
+  const handleOverlineChange = () => {
+    const newOverline = !textOverline;
+    setTextOverline(newOverline);
+    // Update selected text object if exists
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      selectedObject.set({ overline: newOverline });
+      canvas.renderAll();
+    }
+  };
 
   return (
     <div className="flex items-center gap-1">
       {/* Font Selection */}
-      <Select value={textFont} onValueChange={setTextFont}>
+      <Select value={textFont} onValueChange={handleFontChange}>
         <SelectTrigger className="w-[140px] h-8 text-xs bg-background">
           <SelectValue placeholder="Select font" />
         </SelectTrigger>
@@ -79,7 +154,7 @@ export const TextFormattingPanel = () => {
             variant={textBold ? "default" : "ghost"}
             size="icon"
             className="h-8 w-8"
-            onClick={() => setTextBold(!textBold)}
+            onClick={handleBoldChange}
           >
             <Bold className="h-4 w-4" />
           </Button>
@@ -93,7 +168,7 @@ export const TextFormattingPanel = () => {
             variant={textItalic ? "default" : "ghost"}
             size="icon"
             className="h-8 w-8"
-            onClick={() => setTextItalic(!textItalic)}
+            onClick={handleItalicChange}
           >
             <Italic className="h-4 w-4" />
           </Button>
@@ -110,7 +185,7 @@ export const TextFormattingPanel = () => {
             variant={textAlign === "left" ? "default" : "ghost"}
             size="icon"
             className="h-8 w-8"
-            onClick={() => setTextAlign("left")}
+            onClick={() => handleAlignChange("left")}
           >
             <AlignLeft className="h-4 w-4" />
           </Button>
@@ -124,7 +199,7 @@ export const TextFormattingPanel = () => {
             variant={textAlign === "center" ? "default" : "ghost"}
             size="icon"
             className="h-8 w-8"
-            onClick={() => setTextAlign("center")}
+            onClick={() => handleAlignChange("center")}
           >
             <AlignCenter className="h-4 w-4" />
           </Button>
@@ -138,7 +213,7 @@ export const TextFormattingPanel = () => {
             variant={textAlign === "right" ? "default" : "ghost"}
             size="icon"
             className="h-8 w-8"
-            onClick={() => setTextAlign("right")}
+            onClick={() => handleAlignChange("right")}
           >
             <AlignRight className="h-4 w-4" />
           </Button>
@@ -155,7 +230,7 @@ export const TextFormattingPanel = () => {
             variant={textUnderline ? "default" : "ghost"}
             size="icon"
             className="h-8 w-8"
-            onClick={() => setTextUnderline(!textUnderline)}
+            onClick={handleUnderlineChange}
           >
             <Underline className="h-4 w-4" />
           </Button>
@@ -169,7 +244,7 @@ export const TextFormattingPanel = () => {
             variant={textOverline ? "default" : "ghost"}
             size="icon"
             className="h-8 w-8 relative"
-            onClick={() => setTextOverline(!textOverline)}
+            onClick={handleOverlineChange}
           >
             <Type className="h-4 w-4" />
             <div className="absolute top-1.5 left-2 right-2 h-px bg-current" />
