@@ -50,6 +50,23 @@ export const PropertiesPanel = () => {
   const [textFont, setTextFont] = useState("Inter");
   const [textSize, setTextSize] = useState(24);
   const [textColor, setTextColor] = useState("#000000");
+  const [shapeFillColor, setShapeFillColor] = useState("#3b82f6");
+  const [shapeStrokeColor, setShapeStrokeColor] = useState("#000000");
+
+  const COLOR_PALETTE = [
+    "#3b82f6", // Blue
+    "#0D9488", // Teal
+    "#10b981", // Green
+    "#f59e0b", // Amber
+    "#ef4444", // Red
+    "#8b5cf6", // Purple
+    "#ec4899", // Pink
+    "#06b6d4", // Cyan
+    "#ffffff", // White
+    "#000000", // Black
+    "#6b7280", // Gray
+    "#f3f4f6", // Light gray
+  ];
 
   // Update text properties when selected object changes
   useEffect(() => {
@@ -58,6 +75,11 @@ export const PropertiesPanel = () => {
       setTextFont(textObj.fontFamily || "Inter");
       setTextSize(textObj.fontSize || 24);
       setTextColor(textObj.fill as string || "#000000");
+    }
+    // Update shape color properties for non-text objects
+    if (selectedObject && selectedObject.type !== 'textbox') {
+      setShapeFillColor((selectedObject.fill as string) || "#3b82f6");
+      setShapeStrokeColor((selectedObject.stroke as string) || "#000000");
     }
   }, [selectedObject]);
 
@@ -87,6 +109,22 @@ export const PropertiesPanel = () => {
     if (canvas && selectedObject && selectedObject.type === 'textbox') {
       const textObj = selectedObject as Textbox;
       textObj.set({ fill: color });
+      canvas.renderAll();
+    }
+  };
+
+  const handleShapeFillColorChange = (color: string) => {
+    setShapeFillColor(color);
+    if (canvas && selectedObject && selectedObject.type !== 'textbox') {
+      selectedObject.set({ fill: color });
+      canvas.renderAll();
+    }
+  };
+
+  const handleShapeStrokeColorChange = (color: string) => {
+    setShapeStrokeColor(color);
+    if (canvas && selectedObject && selectedObject.type !== 'textbox') {
+      selectedObject.set({ stroke: color });
       canvas.renderAll();
     }
   };
@@ -202,6 +240,82 @@ export const PropertiesPanel = () => {
             
             <TabsContent value="style" className="space-y-4 mt-0">
               <StylePanel />
+
+              {/* Shape Colors - Only show for non-text objects */}
+              {selectedObject && selectedObject.type !== 'textbox' && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Shape Colors</h3>
+                  <div className="space-y-3">
+                    {/* Fill Color */}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Fill Color</Label>
+                      <div className="grid grid-cols-6 gap-2">
+                        {COLOR_PALETTE.map((color) => (
+                          <button
+                            key={color}
+                            onClick={() => handleShapeFillColorChange(color)}
+                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                            style={{ 
+                              backgroundColor: color,
+                              borderColor: shapeFillColor === color ? '#0D9488' : '#e5e7eb'
+                            }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="color" 
+                          value={shapeFillColor}
+                          onChange={(e) => handleShapeFillColorChange(e.target.value)}
+                          className="h-8 w-12 p-1" 
+                        />
+                        <Input 
+                          type="text" 
+                          value={shapeFillColor}
+                          onChange={(e) => handleShapeFillColorChange(e.target.value)}
+                          className="h-8 text-xs flex-1" 
+                          placeholder="#3b82f6"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Stroke Color */}
+                    <div className="space-y-2">
+                      <Label className="text-xs">Stroke Color</Label>
+                      <div className="grid grid-cols-6 gap-2">
+                        {COLOR_PALETTE.map((color) => (
+                          <button
+                            key={color}
+                            onClick={() => handleShapeStrokeColorChange(color)}
+                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                            style={{ 
+                              backgroundColor: color,
+                              borderColor: shapeStrokeColor === color ? '#0D9488' : '#e5e7eb'
+                            }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="color" 
+                          value={shapeStrokeColor}
+                          onChange={(e) => handleShapeStrokeColorChange(e.target.value)}
+                          className="h-8 w-12 p-1" 
+                        />
+                        <Input 
+                          type="text" 
+                          value={shapeStrokeColor}
+                          onChange={(e) => handleShapeStrokeColorChange(e.target.value)}
+                          className="h-8 text-xs flex-1" 
+                          placeholder="#000000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               <div className="pt-3 border-t">
                 <h3 className="font-semibold text-sm mb-3">Text</h3>
