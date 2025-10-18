@@ -112,20 +112,24 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     canvas.renderAll();
   }, [canvas, zoom]);
 
-  // Handle grid, rulers, and background color changes
+  // Handle background color changes
+  useEffect(() => {
+    if (!canvas) return;
+    canvas.backgroundColor = backgroundColor;
+    canvas.renderAll();
+  }, [canvas, backgroundColor]);
+
+  // Handle grid rendering - redraws on zoom changes to prevent double grid
   useEffect(() => {
     if (!canvas) return;
 
-    // Clear existing grid and ruler lines
+    // Clear existing grid lines
     const objects = canvas.getObjects();
     objects.forEach(obj => {
-      if ((obj as any).isGridLine || (obj as any).isRuler) {
+      if ((obj as any).isGridLine) {
         canvas.remove(obj);
       }
     });
-
-    // Update background color
-    canvas.backgroundColor = backgroundColor;
 
     // Draw grid if enabled
     if (gridEnabled) {
@@ -163,6 +167,21 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         canvas.sendObjectToBack(line);
       }
     }
+
+    canvas.renderAll();
+  }, [canvas, gridEnabled, zoom]);
+
+  // Handle rulers - separate from grid so they scale with zoom
+  useEffect(() => {
+    if (!canvas) return;
+
+    // Clear existing ruler objects
+    const objects = canvas.getObjects();
+    objects.forEach(obj => {
+      if ((obj as any).isRuler) {
+        canvas.remove(obj);
+      }
+    });
 
     // Draw rulers if enabled
     if (rulersEnabled) {
@@ -234,7 +253,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     }
 
     canvas.renderAll();
-  }, [canvas, gridEnabled, rulersEnabled, backgroundColor]);
+  }, [canvas, rulersEnabled]);
 
   // Handle tool changes
   useEffect(() => {
