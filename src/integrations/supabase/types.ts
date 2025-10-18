@@ -30,6 +30,7 @@ export type Database = {
           name: string
           original_project_id: string | null
           paper_size: string | null
+          rejection_reason: string | null
           thumbnail_url: string | null
           title: string | null
           updated_at: string | null
@@ -51,6 +52,7 @@ export type Database = {
           name?: string
           original_project_id?: string | null
           paper_size?: string | null
+          rejection_reason?: string | null
           thumbnail_url?: string | null
           title?: string | null
           updated_at?: string | null
@@ -72,6 +74,7 @@ export type Database = {
           name?: string
           original_project_id?: string | null
           paper_size?: string | null
+          rejection_reason?: string | null
           thumbnail_url?: string | null
           title?: string | null
           updated_at?: string | null

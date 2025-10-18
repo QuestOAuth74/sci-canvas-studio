@@ -142,7 +142,12 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
             <Alert className="mt-4 border-destructive">
               <AlertCircle className="h-4 w-4 text-destructive" />
               <AlertDescription>
-                This project was not approved for the community gallery.
+                <p className="font-medium mb-1">This project was not approved for the community gallery.</p>
+                {(project as any).rejection_reason && (
+                  <p className="text-sm mt-2 text-muted-foreground">
+                    <strong>Reason:</strong> {(project as any).rejection_reason}
+                  </p>
+                )}
               </AlertDescription>
             </Alert>
           )}
