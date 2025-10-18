@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path } from "fabric";
+import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 
@@ -285,8 +285,12 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
 
     if (activeTool === "freeform-line") {
       canvas.isDrawingMode = true;
-      canvas.freeDrawingBrush.color = "#000000";
-      canvas.freeDrawingBrush.width = 2;
+      
+      // Create and configure the pencil brush
+      const brush = new PencilBrush(canvas);
+      brush.color = "#000000";
+      brush.width = 2;
+      canvas.freeDrawingBrush = brush;
 
       // Handle path creation
       const handlePathCreated = (e: any) => {
