@@ -186,27 +186,24 @@ export const IconUploader = () => {
       const thumbnail = generateThumbnail(svgContent);
       const sanitizedName = sanitizeFileName(iconName);
       
-      // Validate thumbnail before upload
-      if (!thumbnail || thumbnail.length > 100000) {
-        toast.error("Thumbnail generation failed - file may be too complex");
-        setIsUploading(false);
-        return;
-      }
-      
       const { error } = await supabase
         .from('icons')
         .insert([{
           name: sanitizedName,
           category: selectedCategory,
           svg_content: svgContent,
-          thumbnail: thumbnail
+          thumbnail: thumbnail || null
         }]);
 
       if (error) {
         toast.error("Failed to upload icon");
         console.error(error);
       } else {
-        toast.success(`Icon "${sanitizedName}" uploaded successfully!`);
+        if (!thumbnail) {
+          toast.success(`Icon "${sanitizedName}" uploaded. Use Thumbnail Generator to create optimized preview.`);
+        } else {
+          toast.success(`Icon "${sanitizedName}" uploaded successfully!`);
+        }
         setIconName("");
         setFile(null);
         setFilePreview(null);
@@ -231,6 +228,7 @@ export const IconUploader = () => {
       const zip = new JSZip();
       const zipContent = await zip.loadAsync(zipFile);
       let uploadedCount = 0;
+      let needThumbnails = 0;
 
       const svgFiles = Object.keys(zipContent.files).filter(
         (filename) => filename.toLowerCase().endsWith('.svg') && !filename.startsWith('__MACOSX')
@@ -253,10 +251,8 @@ export const IconUploader = () => {
           const iconName = sanitizeFileName(rawName);
           const thumbnail = generateThumbnail(sanitized);
           
-          // Skip if thumbnail generation failed or is too large
-          if (!thumbnail || thumbnail.length > 100000) {
-            console.warn(`Skipping ${filename}: thumbnail ${thumbnail ? 'too large' : 'generation failed'}`);
-            continue;
+          if (!thumbnail) {
+            needThumbnails++;
           }
           
           const { error } = await supabase
@@ -265,7 +261,7 @@ export const IconUploader = () => {
               name: iconName,
               category: selectedCategory,
               svg_content: sanitized,
-              thumbnail: thumbnail
+              thumbnail: thumbnail || null
             }]);
 
           if (!error) {
@@ -276,7 +272,11 @@ export const IconUploader = () => {
         }
       }
 
-      toast.success(`Successfully uploaded ${uploadedCount} icons!`);
+      if (needThumbnails > 0) {
+        toast.success(`Uploaded ${uploadedCount} icons. ${needThumbnails} need thumbnail generation.`);
+      } else {
+        toast.success(`Successfully uploaded ${uploadedCount} icons!`);
+      }
       setZipFile(null);
       setSelectedCategory("");
     } catch (error) {
