@@ -1076,6 +1076,312 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
           break;
         }
 
+        case "y-split-right-curved": {
+          const ySplitPath = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + 40} M ${pointer.x} ${pointer.y + 40} Q ${pointer.x + 20} ${pointer.y + 50} ${pointer.x + 60} ${pointer.y + 30} M ${pointer.x} ${pointer.y + 40} Q ${pointer.x + 20} ${pointer.y + 50} ${pointer.x + 60} ${pointer.y + 70}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const arrowHead1 = new Polygon([
+            { x: pointer.x + 60, y: pointer.y + 30 },
+            { x: pointer.x + 50, y: pointer.y + 27 },
+            { x: pointer.x + 50, y: pointer.y + 33 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead2 = new Polygon([
+            { x: pointer.x + 60, y: pointer.y + 70 },
+            { x: pointer.x + 50, y: pointer.y + 67 },
+            { x: pointer.x + 50, y: pointer.y + 73 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const ySplitGroup = new Group([ySplitPath, arrowHead1, arrowHead2], {
+            selectable: true,
+          });
+          canvas.add(ySplitGroup);
+          canvas.setActiveObject(ySplitGroup);
+          break;
+        }
+
+        case "y-split-left-curved": {
+          const ySplitPath = new Path(
+            `M ${pointer.x + 60} ${pointer.y} L ${pointer.x + 60} ${pointer.y + 40} M ${pointer.x + 60} ${pointer.y + 40} Q ${pointer.x + 40} ${pointer.y + 50} ${pointer.x} ${pointer.y + 30} M ${pointer.x + 60} ${pointer.y + 40} Q ${pointer.x + 40} ${pointer.y + 50} ${pointer.x} ${pointer.y + 70}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const arrowHead1 = new Polygon([
+            { x: pointer.x, y: pointer.y + 30 },
+            { x: pointer.x + 10, y: pointer.y + 27 },
+            { x: pointer.x + 10, y: pointer.y + 33 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead2 = new Polygon([
+            { x: pointer.x, y: pointer.y + 70 },
+            { x: pointer.x + 10, y: pointer.y + 67 },
+            { x: pointer.x + 10, y: pointer.y + 73 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const ySplitGroup = new Group([ySplitPath, arrowHead1, arrowHead2], {
+            selectable: true,
+          });
+          canvas.add(ySplitGroup);
+          canvas.setActiveObject(ySplitGroup);
+          break;
+        }
+
+        case "y-split-down-curved": {
+          const ySplitPath = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x + 50} ${pointer.y} M ${pointer.x + 50} ${pointer.y} Q ${pointer.x + 60} ${pointer.y + 20} ${pointer.x + 30} ${pointer.y + 60} M ${pointer.x + 50} ${pointer.y} Q ${pointer.x + 60} ${pointer.y + 20} ${pointer.x + 80} ${pointer.y + 60}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const arrowHead1 = new Polygon([
+            { x: pointer.x + 30, y: pointer.y + 60 },
+            { x: pointer.x + 27, y: pointer.y + 50 },
+            { x: pointer.x + 33, y: pointer.y + 50 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead2 = new Polygon([
+            { x: pointer.x + 80, y: pointer.y + 60 },
+            { x: pointer.x + 77, y: pointer.y + 50 },
+            { x: pointer.x + 83, y: pointer.y + 50 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const ySplitGroup = new Group([ySplitPath, arrowHead1, arrowHead2], {
+            selectable: true,
+          });
+          canvas.add(ySplitGroup);
+          canvas.setActiveObject(ySplitGroup);
+          break;
+        }
+
+        case "t-split-right-elbow": {
+          const tSplitPath = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + 80} M ${pointer.x} ${pointer.y + 20} L ${pointer.x + 60} ${pointer.y + 20} M ${pointer.x} ${pointer.y + 60} L ${pointer.x + 60} ${pointer.y + 60}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const arrowHead1 = new Polygon([
+            { x: pointer.x + 60, y: pointer.y + 20 },
+            { x: pointer.x + 50, y: pointer.y + 14 },
+            { x: pointer.x + 50, y: pointer.y + 26 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead2 = new Polygon([
+            { x: pointer.x + 60, y: pointer.y + 60 },
+            { x: pointer.x + 50, y: pointer.y + 54 },
+            { x: pointer.x + 50, y: pointer.y + 66 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const tSplitGroup = new Group([tSplitPath, arrowHead1, arrowHead2], {
+            selectable: true,
+          });
+          canvas.add(tSplitGroup);
+          canvas.setActiveObject(tSplitGroup);
+          break;
+        }
+
+        case "t-split-left-elbow": {
+          const tSplitPath = new Path(
+            `M ${pointer.x + 60} ${pointer.y} L ${pointer.x + 60} ${pointer.y + 80} M ${pointer.x + 60} ${pointer.y + 20} L ${pointer.x} ${pointer.y + 20} M ${pointer.x + 60} ${pointer.y + 60} L ${pointer.x} ${pointer.y + 60}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const arrowHead1 = new Polygon([
+            { x: pointer.x, y: pointer.y + 20 },
+            { x: pointer.x + 10, y: pointer.y + 14 },
+            { x: pointer.x + 10, y: pointer.y + 26 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead2 = new Polygon([
+            { x: pointer.x, y: pointer.y + 60 },
+            { x: pointer.x + 10, y: pointer.y + 54 },
+            { x: pointer.x + 10, y: pointer.y + 66 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const tSplitGroup = new Group([tSplitPath, arrowHead1, arrowHead2], {
+            selectable: true,
+          });
+          canvas.add(tSplitGroup);
+          canvas.setActiveObject(tSplitGroup);
+          break;
+        }
+
+        case "t-split-down-elbow": {
+          const tSplitPath = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x + 80} ${pointer.y} M ${pointer.x + 20} ${pointer.y} L ${pointer.x + 20} ${pointer.y + 60} M ${pointer.x + 60} ${pointer.y} L ${pointer.x + 60} ${pointer.y + 60}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const arrowHead1 = new Polygon([
+            { x: pointer.x + 20, y: pointer.y + 60 },
+            { x: pointer.x + 14, y: pointer.y + 50 },
+            { x: pointer.x + 26, y: pointer.y + 50 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead2 = new Polygon([
+            { x: pointer.x + 60, y: pointer.y + 60 },
+            { x: pointer.x + 54, y: pointer.y + 50 },
+            { x: pointer.x + 66, y: pointer.y + 50 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const tSplitGroup = new Group([tSplitPath, arrowHead1, arrowHead2], {
+            selectable: true,
+          });
+          canvas.add(tSplitGroup);
+          canvas.setActiveObject(tSplitGroup);
+          break;
+        }
+
+        case "3-way-split-curved": {
+          const threeSplitPath = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + 40} M ${pointer.x} ${pointer.y + 40} Q ${pointer.x + 10} ${pointer.y + 50} ${pointer.x + 50} ${pointer.y + 40} M ${pointer.x} ${pointer.y + 40} L ${pointer.x + 50} ${pointer.y + 80} M ${pointer.x} ${pointer.y + 40} Q ${pointer.x + 10} ${pointer.y + 50} ${pointer.x + 50} ${pointer.y + 120}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const arrowHead1 = new Polygon([
+            { x: pointer.x + 50, y: pointer.y + 40 },
+            { x: pointer.x + 40, y: pointer.y + 38 },
+            { x: pointer.x + 40, y: pointer.y + 42 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead2 = new Polygon([
+            { x: pointer.x + 50, y: pointer.y + 80 },
+            { x: pointer.x + 44, y: pointer.y + 70 },
+            { x: pointer.x + 56, y: pointer.y + 70 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead3 = new Polygon([
+            { x: pointer.x + 50, y: pointer.y + 120 },
+            { x: pointer.x + 40, y: pointer.y + 118 },
+            { x: pointer.x + 40, y: pointer.y + 122 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const threeSplitGroup = new Group([threeSplitPath, arrowHead1, arrowHead2, arrowHead3], {
+            selectable: true,
+          });
+          canvas.add(threeSplitGroup);
+          canvas.setActiveObject(threeSplitGroup);
+          break;
+        }
+
+        case "3-way-split-elbow": {
+          const threeSplitPath = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + 40} M ${pointer.x} ${pointer.y + 40} L ${pointer.x + 50} ${pointer.y + 40} M ${pointer.x} ${pointer.y + 40} L ${pointer.x + 50} ${pointer.y + 80} M ${pointer.x} ${pointer.y + 40} L ${pointer.x + 50} ${pointer.y + 120}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const arrowHead1 = new Polygon([
+            { x: pointer.x + 50, y: pointer.y + 40 },
+            { x: pointer.x + 40, y: pointer.y + 34 },
+            { x: pointer.x + 40, y: pointer.y + 46 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead2 = new Polygon([
+            { x: pointer.x + 50, y: pointer.y + 80 },
+            { x: pointer.x + 44, y: pointer.y + 70 },
+            { x: pointer.x + 56, y: pointer.y + 70 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHead3 = new Polygon([
+            { x: pointer.x + 50, y: pointer.y + 120 },
+            { x: pointer.x + 44, y: pointer.y + 110 },
+            { x: pointer.x + 56, y: pointer.y + 110 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const threeSplitGroup = new Group([threeSplitPath, arrowHead1, arrowHead2, arrowHead3], {
+            selectable: true,
+          });
+          canvas.add(threeSplitGroup);
+          canvas.setActiveObject(threeSplitGroup);
+          break;
+        }
+
         default:
           // For any unhandled shapes, create a basic rectangle as fallback
           const defaultShape = new Rect({

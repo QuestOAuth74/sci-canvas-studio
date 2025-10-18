@@ -28,6 +28,9 @@ import {
   TrendingUp,
   TrendingDown,
   MoveRight,
+  GitBranch,
+  GitFork,
+  Network,
 } from "lucide-react";
 
 interface ShapesDropdownProps {
@@ -245,6 +248,43 @@ export const ShapesDropdown = ({ onShapeSelect, activeTool }: ShapesDropdownProp
           <DropdownMenuItem onClick={() => handleShapeClick("elbow-connector-down")}>
             <CornerDownLeft className="mr-2 h-4 w-4" />
             <span>Elbow Down ⌞</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Branching Connectors</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => handleShapeClick("y-split-right-curved")}>
+            <GitBranch className="mr-2 h-4 w-4" />
+            <span>Y-Split Right (Curved)</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("y-split-left-curved")}>
+            <GitBranch className="mr-2 h-4 w-4 scale-x-[-1]" />
+            <span>Y-Split Left (Curved)</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("y-split-down-curved")}>
+            <GitBranch className="mr-2 h-4 w-4 rotate-90" />
+            <span>Y-Split Down (Curved)</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("t-split-right-elbow")}>
+            <GitFork className="mr-2 h-4 w-4" />
+            <span>T-Split Right (Elbow)</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("t-split-left-elbow")}>
+            <GitFork className="mr-2 h-4 w-4 scale-x-[-1]" />
+            <span>T-Split Left (Elbow)</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("t-split-down-elbow")}>
+            <GitFork className="mr-2 h-4 w-4 rotate-90" />
+            <span>T-Split Down (Elbow)</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("3-way-split-curved")}>
+            <Network className="mr-2 h-4 w-4" />
+            <span>3-Way Split (Curved)</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("3-way-split-elbow")}>
+            <Network className="mr-2 h-4 w-4" />
+            <span>3-Way Split (Elbow)</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
