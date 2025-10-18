@@ -9,7 +9,7 @@ interface FabricCanvasProps {
 
 export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { setCanvas, setSelectedObject, gridEnabled, rulersEnabled, backgroundColor, canvasDimensions } = useCanvas();
+  const { setCanvas, setSelectedObject, gridEnabled, rulersEnabled, backgroundColor, canvasDimensions, zoom } = useCanvas();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -75,6 +75,18 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     });
     fabricCanvas.renderAll();
   }, [canvasDimensions]);
+
+  // Handle zoom changes
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current as any;
+    const fabricCanvas = canvas.__canvas as Canvas;
+    if (!fabricCanvas) return;
+
+    const zoomLevel = zoom / 100;
+    fabricCanvas.setZoom(zoomLevel);
+    fabricCanvas.renderAll();
+  }, [zoom]);
 
   // Handle grid, rulers, and background color changes
   useEffect(() => {
@@ -609,13 +621,18 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           break;
           
         case "text":
-          const text = new Textbox("Text", {
+          const text = new Textbox("Double-click to edit text", {
             left: pointer.x,
             top: pointer.y,
             fontSize: 24,
             fill: "#000000",
+            fontFamily: "Inter",
+            width: 200,
           });
           fabricCanvas.add(text);
+          fabricCanvas.setActiveObject(text);
+          text.enterEditing();
+          text.selectAll();
           break;
           
         case "line":

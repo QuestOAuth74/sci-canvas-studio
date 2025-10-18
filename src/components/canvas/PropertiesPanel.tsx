@@ -7,8 +7,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
+import { Textbox } from "fabric";
+
+const GOOGLE_FONTS = [
+  { value: "Inter", label: "Inter" },
+  { value: "Roboto", label: "Roboto" },
+  { value: "Open Sans", label: "Open Sans" },
+  { value: "Lato", label: "Lato" },
+  { value: "Montserrat", label: "Montserrat" },
+  { value: "Poppins", label: "Poppins" },
+  { value: "Raleway", label: "Raleway" },
+  { value: "Ubuntu", label: "Ubuntu" },
+  { value: "Oswald", label: "Oswald" },
+  { value: "Merriweather", label: "Merriweather (Serif)" },
+  { value: "Playfair Display", label: "Playfair Display (Serif)" },
+  { value: "Crimson Text", label: "Crimson Text (Serif)" },
+  { value: "Source Sans 3", label: "Source Sans 3" },
+  { value: "Arial", label: "Arial (System)" },
+  { value: "Helvetica", label: "Helvetica (System)" },
+  { value: "Georgia", label: "Georgia (System)" },
+  { value: "Times New Roman", label: "Times New Roman (System)" },
+];
 
 export const PropertiesPanel = () => {
   const { 
@@ -21,9 +42,54 @@ export const PropertiesPanel = () => {
     paperSize,
     setPaperSize,
     setCanvasDimensions,
-    canvasDimensions
+    canvasDimensions,
+    canvas,
+    selectedObject
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
+  const [textFont, setTextFont] = useState("Inter");
+  const [textSize, setTextSize] = useState(24);
+  const [textColor, setTextColor] = useState("#000000");
+
+  // Update text properties when selected object changes
+  useEffect(() => {
+    if (selectedObject && selectedObject.type === 'textbox') {
+      const textObj = selectedObject as Textbox;
+      setTextFont(textObj.fontFamily || "Inter");
+      setTextSize(textObj.fontSize || 24);
+      setTextColor(textObj.fill as string || "#000000");
+    }
+  }, [selectedObject]);
+
+  const handleFontChange = (font: string) => {
+    setTextFont(font);
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      const textObj = selectedObject as Textbox;
+      textObj.set({ fontFamily: font });
+      canvas.renderAll();
+    }
+  };
+
+  const handleTextSizeChange = (size: string) => {
+    const numSize = parseInt(size);
+    if (!isNaN(numSize)) {
+      setTextSize(numSize);
+      if (canvas && selectedObject && selectedObject.type === 'textbox') {
+        const textObj = selectedObject as Textbox;
+        textObj.set({ fontSize: numSize });
+        canvas.renderAll();
+      }
+    }
+  };
+
+  const handleTextColorChange = (color: string) => {
+    setTextColor(color);
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      const textObj = selectedObject as Textbox;
+      textObj.set({ fill: color });
+      canvas.renderAll();
+    }
+  };
 
   const handlePaperSizeChange = (sizeId: string) => {
     setPaperSize(sizeId);
@@ -142,16 +208,44 @@ export const PropertiesPanel = () => {
                 <div className="space-y-2">
                   <div className="space-y-1.5">
                     <Label className="text-xs">Font Family</Label>
-                    <Input defaultValue="Arial" className="h-8 text-xs" />
+                    <Select value={textFont} onValueChange={handleFontChange}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {GOOGLE_FONTS.map((font) => (
+                          <SelectItem 
+                            key={font.value} 
+                            value={font.value}
+                            className="text-xs"
+                            style={{ fontFamily: font.value }}
+                          >
+                            {font.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1.5">
                       <Label className="text-xs">Size</Label>
-                      <Input type="number" defaultValue="14" className="h-8 text-xs" />
+                      <Input 
+                        type="number" 
+                        value={textSize} 
+                        onChange={(e) => handleTextSizeChange(e.target.value)}
+                        className="h-8 text-xs" 
+                        min="8"
+                        max="200"
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-xs">Color</Label>
-                      <Input type="color" defaultValue="#000000" className="h-8" />
+                      <Input 
+                        type="color" 
+                        value={textColor} 
+                        onChange={(e) => handleTextColorChange(e.target.value)}
+                        className="h-8" 
+                      />
                     </div>
                   </div>
                 </div>
