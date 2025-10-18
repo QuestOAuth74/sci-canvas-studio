@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Search, Upload, Trash2, MoreVertical, FolderOpen } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, Upload, Trash2, MoreVertical, FolderOpen, Share2, Users } from 'lucide-react';
 import { useUserAssets } from '@/hooks/useUserAssets';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,13 +25,26 @@ interface UserAssetsLibraryProps {
 }
 
 export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
-  const { assets, loading, deleteAsset, updateAsset, fetchAssets, downloadAssetContent, getAssetUrl } = useUserAssets();
+  const { 
+    assets, 
+    sharedAssets,
+    loading, 
+    deleteAsset, 
+    updateAsset, 
+    fetchAssets, 
+    fetchSharedAssets,
+    shareAsset,
+    unshareAsset,
+    downloadAssetContent, 
+    getAssetUrl 
+  } = useUserAssets();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [fileType, setFileType] = useState('all');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'my-assets' | 'community'>('my-assets');
 
-  const filteredAssets = assets.filter(asset => {
+  const filteredAssets = (viewMode === 'my-assets' ? assets : sharedAssets).filter(asset => {
     const matchesSearch = search === '' || 
       asset.original_name.toLowerCase().includes(search.toLowerCase()) ||
       asset.file_name.toLowerCase().includes(search.toLowerCase());
@@ -42,8 +55,8 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     return matchesSearch && matchesCategory && matchesType;
   });
 
-  const categories = ['all', ...Array.from(new Set(assets.map(a => a.category)))];
-  const fileTypes = ['all', ...Array.from(new Set(assets.map(a => a.file_type)))];
+  const categories = ['all', ...Array.from(new Set([...assets, ...sharedAssets].map(a => a.category)))];
+  const fileTypes = ['all', ...Array.from(new Set([...assets, ...sharedAssets].map(a => a.file_type)))];
 
   const handleAssetClick = async (asset: any) => {
     const content = await downloadAssetContent(asset);
@@ -58,6 +71,21 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
       await deleteAsset(assetId);
     }
   };
+
+  const handleShare = async (assetId: string, isShared: boolean, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isShared) {
+      await unshareAsset(assetId);
+    } else {
+      await shareAsset(assetId);
+    }
+  };
+
+  useEffect(() => {
+    if (viewMode === 'community') {
+      fetchSharedAssets();
+    }
+  }, [viewMode]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
@@ -77,6 +105,27 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
           >
             <Upload className="h-4 w-4 mr-1" />
             Upload
+          </Button>
+        </div>
+
+        <div className="flex gap-1 p-1 bg-muted rounded-lg">
+          <Button
+            variant={viewMode === 'my-assets' ? 'default' : 'ghost'}
+            size="sm"
+            className="flex-1 h-8 text-xs"
+            onClick={() => setViewMode('my-assets')}
+          >
+            <FolderOpen className="h-3 w-3 mr-1" />
+            My Files
+          </Button>
+          <Button
+            variant={viewMode === 'community' ? 'default' : 'ghost'}
+            size="sm"
+            className="flex-1 h-8 text-xs"
+            onClick={() => setViewMode('community')}
+          >
+            <Users className="h-3 w-3 mr-1" />
+            Community
           </Button>
         </div>
 
@@ -185,13 +234,23 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      className="text-destructive"
-                      onClick={(e) => handleDelete(asset.id, e)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
+                    {viewMode === 'my-assets' && (
+                      <DropdownMenuItem
+                        onClick={(e) => handleShare(asset.id, asset.is_shared, e)}
+                      >
+                        <Share2 className="h-4 w-4 mr-2" />
+                        {asset.is_shared ? 'Unshare' : 'Share with community'}
+                      </DropdownMenuItem>
+                    )}
+                    {viewMode === 'my-assets' && (
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={(e) => handleDelete(asset.id, e)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

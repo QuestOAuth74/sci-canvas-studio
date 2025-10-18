@@ -244,9 +244,11 @@ export type Database = {
           file_type: string
           height: number | null
           id: string
+          is_shared: boolean | null
           last_used_at: string | null
           mime_type: string
           original_name: string
+          shared_at: string | null
           storage_path: string
           tags: string[] | null
           thumbnail_path: string | null
@@ -263,9 +265,11 @@ export type Database = {
           file_type: string
           height?: number | null
           id?: string
+          is_shared?: boolean | null
           last_used_at?: string | null
           mime_type: string
           original_name: string
+          shared_at?: string | null
           storage_path: string
           tags?: string[] | null
           thumbnail_path?: string | null
@@ -282,9 +286,11 @@ export type Database = {
           file_type?: string
           height?: number | null
           id?: string
+          is_shared?: boolean | null
           last_used_at?: string | null
           mime_type?: string
           original_name?: string
+          shared_at?: string | null
           storage_path?: string
           tags?: string[] | null
           thumbnail_path?: string | null

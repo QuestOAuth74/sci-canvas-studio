@@ -20,6 +20,8 @@ export interface UserAsset {
   created_at: string;
   updated_at: string;
   last_used_at: string | null;
+  is_shared: boolean;
+  shared_at: string | null;
 }
 
 interface UploadAssetParams {
@@ -31,6 +33,7 @@ interface UploadAssetParams {
 
 export function useUserAssets() {
   const [assets, setAssets] = useState<UserAsset[]>([]);
+  const [sharedAssets, setSharedAssets] = useState<UserAsset[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -240,19 +243,99 @@ export function useUserAssets() {
     }
   };
 
+  const fetchSharedAssets = async (filters?: { category?: string; fileType?: string; search?: string }) => {
+    try {
+      setLoading(true);
+
+      let query = supabase
+        .from('user_assets')
+        .select('*')
+        .eq('is_shared', true)
+        .order('shared_at', { ascending: false });
+
+      if (filters?.category && filters.category !== 'all') {
+        query = query.eq('category', filters.category);
+      }
+
+      if (filters?.fileType) {
+        query = query.eq('file_type', filters.fileType);
+      }
+
+      if (filters?.search) {
+        query = query.or(`file_name.ilike.%${filters.search}%,original_name.ilike.%${filters.search}%`);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setSharedAssets(data || []);
+    } catch (error) {
+      console.error('Error fetching shared assets:', error);
+      toast.error('Failed to load community assets');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const shareAsset = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_assets')
+        .update({ 
+          is_shared: true,
+          shared_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Asset shared with community!');
+      await fetchAssets();
+    } catch (error) {
+      console.error('Error sharing asset:', error);
+      toast.error('Failed to share asset');
+    }
+  };
+
+  const unshareAsset = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_assets')
+        .update({ 
+          is_shared: false,
+          shared_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Asset unshared');
+      await fetchAssets();
+    } catch (error) {
+      console.error('Error unsharing asset:', error);
+      toast.error('Failed to unshare asset');
+    }
+  };
+
   useEffect(() => {
     fetchAssets();
   }, []);
 
   return {
     assets,
+    sharedAssets,
     loading,
     uploading,
     fetchAssets,
+    fetchSharedAssets,
     uploadAsset,
     deleteAsset,
     updateAsset,
     markAssetUsed,
+    shareAsset,
+    unshareAsset,
     getAssetUrl,
     downloadAssetContent
   };
