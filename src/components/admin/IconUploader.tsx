@@ -186,6 +186,13 @@ export const IconUploader = () => {
       const thumbnail = generateThumbnail(svgContent);
       const sanitizedName = sanitizeFileName(iconName);
       
+      // Validate thumbnail before upload
+      if (!thumbnail || thumbnail.length > 100000) {
+        toast.error("Thumbnail generation failed - file may be too complex");
+        setIsUploading(false);
+        return;
+      }
+      
       const { error } = await supabase
         .from('icons')
         .insert([{
@@ -245,6 +252,12 @@ export const IconUploader = () => {
           const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
           const iconName = sanitizeFileName(rawName);
           const thumbnail = generateThumbnail(sanitized);
+          
+          // Skip if thumbnail generation failed or is too large
+          if (!thumbnail || thumbnail.length > 100000) {
+            console.warn(`Skipping ${filename}: thumbnail ${thumbnail ? 'too large' : 'generation failed'}`);
+            continue;
+          }
           
           const { error } = await supabase
             .from('icons')
