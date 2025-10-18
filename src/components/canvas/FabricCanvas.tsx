@@ -94,13 +94,17 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
 
   // Handle canvas dimension changes
   useEffect(() => {
-    if (!canvas) return;
+    if (!canvas || !canvas.lowerCanvasEl) return;
 
-    canvas.setDimensions({
-      width: canvasDimensions.width,
-      height: canvasDimensions.height,
-    });
-    canvas.renderAll();
+    try {
+      canvas.setDimensions({
+        width: canvasDimensions.width,
+        height: canvasDimensions.height,
+      });
+      canvas.renderAll();
+    } catch (error) {
+      console.error("Error setting canvas dimensions:", error);
+    }
   }, [canvas, canvasDimensions]);
 
   // Handle zoom changes
@@ -123,13 +127,11 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   useEffect(() => {
     if (!canvas) return;
 
-    // Clear existing grid lines
-    const objects = canvas.getObjects();
-    objects.forEach(obj => {
-      if ((obj as any).isGridLine) {
-        canvas.remove(obj);
-      }
-    });
+    // Collect all grid lines to remove
+    const objectsToRemove = canvas.getObjects().filter(obj => (obj as any).isGridLine);
+    
+    // Remove them all at once
+    objectsToRemove.forEach(obj => canvas.remove(obj));
 
     // Draw grid if enabled
     if (gridEnabled) {
@@ -137,8 +139,10 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
       const width = canvas.width || 1200;
       const height = canvas.height || 800;
 
+      const gridLines: Line[] = [];
+
       // Vertical lines
-      for (let i = 0; i < width / gridSize; i++) {
+      for (let i = 0; i <= width / gridSize; i++) {
         const line = new Line([i * gridSize, 0, i * gridSize, height], {
           stroke: '#e0e0e0',
           strokeWidth: 1,
@@ -148,12 +152,11 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           excludeFromExport: true,
         });
         (line as any).isGridLine = true;
-        canvas.add(line);
-        canvas.sendObjectToBack(line);
+        gridLines.push(line);
       }
 
       // Horizontal lines
-      for (let i = 0; i < height / gridSize; i++) {
+      for (let i = 0; i <= height / gridSize; i++) {
         const line = new Line([0, i * gridSize, width, i * gridSize], {
           stroke: '#e0e0e0',
           strokeWidth: 1,
@@ -163,9 +166,14 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           excludeFromExport: true,
         });
         (line as any).isGridLine = true;
+        gridLines.push(line);
+      }
+
+      // Add all grid lines at once and send to back
+      gridLines.forEach(line => {
         canvas.add(line);
         canvas.sendObjectToBack(line);
-      }
+      });
     }
 
     canvas.renderAll();
@@ -175,13 +183,11 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   useEffect(() => {
     if (!canvas) return;
 
-    // Clear existing ruler objects
-    const objects = canvas.getObjects();
-    objects.forEach(obj => {
-      if ((obj as any).isRuler) {
-        canvas.remove(obj);
-      }
-    });
+    // Collect all ruler objects to remove
+    const rulersToRemove = canvas.getObjects().filter(obj => (obj as any).isRuler);
+    
+    // Remove them all at once
+    rulersToRemove.forEach(obj => canvas.remove(obj));
 
     // Draw rulers if enabled
     if (rulersEnabled) {
