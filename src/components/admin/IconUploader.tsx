@@ -52,8 +52,9 @@ export const IconUploader = () => {
       reader.onload = (event) => {
         const content = event.target?.result as string;
         
-        // Validate SVG
-        if (!content.includes('<svg') || !content.includes('</svg>')) {
+        // Validate SVG (case-insensitive)
+        const lower = content.toLowerCase();
+        if (!lower.includes('<svg')) {
           setValidationWarning("This doesn't appear to be a valid SVG file");
           setFilePreview(null);
           return;
@@ -84,11 +85,12 @@ export const IconUploader = () => {
   };
 
   // Generate optimized thumbnail from full SVG (target max 50KB)
-  const generateThumbnail = (svgContent: string): string => {
+  const generateThumbnail = (svgContent: string): string | null => {
     try {
-      // Step 1: Remove XML declarations, comments, metadata
+      // Step 1: Remove XML declarations, DOCTYPE, comments, metadata
       let optimized = svgContent
         .replace(/<\?xml[^>]*\?>/g, '')
+        .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
         .replace(/<!--[\s\S]*?-->/g, '')
         .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
         .replace(/<title>[\s\S]*?<\/title>/gi, '')
@@ -137,23 +139,23 @@ export const IconUploader = () => {
         optimized = optimized.replace(/(\d+\.\d+)/g, (match) => Math.round(parseFloat(match)).toString());
       }
 
-      // Step 7: Validate result is still valid SVG
-      if (!optimized.includes('<svg') || !optimized.includes('</svg>')) {
+      // Step 7: Validate result is still valid SVG (case-insensitive)
+      if (!/\<svg[\s\S]*\<\/svg\>/i.test(optimized)) {
         console.warn('Optimization produced invalid SVG, using original');
-        return svgContent;
+        return null;
       }
 
-      // Step 8: Final size check
+      // Step 8: Final size check (do NOT truncate; return null to let server regenerate)
       if (optimized.length > 100000) {
         console.warn('Thumbnail still too large after optimization:', optimized.length);
-        return svgContent.substring(0, 50000); // Truncate as last resort
+        return null;
       }
 
       console.log(`Thumbnail optimized: ${svgContent.length} → ${optimized.length} bytes`);
       return optimized;
     } catch (error) {
       console.error('Thumbnail generation error:', error);
-      return svgContent;
+      return null;
     }
   };
 
@@ -173,8 +175,9 @@ export const IconUploader = () => {
     reader.onload = async (e) => {
       const svgContent = e.target?.result as string;
       
-      // Validate SVG content
-      if (!svgContent.includes('<svg') || !svgContent.includes('</svg>')) {
+      // Validate SVG content (case-insensitive)
+      const lower = (svgContent || '').toLowerCase();
+      if (!lower.includes('<svg')) {
         toast.error("Invalid SVG file");
         setIsUploading(false);
         return;
@@ -231,22 +234,24 @@ export const IconUploader = () => {
         if (!file.dir) {
           const content = await file.async('text');
           
-          // Validate SVG
-          if (!content.includes('<svg') || !content.includes('</svg>')) {
+          // Sanitize and validate SVG (case-insensitive)
+          const sanitized = content.replace(/<!DOCTYPE[\s\S]*?>/gi, '');
+          const lower = sanitized.toLowerCase();
+          if (!lower.includes('<svg')) {
             console.warn('Skipping invalid SVG:', filename);
             continue;
           }
           
           const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
           const iconName = sanitizeFileName(rawName);
-          const thumbnail = generateThumbnail(content);
+          const thumbnail = generateThumbnail(sanitized);
           
           const { error } = await supabase
             .from('icons')
             .insert([{
               name: iconName,
               category: selectedCategory,
-              svg_content: content,
+              svg_content: sanitized,
               thumbnail: thumbnail
             }]);
 

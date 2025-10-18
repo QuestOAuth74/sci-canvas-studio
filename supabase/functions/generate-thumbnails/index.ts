@@ -13,11 +13,12 @@ interface IconRecord {
 }
 
 // Generate optimized thumbnail from full SVG (target max 50KB)
-function generateThumbnail(svgContent: string): string {
+function generateThumbnail(svgContent: string): string | null {
   try {
     // Step 1: Remove XML declarations, comments, metadata (aggressive cleanup)
     let optimized = svgContent
       .replace(/<\?xml[^>]*\?>/g, '')
+      .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
       .replace(/<!--[\s\S]*?-->/g, '')
       .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/gi, '')
@@ -67,26 +68,26 @@ function generateThumbnail(svgContent: string): string {
     }
 
     // Step 7: Validate result
-    if (!optimized.includes('<svg') || !optimized.includes('</svg>')) {
+    if (!/\<svg[\s\S]*\<\/svg\>/i.test(optimized)) {
       console.warn('Optimization produced invalid SVG, using original');
-      return svgContent;
+      return null;
     }
 
-    // Step 8: Final size check (reject if still too large)
+    // Step 8: Final size check (do NOT truncate; return null to retry later)
     if (optimized.length > 100000) {
       console.error('Thumbnail too large after optimization:', optimized.length, 'bytes');
-      return svgContent.substring(0, 50000); // Truncate as last resort
+      return null;
     }
 
     const originalSize = svgContent.length;
     const newSize = optimized.length;
-    const reduction = ((originalSize - newSize) / originalSize * 100).toFixed(1);
+    const reduction = (((originalSize - newSize) / originalSize) * 100).toFixed(1);
     console.log(`Thumbnail optimized: ${originalSize} → ${newSize} bytes (${reduction}% reduction)`);
 
     return optimized;
   } catch (error) {
     console.error('Thumbnail generation error:', error);
-    return svgContent;
+    return null;
   }
 }
 
@@ -170,14 +171,21 @@ Deno.serve(async (req) => {
       try {
         console.log(`Processing icon: ${icon.name} (${icon.id})`);
         
-        // Validate SVG content before processing
-        if (!icon.svg_content.includes('<svg') || !icon.svg_content.includes('</svg>')) {
+        // Validate SVG content before processing (case-insensitive)
+        const lower = (icon.svg_content || '').toLowerCase();
+        if (!lower.includes('<svg')) {
           console.error(`Invalid SVG content for ${icon.name}`);
           failed++;
           continue;
         }
         
         const thumbnail = generateThumbnail(icon.svg_content);
+        
+        if (!thumbnail) {
+          console.error(`Generated thumbnail invalid or too large for ${icon.name}`);
+          failed++;
+          continue;
+        }
         
         // Validate generated thumbnail size
         const thumbnailSize = new TextEncoder().encode(thumbnail).length;
