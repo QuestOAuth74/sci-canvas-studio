@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, X, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Canvas as FabricCanvas } from 'fabric';
 
 interface ShareProjectDialogProps {
   project: {
@@ -29,6 +30,7 @@ interface ShareProjectDialogProps {
 
 export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: ShareProjectDialogProps) {
   const [saving, setSaving] = useState(false);
+  const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
   const [isPublic, setIsPublic] = useState(project.is_public || false);
   const [title, setTitle] = useState(project.title || project.name);
   const [description, setDescription] = useState(project.description || '');
@@ -54,6 +56,87 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
 
   const removeKeyword = (keyword: string) => {
     setKeywords(keywords.filter(k => k !== keyword));
+  };
+
+  const generateThumbnail = async (): Promise<string | null> => {
+    try {
+      setGeneratingThumbnail(true);
+      
+      // Fetch the canvas data
+      const { data: projectData, error: fetchError } = await supabase
+        .from('canvas_projects')
+        .select('canvas_data, canvas_width, canvas_height')
+        .eq('id', project.id)
+        .single();
+
+      if (fetchError || !projectData) {
+        console.error('Error fetching canvas data:', fetchError);
+        return null;
+      }
+
+      // Create a temporary canvas
+      const tempCanvas = new FabricCanvas(null, {
+        width: projectData.canvas_width,
+        height: projectData.canvas_height,
+      });
+
+      // Load the canvas data
+      await new Promise((resolve, reject) => {
+        tempCanvas.loadFromJSON(projectData.canvas_data as any, () => {
+          resolve(true);
+        });
+      });
+
+      // Calculate thumbnail dimensions (max 800x600, maintain aspect ratio)
+      const maxWidth = 800;
+      const maxHeight = 600;
+      const scale = Math.min(
+        maxWidth / tempCanvas.width!,
+        maxHeight / tempCanvas.height!,
+        1 // Don't upscale
+      );
+
+      // Export as data URL
+      const dataURL = tempCanvas.toDataURL({
+        format: 'jpeg',
+        quality: 0.85,
+        multiplier: scale,
+      });
+
+      // Convert data URL to blob
+      const response = await fetch(dataURL);
+      const blob = await response.blob();
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Upload to storage
+      const filePath = `${user.id}/${project.id}.jpg`;
+      const { error: uploadError } = await supabase.storage
+        .from('project-thumbnails')
+        .upload(filePath, blob, { 
+          upsert: true,
+          contentType: 'image/jpeg'
+        });
+
+      if (uploadError) {
+        console.error('Error uploading thumbnail:', uploadError);
+        return null;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('project-thumbnails')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error generating thumbnail:', error);
+      return null;
+    } finally {
+      setGeneratingThumbnail(false);
+    }
   };
 
   const handleSave = async () => {
@@ -87,6 +170,18 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
 
     setSaving(true);
     try {
+      let thumbnailUrl = null;
+
+      // Generate thumbnail if making project public
+      if (isPublic) {
+        thumbnailUrl = await generateThumbnail();
+        if (!thumbnailUrl) {
+          toast.error('Warning: Could not generate preview image, but project will still be saved', {
+            duration: 5000,
+          });
+        }
+      }
+
       const { error } = await supabase
         .from('canvas_projects')
         .update({
@@ -96,6 +191,7 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
           keywords: keywords.length > 0 ? keywords : null,
           citations: citations.trim() || null,
           approval_status: isPublic ? 'pending' : null,
+          thumbnail_url: thumbnailUrl,
         })
         .eq('id', project.id);
 
@@ -286,11 +382,11 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? (
+          <Button onClick={handleSave} disabled={saving || generatingThumbnail}>
+            {saving || generatingThumbnail ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
+                {generatingThumbnail ? 'Generating preview...' : 'Saving...'}
               </>
             ) : (
               'Save Changes'
