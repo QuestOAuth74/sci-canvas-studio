@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
+  console.log('[ProtectedRoute] Auth state:', { user: !!user, loading });
 
   if (loading) {
     return (
