@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Heart } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Heart, MessageCircleHeart } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -190,13 +190,23 @@ const Index = () => {
                 If you find this project valuable, please consider supporting us with a donation to help keep 
                 BioSketch accessible for the scientific community.
               </p>
-              <Button
-                size="lg"
-                className="h-14 px-8 text-base font-bold uppercase bg-primary hover:bg-primary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none group"
-              >
-                <Heart className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                Donate to BioSketch
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button
+                  size="lg"
+                  className="h-14 px-8 text-base font-bold uppercase bg-primary hover:bg-primary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none group"
+                >
+                  <Heart className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                  Donate to BioSketch
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-14 px-8 text-base font-bold uppercase bg-secondary hover:bg-secondary/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none group"
+                >
+                  <MessageCircleHeart className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                  Leave a Kind Word
+                </Button>
+              </div>
             </div>
 
             {/* Bottom Footer */}
