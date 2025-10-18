@@ -201,7 +201,7 @@ const CanvasContent = () => {
         {/* Main Editor Area */}
         <div className="flex flex-1 overflow-hidden min-h-0">
           {/* Left Sidebar - Icon Categories */}
-          <div className="w-64 glass-effect border-r border-border/40 flex flex-col h-full min-h-0">
+          <div className="w-64 glass-effect border-r border-border/40 flex flex-col overflow-y-auto">
             <IconLibrary 
               selectedCategory={selectedIconCategory} 
               onCategoryChange={setSelectedIconCategory}
@@ -212,7 +212,9 @@ const CanvasContent = () => {
         <FabricCanvas activeTool={activeTool} />
 
         {/* Right Properties Panel */}
-        <PropertiesPanel />
+        <div className="w-64 glass-effect border-l border-border/40 flex flex-col overflow-y-auto">
+          <PropertiesPanel />
+        </div>
       </div>
 
       {/* Bottom Bar */}

@@ -114,8 +114,8 @@ export const PropertiesPanel = () => {
   };
 
   return (
-    <div className="w-64 glass-effect border-l border-border/40 h-full">
-      <ScrollArea className="h-full">
+    <div className="flex flex-col h-full min-h-0">
+      <ScrollArea className="flex-1 min-h-0">
         <Tabs defaultValue="diagram" className="w-full">
           <TabsList className="grid w-full grid-cols-2 m-3">
             <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>
