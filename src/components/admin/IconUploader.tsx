@@ -6,13 +6,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Upload, FileArchive, AlertTriangle, CheckCircle } from "lucide-react";
+import { Upload, FileArchive, AlertTriangle, CheckCircle, Info } from "lucide-react";
 import JSZip from "jszip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Category {
   id: string;
   name: string;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  content?: string;
+  error?: string;
+  debugInfo?: {
+    fileType: string;
+    fileSize: number;
+    firstChars: string;
+    hasXmlDeclaration: boolean;
+    hasSvgTag: boolean;
+    hasSvgNamespace: boolean;
+  };
 }
 
 export const IconUploader = () => {
@@ -25,6 +40,8 @@ export const IconUploader = () => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [fileSize, setFileSize] = useState<number>(0);
   const [validationWarning, setValidationWarning] = useState<string>("");
+  const [debugInfo, setDebugInfo] = useState<string>("");
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -41,31 +58,181 @@ export const IconUploader = () => {
     }
   };
 
+  // Enhanced SVG validation with multiple checks and better error messages
+  const validateSVGContent = (content: string, file: File): ValidationResult => {
+    try {
+      // Remove BOM if present
+      const cleanContent = content.replace(/^\uFEFF/, '');
+      
+      // Get first 500 characters for debugging
+      const preview = cleanContent.substring(0, 500);
+      const lower = cleanContent.toLowerCase();
+      
+      // Multiple validation checks
+      const hasXmlDeclaration = lower.includes('<?xml') || lower.includes('xml version');
+      const hasSvgTag = lower.includes('<svg');
+      const hasSvgNamespace = lower.includes('xmlns="http://www.w3.org/2000/svg"') || 
+                             lower.includes("xmlns='http://www.w3.org/2000/svg'");
+      const hasClosingSvgTag = lower.includes('</svg>');
+      
+      const debugInfo = {
+        fileType: file.type || 'unknown',
+        fileSize: file.size,
+        firstChars: preview.substring(0, 100),
+        hasXmlDeclaration,
+        hasSvgTag,
+        hasSvgNamespace
+      };
+
+      console.log('SVG Validation Debug:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        hasXmlDeclaration,
+        hasSvgTag,
+        hasSvgNamespace,
+        hasClosingSvgTag,
+        firstChars: preview.substring(0, 100)
+      });
+
+      // Validation logic
+      if (!hasSvgTag) {
+        return {
+          isValid: false,
+          error: "No SVG tag found. This file doesn't contain valid SVG markup.",
+          debugInfo
+        };
+      }
+
+      if (!hasClosingSvgTag) {
+        return {
+          isValid: false,
+          error: "Incomplete SVG file. Missing closing </svg> tag.",
+          debugInfo
+        };
+      }
+
+      if (!hasSvgNamespace) {
+        console.warn('SVG missing namespace declaration, but proceeding...');
+      }
+
+      return {
+        isValid: true,
+        content: cleanContent,
+        debugInfo
+      };
+    } catch (error) {
+      console.error('Validation error:', error);
+      return {
+        isValid: false,
+        error: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
+  };
+
+  // Try reading file with multiple methods
+  const readFileWithFallback = async (file: File): Promise<ValidationResult> => {
+    // Method 1: Try reading as text (UTF-8)
+    try {
+      const textContent = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsText(file, 'UTF-8');
+      });
+
+      return validateSVGContent(textContent, file);
+    } catch (error) {
+      console.warn('UTF-8 reading failed, trying ArrayBuffer...', error);
+    }
+
+    // Method 2: Try reading as ArrayBuffer and manually decode
+    try {
+      const arrayBuffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as ArrayBuffer);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
+
+      // Try UTF-8 decoding
+      const decoder = new TextDecoder('utf-8');
+      const textContent = decoder.decode(arrayBuffer);
+      
+      return validateSVGContent(textContent, file);
+    } catch (error) {
+      console.error('ArrayBuffer reading failed:', error);
+    }
+
+    // Method 3: Try Latin-1 encoding as last resort
+    try {
+      const textContent = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = reject;
+        reader.readAsText(file, 'ISO-8859-1');
+      });
+
+      return validateSVGContent(textContent, file);
+    } catch (error) {
+      console.error('All reading methods failed:', error);
+    }
+
+    return {
+      isValid: false,
+      error: 'Failed to read file. The file may be corrupted or in an unsupported format.'
+    };
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
       setFileSize(selectedFile.size);
+      setValidationWarning("");
+      setDebugInfo("");
+      setFilePreview(null);
       
-      // Validate and preview
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const content = event.target?.result as string;
+      // Check file extension first
+      if (!selectedFile.name.toLowerCase().endsWith('.svg')) {
+        setValidationWarning("File must have .svg extension");
+        setDebugInfo(`File type: ${selectedFile.type}, Name: ${selectedFile.name}`);
+        return;
+      }
+
+      // Validate and preview with enhanced validation
+      const result = await readFileWithFallback(selectedFile);
+      
+      if (!result.isValid) {
+        setValidationWarning(result.error || "Invalid SVG file");
         
-        // Validate SVG (case-insensitive)
-        const lower = content.toLowerCase();
-        if (!lower.includes('<svg')) {
-          setValidationWarning("This doesn't appear to be a valid SVG file");
-          setFilePreview(null);
-          return;
+        if (result.debugInfo) {
+          const debugText = `
+File Type: ${result.debugInfo.fileType}
+File Size: ${(result.debugInfo.fileSize / 1024).toFixed(2)} KB
+Has XML Declaration: ${result.debugInfo.hasXmlDeclaration ? 'Yes' : 'No'}
+Has SVG Tag: ${result.debugInfo.hasSvgTag ? 'Yes' : 'No'}
+Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}
+First 100 characters:
+${result.debugInfo.firstChars}
+          `.trim();
+          setDebugInfo(debugText);
         }
         
-        // No file size restrictions
-        setValidationWarning("");
-        
-        setFilePreview(content);
-      };
-      reader.readAsText(selectedFile);
+        return;
+      }
+      
+      // Success - valid SVG
+      setValidationWarning("");
+      setFilePreview(result.content || "");
+      
+      if (result.debugInfo) {
+        const debugText = `✓ Valid SVG detected
+File Size: ${(result.debugInfo.fileSize / 1024).toFixed(2)} KB
+Has XML Declaration: ${result.debugInfo.hasXmlDeclaration ? 'Yes' : 'No'}
+Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}`;
+        setDebugInfo(debugText);
+      }
     }
   };
   
@@ -141,25 +308,23 @@ export const IconUploader = () => {
       return;
     }
 
-    if (validationWarning.includes("valid SVG")) {
-      toast.error("Please select a valid SVG file");
+    if (validationWarning) {
+      toast.error("Please fix validation errors before uploading");
       return;
     }
 
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const svgContent = e.target?.result as string;
+    
+    try {
+      const result = await readFileWithFallback(file);
       
-      // Validate SVG content (case-insensitive)
-      const lower = (svgContent || '').toLowerCase();
-      if (!lower.includes('<svg')) {
-        toast.error("Invalid SVG file");
+      if (!result.isValid || !result.content) {
+        toast.error(result.error || "Invalid SVG file");
         setIsUploading(false);
         return;
       }
       
-      const thumbnail = generateThumbnail(svgContent);
+      const thumbnail = generateThumbnail(result.content);
       const sanitizedName = sanitizeFileName(iconName);
       
       const { error } = await supabase
@@ -167,8 +332,8 @@ export const IconUploader = () => {
         .insert([{
           name: sanitizedName,
           category: selectedCategory,
-          svg_content: svgContent,
-          thumbnail: thumbnail || svgContent // Use original if optimization fails
+          svg_content: result.content,
+          thumbnail: thumbnail || result.content
         }]);
 
       if (error) {
@@ -180,12 +345,15 @@ export const IconUploader = () => {
         setFile(null);
         setFilePreview(null);
         setValidationWarning("");
+        setDebugInfo("");
         setSelectedCategory("");
       }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error("Failed to upload icon");
+    } finally {
       setIsUploading(false);
-    };
-
-    reader.readAsText(file);
+    }
   };
 
   const handleZipUpload = async () => {
@@ -310,9 +478,48 @@ export const IconUploader = () => {
           </div>
 
           {validationWarning && (
-            <Alert variant={validationWarning.includes("valid") ? "destructive" : "default"}>
+            <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{validationWarning}</AlertDescription>
+              <AlertDescription>
+                <div className="space-y-2">
+                  <p className="font-semibold">{validationWarning}</p>
+                  {debugInfo && (
+                    <Collapsible open={showDebug} onOpenChange={setShowDebug}>
+                      <CollapsibleTrigger className="flex items-center gap-2 text-xs hover:underline">
+                        <Info className="h-3 w-3" />
+                        {showDebug ? 'Hide' : 'Show'} Debug Info
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-x-auto whitespace-pre-wrap">
+                          {debugInfo}
+                        </pre>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          💡 Try re-exporting the SVG from your design tool or opening it in a text editor to verify its structure.
+                        </p>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {!validationWarning && debugInfo && (
+            <Alert>
+              <CheckCircle className="h-4 w-4" />
+              <AlertDescription>
+                <Collapsible open={showDebug} onOpenChange={setShowDebug}>
+                  <CollapsibleTrigger className="flex items-center gap-2 text-xs hover:underline">
+                    <Info className="h-3 w-3" />
+                    {showDebug ? 'Hide' : 'Show'} Validation Details
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <pre className="mt-2 text-xs bg-muted p-2 rounded overflow-x-auto whitespace-pre-wrap">
+                      {debugInfo}
+                    </pre>
+                  </CollapsibleContent>
+                </Collapsible>
+              </AlertDescription>
             </Alert>
           )}
 
@@ -331,7 +538,7 @@ export const IconUploader = () => {
           <Button 
             onClick={handleUpload} 
             className="w-full" 
-            disabled={isUploading || !file || validationWarning.includes("valid")}
+            disabled={isUploading || !file || !!validationWarning}
           >
             <Upload className="h-4 w-4 mr-2" />
             {isUploading ? "Uploading..." : "Upload Icon"}
