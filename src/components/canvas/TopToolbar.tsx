@@ -41,7 +41,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
   } = useCanvas();
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1 border-b-[2px] border-foreground bg-card">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 glass-effect border-b border-border/40">
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>

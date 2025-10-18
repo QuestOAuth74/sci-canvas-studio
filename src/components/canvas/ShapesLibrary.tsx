@@ -35,17 +35,17 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   };
 
   return (
-    <div className="w-56 border-r-[3px] border-foreground bg-card flex flex-col">
+    <div className="w-56 glass-effect border-r border-border/40 flex flex-col">
       {/* Search Bar */}
-      <div className="p-2 border-b-[2px] border-foreground">
+      <div className="p-3 border-b border-border/40">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Type / to search"
+            placeholder="Search icons..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 pl-8 text-xs"
+            className="h-9 pl-9 text-xs glass-effect"
           />
         </div>
       </div>
@@ -58,10 +58,10 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
             .map((c) => {
               const sectionId = c.id;
               return (
-                <div key={c.id} className="border-[2px] border-foreground overflow-hidden bg-card">
+                <div key={c.id} className="border border-border/40 rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm">
                   <button
                     onClick={() => toggleSection(sectionId)}
-                    className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent text-sm font-bold uppercase border-b-[2px] border-foreground"
+                    className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-accent/50 text-sm font-semibold transition-colors"
                   >
                     <span>{c.name}</span>
                     {expandedSections.includes(sectionId) ? (
@@ -71,7 +71,7 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                     )}
                   </button>
                   {expandedSections.includes(sectionId) && (
-                    <div className="grid grid-cols-4 gap-1 p-2">
+                    <div className="grid grid-cols-4 gap-1.5 p-2 border-t border-border/40">
                       {(iconsByCategory[c.id] || []).map((icon) => (
                         <button
                           key={icon.id}
@@ -80,7 +80,7 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                               new CustomEvent("addIconToCanvas", { detail: { svgData: icon.svgData } })
                             )
                           }
-                          className="aspect-square border-[2px] border-border hover:border-primary hover:bg-accent p-1 transition-colors"
+                          className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105"
                           title={icon.name}
                         >
                           <img src={icon.thumbnail} alt={icon.name} className="w-full h-full object-contain" />

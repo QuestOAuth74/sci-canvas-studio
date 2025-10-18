@@ -3,7 +3,7 @@ import { Plus, ChevronDown } from "lucide-react";
 
 export const BottomBar = () => {
   return (
-    <div className="h-10 border-t-[2px] border-foreground bg-card flex items-center px-4 gap-2">
+    <div className="h-10 glass-effect border-t border-border/40 flex items-center px-4 gap-2">
       <Button variant="ghost" size="icon" className="h-7 w-7">
         <Plus className="h-4 w-4" />
       </Button>

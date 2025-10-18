@@ -110,12 +110,12 @@ const CanvasContent = () => {
   }, [undo, redo, cut, copy, paste, selectAll, deleteSelected]);
 
   return (
-      <div className="min-h-screen bg-background flex flex-col">
-      {/* Top Header with Menu */}
-      <header className="border-b-[3px] border-foreground bg-card">
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+      {/* Top Header with Menu - Glass effect */}
+      <header className="glass-effect border-b border-border/40">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9 border-[2px]">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             {isEditingName ? (
@@ -127,14 +127,14 @@ const CanvasContent = () => {
                   onKeyDown={handleNameKeyDown}
                   onBlur={saveName}
                   autoFocus
-                  className="h-9 text-base font-black uppercase tracking-tight max-w-[300px]"
+                  className="h-9 text-base font-semibold tracking-tight max-w-[300px] glass-effect"
                   maxLength={100}
                 />
               </div>
             ) : (
               <button
                 onClick={startEditingName}
-                className="text-xl font-black uppercase tracking-tight hover:bg-accent px-2 py-1 border-[2px] border-transparent hover:border-foreground transition-all"
+                className="text-xl font-semibold tracking-tight hover:bg-accent/50 px-3 py-1.5 rounded-md border border-transparent hover:border-border/40 transition-all"
                 title="Click to rename"
               >
                 {canvasName}
@@ -143,7 +143,7 @@ const CanvasContent = () => {
           </div>
           <div className="flex items-center gap-3">
             <MenuBar />
-            <Button variant="default" size="sm" className="h-9">
+            <Button variant="default" size="sm" className="h-9 shadow-sm">
               <Share className="h-3.5 w-3.5 mr-1.5" />
               Share
             </Button>
@@ -155,7 +155,7 @@ const CanvasContent = () => {
         <TopToolbar onExport={handleExport} />
 
         {/* Main Editor Area */}
-        <div className="flex flex-1 overflow-hidden border-y-[3px] border-foreground">
+        <div className="flex flex-1 overflow-hidden">
           {/* Left Shapes Library */}
           <ShapesLibrary onShapeSelect={handleShapeSelect} />
 

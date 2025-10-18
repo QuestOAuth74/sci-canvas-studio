@@ -55,9 +55,9 @@ export const MenuBar = () => {
   };
 
   return (
-    <Menubar className="border-none bg-transparent">
+    <Menubar className="border-none bg-transparent shadow-none">
       <MenubarMenu>
-        <MenubarTrigger>File</MenubarTrigger>
+        <MenubarTrigger className="font-medium">File</MenubarTrigger>
         <MenubarContent>
           <MenubarItem onClick={handleNew}>
             New <MenubarShortcut>⌘N</MenubarShortcut>
@@ -80,7 +80,7 @@ export const MenuBar = () => {
       </MenubarMenu>
 
       <MenubarMenu>
-        <MenubarTrigger>Edit</MenubarTrigger>
+        <MenubarTrigger className="font-medium">Edit</MenubarTrigger>
         <MenubarContent>
           <MenubarItem onClick={undo}>
             Undo <MenubarShortcut>⌘Z</MenubarShortcut>
@@ -107,7 +107,7 @@ export const MenuBar = () => {
       </MenubarMenu>
 
       <MenubarMenu>
-        <MenubarTrigger>View</MenubarTrigger>
+        <MenubarTrigger className="font-medium">View</MenubarTrigger>
         <MenubarContent>
           <MenubarItem onClick={() => setGridEnabled(!gridEnabled)}>
             {gridEnabled ? "✓ " : ""}Grid
@@ -121,7 +121,7 @@ export const MenuBar = () => {
       </MenubarMenu>
 
       <MenubarMenu>
-        <MenubarTrigger>Arrange</MenubarTrigger>
+        <MenubarTrigger className="font-medium">Arrange</MenubarTrigger>
         <MenubarContent>
           <MenubarItem onClick={bringToFront}>Bring to Front</MenubarItem>
           <MenubarItem onClick={sendToBack}>Send to Back</MenubarItem>
@@ -135,7 +135,7 @@ export const MenuBar = () => {
       </MenubarMenu>
 
       <MenubarMenu>
-        <MenubarTrigger>Help</MenubarTrigger>
+        <MenubarTrigger className="font-medium">Help</MenubarTrigger>
         <MenubarContent>
           <MenubarItem>Documentation</MenubarItem>
           <MenubarItem>Keyboard Shortcuts</MenubarItem>

@@ -16,10 +16,10 @@ export const PropertiesPanel = () => {
   const [showBgColor, setShowBgColor] = useState(false);
 
   return (
-    <div className="w-64 border-l-[3px] border-foreground bg-card h-full">
+    <div className="w-64 glass-effect border-l border-border/40 h-full">
       <ScrollArea className="h-full">
         <Tabs defaultValue="diagram" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 m-2">
+          <TabsList className="grid w-full grid-cols-2 m-3">
             <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>
             <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
           </TabsList>
