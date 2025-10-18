@@ -69,35 +69,35 @@ const CanvasContent = () => {
   }, [undo, redo, cut, copy, paste, selectAll, deleteSelected]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-        {/* Top Header with Menu */}
-        <header className="border-b bg-card/50">
-          <div className="px-3 py-1.5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-8 w-8">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-base font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                Untitled Diagram
-              </h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <MenuBar />
-              <Button variant="default" size="sm" className="h-8">
-                <Share className="h-3.5 w-3.5 mr-1.5" />
-                Share
-              </Button>
-            </div>
+      <div className="min-h-screen bg-background flex flex-col">
+      {/* Top Header with Menu */}
+      <header className="border-b-[3px] border-foreground bg-card">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9 border-[2px]">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-xl font-black uppercase tracking-tight">
+              Untitled Diagram
+            </h1>
           </div>
-        </header>
+          <div className="flex items-center gap-3">
+            <MenuBar />
+            <Button variant="default" size="sm" className="h-9">
+              <Share className="h-3.5 w-3.5 mr-1.5" />
+              Share
+            </Button>
+          </div>
+        </div>
+      </header>
 
-      {/* Top Toolbar */}
-      <TopToolbar onExport={handleExport} />
+        {/* Top Toolbar */}
+        <TopToolbar onExport={handleExport} />
 
-      {/* Main Editor Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Shapes Library */}
-        <ShapesLibrary onShapeSelect={handleShapeSelect} />
+        {/* Main Editor Area */}
+        <div className="flex flex-1 overflow-hidden border-y-[3px] border-foreground">
+          {/* Left Shapes Library */}
+          <ShapesLibrary onShapeSelect={handleShapeSelect} />
 
         {/* Canvas */}
         <FabricCanvas activeTool={activeTool} />

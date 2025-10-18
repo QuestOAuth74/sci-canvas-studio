@@ -8,7 +8,7 @@ import { ArrangePanel } from "./ArrangePanel";
 
 export const PropertiesPanel = () => {
   return (
-    <div className="w-64 border-l bg-card/50 h-full">
+    <div className="w-64 border-l-[3px] border-foreground bg-card h-full">
       <ScrollArea className="h-full">
         <Tabs defaultValue="diagram" className="w-full">
           <TabsList className="grid w-full grid-cols-2 m-2">

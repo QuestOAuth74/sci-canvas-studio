@@ -105,9 +105,9 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   );
 
   return (
-    <div className="w-56 border-r bg-card/50 flex flex-col">
+    <div className="w-56 border-r-[3px] border-foreground bg-card flex flex-col">
       {/* Search Bar */}
-      <div className="p-2 border-b">
+      <div className="p-2 border-b-[2px] border-foreground">
         <div className="relative">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
@@ -121,12 +121,12 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
+        <div className="p-2 space-y-1.5">
           {/* Arrows */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border-[2px] border-foreground overflow-hidden bg-card">
             <button
               onClick={() => toggleSection("arrows")}
-              className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent text-sm font-medium"
+              className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent text-sm font-bold uppercase border-b-[2px] border-foreground"
             >
               <span>Arrows</span>
               {expandedSections.includes("arrows") ? (
