@@ -123,12 +123,13 @@ Deno.serve(async (req) => {
 
     console.log('Starting thumbnail generation...');
 
-    // Fetch icons in smaller batch without thumbnails (memory efficient)
+    // Fetch icons without thumbnails, including recently uploaded ones
     const { data: icons, error: fetchError } = await supabase
       .from('icons')
       .select('id, name, svg_content')
       .is('thumbnail', null)
-      .limit(10); // Process max 10 at a time to avoid memory issues
+      .order('created_at', { ascending: false })
+      .limit(50); // Process max 50 at a time
 
     if (fetchError) {
       console.error('Error fetching icons:', fetchError);
