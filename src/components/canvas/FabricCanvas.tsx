@@ -71,10 +71,11 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
       
       switch (activeTool) {
         case "rectangle":
+        case "square":
           const rect = new Rect({
             left: pointer.x - 50,
             top: pointer.y - 50,
-            width: 100,
+            width: activeTool === "square" ? 100 : 120,
             height: 100,
             fill: "#3b82f6",
             stroke: "#000000",
@@ -82,17 +83,128 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           });
           fabricCanvas.add(rect);
           break;
+
+        case "rounded-rect":
+          const roundedRect = new Rect({
+            left: pointer.x - 60,
+            top: pointer.y - 40,
+            width: 120,
+            height: 80,
+            rx: 10,
+            ry: 10,
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(roundedRect);
+          break;
           
         case "circle":
+        case "ellipse":
           const circle = new Circle({
             left: pointer.x - 50,
             top: pointer.y - 50,
             radius: 50,
+            scaleX: activeTool === "ellipse" ? 1.4 : 1,
+            scaleY: 1,
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
           });
           fabricCanvas.add(circle);
+          break;
+
+        case "rhombus":
+          const rhombus = new Polygon([
+            { x: pointer.x, y: pointer.y - 50 },
+            { x: pointer.x + 50, y: pointer.y },
+            { x: pointer.x, y: pointer.y + 50 },
+            { x: pointer.x - 50, y: pointer.y },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(rhombus);
+          break;
+
+        case "parallelogram":
+          const parallelogram = new Polygon([
+            { x: pointer.x - 40, y: pointer.y - 40 },
+            { x: pointer.x + 60, y: pointer.y - 40 },
+            { x: pointer.x + 40, y: pointer.y + 40 },
+            { x: pointer.x - 60, y: pointer.y + 40 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(parallelogram);
+          break;
+
+        case "trapezoid":
+          const trapezoid = new Polygon([
+            { x: pointer.x - 30, y: pointer.y - 40 },
+            { x: pointer.x + 30, y: pointer.y - 40 },
+            { x: pointer.x + 50, y: pointer.y + 40 },
+            { x: pointer.x - 50, y: pointer.y + 40 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(trapezoid);
+          break;
+
+        case "pentagon":
+          const pentagonPoints = [];
+          for (let i = 0; i < 5; i++) {
+            const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+            pentagonPoints.push({
+              x: pointer.x + 50 * Math.cos(angle),
+              y: pointer.y + 50 * Math.sin(angle),
+            });
+          }
+          const pentagon = new Polygon(pentagonPoints, {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(pentagon);
+          break;
+
+        case "hexagon":
+          const hexagonPoints = [];
+          for (let i = 0; i < 6; i++) {
+            const angle = (i * 2 * Math.PI) / 6;
+            hexagonPoints.push({
+              x: pointer.x + 50 * Math.cos(angle),
+              y: pointer.y + 50 * Math.sin(angle),
+            });
+          }
+          const hexagon = new Polygon(hexagonPoints, {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(hexagon);
+          break;
+
+        case "octagon":
+          const octagonPoints = [];
+          for (let i = 0; i < 8; i++) {
+            const angle = (i * 2 * Math.PI) / 8;
+            octagonPoints.push({
+              x: pointer.x + 50 * Math.cos(angle),
+              y: pointer.y + 50 * Math.sin(angle),
+            });
+          }
+          const octagon = new Polygon(octagonPoints, {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(octagon);
           break;
           
         case "star":
@@ -114,6 +226,44 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           });
           fabricCanvas.add(star);
           break;
+
+        case "triangle":
+        case "right-triangle":
+          const trianglePoints = activeTool === "right-triangle"
+            ? [
+                { x: pointer.x - 50, y: pointer.y - 50 },
+                { x: pointer.x + 50, y: pointer.y + 50 },
+                { x: pointer.x - 50, y: pointer.y + 50 },
+              ]
+            : [
+                { x: pointer.x, y: pointer.y - 50 },
+                { x: pointer.x + 50, y: pointer.y + 50 },
+                { x: pointer.x - 50, y: pointer.y + 50 },
+              ];
+          const triangle = new Polygon(trianglePoints, {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(triangle);
+          break;
+
+        case "arrow-right":
+          const arrow = new Polygon([
+            { x: pointer.x - 50, y: pointer.y - 15 },
+            { x: pointer.x + 30, y: pointer.y - 15 },
+            { x: pointer.x + 30, y: pointer.y - 25 },
+            { x: pointer.x + 50, y: pointer.y },
+            { x: pointer.x + 30, y: pointer.y + 25 },
+            { x: pointer.x + 30, y: pointer.y + 15 },
+            { x: pointer.x - 50, y: pointer.y + 15 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(arrow);
+          break;
           
         case "text":
           const text = new Textbox("Text", {
@@ -131,6 +281,20 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           fabricCanvas.add(line);
+          break;
+
+        default:
+          // For any unhandled shapes, create a basic rectangle as fallback
+          const defaultShape = new Rect({
+            left: pointer.x - 40,
+            top: pointer.y - 40,
+            width: 80,
+            height: 80,
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(defaultShape);
           break;
       }
       
