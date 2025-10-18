@@ -386,6 +386,117 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     }
   }, [canvas, activeTool]);
 
+  // Handle image insertion tool
+  useEffect(() => {
+    if (!canvas) return;
+
+    if (activeTool === "image") {
+      // Create a hidden file input
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = ".svg,.jpg,.jpeg,.png,image/svg+xml,image/jpeg,image/png";
+      fileInput.style.display = "none";
+      
+      fileInput.onchange = async (e: Event) => {
+        const target = e.target as HTMLInputElement;
+        const file = target.files?.[0];
+        
+        if (!file) return;
+
+        // Validate file type
+        const validTypes = ["image/svg+xml", "image/jpeg", "image/jpg", "image/png"];
+        const validExtensions = [".svg", ".jpg", ".jpeg", ".png"];
+        const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf("."));
+        
+        if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+          toast.error("Invalid file format. Only SVG, JPG, and PNG files are allowed.");
+          return;
+        }
+
+        try {
+          const reader = new FileReader();
+          
+          reader.onload = (event) => {
+            const imgUrl = event.target?.result as string;
+            
+            if (file.type === "image/svg+xml" || fileExtension === ".svg") {
+              // Handle SVG files
+              loadSVGFromString(imgUrl).then(({ objects, options }) => {
+                const group = util.groupSVGElements(objects, options);
+                
+                // Scale to fit within 60% of canvas
+                const maxW = (canvas.width || 0) * 0.6;
+                const maxH = (canvas.height || 0) * 0.6;
+                const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
+                group.scale(scale);
+                
+                // Center on canvas
+                group.set({
+                  left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
+                  top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+                });
+                
+                canvas.add(group);
+                canvas.setActiveObject(group);
+                canvas.renderAll();
+                toast.success("SVG image added to canvas");
+                if (onShapeCreated) onShapeCreated();
+              }).catch((error) => {
+                console.error("Error loading SVG:", error);
+                toast.error("Failed to load SVG image");
+              });
+            } else {
+              // Handle JPG/PNG files
+              const img = new Image();
+              img.onload = () => {
+                const fabricImage = new FabricImage(img, {
+                  left: (canvas.width || 0) / 2,
+                  top: (canvas.height || 0) / 2,
+                  originX: "center",
+                  originY: "center",
+                });
+                
+                // Scale to fit within 60% of canvas
+                const maxW = (canvas.width || 0) * 0.6;
+                const maxH = (canvas.height || 0) * 0.6;
+                const scale = Math.min(maxW / fabricImage.width!, maxH / fabricImage.height!, 1);
+                fabricImage.scale(scale);
+                
+                canvas.add(fabricImage);
+                canvas.setActiveObject(fabricImage);
+                canvas.renderAll();
+                toast.success("Image added to canvas");
+                if (onShapeCreated) onShapeCreated();
+              };
+              img.onerror = () => {
+                toast.error("Failed to load image");
+              };
+              img.src = imgUrl;
+            }
+          };
+          
+          reader.onerror = () => {
+            toast.error("Failed to read file");
+          };
+          
+          reader.readAsDataURL(file);
+        } catch (error) {
+          console.error("Error loading image:", error);
+          toast.error("Failed to load image");
+        }
+      };
+
+      // Trigger the file input
+      document.body.appendChild(fileInput);
+      fileInput.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(fileInput);
+      }, 100);
+    }
+  }, [canvas, activeTool, onShapeCreated]);
+
   // Handle pen tool (bezier curves)
   useEffect(() => {
     if (!canvas) return;
@@ -551,7 +662,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     }
 
     const handleCanvasClick = (e: any) => {
-      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser") return;
+      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image") return;
 
       const pointer = canvas.getPointer(e.e);
       
