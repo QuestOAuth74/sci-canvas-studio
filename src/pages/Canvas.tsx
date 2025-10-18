@@ -24,6 +24,7 @@ const CanvasContent = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
   const [selectedIconCategory, setSelectedIconCategory] = useState<string>("");
+  const [isIconLibraryCollapsed, setIsIconLibraryCollapsed] = useState(false);
   const {
     canvas,
     undo,
@@ -214,10 +215,12 @@ const CanvasContent = () => {
         {/* Main Editor Area */}
         <div className="flex flex-1 overflow-hidden min-h-0">
           {/* Left Sidebar - Icon Categories */}
-          <div className="w-64 glass-effect border-r border-border/40 flex flex-col overflow-hidden min-h-0">
+          <div className={`glass-effect border-r border-border/40 flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
             <IconLibrary 
               selectedCategory={selectedIconCategory} 
               onCategoryChange={setSelectedIconCategory}
+              isCollapsed={isIconLibraryCollapsed}
+              onToggleCollapse={() => setIsIconLibraryCollapsed(!isIconLibraryCollapsed)}
             />
           </div>
 

@@ -25,6 +25,8 @@ interface Category {
 interface IconLibraryProps {
   selectedCategory: string;
   onCategoryChange: (category: string) => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
 const ICONS_PER_PAGE = 20;
@@ -64,7 +66,7 @@ const svgToDataUrl = (svg: string): string => {
   return `data:image/svg+xml;charset=utf-8,${encoded}`;
 };
 
-export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryProps) => {
+export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, onToggleCollapse }: IconLibraryProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, Icon[]>>({});
   const [loading, setLoading] = useState(true);
@@ -258,58 +260,74 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="p-4 border-b border-border/40 space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
-          <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
-        </div>
-        
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search icons..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 pl-9 pr-8 text-xs"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
-              title="Clear search"
-            >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-          )}
-        </div>
+      {/* Toggle button - always visible */}
+      <div className="p-2 border-b border-border/40 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleCollapse}
+          className="h-8 w-8"
+          title={isCollapsed ? "Expand icon library" : "Collapse icon library"}
+        >
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        </Button>
       </div>
-      
-      {loading && (
-        <div className="px-3 py-4 space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="border border-border/40 rounded-lg p-3 space-y-3">
-              <Skeleton className="h-6 w-32" />
-              <div className="grid grid-cols-4 gap-1.5">
-                {Array.from({ length: 8 }).map((_, idx) => (
-                  <Skeleton key={idx} className="aspect-square rounded" />
-                ))}
-              </div>
+
+      {/* Content - hidden when collapsed */}
+      {!isCollapsed && (
+        <>
+          <div className="p-4 border-b border-border/40 space-y-3">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
+              <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
             </div>
-          ))}
-        </div>
-      )}
-      
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>
-            {error}
-            <div className="mt-2 text-xs">Auth state: {authState}</div>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {!loading && searchQuery && (
+            
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search icons..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-9 pl-9 pr-8 text-xs"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
+                  title="Clear search"
+                >
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {loading && (
+            <div className="px-3 py-4 space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="border border-border/40 rounded-lg p-3 space-y-3">
+                  <Skeleton className="h-6 w-32" />
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {Array.from({ length: 8 }).map((_, idx) => (
+                      <Skeleton key={idx} className="aspect-square rounded" />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>
+                {error}
+                <div className="mt-2 text-xs">Auth state: {authState}</div>
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {!loading && searchQuery && (
         <ScrollArea type="always" className="flex-1 min-h-0 px-3">
           <div className="py-3">
             <div className="mb-2 text-sm text-muted-foreground">
@@ -599,6 +617,8 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
             )}
           </div>
         </ScrollArea>
+      )}
+        </>
       )}
     </div>
   );
