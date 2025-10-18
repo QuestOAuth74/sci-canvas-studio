@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Heart, MessageCircleHeart, Globe, Sparkles, CheckCircle } from "lucide-react";
+import { Heart, MessageCircleHeart, Globe, Sparkles, CheckCircle, Star, User } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -15,6 +15,7 @@ const testimonialSchema = z.object({
   country: z.string().trim().min(2, "Country is required").max(100, "Country must be less than 100 characters"),
   scientific_discipline: z.string().trim().min(2, "Scientific discipline is required").max(100, "Please enter a shorter discipline name"),
   message: z.string().trim().min(10, "Message must be at least 10 characters").max(500, "Message must be less than 500 characters"),
+  rating: z.number().min(1).max(5),
 });
 
 interface Testimonial {
@@ -24,6 +25,7 @@ interface Testimonial {
   scientific_discipline: string;
   message: string;
   created_at: string;
+  rating: number;
 }
 
 const Testimonials = () => {
@@ -37,6 +39,7 @@ const Testimonials = () => {
     country: "",
     scientific_discipline: "",
     message: "",
+    rating: 5,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showForm, setShowForm] = useState(true);
@@ -51,7 +54,7 @@ const Testimonials = () => {
       .select("*")
       .eq("is_approved", true)
       .order("created_at", { ascending: false })
-      .limit(12);
+      .limit(20);
 
     if (!error && data) {
       setTestimonials(data);
@@ -89,7 +92,7 @@ const Testimonials = () => {
 
       setSubmitted(true);
       setShowForm(false);
-      setFormData({ name: "", country: "", scientific_discipline: "", message: "" });
+      setFormData({ name: "", country: "", scientific_discipline: "", message: "", rating: 5 });
       
       toast({
         title: "Thank you! 🎉",
@@ -205,6 +208,31 @@ const Testimonials = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label className="text-base font-bold uppercase flex items-center gap-2">
+                    <Star className="h-4 w-4 fill-primary" />
+                    Your Rating *
+                  </Label>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, rating: star })}
+                        className="focus:outline-none transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`h-10 w-10 ${
+                            star <= formData.rating
+                              ? "fill-primary text-primary"
+                              : "fill-none text-muted-foreground"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="message" className="text-base font-bold uppercase flex items-center gap-2">
                     <Heart className="h-4 w-4" />
                     Your Message * <span className="text-xs font-normal opacity-70">(10-500 characters)</span>
@@ -277,18 +305,18 @@ const Testimonials = () => {
                 {testimonials.map((testimonial, index) => (
                   <div
                     key={testimonial.id}
-                    className={`bg-card border-[4px] border-foreground neo-brutalist-shadow p-6 hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300 ${
-                      index % 3 === 0 ? 'rotate-1' : index % 3 === 1 ? '-rotate-1' : 'rotate-0'
-                    } hover:rotate-0 animate-fade-in`}
+                    className={`bg-card border-[3px] border-foreground neo-brutalist-shadow p-6 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all duration-300 ${
+                      index % 3 === 0 ? 'rotate-0' : index % 3 === 1 ? 'rotate-0' : 'rotate-0'
+                    } animate-fade-in`}
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className="flex items-start gap-3 mb-4">
-                      <div className="p-2 bg-accent border-[3px] border-foreground rotate-3">
-                        <Heart className="h-4 w-4 text-foreground" />
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="p-3 bg-muted border-[2px] border-foreground rounded-full flex-shrink-0">
+                        <User className="h-6 w-6 text-foreground" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-black text-lg uppercase truncate">{testimonial.name}</h3>
-                        <p className="text-sm font-medium opacity-70">
+                        <h3 className="font-bold text-base">{testimonial.name}</h3>
+                        <p className="text-xs font-medium opacity-70 truncate">
                           {testimonial.scientific_discipline}
                         </p>
                         <p className="text-xs font-medium opacity-60 flex items-center gap-1">
@@ -297,7 +325,21 @@ const Testimonials = () => {
                         </p>
                       </div>
                     </div>
-                    <p className="text-base font-medium leading-relaxed">
+                    
+                    <div className="flex gap-0.5 mb-3">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`h-4 w-4 ${
+                            star <= testimonial.rating
+                              ? "fill-primary text-primary"
+                              : "fill-none text-muted-foreground"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    
+                    <p className="text-sm font-medium leading-relaxed text-muted-foreground">
                       "{testimonial.message}"
                     </p>
                   </div>

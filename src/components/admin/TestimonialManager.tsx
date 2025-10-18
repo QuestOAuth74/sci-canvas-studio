@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Trash2, Globe, Sparkles, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, Trash2, Globe, Sparkles, RefreshCw, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -24,6 +24,7 @@ interface Testimonial {
   message: string;
   created_at: string;
   is_approved: boolean;
+  rating: number;
 }
 
 export const TestimonialManager = () => {
@@ -200,6 +201,18 @@ export const TestimonialManager = () => {
                             minute: "2-digit",
                           })}
                         </p>
+                        <div className="flex gap-0.5 my-2">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`h-4 w-4 ${
+                                star <= testimonial.rating
+                                  ? "fill-primary text-primary"
+                                  : "fill-none text-muted-foreground"
+                              }`}
+                            />
+                          ))}
+                        </div>
                         <p className="text-base leading-relaxed border-l-4 border-primary pl-4 py-2">
                           "{testimonial.message}"
                         </p>

@@ -206,6 +206,7 @@ export type Database = {
           is_approved: boolean | null
           message: string
           name: string
+          rating: number | null
           scientific_discipline: string
           user_id: string | null
         }
@@ -216,6 +217,7 @@ export type Database = {
           is_approved?: boolean | null
           message: string
           name: string
+          rating?: number | null
           scientific_discipline: string
           user_id?: string | null
         }
@@ -226,6 +228,7 @@ export type Database = {
           is_approved?: boolean | null
           message?: string
           name?: string
+          rating?: number | null
           scientific_discipline?: string
           user_id?: string | null
         }
