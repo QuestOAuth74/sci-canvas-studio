@@ -39,10 +39,15 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
 
 
     // Listen for custom event to add icons to canvas
-    const handleAddIcon = (event: CustomEvent) => {
+    const handleAddIcon = async (event: CustomEvent) => {
       const { svgData } = event.detail;
       
-      FabricImage.fromURL(svgData).then((img) => {
+      try {
+        // Convert SVG string to data URL for Fabric.js
+        const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        
+        const img = await FabricImage.fromURL(svgUrl);
         img.scale(0.5);
         img.set({
           left: canvas.width! / 2 - (img.width! * 0.5) / 2,
@@ -50,7 +55,14 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         });
         canvas.add(img);
         canvas.renderAll();
-      });
+        
+        // Clean up blob URL
+        URL.revokeObjectURL(svgUrl);
+        toast.success("Icon added to canvas");
+      } catch (error) {
+        console.error("Error adding icon:", error);
+        toast.error("Failed to add icon to canvas");
+      }
     };
 
     window.addEventListener("addIconToCanvas", handleAddIcon as EventListener);
