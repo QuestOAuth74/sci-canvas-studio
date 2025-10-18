@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { TextFormattingPanel } from "./TextFormattingPanel";
+import { ShapesDropdown } from "./ShapesDropdown";
 import { useState } from "react";
 
 interface TopToolbarProps {
@@ -203,6 +204,18 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
             </Button>
           </TooltipTrigger>
           <TooltipContent>Text Tool</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <ShapesDropdown 
+                onShapeSelect={onToolChange || (() => {})} 
+                activeTool={activeTool}
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>Shapes & Arrows</TooltipContent>
         </Tooltip>
       </div>
       
