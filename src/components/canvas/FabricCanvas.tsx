@@ -278,8 +278,15 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         console.log('Text object created:', text);
         fabricCanvas.add(text);
         fabricCanvas.setActiveObject(text);
-        fabricCanvas.renderAll();
-        console.log('Text added to canvas');
+        // Immediately enter editing so user can type
+        if ((text as any).enterEditing) {
+          (text as any).enterEditing();
+          if ((text as any).selectAll) {
+            (text as any).selectAll();
+          }
+        }
+        fabricCanvas.requestRenderAll();
+        console.log('Text added to canvas and editing started');
         return;
       }
       
