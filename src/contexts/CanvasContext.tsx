@@ -591,16 +591,19 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas, user]);
 
-  // Auto-save every 30 seconds
+  // Auto-save every 30 seconds - using a ref to avoid dependency issues
   useEffect(() => {
     if (!canvas || !user || !currentProjectId) return;
 
     const autoSaveInterval = setInterval(() => {
-      saveProject();
+      // Call saveProject directly without depending on it
+      if (canvas && user) {
+        saveProject();
+      }
     }, 30000); // 30 seconds
 
     return () => clearInterval(autoSaveInterval);
-  }, [canvas, user, currentProjectId, saveProject]);
+  }, [canvas, user, currentProjectId]); // Removed saveProject from deps to prevent interval resets
 
   const value: CanvasContextType = {
     canvas,

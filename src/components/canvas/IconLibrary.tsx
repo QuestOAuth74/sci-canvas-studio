@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight, Search, X, Star } from "lucide-react";
 import { usePinnedCategories } from "@/hooks/usePinnedCategories";
+import { toast } from "sonner";
 
 interface Icon {
   id: string;
@@ -206,6 +207,8 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   const handleIconClick = async (icon: Icon) => {
+    const loadingToastId = toast.loading(`Loading ${icon.name}...`);
+    
     try {
       // If we already have svg_content, use it
       if (icon.svg_content) {
@@ -213,6 +216,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           detail: { svgData: icon.svg_content },
         });
         window.dispatchEvent(event);
+        toast.dismiss(loadingToastId);
         return;
       }
 
@@ -223,14 +227,37 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
         .eq('id', icon.id)
         .single();
 
-      if (error) throw error;
-      if (!data?.svg_content) throw new Error('No SVG content found');
+      if (error) {
+        toast.dismiss(loadingToastId);
+        toast.error(`Failed to load icon: ${error.message}`);
+        console.error('Error loading icon:', error);
+        return;
+      }
+      
+      if (!data?.svg_content) {
+        toast.dismiss(loadingToastId);
+        toast.error('No SVG content found for this icon');
+        return;
+      }
+
+      // Check SVG size and warn if large
+      const svgSizeKB = new Blob([data.svg_content]).size / 1024;
+      console.log(`Loading icon: ${icon.name}, Size: ${svgSizeKB.toFixed(2)} KB`);
+      
+      if (svgSizeKB > 500) {
+        toast.dismiss(loadingToastId);
+        toast.loading('Processing large icon, please wait...', { id: loadingToastId });
+      }
 
       const event = new CustomEvent("addIconToCanvas", {
         detail: { svgData: data.svg_content },
       });
       window.dispatchEvent(event);
+      toast.dismiss(loadingToastId);
     } catch (error) {
+      toast.dismiss(loadingToastId);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to load icon: ${errorMessage}`);
       console.error('Error loading icon:', error);
     }
   };

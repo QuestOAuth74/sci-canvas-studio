@@ -88,8 +88,24 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       const { svgData } = event.detail;
 
       try {
-        // Parse SVG string directly with Fabric.js
-        const { objects, options } = await loadSVGFromString(svgData);
+        const startTime = performance.now();
+        
+        // Create a timeout promise for large SVG parsing
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('SVG parsing timeout')), 20000); // 20 second timeout
+        });
+        
+        // Parse SVG string with timeout
+        const parsePromise = loadSVGFromString(svgData);
+        const { objects, options } = await Promise.race([parsePromise, timeoutPromise]) as Awaited<ReturnType<typeof loadSVGFromString>>;
+        
+        const parseTime = performance.now() - startTime;
+        console.log(`SVG parsed in ${parseTime.toFixed(2)}ms`);
+        
+        if (parseTime > 5000) {
+          console.warn('Large SVG detected - parsing took over 5 seconds');
+        }
+        
         const group = util.groupSVGElements(objects, options);
         
         // Scale to fit within 60% of canvas area
@@ -105,11 +121,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
         });
         
         canvas.add(group);
+        canvas.setActiveObject(group);
         canvas.renderAll();
         toast.success("Icon added to canvas");
       } catch (error) {
         console.error("Error adding icon:", error);
-        toast.error("Failed to add icon to canvas");
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        if (errorMessage.includes('timeout')) {
+          toast.error("Icon is too large to process. Please try a simpler icon.");
+        } else {
+          toast.error(`Failed to add icon: ${errorMessage}`);
+        }
       }
     };
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
@@ -63,9 +63,9 @@ const CanvasContent = () => {
     toast.success(`Selected ${shape}`);
   };
 
-  const handleShapeCreated = () => {
+  const handleShapeCreated = useCallback(() => {
     setActiveTool("select");
-  };
+  }, []);
 
   const startEditingName = () => {
     setTempName(projectName);
