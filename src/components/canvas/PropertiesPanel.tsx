@@ -194,13 +194,20 @@ export const PropertiesPanel = () => {
           const subGroup = obj as Group;
           subGroup.getObjects().forEach(changeObjectColor);
         } else {
-          // Change fill color if it exists and is not transparent
-          if (obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none') {
+          const hasFill = obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none';
+          const hasStroke = obj.stroke && obj.stroke !== 'transparent' && obj.stroke !== 'none';
+          
+          // If object uses stroke (line-based icons)
+          if (hasStroke && !hasFill) {
+            obj.set({ stroke: color });
+          }
+          // If object uses fill (shape-based icons)
+          else if (hasFill && !hasStroke) {
             obj.set({ fill: color });
           }
-          // Change stroke color if it exists
-          if (obj.stroke && obj.stroke !== 'transparent' && obj.stroke !== 'none') {
-            obj.set({ stroke: color });
+          // If object uses both (mixed icons)
+          else if (hasFill && hasStroke) {
+            obj.set({ fill: color, stroke: color });
           }
         }
       };
