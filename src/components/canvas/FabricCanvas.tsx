@@ -48,11 +48,20 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         const svgUrl = URL.createObjectURL(svgBlob);
         
         const img = await FabricImage.fromURL(svgUrl);
-        img.scale(0.5);
+        
+        // Scale icon to fit within reasonable bounds (max 200px on either dimension)
+        const maxSize = 200;
+        const scale = Math.min(maxSize / (img.width || 1), maxSize / (img.height || 1), 1);
+        img.scale(scale);
+        
+        // Center the icon on canvas
+        const scaledWidth = (img.width || 0) * scale;
+        const scaledHeight = (img.height || 0) * scale;
         img.set({
-          left: canvas.width! / 2 - (img.width! * 0.5) / 2,
-          top: canvas.height! / 2 - (img.height! * 0.5) / 2,
+          left: canvas.width! / 2 - scaledWidth / 2,
+          top: canvas.height! / 2 - scaledHeight / 2,
         });
+        
         canvas.add(img);
         canvas.renderAll();
         
