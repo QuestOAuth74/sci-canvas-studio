@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
@@ -10,6 +10,18 @@ interface FabricCanvasProps {
 
 export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [penToolState, setPenToolState] = useState<{
+    isDrawing: boolean;
+    points: Array<{ x: number; y: number }>;
+    tempMarkers: Circle[];
+    tempLines: Line[];
+  }>({
+    isDrawing: false,
+    points: [],
+    tempMarkers: [],
+    tempLines: [],
+  });
+  
   const { 
     canvas,
     setCanvas, 
@@ -285,6 +297,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
 
     if (activeTool === "freeform-line") {
       canvas.isDrawingMode = true;
+      canvas.selection = false; // Disable selection while drawing
       
       // Create and configure the pencil brush
       const brush = new PencilBrush(canvas);
@@ -326,18 +339,175 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       return () => {
         canvas.off("path:created", handlePathCreated);
         canvas.isDrawingMode = false;
+        canvas.selection = true; // Re-enable selection
       };
     } else {
       canvas.isDrawingMode = false;
+      canvas.selection = true;
     }
   }, [canvas, activeTool, onShapeCreated]);
+
+  // Handle pen tool (bezier curves)
+  useEffect(() => {
+    if (!canvas) return;
+    
+    if (activeTool !== "pen") {
+      // Clean up pen tool state when switching away
+      penToolState.tempMarkers.forEach(marker => canvas.remove(marker));
+      penToolState.tempLines.forEach(line => canvas.remove(line));
+      setPenToolState({
+        isDrawing: false,
+        points: [],
+        tempMarkers: [],
+        tempLines: [],
+      });
+      canvas.renderAll();
+      return;
+    }
+
+    // Set cursor for pen tool
+    canvas.defaultCursor = "crosshair";
+    canvas.hoverCursor = "crosshair";
+
+    const handlePenClick = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      const newPoint = { x: pointer.x, y: pointer.y };
+
+      // Add visual marker for the point
+      const marker = new Circle({
+        left: pointer.x - 3,
+        top: pointer.y - 3,
+        radius: 3,
+        fill: "#0D9488",
+        stroke: "#ffffff",
+        strokeWidth: 1,
+        selectable: false,
+        evented: false,
+        excludeFromExport: true,
+      });
+      canvas.add(marker);
+
+      const newMarkers = [...penToolState.tempMarkers, marker];
+      const newPoints = [...penToolState.points, newPoint];
+      let newLines = [...penToolState.tempLines];
+
+      // If we have more than one point, draw a line to the previous point
+      if (newPoints.length > 1) {
+        const prevPoint = newPoints[newPoints.length - 2];
+        const line = new Line(
+          [prevPoint.x, prevPoint.y, newPoint.x, newPoint.y],
+          {
+            stroke: "#0D9488",
+            strokeWidth: 1,
+            strokeDashArray: [3, 3],
+            selectable: false,
+            evented: false,
+            excludeFromExport: true,
+          }
+        );
+        canvas.add(line);
+        newLines.push(line);
+      }
+
+      setPenToolState({
+        isDrawing: true,
+        points: newPoints,
+        tempMarkers: newMarkers,
+        tempLines: newLines,
+      });
+
+      canvas.renderAll();
+    };
+
+    const handlePenDblClick = (e: any) => {
+      if (penToolState.points.length < 2) {
+        toast.error("Need at least 2 points to create a path");
+        return;
+      }
+
+      // Build SVG path string from points
+      let pathString = `M ${penToolState.points[0].x} ${penToolState.points[0].y}`;
+      for (let i = 1; i < penToolState.points.length; i++) {
+        pathString += ` L ${penToolState.points[i].x} ${penToolState.points[i].y}`;
+      }
+
+      // Create the final path
+      const path = new Path(pathString, {
+        stroke: "#000000",
+        strokeWidth: 2,
+        fill: null,
+        strokeUniform: true,
+        strokeLineCap: "round",
+        strokeLineJoin: "round",
+      });
+
+      // Remove temporary markers and lines
+      penToolState.tempMarkers.forEach(marker => canvas.remove(marker));
+      penToolState.tempLines.forEach(line => canvas.remove(line));
+
+      // Add the final path
+      canvas.add(path);
+      canvas.setActiveObject(path);
+      canvas.renderAll();
+
+      // Reset pen tool state
+      setPenToolState({
+        isDrawing: false,
+        points: [],
+        tempMarkers: [],
+        tempLines: [],
+      });
+
+      if (onShapeCreated) onShapeCreated();
+      toast.success("Path created! Double-click to finish next path.");
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && penToolState.isDrawing) {
+        // Cancel pen tool drawing
+        penToolState.tempMarkers.forEach(marker => canvas.remove(marker));
+        penToolState.tempLines.forEach(line => canvas.remove(line));
+        setPenToolState({
+          isDrawing: false,
+          points: [],
+          tempMarkers: [],
+          tempLines: [],
+        });
+        canvas.renderAll();
+        toast.info("Path drawing cancelled");
+      } else if (e.key === "Enter" && penToolState.points.length >= 2) {
+        // Finish the path with Enter key
+        handlePenDblClick({ e: {} });
+      }
+    };
+
+    canvas.on("mouse:down", handlePenClick);
+    canvas.on("mouse:dblclick", handlePenDblClick);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      canvas.off("mouse:down", handlePenClick);
+      canvas.off("mouse:dblclick", handlePenDblClick);
+      window.removeEventListener("keydown", handleKeyDown);
+      canvas.defaultCursor = "default";
+      canvas.hoverCursor = "move";
+    };
+  }, [canvas, activeTool, penToolState, onShapeCreated]);
 
   // Handle tool changes
   useEffect(() => {
     if (!canvas) return;
 
     // Update cursor based on tool
-    canvas.defaultCursor = activeTool === "text" ? "text" : "default";
+    if (activeTool === "text") {
+      canvas.defaultCursor = "text";
+    } else if (activeTool === "freeform-line") {
+      canvas.defaultCursor = "crosshair";
+    } else if (activeTool === "pen") {
+      canvas.defaultCursor = "crosshair";
+    } else {
+      canvas.defaultCursor = "default";
+    }
 
     const handleCanvasClick = (e: any) => {
       if (activeTool === "select") return;
@@ -1458,8 +1628,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     // Detach previous handler
     canvas.off("mouse:down", handleCanvasClick);
     
-    // Attach handler if not in select mode
-    if (activeTool !== "select") {
+    // Attach handler if not in select mode, freeform mode, or pen mode
+    // (those tools have their own mouse event handlers)
+    if (activeTool !== "select" && activeTool !== "freeform-line" && activeTool !== "pen") {
       canvas.on("mouse:down", handleCanvasClick);
     }
 
