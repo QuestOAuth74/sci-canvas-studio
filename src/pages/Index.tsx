@@ -48,7 +48,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 onClick={() => navigate("/canvas")} 
-                className="min-w-[240px] h-16 text-lg font-bold uppercase bg-primary hover:bg-primary border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all"
+                className="min-w-[240px] h-16 text-lg font-bold uppercase bg-primary hover:bg-primary border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all rounded-none"
               >
                 <Palette className="h-6 w-6 mr-2" />
                 Start Creating
@@ -57,7 +57,7 @@ const Index = () => {
                 size="lg"
                 variant="outline"
                 onClick={() => navigate("/admin")}
-                className="min-w-[240px] h-16 text-lg font-bold uppercase bg-card hover:bg-muted border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all"
+                className="min-w-[240px] h-16 text-lg font-bold uppercase bg-card hover:bg-muted border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all rounded-none"
               >
                 <Settings className="h-6 w-6 mr-2" />
                 Admin Panel
