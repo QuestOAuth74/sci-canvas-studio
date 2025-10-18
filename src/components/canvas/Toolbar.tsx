@@ -12,6 +12,7 @@ import {
   Image,
   Star,
   Hexagon,
+  Spline,
 } from "lucide-react";
 import {
   Tooltip,
@@ -28,6 +29,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const tools = [
     { id: "select", icon: MousePointer2, label: "Select and Transform (S)" },
     { id: "pen", icon: PenTool, label: "Draw Bezier Curves (B)" },
+    { id: "freeform-line", icon: Spline, label: "Freeform Curved Line (F)" },
     { id: "rectangle", icon: Square, label: "Create Rectangles (R)" },
     { id: "circle", icon: Circle, label: "Create Circles (C)" },
     { id: "star", icon: Star, label: "Create Stars (A)" },
@@ -57,7 +59,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <p>{tool.label}</p>
             </TooltipContent>
           </Tooltip>
-          {(index === 1 || index === 6 || index === 8) && (
+          {(index === 2 || index === 7 || index === 9) && (
             <Separator className="my-1" />
           )}
         </div>

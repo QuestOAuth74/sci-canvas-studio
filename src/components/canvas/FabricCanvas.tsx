@@ -279,6 +279,50 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     canvas.renderAll();
   }, [canvas, rulersEnabled]);
 
+  // Handle freeform line drawing
+  useEffect(() => {
+    if (!canvas) return;
+
+    if (activeTool === "freeform-line") {
+      canvas.isDrawingMode = true;
+      canvas.freeDrawingBrush.color = "#000000";
+      canvas.freeDrawingBrush.width = 2;
+
+      // Handle path creation
+      const handlePathCreated = (e: any) => {
+        const path = e.path as Path;
+        if (path) {
+          // Mark as freeform line
+          (path as any).isFreeformLine = true;
+          (path as any).startMarker = "none";
+          (path as any).endMarker = "none";
+          (path as any).lineThickness = 2;
+          
+          // Set path properties
+          path.set({
+            fill: null,
+            stroke: "#000000",
+            strokeWidth: 2,
+            strokeUniform: true,
+          });
+          
+          canvas.setActiveObject(path);
+          canvas.renderAll();
+          if (onShapeCreated) onShapeCreated();
+        }
+      };
+
+      canvas.on("path:created", handlePathCreated);
+
+      return () => {
+        canvas.off("path:created", handlePathCreated);
+        canvas.isDrawingMode = false;
+      };
+    } else {
+      canvas.isDrawingMode = false;
+    }
+  }, [canvas, activeTool, onShapeCreated]);
+
   // Handle tool changes
   useEffect(() => {
     if (!canvas) return;

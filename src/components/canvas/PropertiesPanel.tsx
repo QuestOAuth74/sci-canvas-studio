@@ -9,8 +9,9 @@ import { ArrangePanel } from "./ArrangePanel";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { Textbox, FabricImage, filters, Group, FabricObject } from "fabric";
+import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as FabricCircle, Polygon } from "fabric";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -56,6 +57,10 @@ export const PropertiesPanel = () => {
   const [imageToneColor, setImageToneColor] = useState("#3b82f6");
   const [imageToneOpacity, setImageToneOpacity] = useState(0.3);
   const [iconColor, setIconColor] = useState("#000000");
+  const [freeformLineColor, setFreeformLineColor] = useState("#000000");
+  const [freeformLineThickness, setFreeformLineThickness] = useState(2);
+  const [freeformStartMarker, setFreeformStartMarker] = useState<"none" | "dot" | "arrow">("none");
+  const [freeformEndMarker, setFreeformEndMarker] = useState<"none" | "dot" | "arrow">("none");
 
   const COLOR_PALETTE = [
     "#3b82f6", // Blue
@@ -93,6 +98,14 @@ export const PropertiesPanel = () => {
       if (firstObjWithColor && typeof firstObjWithColor.fill === 'string') {
         setIconColor(firstObjWithColor.fill);
       }
+    }
+    // Update freeform line properties
+    if (selectedObject && (selectedObject as any).isFreeformLine) {
+      const pathObj = selectedObject as Path;
+      setFreeformLineColor((pathObj.stroke as string) || "#000000");
+      setFreeformLineThickness((pathObj.strokeWidth as number) || 2);
+      setFreeformStartMarker((pathObj as any).startMarker || "none");
+      setFreeformEndMarker((pathObj as any).endMarker || "none");
     }
   }, [selectedObject]);
 
@@ -237,6 +250,204 @@ export const PropertiesPanel = () => {
     }
     
     setCanvasDimensions({ width, height });
+  };
+
+  // Helper function to calculate angle from path endpoints
+  const getPathEndpointAngle = (path: Path, isStart: boolean): number => {
+    const pathData = path.path as any[];
+    if (!pathData || pathData.length < 2) return 0;
+
+    let x1, y1, x2, y2;
+    
+    if (isStart) {
+      // Get angle at start
+      const firstCmd = pathData[0];
+      const secondCmd = pathData[1];
+      x1 = firstCmd[1];
+      y1 = firstCmd[2];
+      if (secondCmd[0] === 'Q') {
+        x2 = secondCmd[1];
+        y2 = secondCmd[2];
+      } else {
+        x2 = secondCmd[1];
+        y2 = secondCmd[2];
+      }
+    } else {
+      // Get angle at end
+      const lastCmd = pathData[pathData.length - 1];
+      const prevCmd = pathData[pathData.length - 2];
+      if (lastCmd[0] === 'Q') {
+        x2 = lastCmd[3];
+        y2 = lastCmd[4];
+        x1 = lastCmd[1];
+        y1 = lastCmd[2];
+      } else {
+        x2 = lastCmd[1];
+        y2 = lastCmd[2];
+        x1 = prevCmd[prevCmd.length - 2];
+        y1 = prevCmd[prevCmd.length - 1];
+      }
+    }
+
+    return Math.atan2(y2 - y1, x2 - x1);
+  };
+
+  // Helper function to get path endpoints
+  const getPathEndpoints = (path: Path): { start: { x: number; y: number }; end: { x: number; y: number } } => {
+    const pathData = path.path as any[];
+    if (!pathData || pathData.length === 0) {
+      return { start: { x: 0, y: 0 }, end: { x: 0, y: 0 } };
+    }
+
+    const firstCmd = pathData[0];
+    const lastCmd = pathData[pathData.length - 1];
+    
+    const start = { x: firstCmd[1], y: firstCmd[2] };
+    const end = lastCmd[0] === 'Q' 
+      ? { x: lastCmd[3], y: lastCmd[4] }
+      : { x: lastCmd[1], y: lastCmd[2] };
+
+    return { start, end };
+  };
+
+  // Update freeform line with markers
+  const updateFreeformLineMarkers = (
+    path: Path,
+    startMarker: "none" | "dot" | "arrow",
+    endMarker: "none" | "dot" | "arrow",
+    color: string,
+    thickness: number
+  ) => {
+    if (!canvas) return;
+
+    // Store marker info on path
+    (path as any).startMarker = startMarker;
+    (path as any).endMarker = endMarker;
+    (path as any).lineThickness = thickness;
+
+    // Remove existing markers
+    const existingGroup = canvas.getObjects().find(obj => (obj as any).isMarkerGroup && (obj as any).pathId === path);
+    if (existingGroup) {
+      canvas.remove(existingGroup);
+    }
+
+    const endpoints = getPathEndpoints(path);
+    const markers: FabricObject[] = [];
+
+    // Create start marker
+    if (startMarker === "dot") {
+      const dot = new FabricCircle({
+        left: endpoints.start.x - thickness * 2,
+        top: endpoints.start.y - thickness * 2,
+        radius: thickness * 2,
+        fill: color,
+        stroke: color,
+        selectable: false,
+        evented: false,
+      });
+      markers.push(dot);
+    } else if (startMarker === "arrow") {
+      const angle = getPathEndpointAngle(path, true);
+      const arrowSize = thickness * 4;
+      const arrowPoints = [
+        { x: endpoints.start.x, y: endpoints.start.y },
+        { x: endpoints.start.x - arrowSize, y: endpoints.start.y - arrowSize / 2 },
+        { x: endpoints.start.x - arrowSize, y: endpoints.start.y + arrowSize / 2 },
+      ];
+      const arrow = new Polygon(arrowPoints, {
+        fill: color,
+        stroke: color,
+        angle: (angle * 180) / Math.PI,
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+        evented: false,
+      });
+      markers.push(arrow);
+    }
+
+    // Create end marker
+    if (endMarker === "dot") {
+      const dot = new FabricCircle({
+        left: endpoints.end.x - thickness * 2,
+        top: endpoints.end.y - thickness * 2,
+        radius: thickness * 2,
+        fill: color,
+        stroke: color,
+        selectable: false,
+        evented: false,
+      });
+      markers.push(dot);
+    } else if (endMarker === "arrow") {
+      const angle = getPathEndpointAngle(path, false);
+      const arrowSize = thickness * 4;
+      const arrowPoints = [
+        { x: endpoints.end.x, y: endpoints.end.y },
+        { x: endpoints.end.x - arrowSize, y: endpoints.end.y - arrowSize / 2 },
+        { x: endpoints.end.x - arrowSize, y: endpoints.end.y + arrowSize / 2 },
+      ];
+      const arrow = new Polygon(arrowPoints, {
+        fill: color,
+        stroke: color,
+        angle: (angle * 180) / Math.PI,
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+        evented: false,
+      });
+      markers.push(arrow);
+    }
+
+    // Add markers to canvas
+    if (markers.length > 0) {
+      const group = new Group(markers, {
+        selectable: false,
+        evented: false,
+      });
+      (group as any).isMarkerGroup = true;
+      (group as any).pathId = path;
+      canvas.add(group);
+      canvas.sendObjectToBack(group);
+    }
+
+    canvas.renderAll();
+  };
+
+  const handleFreeformLineColorChange = (color: string) => {
+    setFreeformLineColor(color);
+    if (canvas && selectedObject && (selectedObject as any).isFreeformLine) {
+      const pathObj = selectedObject as Path;
+      pathObj.set({ stroke: color });
+      updateFreeformLineMarkers(pathObj, freeformStartMarker, freeformEndMarker, color, freeformLineThickness);
+      canvas.renderAll();
+    }
+  };
+
+  const handleFreeformLineThicknessChange = (value: number[]) => {
+    const thickness = value[0];
+    setFreeformLineThickness(thickness);
+    if (canvas && selectedObject && (selectedObject as any).isFreeformLine) {
+      const pathObj = selectedObject as Path;
+      pathObj.set({ strokeWidth: thickness });
+      updateFreeformLineMarkers(pathObj, freeformStartMarker, freeformEndMarker, freeformLineColor, thickness);
+      canvas.renderAll();
+    }
+  };
+
+  const handleFreeformStartMarkerChange = (marker: "none" | "dot" | "arrow") => {
+    setFreeformStartMarker(marker);
+    if (canvas && selectedObject && (selectedObject as any).isFreeformLine) {
+      const pathObj = selectedObject as Path;
+      updateFreeformLineMarkers(pathObj, marker, freeformEndMarker, freeformLineColor, freeformLineThickness);
+    }
+  };
+
+  const handleFreeformEndMarkerChange = (marker: "none" | "dot" | "arrow") => {
+    setFreeformEndMarker(marker);
+    if (canvas && selectedObject && (selectedObject as any).isFreeformLine) {
+      const pathObj = selectedObject as Path;
+      updateFreeformLineMarkers(pathObj, freeformStartMarker, marker, freeformLineColor, freeformLineThickness);
+    }
   };
 
   return (
@@ -437,7 +648,7 @@ export const PropertiesPanel = () => {
               )}
 
               {/* Shape Colors - Only show for non-text, non-image objects */}
-              {selectedObject && selectedObject.type !== 'textbox' && selectedObject.type !== 'image' && !(selectedObject instanceof FabricImage) && (
+              {selectedObject && selectedObject.type !== 'textbox' && selectedObject.type !== 'image' && !(selectedObject instanceof FabricImage) && !(selectedObject as any).isFreeformLine && (
                 <div className="pt-3 border-t">
                   <h3 className="font-semibold text-sm mb-3">Shape Colors</h3>
                   <div className="space-y-3">
@@ -507,6 +718,90 @@ export const PropertiesPanel = () => {
                           placeholder="#000000"
                         />
                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Freeform Line Controls - Only show for freeform lines */}
+              {selectedObject && (selectedObject as any).isFreeformLine && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Freeform Line</h3>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Line Color</Label>
+                      <div className="grid grid-cols-6 gap-2">
+                        {COLOR_PALETTE.map((color) => (
+                          <button
+                            key={color}
+                            onClick={() => handleFreeformLineColorChange(color)}
+                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                            style={{ 
+                              backgroundColor: color,
+                              borderColor: freeformLineColor === color ? '#0D9488' : '#e5e7eb'
+                            }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="color" 
+                          value={freeformLineColor}
+                          onChange={(e) => handleFreeformLineColorChange(e.target.value)}
+                          className="h-8 w-12 p-1" 
+                        />
+                        <Input 
+                          type="text" 
+                          value={freeformLineColor}
+                          onChange={(e) => handleFreeformLineColorChange(e.target.value)}
+                          className="h-8 text-xs flex-1" 
+                          placeholder="#000000"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Line Thickness</Label>
+                        <span className="text-xs text-muted-foreground">{freeformLineThickness}px</span>
+                      </div>
+                      <Slider
+                        value={[freeformLineThickness]}
+                        onValueChange={handleFreeformLineThicknessChange}
+                        min={1}
+                        max={20}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">Start Marker</Label>
+                      <Select value={freeformStartMarker} onValueChange={(value) => handleFreeformStartMarkerChange(value as "none" | "dot" | "arrow")}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none" className="text-xs">None</SelectItem>
+                          <SelectItem value="dot" className="text-xs">Dot</SelectItem>
+                          <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">End Marker</Label>
+                      <Select value={freeformEndMarker} onValueChange={(value) => handleFreeformEndMarkerChange(value as "none" | "dot" | "arrow")}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none" className="text-xs">None</SelectItem>
+                          <SelectItem value="dot" className="text-xs">Dot</SelectItem>
+                          <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
