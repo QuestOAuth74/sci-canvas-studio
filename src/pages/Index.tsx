@@ -27,25 +27,25 @@ const Index = () => {
       <div className="container mx-auto px-4 py-12 md:py-20 relative z-10">
         <div className="max-w-6xl mx-auto space-y-16">
           {/* Hero Section */}
-          <div className="space-y-8 text-center">
+          <div className="space-y-8 text-center animate-fade-in">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-5 py-2 bg-accent border-[3px] border-foreground neo-brutalist-shadow-sm font-bold text-sm uppercase">
-              <Sparkles className="h-4 w-4" />
+            <div className="inline-flex items-center gap-2 px-5 py-2 bg-accent border-[3px] border-foreground neo-brutalist-shadow-sm font-bold text-sm uppercase animate-scale-in hover:rotate-1 transition-transform">
+              <Sparkles className="h-4 w-4 animate-pulse" />
               <span>Free for Scientists</span>
             </div>
             
             {/* Logo and Title */}
             <div className="space-y-6">
-              <div className="flex items-center justify-center gap-4">
-                <div className="p-4 bg-primary border-[4px] border-foreground neo-brutalist-shadow-lg rotate-3">
+              <div className="flex items-center justify-center gap-4 flex-wrap">
+                <div className="p-4 bg-primary border-[4px] border-foreground neo-brutalist-shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300 hover:scale-110">
                   <Microscope className="h-12 w-12 md:h-16 md:w-16 text-foreground" />
                 </div>
-                <h1 className="text-6xl md:text-8xl font-black tracking-tight">
+                <h1 className="text-6xl md:text-8xl font-black tracking-tight hover:scale-105 transition-transform duration-300">
                   BioSketch
                 </h1>
               </div>
               
-              <p className="text-xl md:text-2xl font-medium max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl md:text-2xl font-medium max-w-3xl mx-auto leading-relaxed opacity-90">
                 Create stunning scientific illustrations with a bold, intuitive drag-and-drop interface. 
                 Perfect for publications, presentations, and educational materials.
               </p>
@@ -56,9 +56,9 @@ const Index = () => {
               <Button 
                 size="lg" 
                 onClick={() => navigate(user ? "/projects" : "/auth")} 
-                className="min-w-[240px] h-16 text-lg font-bold uppercase bg-primary hover:bg-primary border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all rounded-none"
+                className="min-w-[240px] h-16 text-lg font-bold uppercase bg-primary hover:bg-primary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none hover:scale-105 group"
               >
-                <Palette className="h-6 w-6 mr-2" />
+                <Palette className="h-6 w-6 mr-2 group-hover:rotate-12 transition-transform" />
                 Start Creating
               </Button>
               {user && (
@@ -66,9 +66,9 @@ const Index = () => {
                   size="lg"
                   variant="outline"
                   onClick={() => navigate("/projects")}
-                  className="min-w-[240px] h-16 text-lg font-bold uppercase bg-card hover:bg-muted border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all rounded-none"
+                  className="min-w-[240px] h-16 text-lg font-bold uppercase bg-secondary hover:bg-secondary/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none hover:scale-105 group"
                 >
-                  <FolderOpen className="h-6 w-6 mr-2" />
+                  <FolderOpen className="h-6 w-6 mr-2 group-hover:scale-110 transition-transform" />
                   My Projects
                 </Button>
               )}
@@ -76,10 +76,10 @@ const Index = () => {
           </div>
 
           {/* Feature Cards */}
-          <div className="grid md:grid-cols-3 gap-6 pt-8">
-            <div className="bg-accent border-[3px] border-foreground neo-brutalist-shadow p-8 hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all">
-              <div className="w-14 h-14 bg-background border-[3px] border-foreground flex items-center justify-center mb-6 rotate-3">
-                <Palette className="h-7 w-7 text-foreground" />
+          <div className="grid md:grid-cols-3 gap-8 pt-8">
+            <div className="bg-accent border-[4px] border-foreground neo-brutalist-shadow p-8 hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300 hover:scale-105 rotate-1 hover:rotate-0 animate-fade-in group">
+              <div className="w-16 h-16 bg-primary border-[3px] border-foreground flex items-center justify-center mb-6 rotate-3 group-hover:rotate-12 transition-all duration-300">
+                <Palette className="h-8 w-8 text-foreground" />
               </div>
               <h3 className="text-2xl font-black mb-3 uppercase">Drag & Drop</h3>
               <p className="text-base font-medium leading-relaxed">
@@ -87,9 +87,9 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="bg-secondary border-[3px] border-foreground neo-brutalist-shadow p-8 hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all">
-              <div className="w-14 h-14 bg-background border-[3px] border-foreground flex items-center justify-center mb-6 -rotate-3">
-                <Microscope className="h-7 w-7 text-foreground" />
+            <div className="bg-secondary border-[4px] border-foreground neo-brutalist-shadow p-8 hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300 hover:scale-105 -rotate-1 hover:rotate-0 animate-fade-in [animation-delay:100ms] group">
+              <div className="w-16 h-16 bg-accent border-[3px] border-foreground flex items-center justify-center mb-6 -rotate-3 group-hover:-rotate-12 transition-all duration-300">
+                <Microscope className="h-8 w-8 text-foreground" />
               </div>
               <h3 className="text-2xl font-black mb-3 uppercase">Organized Library</h3>
               <p className="text-base font-medium leading-relaxed">
@@ -97,9 +97,9 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="bg-primary border-[3px] border-foreground neo-brutalist-shadow p-8 hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all">
-              <div className="w-14 h-14 bg-background border-[3px] border-foreground flex items-center justify-center mb-6 rotate-6">
-                <Zap className="h-7 w-7 text-foreground" />
+            <div className="bg-primary border-[4px] border-foreground neo-brutalist-shadow p-8 hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300 hover:scale-105 rotate-1 hover:rotate-0 animate-fade-in [animation-delay:200ms] group">
+              <div className="w-16 h-16 bg-secondary border-[3px] border-foreground flex items-center justify-center mb-6 rotate-6 group-hover:rotate-180 transition-all duration-300">
+                <Zap className="h-8 w-8 text-foreground" />
               </div>
               <h3 className="text-2xl font-black mb-3 uppercase">Export Ready</h3>
               <p className="text-base font-medium leading-relaxed">
@@ -109,19 +109,27 @@ const Index = () => {
           </div>
 
           {/* Additional Features */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-muted border-[3px] border-foreground neo-brutalist-shadow p-10">
-              <Shield className="h-10 w-10 mb-4 text-foreground" />
-              <h3 className="text-3xl font-black mb-4 uppercase">Open Source & Free</h3>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-muted border-[4px] border-foreground neo-brutalist-shadow p-10 hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300 -rotate-1 hover:rotate-0 group">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-accent border-[3px] border-foreground rotate-3 group-hover:rotate-6 transition-transform">
+                  <Shield className="h-8 w-8 text-foreground" />
+                </div>
+                <h3 className="text-3xl font-black uppercase">Open Source & Free</h3>
+              </div>
               <p className="text-lg font-medium leading-relaxed">
                 Built for the scientific community. No paywalls, no subscriptions. 
                 Just powerful tools for creating beautiful illustrations.
               </p>
             </div>
 
-            <div className="bg-card border-[3px] border-foreground neo-brutalist-shadow p-10">
-              <Sparkles className="h-10 w-10 mb-4 text-foreground" />
-              <h3 className="text-3xl font-black mb-4 uppercase">Professional Quality</h3>
+            <div className="bg-card border-[4px] border-foreground neo-brutalist-shadow p-10 hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300 rotate-1 hover:rotate-0 group">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-primary border-[3px] border-foreground -rotate-3 group-hover:-rotate-6 transition-transform">
+                  <Sparkles className="h-8 w-8 text-foreground" />
+                </div>
+                <h3 className="text-3xl font-black uppercase">Professional Quality</h3>
+              </div>
               <p className="text-lg font-medium leading-relaxed">
                 Export publication-ready graphics in multiple formats. 
                 Perfect for journals, posters, and presentations.
