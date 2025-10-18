@@ -43,6 +43,48 @@ export const IconUploader = () => {
     }
   };
 
+  // Generate thumbnail from full SVG
+  const generateThumbnail = (svgContent: string): string => {
+    try {
+      let optimized = svgContent
+        .replace(/<\?xml[^>]*\?>/g, '')
+        .replace(/<!--[\s\S]*?-->/g, '')
+        .trim();
+
+      const viewBoxMatch = optimized.match(/viewBox=["']([^"']*)["']/);
+      const widthMatch = optimized.match(/width=["']([^"']*)["']/);
+      const heightMatch = optimized.match(/height=["']([^"']*)["']/);
+
+      if (!viewBoxMatch && widthMatch && heightMatch) {
+        const width = parseFloat(widthMatch[1]);
+        const height = parseFloat(heightMatch[1]);
+        if (!isNaN(width) && !isNaN(height)) {
+          optimized = optimized.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
+        }
+      }
+
+      optimized = optimized
+        .replace(/\s+id=["'][^"']*["']/g, '')
+        .replace(/\s+class=["'][^"']*["']/g, '')
+        .replace(/\s+style=["'][^"']*["']/g, '');
+
+      optimized = optimized.replace(/(\d+\.\d{3,})/g, (match) => parseFloat(match).toFixed(2));
+      optimized = optimized.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
+
+      if (optimized.length > 15000) {
+        optimized = optimized
+          .replace(/<title>[\s\S]*?<\/title>/gi, '')
+          .replace(/<desc>[\s\S]*?<\/desc>/gi, '');
+        optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
+      }
+
+      return optimized;
+    } catch (error) {
+      console.error('Thumbnail generation error:', error);
+      return svgContent;
+    }
+  };
+
   const handleUpload = async () => {
     if (!file || !selectedCategory || !iconName) {
       toast.error("Please fill all fields");
@@ -52,13 +94,15 @@ export const IconUploader = () => {
     const reader = new FileReader();
     reader.onload = async (e) => {
       const svgContent = e.target?.result as string;
+      const thumbnail = generateThumbnail(svgContent);
       
       const { error } = await supabase
         .from('icons')
         .insert([{
           name: iconName,
           category: selectedCategory,
-          svg_content: svgContent
+          svg_content: svgContent,
+          thumbnail: thumbnail
         }]);
 
       if (error) {
@@ -97,13 +141,15 @@ export const IconUploader = () => {
         if (!file.dir) {
           const content = await file.async('text');
           const iconName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
+          const thumbnail = generateThumbnail(content);
           
           const { error } = await supabase
             .from('icons')
             .insert([{
               name: iconName,
               category: selectedCategory,
-              svg_content: content
+              svg_content: content,
+              thumbnail: thumbnail
             }]);
 
           if (!error) {

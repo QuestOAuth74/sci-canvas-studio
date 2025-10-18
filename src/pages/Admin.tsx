@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { IconUploader } from "@/components/admin/IconUploader";
 import { IconManager } from "@/components/admin/IconManager";
 import { CategoryManager } from "@/components/admin/CategoryManager";
+import { ThumbnailGenerator } from "@/components/admin/ThumbnailGenerator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
@@ -36,7 +37,10 @@ const Admin = () => {
           </TabsList>
           
           <TabsContent value="upload" className="mt-6">
-            <IconUploader />
+            <div className="space-y-6">
+              <IconUploader />
+              <ThumbnailGenerator />
+            </div>
           </TabsContent>
           
           <TabsContent value="manage" className="mt-6">

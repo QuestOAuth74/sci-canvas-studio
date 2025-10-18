@@ -12,7 +12,8 @@ interface Icon {
   id: string;
   name: string;
   category: string;
-  svg_content: string;
+  svg_content?: string;
+  thumbnail?: string;
 }
 
 interface Category {
@@ -98,9 +99,10 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       setIsSearching(true);
       const searchTerms = query.trim().split(/\s+/).join(' & ');
       
+      // Load only thumbnails for search results (svg_content fetched on click)
       const { data, error } = await supabase
         .from('icons')
-        .select('*')
+        .select('id, name, category, thumbnail')
         .textSearch('search_vector', searchTerms, {
           type: 'websearch',
           config: 'english'
@@ -144,11 +146,11 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
         setCategories(categoriesData);
       }
 
-      // Load all icons
+      // Load icons with only thumbnails initially (exclude heavy svg_content)
       console.log("Loading icons...");
       const { data: iconsData, error: iconsError } = await supabase
         .from('icons')
-        .select('*')
+        .select('id, name, category, thumbnail')
         .order('name');
 
       if (iconsError) {
@@ -178,11 +180,34 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
     }
   };
 
-  const handleIconClick = (icon: Icon) => {
-    const event = new CustomEvent("addIconToCanvas", {
-      detail: { svgData: icon.svg_content },
-    });
-    window.dispatchEvent(event);
+  const handleIconClick = async (icon: Icon) => {
+    try {
+      // If we already have svg_content, use it
+      if (icon.svg_content) {
+        const event = new CustomEvent("addIconToCanvas", {
+          detail: { svgData: icon.svg_content },
+        });
+        window.dispatchEvent(event);
+        return;
+      }
+
+      // Otherwise, fetch full svg_content for high-quality canvas rendering
+      const { data, error } = await supabase
+        .from('icons')
+        .select('svg_content')
+        .eq('id', icon.id)
+        .single();
+
+      if (error) throw error;
+      if (!data?.svg_content) throw new Error('No SVG content found');
+
+      const event = new CustomEvent("addIconToCanvas", {
+        detail: { svgData: data.svg_content },
+      });
+      window.dispatchEvent(event);
+    } catch (error) {
+      console.error('Error loading icon:', error);
+    }
   };
 
   const onImgLoad = (id: string) => {
@@ -269,7 +294,8 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
             </div>
             <div className="grid grid-cols-4 gap-1.5">
               {searchResults.map((icon) => {
-                const safeSvg = sanitizeSvg(icon.svg_content);
+                const svgContent = icon.thumbnail || '';
+                const safeSvg = sanitizeSvg(svgContent);
                 const thumbSrc = svgToDataUrl(safeSvg);
                 const isLoaded = !!loadedMap[icon.id];
                 
@@ -330,7 +356,8 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
                     <div className="space-y-2">
                       <div className="grid grid-cols-4 gap-1.5 p-2">
                         {paginatedIcons.map((icon) => {
-                          const safeSvg = sanitizeSvg(icon.svg_content);
+                          const svgContent = icon.thumbnail || '';
+                          const safeSvg = sanitizeSvg(svgContent);
                           const thumbSrc = svgToDataUrl(safeSvg);
                           const isLoaded = !!loadedMap[icon.id];
                           

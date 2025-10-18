@@ -79,6 +79,7 @@ export type Database = {
           name: string
           search_vector: unknown | null
           svg_content: string
+          thumbnail: string | null
           uploaded_by: string | null
         }
         Insert: {
@@ -88,6 +89,7 @@ export type Database = {
           name: string
           search_vector?: unknown | null
           svg_content: string
+          thumbnail?: string | null
           uploaded_by?: string | null
         }
         Update: {
@@ -97,6 +99,7 @@ export type Database = {
           name?: string
           search_vector?: unknown | null
           svg_content?: string
+          thumbnail?: string | null
           uploaded_by?: string | null
         }
         Relationships: []
