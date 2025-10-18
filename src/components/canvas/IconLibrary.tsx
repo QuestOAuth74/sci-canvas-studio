@@ -34,9 +34,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 h-full bg-gradient-to-b from-background to-muted/20">
       <div>
-        <h2 className="text-lg font-semibold mb-3">Categories</h2>
+        <h2 className="text-lg font-semibold mb-3 text-foreground">Categories</h2>
         <div className="space-y-1">
           <Button
             variant={selectedCategory === "all" ? "default" : "ghost"}
