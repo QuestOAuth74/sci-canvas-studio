@@ -746,7 +746,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         backgroundSize: '20px 20px'
       } : undefined}
     >
-      <div className="w-full h-full flex items-center justify-center p-8">
+      <div className="w-full h-full flex items-start justify-center p-4">
         <div className="shadow-2xl bg-white" style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
           <canvas ref={canvasRef} />
         </div>
