@@ -75,7 +75,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
       setCanvas(null);
       canvas.dispose();
     };
-  }, [setCanvas, setSelectedObject, canvasDimensions]);
+  }, [setCanvas, setSelectedObject]);
 
   // Handle canvas dimension changes
   useEffect(() => {
