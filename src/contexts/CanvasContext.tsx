@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from "react";
 import { Canvas as FabricCanvas, FabricObject } from "fabric";
+import { toast } from "sonner";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -42,6 +43,8 @@ interface CanvasContextType {
   
   // Export operations
   exportAsPNG: () => void;
+  exportAsPNGTransparent: () => void;
+  exportAsJPG: () => void;
   exportAsSVG: () => void;
 }
 
@@ -324,6 +327,31 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     link.download = 'diagram.png';
     link.href = dataURL;
     link.click();
+    toast.success("Exported as PNG");
+  }, [canvas]);
+
+  const exportAsPNGTransparent = useCallback(() => {
+    if (!canvas) return;
+    const originalBg = canvas.backgroundColor;
+    canvas.backgroundColor = '';
+    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
+    canvas.backgroundColor = originalBg;
+    canvas.renderAll();
+    const link = document.createElement('a');
+    link.download = 'diagram-transparent.png';
+    link.href = dataURL;
+    link.click();
+    toast.success("Exported as PNG with transparent background");
+  }, [canvas]);
+
+  const exportAsJPG = useCallback(() => {
+    if (!canvas) return;
+    const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier: 2 });
+    const link = document.createElement('a');
+    link.download = 'diagram.jpg';
+    link.href = dataURL;
+    link.click();
+    toast.success("Exported as JPG");
   }, [canvas]);
 
   const exportAsSVG = useCallback(() => {
@@ -369,6 +397,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     bringForward,
     sendBackward,
     exportAsPNG,
+    exportAsPNGTransparent,
+    exportAsJPG,
     exportAsSVG,
   };
 

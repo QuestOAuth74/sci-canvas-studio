@@ -3,10 +3,15 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
+import { PAPER_SIZES } from "@/types/paperSizes";
+import { useState } from "react";
 
 export const PropertiesPanel = () => {
+  const [paperSize, setPaperSize] = useState("custom");
+
   return (
     <div className="w-64 border-l-[3px] border-foreground bg-card h-full">
       <ScrollArea className="h-full">
@@ -66,7 +71,21 @@ export const PropertiesPanel = () => {
 
               <div className="space-y-3">
                 <h3 className="font-semibold text-sm">Paper Size</h3>
-                <Input defaultValue='US Letter (8.5" x 11")' className="h-8 text-xs" />
+                <Select value={paperSize} onValueChange={setPaperSize}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PAPER_SIZES.map((size) => (
+                      <SelectItem key={size.id} value={size.id} className="text-xs">
+                        <div className="flex flex-col">
+                          <span className="font-medium">{size.name}</span>
+                          <span className="text-xs text-muted-foreground">{size.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </TabsContent>
             

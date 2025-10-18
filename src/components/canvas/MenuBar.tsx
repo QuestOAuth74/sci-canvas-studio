@@ -33,6 +33,8 @@ export const MenuBar = () => {
     bringForward,
     sendBackward,
     exportAsPNG,
+    exportAsPNGTransparent,
+    exportAsJPG,
     exportAsSVG,
   } = useCanvas();
 
@@ -70,6 +72,8 @@ export const MenuBar = () => {
           <MenubarItem onClick={handleSave}>Save As...</MenubarItem>
           <MenubarSeparator />
           <MenubarItem onClick={exportAsPNG}>Export as PNG</MenubarItem>
+          <MenubarItem onClick={exportAsPNGTransparent}>Export as PNG (Transparent)</MenubarItem>
+          <MenubarItem onClick={exportAsJPG}>Export as JPG</MenubarItem>
           <MenubarItem onClick={exportAsSVG}>Export as SVG</MenubarItem>
           <MenubarItem onClick={handleExportPDF}>Export as PDF</MenubarItem>
         </MenubarContent>
