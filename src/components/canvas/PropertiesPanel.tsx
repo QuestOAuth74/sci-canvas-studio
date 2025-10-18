@@ -9,7 +9,8 @@ import { ArrangePanel } from "./ArrangePanel";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { Textbox } from "fabric";
+import { Textbox, FabricImage, filters } from "fabric";
+import { Button } from "@/components/ui/button";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -52,6 +53,8 @@ export const PropertiesPanel = () => {
   const [textColor, setTextColor] = useState("#000000");
   const [shapeFillColor, setShapeFillColor] = useState("#3b82f6");
   const [shapeStrokeColor, setShapeStrokeColor] = useState("#000000");
+  const [imageToneColor, setImageToneColor] = useState("#3b82f6");
+  const [imageToneOpacity, setImageToneOpacity] = useState(0.3);
 
   const COLOR_PALETTE = [
     "#3b82f6", // Blue
@@ -126,6 +129,47 @@ export const PropertiesPanel = () => {
     if (canvas && selectedObject && selectedObject.type !== 'textbox') {
       selectedObject.set({ stroke: color });
       canvas.renderAll();
+    }
+  };
+
+  const handleImageToneChange = (color: string, opacity: number = imageToneOpacity) => {
+    setImageToneColor(color);
+    if (canvas && selectedObject && (selectedObject.type === 'image' || selectedObject instanceof FabricImage)) {
+      const imageObj = selectedObject as FabricImage;
+      
+      // Convert hex color to RGB
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      
+      // Clear existing filters
+      imageObj.filters = [];
+      
+      // Apply blend color filter
+      const blendFilter = new filters.BlendColor({
+        color: color,
+        mode: 'tint',
+        alpha: opacity,
+      });
+      
+      imageObj.filters.push(blendFilter);
+      imageObj.applyFilters();
+      canvas.renderAll();
+    }
+  };
+
+  const handleImageToneOpacityChange = (opacity: number) => {
+    setImageToneOpacity(opacity);
+    handleImageToneChange(imageToneColor, opacity);
+  };
+
+  const handleRemoveImageTone = () => {
+    if (canvas && selectedObject && (selectedObject.type === 'image' || selectedObject instanceof FabricImage)) {
+      const imageObj = selectedObject as FabricImage;
+      imageObj.filters = [];
+      imageObj.applyFilters();
+      canvas.renderAll();
+      setImageToneOpacity(0.3);
     }
   };
 
@@ -241,8 +285,74 @@ export const PropertiesPanel = () => {
             <TabsContent value="style" className="space-y-4 mt-0">
               <StylePanel />
 
-              {/* Shape Colors - Only show for non-text objects */}
-              {selectedObject && selectedObject.type !== 'textbox' && (
+              {/* Image Color Tone - Only show for images */}
+              {selectedObject && (selectedObject.type === 'image' || selectedObject instanceof FabricImage) && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Image Color Tone</h3>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Tone Color</Label>
+                      <div className="grid grid-cols-6 gap-2">
+                        {COLOR_PALETTE.map((color) => (
+                          <button
+                            key={color}
+                            onClick={() => handleImageToneChange(color)}
+                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                            style={{ 
+                              backgroundColor: color,
+                              borderColor: imageToneColor === color ? '#0D9488' : '#e5e7eb'
+                            }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="color" 
+                          value={imageToneColor}
+                          onChange={(e) => handleImageToneChange(e.target.value)}
+                          className="h-8 w-12 p-1" 
+                        />
+                        <Input 
+                          type="text" 
+                          value={imageToneColor}
+                          onChange={(e) => handleImageToneChange(e.target.value)}
+                          className="h-8 text-xs flex-1" 
+                          placeholder="#3b82f6"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Tone Intensity</Label>
+                        <span className="text-xs text-muted-foreground">{Math.round(imageToneOpacity * 100)}%</span>
+                      </div>
+                      <Input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={imageToneOpacity}
+                        onChange={(e) => handleImageToneOpacityChange(parseFloat(e.target.value))}
+                        className="h-8"
+                      />
+                    </div>
+
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleRemoveImageTone}
+                      className="w-full text-xs h-8"
+                    >
+                      Remove Tone
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Shape Colors - Only show for non-text, non-image objects */}
+              {selectedObject && selectedObject.type !== 'textbox' && selectedObject.type !== 'image' && !(selectedObject instanceof FabricImage) && (
                 <div className="pt-3 border-t">
                   <h3 className="font-semibold text-sm mb-3">Shape Colors</h3>
                   <div className="space-y-3">
