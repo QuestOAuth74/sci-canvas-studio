@@ -9,7 +9,7 @@ import { ArrangePanel } from "./ArrangePanel";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { Textbox, FabricImage, filters } from "fabric";
+import { Textbox, FabricImage, filters, Group, FabricObject } from "fabric";
 import { Button } from "@/components/ui/button";
 
 const GOOGLE_FONTS = [
@@ -55,6 +55,7 @@ export const PropertiesPanel = () => {
   const [shapeStrokeColor, setShapeStrokeColor] = useState("#000000");
   const [imageToneColor, setImageToneColor] = useState("#3b82f6");
   const [imageToneOpacity, setImageToneOpacity] = useState(0.3);
+  const [iconColor, setIconColor] = useState("#000000");
 
   const COLOR_PALETTE = [
     "#3b82f6", // Blue
@@ -80,9 +81,18 @@ export const PropertiesPanel = () => {
       setTextColor(textObj.fill as string || "#000000");
     }
     // Update shape color properties for non-text objects
-    if (selectedObject && selectedObject.type !== 'textbox') {
+    if (selectedObject && selectedObject.type !== 'textbox' && selectedObject.type !== 'group') {
       setShapeFillColor((selectedObject.fill as string) || "#3b82f6");
       setShapeStrokeColor((selectedObject.stroke as string) || "#000000");
+    }
+    // Update icon color for group objects (icons)
+    if (selectedObject && selectedObject.type === 'group') {
+      const group = selectedObject as Group;
+      // Get the color from the first object in the group that has a fill
+      const firstObjWithColor = group.getObjects().find(obj => obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none');
+      if (firstObjWithColor && typeof firstObjWithColor.fill === 'string') {
+        setIconColor(firstObjWithColor.fill);
+      }
     }
   }, [selectedObject]);
 
@@ -170,6 +180,33 @@ export const PropertiesPanel = () => {
       imageObj.applyFilters();
       canvas.renderAll();
       setImageToneOpacity(0.3);
+    }
+  };
+
+  const handleIconColorChange = (color: string) => {
+    setIconColor(color);
+    if (canvas && selectedObject && selectedObject.type === 'group') {
+      const group = selectedObject as Group;
+      
+      // Recursively change colors of all objects in the group
+      const changeObjectColor = (obj: FabricObject) => {
+        if (obj.type === 'group') {
+          const subGroup = obj as Group;
+          subGroup.getObjects().forEach(changeObjectColor);
+        } else {
+          // Change fill color if it exists and is not transparent
+          if (obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none') {
+            obj.set({ fill: color });
+          }
+          // Change stroke color if it exists
+          if (obj.stroke && obj.stroke !== 'transparent' && obj.stroke !== 'none') {
+            obj.set({ stroke: color });
+          }
+        }
+      };
+      
+      group.getObjects().forEach(changeObjectColor);
+      canvas.renderAll();
     }
   };
 
@@ -284,6 +321,47 @@ export const PropertiesPanel = () => {
             
             <TabsContent value="style" className="space-y-4 mt-0">
               <StylePanel />
+
+              {/* Icon Color - Only show for SVG groups (icons) */}
+              {selectedObject && selectedObject.type === 'group' && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Icon Color</h3>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Color</Label>
+                      <div className="grid grid-cols-6 gap-2">
+                        {COLOR_PALETTE.map((color) => (
+                          <button
+                            key={color}
+                            onClick={() => handleIconColorChange(color)}
+                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                            style={{ 
+                              backgroundColor: color,
+                              borderColor: iconColor === color ? '#0D9488' : '#e5e7eb'
+                            }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="color" 
+                          value={iconColor}
+                          onChange={(e) => handleIconColorChange(e.target.value)}
+                          className="h-8 w-12 p-1" 
+                        />
+                        <Input 
+                          type="text" 
+                          value={iconColor}
+                          onChange={(e) => handleIconColorChange(e.target.value)}
+                          className="h-8 text-xs flex-1" 
+                          placeholder="#000000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Image Color Tone - Only show for images */}
               {selectedObject && (selectedObject.type === 'image' || selectedObject instanceof FabricImage) && (
