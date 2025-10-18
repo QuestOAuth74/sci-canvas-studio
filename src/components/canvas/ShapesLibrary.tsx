@@ -12,27 +12,35 @@ interface ShapesLibraryProps {
 
 export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedSections, setExpandedSections] = useState<string[]>(["arrows"]);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [categories, setCategories] = useState<IconCategory[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, IconItem[]>>({});
 
   useEffect(() => {
-    const cats = iconStorage.getCategories();
-    setCategories(cats);
-    const map: Record<string, IconItem[]> = {};
-    cats.forEach((c) => {
-      map[c.id] = iconStorage.getIconsByCategory(c.id);
-    });
-    setIconsByCategory(map);
+    setCategories(iconStorage.getCategories());
   }, []);
 
   const toggleSection = (section: string) => {
-    setExpandedSections(prev =>
-      prev.includes(section)
-        ? prev.filter(s => s !== section)
-        : [...prev, section]
-    );
+    setExpandedSections(prev => {
+      const isExpanding = !prev.includes(section);
+      
+      // Lazy load icons only when expanding
+      if (isExpanding && !iconsByCategory[section]) {
+        const icons = iconStorage.getIconsByCategory(section);
+        setIconsByCategory(current => ({ ...current, [section]: icons }));
+      }
+      
+      return isExpanding
+        ? [...prev, section]
+        : prev.filter(s => s !== section);
+    });
   };
+
+  const filteredCategories = categories.filter((c) => {
+    if (!searchQuery) return (iconsByCategory[c.id]?.length || 0) > 0 || !iconsByCategory[c.id];
+    const icons = iconsByCategory[c.id] || iconStorage.getIconsByCategory(c.id);
+    return icons.some(icon => icon.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  });
 
   return (
     <div className="flex flex-col h-full">
@@ -53,9 +61,7 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1.5">
           {/* Dynamic Categories from Database */}
-          {categories
-            .filter((c) => (iconsByCategory[c.id]?.length || 0) > 0)
-            .map((c) => {
+          {filteredCategories.map((c) => {
               const sectionId = c.id;
               return (
                 <div key={c.id} className="border border-border/40 rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm">
@@ -72,20 +78,27 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                   </button>
                   {expandedSections.includes(sectionId) && (
                     <div className="grid grid-cols-4 gap-1.5 p-2 border-t border-border/40">
-                      {(iconsByCategory[c.id] || []).map((icon) => (
-                        <button
-                          key={icon.id}
-                          onClick={() =>
-                            window.dispatchEvent(
-                              new CustomEvent("addIconToCanvas", { detail: { svgData: icon.svgData } })
-                            )
-                          }
-                          className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105"
-                          title={icon.name}
-                        >
-                          <img src={icon.thumbnail} alt={icon.name} className="w-full h-full object-contain" />
-                        </button>
-                      ))}
+                      {(iconsByCategory[c.id] || [])
+                        .filter(icon => !searchQuery || icon.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .map((icon) => (
+                          <button
+                            key={icon.id}
+                            onClick={() =>
+                              window.dispatchEvent(
+                                new CustomEvent("addIconToCanvas", { detail: { svgData: icon.svgData } })
+                              )
+                            }
+                            className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105"
+                            title={icon.name}
+                          >
+                            <img 
+                              src={icon.thumbnail} 
+                              alt={icon.name} 
+                              className="w-full h-full object-contain" 
+                              loading="lazy"
+                            />
+                          </button>
+                        ))}
                     </div>
                   )}
                 </div>
