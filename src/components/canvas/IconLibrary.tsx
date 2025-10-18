@@ -61,6 +61,9 @@ const svgToDataUrl = (svg: string): string => {
   return `data:image/svg+xml;charset=utf-8,${encoded}`;
 };
 
+// Small helper to delay between retries
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, Icon[]>>({});
@@ -71,34 +74,58 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
   const [loadedCategories, setLoadedCategories] = useState<Set<string>>(new Set());
   const [loadingCategories, setLoadingCategories] = useState<Set<string>>(new Set());
 
+  // Connectivity status
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      
-      // Only load categories initially - icons will be lazy loaded
-      console.log("Loading categories...");
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from('icon_categories')
-        .select('*')
-        .order('name');
-
-      if (categoriesError) {
-        console.error("Categories error:", categoriesError);
-        throw new Error(`Failed to load categories: ${categoriesError.message}`);
+      let categoriesData: Category[] | null = null;
+      const maxAttempts = 3;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 7000);
+          const { data, error } = await supabase
+            .from('icon_categories')
+            .select('*')
+            .order('name')
+            .abortSignal(controller.signal);
+          clearTimeout(timeout);
+          if (error) throw error;
+          categoriesData = data ?? [];
+          break;
+        } catch (e: any) {
+          const isLast = attempt === maxAttempts;
+          const msg = e?.message || String(e);
+          const shouldRetry = msg?.includes('Failed to fetch') || e?.name === 'AbortError';
+          if (!shouldRetry || isLast) {
+            throw new Error(`Failed to load categories: ${msg}`);
+          }
+          await wait(500 * Math.pow(2, attempt - 1));
+        }
       }
-      
-      console.log("Categories loaded:", categoriesData?.length || 0);
-      if (categoriesData) {
-        setCategories(categoriesData);
-      }
+      console.log('Categories loaded:', categoriesData?.length || 0);
+      setCategories(categoriesData || []);
     } catch (err) {
-      console.error("Error loading icon library:", err);
-      setError(err instanceof Error ? err.message : "Failed to load categories");
+      console.error('Error loading icon library:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load categories');
     } finally {
       setLoading(false);
     }
@@ -109,27 +136,40 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
     if (loadedCategories.has(categoryId) || loadingCategories.has(categoryId)) {
       return;
     }
-    
-    setLoadingCategories(prev => new Set(prev).add(categoryId));
-    
-    try {
-      console.log(`Loading icons for category: ${categoryId}...`);
-      const { data: iconsData, error: iconsError } = await supabase
-        .from('icons')
-        .select('*')
-        .eq('category', categoryId)
-        .order('name');
 
-      if (iconsError) {
-        console.error(`Icons error for ${categoryId}:`, iconsError);
-        throw new Error(`Failed to load icons: ${iconsError.message}`);
+    setLoadingCategories(prev => new Set(prev).add(categoryId));
+
+    try {
+      let iconsData: Icon[] | null = null;
+      const maxAttempts = 3;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 7000);
+          const { data, error } = await supabase
+            .from('icons')
+            .select('*')
+            .eq('category', categoryId)
+            .order('name')
+            .abortSignal(controller.signal);
+          clearTimeout(timeout);
+          if (error) throw error;
+          iconsData = data ?? [];
+          break;
+        } catch (e: any) {
+          const isLast = attempt === maxAttempts;
+          const msg = e?.message || String(e);
+          const shouldRetry = msg?.includes('Failed to fetch') || e?.name === 'AbortError';
+          if (!shouldRetry || isLast) {
+            throw new Error(`Failed to load icons: ${msg}`);
+          }
+          await wait(500 * Math.pow(2, attempt - 1));
+        }
       }
-      
+
       console.log(`Icons loaded for ${categoryId}:`, iconsData?.length || 0);
-      if (iconsData) {
-        setIconsByCategory(prev => ({ ...prev, [categoryId]: iconsData }));
-        setLoadedCategories(prev => new Set(prev).add(categoryId));
-      }
+      setIconsByCategory(prev => ({ ...prev, [categoryId]: iconsData || [] }));
+      setLoadedCategories(prev => new Set(prev).add(categoryId));
     } catch (err) {
       console.error(`Error loading icons for ${categoryId}:`, err);
     } finally {
@@ -177,7 +217,11 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
         <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
         <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
       </div>
-      
+      {!isOnline && (
+        <div className="px-3 py-2 bg-accent/30 text-foreground text-xs border-b border-border/40">
+          You’re offline. Icons will load once connection is restored.
+        </div>
+      )}
       {loading && (
         <div className="px-3 py-4 space-y-4">
           {[1, 2, 3].map((i) => (
@@ -194,10 +238,11 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       )}
       
       {error && (
-        <Alert variant="destructive" className="m-3">
-          <AlertDescription>
-            {error}
-          </AlertDescription>
+        <Alert variant="destructive" className="m-3 space-y-2">
+          <AlertDescription>{error}</AlertDescription>
+          <div>
+            <Button size="sm" variant="secondary" onClick={loadData}>Retry</Button>
+          </div>
         </Alert>
       )}
       
