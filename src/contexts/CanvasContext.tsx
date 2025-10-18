@@ -369,7 +369,25 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // Export operations
   const exportAsPNG = useCallback(() => {
     if (!canvas) return;
+
+    // Temporarily hide guides
+    const hidden: FabricObject[] = [];
+    canvas.getObjects().forEach((obj) => {
+      if ((obj as any).isGridLine || (obj as any).isRuler) {
+        if (obj.visible) {
+          hidden.push(obj);
+          obj.visible = false;
+        }
+      }
+    });
+    canvas.renderAll();
+
     const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
+
+    // Restore visibility
+    hidden.forEach((o) => (o.visible = true));
+    canvas.renderAll();
+
     const link = document.createElement('a');
     link.download = 'diagram.png';
     link.href = dataURL;
@@ -379,11 +397,29 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const exportAsPNGTransparent = useCallback(() => {
     if (!canvas) return;
+
+    // Temporarily hide guides
+    const hidden: FabricObject[] = [];
+    canvas.getObjects().forEach((obj) => {
+      if ((obj as any).isGridLine || (obj as any).isRuler) {
+        if (obj.visible) {
+          hidden.push(obj);
+          obj.visible = false;
+        }
+      }
+    });
+
     const originalBg = canvas.backgroundColor;
     canvas.backgroundColor = '';
-    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
-    canvas.backgroundColor = originalBg;
     canvas.renderAll();
+
+    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
+
+    // Restore background and guides
+    canvas.backgroundColor = originalBg;
+    hidden.forEach((o) => (o.visible = true));
+    canvas.renderAll();
+
     const link = document.createElement('a');
     link.download = 'diagram-transparent.png';
     link.href = dataURL;
@@ -393,7 +429,25 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const exportAsJPG = useCallback(() => {
     if (!canvas) return;
+
+    // Temporarily hide guides
+    const hidden: FabricObject[] = [];
+    canvas.getObjects().forEach((obj) => {
+      if ((obj as any).isGridLine || (obj as any).isRuler) {
+        if (obj.visible) {
+          hidden.push(obj);
+          obj.visible = false;
+        }
+      }
+    });
+    canvas.renderAll();
+
     const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier: 2 });
+
+    // Restore visibility
+    hidden.forEach((o) => (o.visible = true));
+    canvas.renderAll();
+
     const link = document.createElement('a');
     link.download = 'diagram.jpg';
     link.href = dataURL;
@@ -403,7 +457,25 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const exportAsSVG = useCallback(() => {
     if (!canvas) return;
+
+    // Temporarily hide guides
+    const hidden: FabricObject[] = [];
+    canvas.getObjects().forEach((obj) => {
+      if ((obj as any).isGridLine || (obj as any).isRuler) {
+        if (obj.visible) {
+          hidden.push(obj);
+          obj.visible = false;
+        }
+      }
+    });
+    canvas.renderAll();
+
     const svg = canvas.toSVG();
+
+    // Restore visibility
+    hidden.forEach((o) => (o.visible = true));
+    canvas.renderAll();
+
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -422,8 +494,22 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     setIsSaving(true);
     try {
+      // Hide guides so they are not persisted as visible in saved data
+      const hidden: FabricObject[] = [];
+      canvas.getObjects().forEach((obj) => {
+        if ((obj as any).isGridLine || (obj as any).isRuler) {
+          if (obj.visible) {
+            hidden.push(obj);
+            obj.visible = false;
+          }
+        }
+      });
+
       const canvasData = canvas.toJSON();
-      
+
+      // Restore visibility after snapshot
+      hidden.forEach((o) => (o.visible = true));
+
       const projectData = {
         user_id: user.id,
         name: projectName,

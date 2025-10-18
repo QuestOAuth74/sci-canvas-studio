@@ -714,10 +714,13 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   }, [canvas, activeTool, textFont, textAlign, textUnderline, textOverline, textBold, textItalic]);
 
   return (
-    <div className="flex-1 overflow-hidden" style={{ 
-      background: 'linear-gradient(90deg, #f0f0f0 1px, transparent 1px), linear-gradient(#f0f0f0 1px, transparent 1px)',
-      backgroundSize: '20px 20px'
-    }}>
+    <div
+      className="flex-1 overflow-hidden"
+      style={gridEnabled ? {
+        background: 'linear-gradient(90deg, #f0f0f0 1px, transparent 1px), linear-gradient(#f0f0f0 1px, transparent 1px)',
+        backgroundSize: '20px 20px'
+      } : undefined}
+    >
       <div className="w-full h-full flex items-center justify-center p-8">
         <div className="shadow-2xl bg-white" style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
           <canvas ref={canvasRef} />
