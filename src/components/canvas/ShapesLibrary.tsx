@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { iconStorage } from "@/lib/iconStorage";
+import { IconCategory, IconItem } from "@/types/icon";
 
 interface ShapesLibraryProps {
   onShapeSelect: (shape: string) => void;
@@ -9,6 +11,18 @@ interface ShapesLibraryProps {
 
 export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   const [expandedSections, setExpandedSections] = useState<string[]>(["arrows"]);
+  const [categories, setCategories] = useState<IconCategory[]>([]);
+  const [iconsByCategory, setIconsByCategory] = useState<Record<string, IconItem[]>>({});
+
+  useEffect(() => {
+    const cats = iconStorage.getCategories();
+    setCategories(cats);
+    const map: Record<string, IconItem[]> = {};
+    cats.forEach((c) => {
+      map[c.id] = iconStorage.getIconsByCategory(c.id);
+    });
+    setIconsByCategory(map);
+  }, []);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev =>
@@ -123,6 +137,46 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
             </button>
             {expandedSections.includes("flowchart") && renderShapeGrid(flowchartShapes)}
           </div>
+
+          {/* Bioicons (Dynamic) */}
+          {categories
+            .filter((c) => (iconsByCategory[c.id]?.length || 0) > 0)
+            .map((c) => {
+              const sectionId = `bio:${c.id}`;
+              return (
+                <div key={c.id} className="border rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => toggleSection(sectionId)}
+                    className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent text-sm font-medium"
+                  >
+                    <span>{c.name}</span>
+                    {expandedSections.includes(sectionId) ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </button>
+                  {expandedSections.includes(sectionId) && (
+                    <div className="grid grid-cols-4 gap-1 p-2">
+                      {(iconsByCategory[c.id] || []).map((icon) => (
+                        <button
+                          key={icon.id}
+                          onClick={() =>
+                            window.dispatchEvent(
+                              new CustomEvent("addIconToCanvas", { detail: { svgData: icon.svgData } })
+                            )
+                          }
+                          className="aspect-square border border-border hover:border-primary hover:bg-accent rounded p-1 transition-colors"
+                          title={icon.name}
+                        >
+                          <img src={icon.thumbnail} alt={icon.name} className="w-full h-full object-contain" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
           {/* Basic Shapes */}
           <div className="border rounded-lg overflow-hidden">
