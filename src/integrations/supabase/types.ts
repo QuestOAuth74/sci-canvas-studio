@@ -16,9 +16,11 @@ export type Database = {
     Tables: {
       canvas_projects: {
         Row: {
+          approval_status: string | null
           canvas_data: Json
           canvas_height: number
           canvas_width: number
+          citations: string | null
           cloned_count: number | null
           created_at: string | null
           description: string | null
@@ -35,9 +37,11 @@ export type Database = {
           view_count: number | null
         }
         Insert: {
+          approval_status?: string | null
           canvas_data: Json
           canvas_height: number
           canvas_width: number
+          citations?: string | null
           cloned_count?: number | null
           created_at?: string | null
           description?: string | null
@@ -54,9 +58,11 @@ export type Database = {
           view_count?: number | null
         }
         Update: {
+          approval_status?: string | null
           canvas_data?: Json
           canvas_height?: number
           canvas_width?: number
+          citations?: string | null
           cloned_count?: number | null
           created_at?: string | null
           description?: string | null

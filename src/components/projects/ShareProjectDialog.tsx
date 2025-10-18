@@ -19,6 +19,8 @@ interface ShareProjectDialogProps {
     title?: string | null;
     description?: string | null;
     keywords?: string[] | null;
+    citations?: string | null;
+    approval_status?: string | null;
   };
   isOpen: boolean;
   onClose: () => void;
@@ -30,6 +32,7 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
   const [isPublic, setIsPublic] = useState(project.is_public || false);
   const [title, setTitle] = useState(project.title || project.name);
   const [description, setDescription] = useState(project.description || '');
+  const [citations, setCitations] = useState(project.citations || '');
   const [keywordInput, setKeywordInput] = useState('');
   const [keywords, setKeywords] = useState<string[]>(project.keywords || []);
 
@@ -37,6 +40,7 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
     setIsPublic(project.is_public || false);
     setTitle(project.title || project.name);
     setDescription(project.description || '');
+    setCitations(project.citations || '');
     setKeywords(project.keywords || []);
   }, [project]);
 
@@ -90,12 +94,16 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
           title: title.trim() || null,
           description: description.trim() || null,
           keywords: keywords.length > 0 ? keywords : null,
+          citations: citations.trim() || null,
+          approval_status: isPublic ? 'pending' : null,
         })
         .eq('id', project.id);
 
       if (error) throw error;
 
-      toast.success(isPublic ? 'Project shared to community!' : 'Project privacy updated');
+      toast.success(isPublic 
+        ? 'Project submitted for admin approval. It will appear in the community once approved.' 
+        : 'Project privacy updated');
       onUpdate();
       onClose();
     } catch (error: any) {
@@ -112,8 +120,32 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
         <DialogHeader>
           <DialogTitle>Share to Community</DialogTitle>
           <DialogDescription>
-            Control whether this project is visible in the community gallery
+            Submit your project for admin approval to appear in the community gallery
           </DialogDescription>
+          {project.approval_status === 'pending' && project.is_public && (
+            <Alert className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                This project is pending admin approval.
+              </AlertDescription>
+            </Alert>
+          )}
+          {project.approval_status === 'approved' && project.is_public && (
+            <Alert className="mt-4 border-green-500">
+              <AlertCircle className="h-4 w-4 text-green-500" />
+              <AlertDescription>
+                This project has been approved and is visible in the community.
+              </AlertDescription>
+            </Alert>
+          )}
+          {project.approval_status === 'rejected' && (
+            <Alert className="mt-4 border-destructive">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <AlertDescription>
+                This project was not approved for the community gallery.
+              </AlertDescription>
+            </Alert>
+          )}
         </DialogHeader>
 
         <div className="space-y-6">
@@ -222,6 +254,24 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
                     ))}
                   </div>
                 )}
+              </div>
+
+              {/* Citations */}
+              <div className="space-y-2">
+                <Label htmlFor="citations">
+                  Citations <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Textarea
+                  id="citations"
+                  value={citations}
+                  onChange={(e) => setCitations(e.target.value)}
+                  placeholder="Add any relevant citations, references, or sources..."
+                  rows={3}
+                  maxLength={1000}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {citations.length}/1000 characters
+                </p>
               </div>
             </>
           )}

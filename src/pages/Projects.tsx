@@ -22,6 +22,8 @@ interface Project {
   title?: string | null;
   description?: string | null;
   keywords?: string[] | null;
+  citations?: string | null;
+  approval_status?: string | null;
 }
 
 export default function Projects() {
@@ -42,7 +44,7 @@ export default function Projects() {
     setLoading(true);
     const { data, error } = await supabase
       .from('canvas_projects')
-      .select('id, name, updated_at, paper_size, canvas_width, canvas_height, is_public, title, description, keywords')
+      .select('id, name, updated_at, paper_size, canvas_width, canvas_height, is_public, title, description, keywords, citations, approval_status')
       .order('updated_at', { ascending: false });
 
     if (error) {
