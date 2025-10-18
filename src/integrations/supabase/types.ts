@@ -77,6 +77,7 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          search_vector: unknown | null
           svg_content: string
           uploaded_by: string | null
         }
@@ -85,6 +86,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           name: string
+          search_vector?: unknown | null
           svg_content: string
           uploaded_by?: string | null
         }
@@ -93,6 +95,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           name?: string
+          search_vector?: unknown | null
           svg_content?: string
           uploaded_by?: string | null
         }
