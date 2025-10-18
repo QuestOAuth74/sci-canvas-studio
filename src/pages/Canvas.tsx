@@ -181,7 +181,7 @@ const CanvasContent = () => {
         {/* Main Editor Area */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar - Icon Categories */}
-          <div className="w-64 glass-effect border-r border-border/40 flex flex-col">
+          <div className="w-64 glass-effect border-r border-border/40 flex flex-col overflow-hidden">
             <IconLibrary 
               selectedCategory={selectedIconCategory} 
               onCategoryChange={setSelectedIconCategory}
