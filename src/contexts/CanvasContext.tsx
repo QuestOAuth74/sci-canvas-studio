@@ -11,6 +11,10 @@ interface CanvasContextType {
   setZoom: (zoom: number) => void;
   gridEnabled: boolean;
   setGridEnabled: (enabled: boolean) => void;
+  rulersEnabled: boolean;
+  setRulersEnabled: (enabled: boolean) => void;
+  backgroundColor: string;
+  setBackgroundColor: (color: string) => void;
   
   // Canvas operations
   undo: () => void;
@@ -67,6 +71,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
   const [zoom, setZoom] = useState(100);
   const [gridEnabled, setGridEnabled] = useState(true);
+  const [rulersEnabled, setRulersEnabled] = useState(true);
+  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [clipboard, setClipboard] = useState<FabricObject | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
@@ -375,6 +381,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setZoom,
     gridEnabled,
     setGridEnabled,
+    rulersEnabled,
+    setRulersEnabled,
+    backgroundColor,
+    setBackgroundColor,
     undo,
     redo,
     cut,

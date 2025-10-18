@@ -9,7 +9,7 @@ interface FabricCanvasProps {
 
 export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { setCanvas, setSelectedObject, gridEnabled } = useCanvas();
+  const { setCanvas, setSelectedObject, gridEnabled, rulersEnabled, backgroundColor } = useCanvas();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -17,45 +17,10 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     const canvas = new Canvas(canvasRef.current, {
       width: window.innerWidth - 128,
       height: window.innerHeight - 145,
-      backgroundColor: "#ffffff",
+      backgroundColor: backgroundColor,
     });
 
     canvas.isDrawingMode = false;
-    
-    // Add grid to canvas
-    const drawGrid = () => {
-      const gridSize = 20;
-      const width = canvas.width || 1200;
-      const height = canvas.height || 800;
-
-      // Vertical lines
-      for (let i = 0; i < width / gridSize; i++) {
-        const line = new Line([i * gridSize, 0, i * gridSize, height], {
-          stroke: '#e0e0e0',
-          strokeWidth: 1,
-          selectable: false,
-          evented: false,
-          hoverCursor: 'default',
-        });
-        canvas.add(line);
-      }
-
-      // Horizontal lines
-      for (let i = 0; i < height / gridSize; i++) {
-        const line = new Line([0, i * gridSize, width, i * gridSize], {
-          stroke: '#e0e0e0',
-          strokeWidth: 1,
-          selectable: false,
-          evented: false,
-          hoverCursor: 'default',
-        });
-        canvas.add(line);
-      }
-    };
-
-    if (gridEnabled) {
-      drawGrid();
-    }
     
     setCanvas(canvas);
 
@@ -105,7 +70,128 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
       setCanvas(null);
       canvas.dispose();
     };
-  }, [setCanvas, setSelectedObject, gridEnabled]);
+  }, [setCanvas, setSelectedObject]);
+
+  // Handle grid, rulers, and background color changes
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current as any;
+    const fabricCanvas = canvas.__canvas as Canvas;
+    if (!fabricCanvas) return;
+
+    // Clear existing grid and ruler lines
+    const objects = fabricCanvas.getObjects();
+    objects.forEach(obj => {
+      if ((obj as any).isGridLine || (obj as any).isRuler) {
+        fabricCanvas.remove(obj);
+      }
+    });
+
+    // Update background color
+    fabricCanvas.backgroundColor = backgroundColor;
+
+    // Draw grid if enabled
+    if (gridEnabled) {
+      const gridSize = 20;
+      const width = fabricCanvas.width || 1200;
+      const height = fabricCanvas.height || 800;
+
+      // Vertical lines
+      for (let i = 0; i < width / gridSize; i++) {
+        const line = new Line([i * gridSize, 0, i * gridSize, height], {
+          stroke: '#e0e0e0',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          hoverCursor: 'default',
+        });
+        (line as any).isGridLine = true;
+        fabricCanvas.add(line);
+        fabricCanvas.sendObjectToBack(line);
+      }
+
+      // Horizontal lines
+      for (let i = 0; i < height / gridSize; i++) {
+        const line = new Line([0, i * gridSize, width, i * gridSize], {
+          stroke: '#e0e0e0',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          hoverCursor: 'default',
+        });
+        (line as any).isGridLine = true;
+        fabricCanvas.add(line);
+        fabricCanvas.sendObjectToBack(line);
+      }
+    }
+
+    // Draw rulers if enabled
+    if (rulersEnabled) {
+      const width = fabricCanvas.width || 1200;
+      const height = fabricCanvas.height || 800;
+
+      // Top ruler
+      const topRuler = new Rect({
+        left: 0,
+        top: 0,
+        width: width,
+        height: 30,
+        fill: '#f5f5f5',
+        stroke: '#ddd',
+        strokeWidth: 1,
+        selectable: false,
+        evented: false,
+        hoverCursor: 'default',
+      });
+      (topRuler as any).isRuler = true;
+      fabricCanvas.add(topRuler);
+      fabricCanvas.bringObjectToFront(topRuler);
+
+      // Left ruler
+      const leftRuler = new Rect({
+        left: 0,
+        top: 0,
+        width: 30,
+        height: height,
+        fill: '#f5f5f5',
+        stroke: '#ddd',
+        strokeWidth: 1,
+        selectable: false,
+        evented: false,
+        hoverCursor: 'default',
+      });
+      (leftRuler as any).isRuler = true;
+      fabricCanvas.add(leftRuler);
+      fabricCanvas.bringObjectToFront(leftRuler);
+
+      // Add ruler marks - every 50px
+      for (let i = 50; i < width; i += 50) {
+        const mark = new Line([i, 0, i, 10], {
+          stroke: '#999',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+        });
+        (mark as any).isRuler = true;
+        fabricCanvas.add(mark);
+        fabricCanvas.bringObjectToFront(mark);
+      }
+
+      for (let i = 50; i < height; i += 50) {
+        const mark = new Line([0, i, 10, i], {
+          stroke: '#999',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+        });
+        (mark as any).isRuler = true;
+        fabricCanvas.add(mark);
+        fabricCanvas.bringObjectToFront(mark);
+      }
+    }
+
+    fabricCanvas.renderAll();
+  }, [gridEnabled, rulersEnabled, backgroundColor]);
 
   // Handle tool changes
   useEffect(() => {

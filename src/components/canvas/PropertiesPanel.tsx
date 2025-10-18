@@ -8,9 +8,12 @@ import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
 import { PAPER_SIZES } from "@/types/paperSizes";
 import { useState } from "react";
+import { useCanvas } from "@/contexts/CanvasContext";
 
 export const PropertiesPanel = () => {
   const [paperSize, setPaperSize] = useState("custom");
+  const { gridEnabled, setGridEnabled, rulersEnabled, setRulersEnabled, backgroundColor, setBackgroundColor } = useCanvas();
+  const [showBgColor, setShowBgColor] = useState(false);
 
   return (
     <div className="w-64 border-l-[3px] border-foreground bg-card h-full">
@@ -28,11 +31,19 @@ export const PropertiesPanel = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="grid" className="text-xs">Grid</Label>
-                    <Checkbox id="grid" defaultChecked />
+                    <Checkbox 
+                      id="grid" 
+                      checked={gridEnabled}
+                      onCheckedChange={(checked) => setGridEnabled(checked as boolean)}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="page-view" className="text-xs">Page View</Label>
-                    <Checkbox id="page-view" defaultChecked />
+                    <Label htmlFor="rulers" className="text-xs">Rulers</Label>
+                    <Checkbox 
+                      id="rulers" 
+                      checked={rulersEnabled}
+                      onCheckedChange={(checked) => setRulersEnabled(checked as boolean)}
+                    />
                   </div>
                 </div>
               </div>
@@ -41,31 +52,30 @@ export const PropertiesPanel = () => {
                 <h3 className="font-semibold text-sm">Background</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="bg-color" className="text-xs">Background Color</Label>
-                    <Checkbox id="bg-color" />
+                    <Label htmlFor="bg-color-toggle" className="text-xs">Custom Color</Label>
+                    <Checkbox 
+                      id="bg-color-toggle"
+                      checked={showBgColor}
+                      onCheckedChange={(checked) => setShowBgColor(checked as boolean)}
+                    />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="shadow" className="text-xs">Shadow</Label>
-                    <Checkbox id="shadow" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">Options</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="arrows" className="text-xs">Connection Arrows</Label>
-                    <Checkbox id="arrows" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="points" className="text-xs">Connection Points</Label>
-                    <Checkbox id="points" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="guides" className="text-xs">Guides</Label>
-                    <Checkbox id="guides" defaultChecked />
-                  </div>
+                  {showBgColor && (
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        type="color" 
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        className="h-8 w-12 p-1" 
+                      />
+                      <Input 
+                        type="text" 
+                        value={backgroundColor}
+                        onChange={(e) => setBackgroundColor(e.target.value)}
+                        className="h-8 text-xs flex-1" 
+                        placeholder="#ffffff"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
