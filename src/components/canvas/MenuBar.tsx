@@ -9,8 +9,12 @@ import {
 } from "@/components/ui/menubar";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
+import { AboutDialog } from "./AboutDialog";
+import { useState } from "react";
 
 export const MenuBar = () => {
+  const [aboutOpen, setAboutOpen] = useState(false);
+  
   const {
     undo,
     redo,
@@ -58,94 +62,98 @@ export const MenuBar = () => {
   };
 
   return (
-    <Menubar className="border-none bg-transparent shadow-none">
-      <MenubarMenu>
-        <MenubarTrigger className="font-medium">File</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem onClick={handleNew}>
-            New <MenubarShortcut>⌘N</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem onClick={handleOpen}>
-            Open <MenubarShortcut>⌘O</MenubarShortcut>
-          </MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem onClick={handleSave}>
-            Save <MenubarShortcut>⌘S</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem onClick={handleSave}>Save As...</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem onClick={exportAsPNG}>Export as PNG</MenubarItem>
-          <MenubarItem onClick={exportAsPNGTransparent}>Export as PNG (Transparent)</MenubarItem>
-          <MenubarItem onClick={exportAsJPG}>Export as JPG</MenubarItem>
-          <MenubarItem onClick={exportAsSVG}>Export as SVG</MenubarItem>
-          <MenubarItem onClick={handleExportPDF}>Export as PDF</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
+    <>
+      <Menubar className="border-none bg-transparent shadow-none">
+        <MenubarMenu>
+          <MenubarTrigger className="font-medium">File</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem onClick={handleNew}>
+              New <MenubarShortcut>⌘N</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={handleOpen}>
+              Open <MenubarShortcut>⌘O</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={handleSave}>
+              Save <MenubarShortcut>⌘S</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={handleSave}>Save As...</MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={exportAsPNG}>Export as PNG</MenubarItem>
+            <MenubarItem onClick={exportAsPNGTransparent}>Export as PNG (Transparent)</MenubarItem>
+            <MenubarItem onClick={exportAsJPG}>Export as JPG</MenubarItem>
+            <MenubarItem onClick={exportAsSVG}>Export as SVG</MenubarItem>
+            <MenubarItem onClick={handleExportPDF}>Export as PDF</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
 
-      <MenubarMenu>
-        <MenubarTrigger className="font-medium">Edit</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem onClick={undo}>
-            Undo <MenubarShortcut>⌘Z</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem onClick={redo}>
-            Redo <MenubarShortcut>⌘⇧Z</MenubarShortcut>
-          </MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem onClick={cut}>
-            Cut <MenubarShortcut>⌘X</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem onClick={copy}>
-            Copy <MenubarShortcut>⌘C</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem onClick={paste}>
-            Paste <MenubarShortcut>⌘V</MenubarShortcut>
-          </MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem onClick={deleteSelected}>
-            Delete <MenubarShortcut>⌫</MenubarShortcut>
-          </MenubarItem>
-          <MenubarItem onClick={selectAll}>Select All</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger className="font-medium">Edit</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem onClick={undo}>
+              Undo <MenubarShortcut>⌘Z</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={redo}>
+              Redo <MenubarShortcut>⌘⇧Z</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={cut}>
+              Cut <MenubarShortcut>⌘X</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={copy}>
+              Copy <MenubarShortcut>⌘C</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={paste}>
+              Paste <MenubarShortcut>⌘V</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={deleteSelected}>
+              Delete <MenubarShortcut>⌫</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={selectAll}>Select All</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
 
-      <MenubarMenu>
-        <MenubarTrigger className="font-medium">View</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem onClick={() => setGridEnabled(!gridEnabled)}>
-            {gridEnabled ? "✓ " : ""}Grid
-          </MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem onClick={zoomIn}>Zoom In</MenubarItem>
-          <MenubarItem onClick={zoomOut}>Zoom Out</MenubarItem>
-          <MenubarItem onClick={resetZoom}>Actual Size</MenubarItem>
-          <MenubarItem onClick={zoomToFit}>Fit to Screen</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger className="font-medium">View</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem onClick={() => setGridEnabled(!gridEnabled)}>
+              {gridEnabled ? "✓ " : ""}Grid
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={zoomIn}>Zoom In</MenubarItem>
+            <MenubarItem onClick={zoomOut}>Zoom Out</MenubarItem>
+            <MenubarItem onClick={resetZoom}>Actual Size</MenubarItem>
+            <MenubarItem onClick={zoomToFit}>Fit to Screen</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
 
-      <MenubarMenu>
-        <MenubarTrigger className="font-medium">Arrange</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem onClick={bringToFront}>Bring to Front</MenubarItem>
-          <MenubarItem onClick={sendToBack}>Send to Back</MenubarItem>
-          <MenubarItem onClick={bringForward}>Bring Forward</MenubarItem>
-          <MenubarItem onClick={sendBackward}>Send Backward</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem onClick={alignLeft}>Align Left</MenubarItem>
-          <MenubarItem onClick={alignCenter}>Align Center</MenubarItem>
-          <MenubarItem onClick={alignRight}>Align Right</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
+        <MenubarMenu>
+          <MenubarTrigger className="font-medium">Arrange</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem onClick={bringToFront}>Bring to Front</MenubarItem>
+            <MenubarItem onClick={sendToBack}>Send to Back</MenubarItem>
+            <MenubarItem onClick={bringForward}>Bring Forward</MenubarItem>
+            <MenubarItem onClick={sendBackward}>Send Backward</MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={alignLeft}>Align Left</MenubarItem>
+            <MenubarItem onClick={alignCenter}>Align Center</MenubarItem>
+            <MenubarItem onClick={alignRight}>Align Right</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
 
-      <MenubarMenu>
-        <MenubarTrigger className="font-medium">Help</MenubarTrigger>
-        <MenubarContent>
-          <MenubarItem>Documentation</MenubarItem>
-          <MenubarItem>Keyboard Shortcuts</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem>About BioSketch</MenubarItem>
-        </MenubarContent>
-      </MenubarMenu>
-    </Menubar>
+        <MenubarMenu>
+          <MenubarTrigger className="font-medium">Help</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem onClick={() => setAboutOpen(true)}>Documentation</MenubarItem>
+            <MenubarItem>Keyboard Shortcuts</MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={() => setAboutOpen(true)}>About BioSketch</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
+      
+      <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
+    </>
   );
 };
