@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -61,17 +61,28 @@ const Index = () => {
                 <Palette className="h-6 w-6 mr-2 group-hover:rotate-12 transition-transform" />
                 Start Creating
               </Button>
-              {user && (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => navigate("/projects")}
-                  className="min-w-[240px] h-16 text-lg font-bold uppercase bg-secondary hover:bg-secondary/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none hover:scale-105 group"
-                >
-                  <FolderOpen className="h-6 w-6 mr-2 group-hover:scale-110 transition-transform" />
-                  My Projects
-                </Button>
-              )}
+              {user ? (
+                <>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => navigate("/projects")}
+                    className="min-w-[240px] h-16 text-lg font-bold uppercase bg-secondary hover:bg-secondary/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none hover:scale-105 group"
+                  >
+                    <FolderOpen className="h-6 w-6 mr-2 group-hover:scale-110 transition-transform" />
+                    My Projects
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => navigate("/community")}
+                    className="min-w-[240px] h-16 text-lg font-bold uppercase bg-accent hover:bg-accent/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none hover:scale-105 group"
+                  >
+                    <Users className="h-6 w-6 mr-2 group-hover:scale-110 transition-transform" />
+                    Community Gallery
+                  </Button>
+                </>
+              ) : null}
             </div>
           </div>
 

@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft } from 'lucide-react';
+import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
 
 interface Project {
   id: string;
@@ -17,6 +18,10 @@ interface Project {
   paper_size: string;
   canvas_width: number;
   canvas_height: number;
+  is_public?: boolean;
+  title?: string | null;
+  description?: string | null;
+  keywords?: string[] | null;
 }
 
 export default function Projects() {
@@ -25,6 +30,7 @@ export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [shareDialogProject, setShareDialogProject] = useState<Project | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -36,7 +42,7 @@ export default function Projects() {
     setLoading(true);
     const { data, error } = await supabase
       .from('canvas_projects')
-      .select('id, name, updated_at, paper_size, canvas_width, canvas_height')
+      .select('id, name, updated_at, paper_size, canvas_width, canvas_height, is_public, title, description, keywords')
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -156,6 +162,14 @@ export default function Projects() {
                     Open
                   </Button>
                   <Button
+                    onClick={() => setShareDialogProject(project)}
+                    variant="outline"
+                    size="icon"
+                    title={project.is_public ? 'Shared to community' : 'Share to community'}
+                  >
+                    <Share2 className={`h-4 w-4 ${project.is_public ? 'text-primary' : ''}`} />
+                  </Button>
+                  <Button
                     onClick={() => deleteProject(project.id, project.name)}
                     variant="destructive"
                     size="icon"
@@ -168,6 +182,15 @@ export default function Projects() {
           </div>
         )}
       </main>
+
+      {shareDialogProject && (
+        <ShareProjectDialog
+          project={shareDialogProject}
+          isOpen={!!shareDialogProject}
+          onClose={() => setShareDialogProject(null)}
+          onUpdate={loadProjects}
+        />
+      )}
     </div>
   );
 }

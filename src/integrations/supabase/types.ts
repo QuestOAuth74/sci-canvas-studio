@@ -19,39 +19,68 @@ export type Database = {
           canvas_data: Json
           canvas_height: number
           canvas_width: number
+          cloned_count: number | null
           created_at: string | null
+          description: string | null
           id: string
+          is_public: boolean | null
+          keywords: string[] | null
           name: string
+          original_project_id: string | null
           paper_size: string | null
           thumbnail_url: string | null
+          title: string | null
           updated_at: string | null
           user_id: string
+          view_count: number | null
         }
         Insert: {
           canvas_data: Json
           canvas_height: number
           canvas_width: number
+          cloned_count?: number | null
           created_at?: string | null
+          description?: string | null
           id?: string
+          is_public?: boolean | null
+          keywords?: string[] | null
           name?: string
+          original_project_id?: string | null
           paper_size?: string | null
           thumbnail_url?: string | null
+          title?: string | null
           updated_at?: string | null
           user_id: string
+          view_count?: number | null
         }
         Update: {
           canvas_data?: Json
           canvas_height?: number
           canvas_width?: number
+          cloned_count?: number | null
           created_at?: string | null
+          description?: string | null
           id?: string
+          is_public?: boolean | null
+          keywords?: string[] | null
           name?: string
+          original_project_id?: string | null
           paper_size?: string | null
           thumbnail_url?: string | null
+          title?: string | null
           updated_at?: string | null
           user_id?: string
+          view_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "canvas_projects_original_project_id_fkey"
+            columns: ["original_project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       icon_categories: {
         Row: {
@@ -131,6 +160,35 @@ export type Database = {
         }
         Relationships: []
       }
+      project_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_likes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -157,12 +215,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      clone_project: {
+        Args: { new_project_name: string; source_project_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_project_view_count: {
+        Args: { project_id_param: string }
+        Returns: undefined
       }
     }
     Enums: {
