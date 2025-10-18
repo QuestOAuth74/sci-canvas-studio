@@ -35,7 +35,7 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   };
 
   return (
-    <div className="w-56 glass-effect border-r border-border/40 flex flex-col">
+    <div className="flex flex-col h-full">
       {/* Search Bar */}
       <div className="p-3 border-b border-border/40">
         <div className="relative">

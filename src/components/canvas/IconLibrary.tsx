@@ -102,8 +102,10 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
   };
 
   return (
-    <div className="p-4 h-full bg-gradient-to-b from-background to-muted/20">
-      <h2 className="text-lg font-semibold mb-3 text-foreground">Icon Library</h2>
+    <div className="flex flex-col h-full">
+      <div className="p-3 border-b border-border/40">
+        <h2 className="text-sm font-semibold text-foreground">Uploaded Icons</h2>
+      </div>
       
       {loading && (
         <div className="flex items-center justify-center py-8">
@@ -122,7 +124,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       )}
       
       {!loading && (
-        <ScrollArea className="h-[calc(100vh-120px)]">
+        <ScrollArea className="flex-1 p-2">
         <Accordion type="multiple" className="w-full">
           {categories.map((category) => {
             const categoryIcons = iconsByCategory[category.id] || [];
