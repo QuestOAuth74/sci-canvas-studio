@@ -53,7 +53,8 @@ export default function Community() {
     let projectsQuery = supabase
       .from('canvas_projects')
       .select('*')
-      .eq('is_public', true);
+      .eq('is_public', true)
+      .eq('approval_status', 'approved');
 
     // Apply sorting
     switch (sortBy) {
