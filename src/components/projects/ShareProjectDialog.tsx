@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, X, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Canvas as FabricCanvas } from 'fabric';
+import { generateProjectThumbnail } from '@/lib/thumbnailGenerator';
 
 interface ShareProjectDialogProps {
   project: {
@@ -74,63 +74,17 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
         return null;
       }
 
-      // Create a temporary canvas
-      const tempCanvas = new FabricCanvas(null, {
-        width: projectData.canvas_width,
-        height: projectData.canvas_height,
-      });
-
-      // Load the canvas data
-      await new Promise((resolve, reject) => {
-        tempCanvas.loadFromJSON(projectData.canvas_data as any, () => {
-          resolve(true);
-        });
-      });
-
-      // Calculate thumbnail dimensions (max 800x600, maintain aspect ratio)
-      const maxWidth = 800;
-      const maxHeight = 600;
-      const scale = Math.min(
-        maxWidth / tempCanvas.width!,
-        maxHeight / tempCanvas.height!,
-        1 // Don't upscale
-      );
-
-      // Export as data URL
-      const dataURL = tempCanvas.toDataURL({
-        format: 'jpeg',
-        quality: 0.85,
-        multiplier: scale,
-      });
-
-      // Convert data URL to blob
-      const response = await fetch(dataURL);
-      const blob = await response.blob();
-
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Upload to storage
-      const filePath = `${user.id}/${project.id}.jpg`;
-      const { error: uploadError } = await supabase.storage
-        .from('project-thumbnails')
-        .upload(filePath, blob, { 
-          upsert: true,
-          contentType: 'image/jpeg'
-        });
-
-      if (uploadError) {
-        console.error('Error uploading thumbnail:', uploadError);
-        return null;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('project-thumbnails')
-        .getPublicUrl(filePath);
-
-      return publicUrl;
+      return await generateProjectThumbnail(
+        projectData.canvas_data,
+        projectData.canvas_width,
+        projectData.canvas_height,
+        project.id,
+        user.id
+      );
     } catch (error) {
       console.error('Error generating thumbnail:', error);
       return null;

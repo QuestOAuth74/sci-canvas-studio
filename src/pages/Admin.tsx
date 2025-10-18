@@ -5,6 +5,7 @@ import { IconUploader } from "@/components/admin/IconUploader";
 import { IconManager } from "@/components/admin/IconManager";
 import { CategoryManager } from "@/components/admin/CategoryManager";
 import { ThumbnailGenerator } from "@/components/admin/ThumbnailGenerator";
+import { ThumbnailRegenerator } from "@/components/admin/ThumbnailRegenerator";
 import { SubmittedProjects } from "@/components/admin/SubmittedProjects";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -46,6 +47,7 @@ const Admin = () => {
             <div className="space-y-6">
               <IconUploader />
               <ThumbnailGenerator />
+              <ThumbnailRegenerator />
             </div>
           </TabsContent>
           
