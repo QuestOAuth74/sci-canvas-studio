@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util } from "fabric";
+import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 
@@ -750,6 +750,323 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
           canvas.add(line);
           canvas.setActiveObject(line);
           break;
+
+        case "line-arrow-right": {
+          const lineArrowRight = new Line([pointer.x, pointer.y, pointer.x + 100, pointer.y], {
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          const arrowHeadRight = new Polygon([
+            { x: pointer.x + 100, y: pointer.y },
+            { x: pointer.x + 90, y: pointer.y - 6 },
+            { x: pointer.x + 90, y: pointer.y + 6 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const groupArrowRight = new Group([lineArrowRight, arrowHeadRight], {
+            selectable: true,
+          });
+          canvas.add(groupArrowRight);
+          canvas.setActiveObject(groupArrowRight);
+          break;
+        }
+
+        case "line-arrow-left": {
+          const lineArrowLeft = new Line([pointer.x, pointer.y, pointer.x + 100, pointer.y], {
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          const arrowHeadLeft = new Polygon([
+            { x: pointer.x, y: pointer.y },
+            { x: pointer.x + 10, y: pointer.y - 6 },
+            { x: pointer.x + 10, y: pointer.y + 6 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const groupArrowLeft = new Group([lineArrowLeft, arrowHeadLeft], {
+            selectable: true,
+          });
+          canvas.add(groupArrowLeft);
+          canvas.setActiveObject(groupArrowLeft);
+          break;
+        }
+
+        case "line-arrow-both": {
+          const lineArrowBoth = new Line([pointer.x, pointer.y, pointer.x + 100, pointer.y], {
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          const arrowHeadBothLeft = new Polygon([
+            { x: pointer.x, y: pointer.y },
+            { x: pointer.x + 10, y: pointer.y - 6 },
+            { x: pointer.x + 10, y: pointer.y + 6 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const arrowHeadBothRight = new Polygon([
+            { x: pointer.x + 100, y: pointer.y },
+            { x: pointer.x + 90, y: pointer.y - 6 },
+            { x: pointer.x + 90, y: pointer.y + 6 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const groupArrowBoth = new Group([lineArrowBoth, arrowHeadBothLeft, arrowHeadBothRight], {
+            selectable: true,
+          });
+          canvas.add(groupArrowBoth);
+          canvas.setActiveObject(groupArrowBoth);
+          break;
+        }
+
+        case "dashed-line": {
+          const dashedLine = new Line([pointer.x, pointer.y, pointer.x + 100, pointer.y], {
+            stroke: "#000000",
+            strokeWidth: 2,
+            strokeDashArray: [5, 5],
+          });
+          canvas.add(dashedLine);
+          canvas.setActiveObject(dashedLine);
+          break;
+        }
+
+        case "dashed-line-arrow": {
+          const dashedLineArrow = new Line([pointer.x, pointer.y, pointer.x + 100, pointer.y], {
+            stroke: "#000000",
+            strokeWidth: 2,
+            strokeDashArray: [5, 5],
+          });
+          const dashedArrowHead = new Polygon([
+            { x: pointer.x + 100, y: pointer.y },
+            { x: pointer.x + 90, y: pointer.y - 6 },
+            { x: pointer.x + 90, y: pointer.y + 6 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const groupDashedArrow = new Group([dashedLineArrow, dashedArrowHead], {
+            selectable: true,
+          });
+          canvas.add(groupDashedArrow);
+          canvas.setActiveObject(groupDashedArrow);
+          break;
+        }
+
+        case "curved-arrow-right": {
+          const curvedPathRight = new Path(
+            `M ${pointer.x} ${pointer.y} Q ${pointer.x + 50} ${pointer.y - 40} ${pointer.x + 100} ${pointer.y}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+            }
+          );
+          const curvedArrowHeadRight = new Polygon([
+            { x: pointer.x + 100, y: pointer.y },
+            { x: pointer.x + 90, y: pointer.y - 6 },
+            { x: pointer.x + 90, y: pointer.y + 6 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const curvedGroupRight = new Group([curvedPathRight, curvedArrowHeadRight], {
+            selectable: true,
+          });
+          canvas.add(curvedGroupRight);
+          canvas.setActiveObject(curvedGroupRight);
+          break;
+        }
+
+        case "curved-arrow-left": {
+          const curvedPathLeft = new Path(
+            `M ${pointer.x} ${pointer.y} Q ${pointer.x + 50} ${pointer.y + 40} ${pointer.x + 100} ${pointer.y}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+            }
+          );
+          const curvedArrowHeadLeft = new Polygon([
+            { x: pointer.x + 100, y: pointer.y },
+            { x: pointer.x + 90, y: pointer.y - 6 },
+            { x: pointer.x + 90, y: pointer.y + 6 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const curvedGroupLeft = new Group([curvedPathLeft, curvedArrowHeadLeft], {
+            selectable: true,
+          });
+          canvas.add(curvedGroupLeft);
+          canvas.setActiveObject(curvedGroupLeft);
+          break;
+        }
+
+        case "curved-arrow-up": {
+          const curvedPathUp = new Path(
+            `M ${pointer.x} ${pointer.y} Q ${pointer.x + 40} ${pointer.y - 50} ${pointer.x} ${pointer.y - 100}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+            }
+          );
+          const curvedArrowHeadUp = new Polygon([
+            { x: pointer.x, y: pointer.y - 100 },
+            { x: pointer.x - 6, y: pointer.y - 90 },
+            { x: pointer.x + 6, y: pointer.y - 90 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const curvedGroupUp = new Group([curvedPathUp, curvedArrowHeadUp], {
+            selectable: true,
+          });
+          canvas.add(curvedGroupUp);
+          canvas.setActiveObject(curvedGroupUp);
+          break;
+        }
+
+        case "curved-arrow-down": {
+          const curvedPathDown = new Path(
+            `M ${pointer.x} ${pointer.y} Q ${pointer.x + 40} ${pointer.y + 50} ${pointer.x} ${pointer.y + 100}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+            }
+          );
+          const curvedArrowHeadDown = new Polygon([
+            { x: pointer.x, y: pointer.y + 100 },
+            { x: pointer.x - 6, y: pointer.y + 90 },
+            { x: pointer.x + 6, y: pointer.y + 90 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const curvedGroupDown = new Group([curvedPathDown, curvedArrowHeadDown], {
+            selectable: true,
+          });
+          canvas.add(curvedGroupDown);
+          canvas.setActiveObject(curvedGroupDown);
+          break;
+        }
+
+        case "elbow-connector-right": {
+          const elbowPathRight = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x + 50} ${pointer.y} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 100} ${pointer.y + 50}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+            }
+          );
+          const elbowArrowRight = new Polygon([
+            { x: pointer.x + 100, y: pointer.y + 50 },
+            { x: pointer.x + 90, y: pointer.y + 44 },
+            { x: pointer.x + 90, y: pointer.y + 56 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const elbowGroupRight = new Group([elbowPathRight, elbowArrowRight], {
+            selectable: true,
+          });
+          canvas.add(elbowGroupRight);
+          canvas.setActiveObject(elbowGroupRight);
+          break;
+        }
+
+        case "elbow-connector-left": {
+          const elbowPathLeft = new Path(
+            `M ${pointer.x + 100} ${pointer.y} L ${pointer.x + 50} ${pointer.y} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x} ${pointer.y + 50}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+            }
+          );
+          const elbowArrowLeft = new Polygon([
+            { x: pointer.x, y: pointer.y + 50 },
+            { x: pointer.x + 10, y: pointer.y + 44 },
+            { x: pointer.x + 10, y: pointer.y + 56 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const elbowGroupLeft = new Group([elbowPathLeft, elbowArrowLeft], {
+            selectable: true,
+          });
+          canvas.add(elbowGroupLeft);
+          canvas.setActiveObject(elbowGroupLeft);
+          break;
+        }
+
+        case "elbow-connector-up": {
+          const elbowPathUp = new Path(
+            `M ${pointer.x} ${pointer.y + 100} L ${pointer.x} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+            }
+          );
+          const elbowArrowUp = new Polygon([
+            { x: pointer.x + 50, y: pointer.y },
+            { x: pointer.x + 44, y: pointer.y + 10 },
+            { x: pointer.x + 56, y: pointer.y + 10 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const elbowGroupUp = new Group([elbowPathUp, elbowArrowUp], {
+            selectable: true,
+          });
+          canvas.add(elbowGroupUp);
+          canvas.setActiveObject(elbowGroupUp);
+          break;
+        }
+
+        case "elbow-connector-down": {
+          const elbowPathDown = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 100}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+            }
+          );
+          const elbowArrowDown = new Polygon([
+            { x: pointer.x + 50, y: pointer.y + 100 },
+            { x: pointer.x + 44, y: pointer.y + 90 },
+            { x: pointer.x + 56, y: pointer.y + 90 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const elbowGroupDown = new Group([elbowPathDown, elbowArrowDown], {
+            selectable: true,
+          });
+          canvas.add(elbowGroupDown);
+          canvas.setActiveObject(elbowGroupDown);
+          break;
+        }
 
         default:
           // For any unhandled shapes, create a basic rectangle as fallback

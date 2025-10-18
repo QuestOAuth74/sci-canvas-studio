@@ -21,6 +21,13 @@ import {
   ArrowLeftRight,
   Minus,
   Shapes,
+  CornerDownRight,
+  CornerDownLeft,
+  CornerUpRight,
+  CornerUpLeft,
+  TrendingUp,
+  TrendingDown,
+  MoveRight,
 } from "lucide-react";
 
 interface ShapesDropdownProps {
@@ -171,11 +178,73 @@ export const ShapesDropdown = ({ onShapeSelect, activeTool }: ShapesDropdownProp
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Lines</DropdownMenuLabel>
+        <DropdownMenuLabel>Lines & Connectors</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => handleShapeClick("line")}>
             <Minus className="mr-2 h-4 w-4" />
             <span>Line</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("line-arrow-right")}>
+            <ArrowRight className="mr-2 h-4 w-4" />
+            <span>Line Arrow →</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("line-arrow-left")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            <span>Line Arrow ←</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("line-arrow-both")}>
+            <ArrowLeftRight className="mr-2 h-4 w-4" />
+            <span>Line Arrow ↔</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("dashed-line")}>
+            <Minus className="mr-2 h-4 w-4" />
+            <span>Dashed Line</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("dashed-line-arrow")}>
+            <ArrowRight className="mr-2 h-4 w-4" />
+            <span>Dashed Arrow →</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Curved Connectors</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => handleShapeClick("curved-arrow-right")}>
+            <TrendingUp className="mr-2 h-4 w-4" />
+            <span>Curved Arrow Right ⤷</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("curved-arrow-left")}>
+            <TrendingDown className="mr-2 h-4 w-4" />
+            <span>Curved Arrow Left ⤶</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("curved-arrow-up")}>
+            <CornerUpRight className="mr-2 h-4 w-4" />
+            <span>Curved Arrow Up ⤴</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("curved-arrow-down")}>
+            <CornerDownRight className="mr-2 h-4 w-4" />
+            <span>Curved Arrow Down ⤵</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Elbow Connectors</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => handleShapeClick("elbow-connector-right")}>
+            <CornerDownRight className="mr-2 h-4 w-4" />
+            <span>Elbow Right ⌐</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("elbow-connector-left")}>
+            <CornerDownLeft className="mr-2 h-4 w-4" />
+            <span>Elbow Left ⌙</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("elbow-connector-up")}>
+            <CornerUpRight className="mr-2 h-4 w-4" />
+            <span>Elbow Up ⌜</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("elbow-connector-down")}>
+            <CornerDownLeft className="mr-2 h-4 w-4" />
+            <span>Elbow Down ⌞</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
