@@ -15,11 +15,24 @@ interface IconRecord {
 // Generate optimized thumbnail from full SVG
 function generateThumbnail(svgContent: string): string {
   try {
-    // Remove XML declaration and comments
+    // Remove XML declaration, comments, and DOCTYPE (including multi-line DTD definitions)
     let optimized = svgContent
       .replace(/<\?xml[^>]*\?>/g, '')
       .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<!DOCTYPE\s+svg[^>]*(?:\[[\s\S]*?\])?[^>]*>/gi, '')
       .trim();
+    
+    // Remove Inkscape/Sodipodi namespaces and attributes to reduce size
+    optimized = optimized
+      .replace(/xmlns:inkscape="[^"]*"/g, '')
+      .replace(/xmlns:sodipodi="[^"]*"/g, '')
+      .replace(/inkscape:[^=]*="[^"]*"\s*/g, '')
+      .replace(/sodipodi:[^=]*="[^"]*"\s*/g, '');
+    
+    // Ensure xmlns is present after DOCTYPE removal
+    if (!/xmlns=/.test(optimized)) {
+      optimized = optimized.replace(/<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
 
     // Extract viewBox or width/height for aspect ratio
     const viewBoxMatch = optimized.match(/viewBox=["']([^"']*)["']/);

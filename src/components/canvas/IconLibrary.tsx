@@ -35,12 +35,25 @@ const ICONS_PER_PAGE = 20;
 const sanitizeSvg = (raw: string): string => {
   try {
     let svg = raw.trim();
-    // Remove XML declarations and DOCTYPE
+    
+    // Remove XML declarations and DOCTYPE (including multi-line DTD definitions)
     svg = svg
       .replace(/<\?xml[^>]*?>/gi, "")
-      .replace(/<!DOCTYPE[^>]*>/gi, "")
+      .replace(/<!DOCTYPE\s+svg[^>]*(?:\[[\s\S]*?\])?[^>]*>/gi, "")
       .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
       .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
+    
+    // Remove Inkscape/Sodipodi namespaces and attributes to reduce size
+    svg = svg
+      .replace(/xmlns:inkscape="[^"]*"/g, "")
+      .replace(/xmlns:sodipodi="[^"]*"/g, "")
+      .replace(/inkscape:[^=]*="[^"]*"\s*/g, "")
+      .replace(/sodipodi:[^=]*="[^"]*"\s*/g, "");
+    
+    // Ensure xmlns is present after DOCTYPE removal
+    if (!/xmlns=/.test(svg)) {
+      svg = svg.replace(/<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
     
     // Ensure viewBox if missing and width/height exist
     if (!/viewBox=/i.test(svg)) {
@@ -447,7 +460,6 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                         onLoad={() => onImgLoad(icon.id)}
                                         onError={() => onImgError(icon.id)}
                                         className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
-                                        style={{ imageRendering: "pixelated" }}
                                       />
                                     </button>
                                   );
