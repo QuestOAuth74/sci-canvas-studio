@@ -7,85 +7,126 @@ import {
   MenubarShortcut,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import { useCanvas } from "@/contexts/CanvasContext";
+import { toast } from "sonner";
 
 export const MenuBar = () => {
+  const {
+    undo,
+    redo,
+    cut,
+    copy,
+    paste,
+    deleteSelected,
+    selectAll,
+    gridEnabled,
+    setGridEnabled,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    zoomToFit,
+    alignLeft,
+    alignCenter,
+    alignRight,
+    bringToFront,
+    sendToBack,
+    bringForward,
+    sendBackward,
+    exportAsPNG,
+    exportAsSVG,
+  } = useCanvas();
+
+  const handleNew = () => {
+    toast.info("New diagram");
+  };
+
+  const handleOpen = () => {
+    toast.info("Open diagram");
+  };
+
+  const handleSave = () => {
+    toast.success("Diagram saved");
+  };
+
+  const handleExportPDF = () => {
+    toast.info("Export as PDF coming soon");
+  };
+
   return (
     <Menubar className="border-none bg-transparent">
       <MenubarMenu>
         <MenubarTrigger>File</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
+          <MenubarItem onClick={handleNew}>
             New <MenubarShortcut>⌘N</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>
+          <MenubarItem onClick={handleOpen}>
             Open <MenubarShortcut>⌘O</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarItem>
+          <MenubarItem onClick={handleSave}>
             Save <MenubarShortcut>⌘S</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>Save As...</MenubarItem>
+          <MenubarItem onClick={handleSave}>Save As...</MenubarItem>
           <MenubarSeparator />
-          <MenubarItem>Export as PNG</MenubarItem>
-          <MenubarItem>Export as SVG</MenubarItem>
-          <MenubarItem>Export as PDF</MenubarItem>
+          <MenubarItem onClick={exportAsPNG}>Export as PNG</MenubarItem>
+          <MenubarItem onClick={exportAsSVG}>Export as SVG</MenubarItem>
+          <MenubarItem onClick={handleExportPDF}>Export as PDF</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
 
       <MenubarMenu>
         <MenubarTrigger>Edit</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>
+          <MenubarItem onClick={undo}>
             Undo <MenubarShortcut>⌘Z</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>
+          <MenubarItem onClick={redo}>
             Redo <MenubarShortcut>⌘⇧Z</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarItem>
+          <MenubarItem onClick={cut}>
             Cut <MenubarShortcut>⌘X</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>
+          <MenubarItem onClick={copy}>
             Copy <MenubarShortcut>⌘C</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>
+          <MenubarItem onClick={paste}>
             Paste <MenubarShortcut>⌘V</MenubarShortcut>
           </MenubarItem>
           <MenubarSeparator />
-          <MenubarItem>
+          <MenubarItem onClick={deleteSelected}>
             Delete <MenubarShortcut>⌫</MenubarShortcut>
           </MenubarItem>
-          <MenubarItem>Select All</MenubarItem>
+          <MenubarItem onClick={selectAll}>Select All</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
 
       <MenubarMenu>
         <MenubarTrigger>View</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>Grid</MenubarItem>
-          <MenubarItem>Page View</MenubarItem>
+          <MenubarItem onClick={() => setGridEnabled(!gridEnabled)}>
+            {gridEnabled ? "✓ " : ""}Grid
+          </MenubarItem>
           <MenubarSeparator />
-          <MenubarItem>Zoom In</MenubarItem>
-          <MenubarItem>Zoom Out</MenubarItem>
-          <MenubarItem>Actual Size</MenubarItem>
-          <MenubarItem>Fit to Screen</MenubarItem>
+          <MenubarItem onClick={zoomIn}>Zoom In</MenubarItem>
+          <MenubarItem onClick={zoomOut}>Zoom Out</MenubarItem>
+          <MenubarItem onClick={resetZoom}>Actual Size</MenubarItem>
+          <MenubarItem onClick={zoomToFit}>Fit to Screen</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
 
       <MenubarMenu>
         <MenubarTrigger>Arrange</MenubarTrigger>
         <MenubarContent>
-          <MenubarItem>Bring to Front</MenubarItem>
-          <MenubarItem>Send to Back</MenubarItem>
-          <MenubarItem>Bring Forward</MenubarItem>
-          <MenubarItem>Send Backward</MenubarItem>
+          <MenubarItem onClick={bringToFront}>Bring to Front</MenubarItem>
+          <MenubarItem onClick={sendToBack}>Send to Back</MenubarItem>
+          <MenubarItem onClick={bringForward}>Bring Forward</MenubarItem>
+          <MenubarItem onClick={sendBackward}>Send Backward</MenubarItem>
           <MenubarSeparator />
-          <MenubarItem>Group</MenubarItem>
-          <MenubarItem>Ungroup</MenubarItem>
-          <MenubarSeparator />
-          <MenubarItem>Align Left</MenubarItem>
-          <MenubarItem>Align Center</MenubarItem>
-          <MenubarItem>Align Right</MenubarItem>
+          <MenubarItem onClick={alignLeft}>Align Left</MenubarItem>
+          <MenubarItem onClick={alignCenter}>Align Center</MenubarItem>
+          <MenubarItem onClick={alignRight}>Align Right</MenubarItem>
         </MenubarContent>
       </MenubarMenu>
 

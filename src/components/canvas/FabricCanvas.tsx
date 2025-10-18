@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse } from "fabric";
 import { toast } from "sonner";
+import { useCanvas } from "@/contexts/CanvasContext";
 
 interface FabricCanvasProps {
   activeTool: string;
@@ -8,7 +9,7 @@ interface FabricCanvasProps {
 
 export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [fabricCanvas, setFabricCanvas] = useState<Canvas | null>(null);
+  const { setCanvas, setSelectedObject, gridEnabled } = useCanvas();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -52,8 +53,24 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
       }
     };
 
-    drawGrid();
-    setFabricCanvas(canvas);
+    if (gridEnabled) {
+      drawGrid();
+    }
+    
+    setCanvas(canvas);
+
+    // Track selected objects
+    canvas.on('selection:created', (e) => {
+      setSelectedObject(e.selected?.[0] || null);
+    });
+    
+    canvas.on('selection:updated', (e) => {
+      setSelectedObject(e.selected?.[0] || null);
+    });
+    
+    canvas.on('selection:cleared', () => {
+      setSelectedObject(null);
+    });
 
     // Handle window resize
     const handleResize = () => {
@@ -85,12 +102,16 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     return () => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
+      setCanvas(null);
       canvas.dispose();
     };
-  }, []);
+  }, [setCanvas, setSelectedObject, gridEnabled]);
 
   // Handle tool changes
   useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current as any;
+    const fabricCanvas = canvas.__canvas as Canvas;
     if (!fabricCanvas) return;
 
     // Set simple grid background with CSS pattern
@@ -540,7 +561,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     return () => {
       fabricCanvas.off("mouse:down", handleCanvasClick);
     };
-  }, [fabricCanvas, activeTool]);
+  }, [activeTool]);
 
   return (
     <div className="flex-1 overflow-hidden" style={{ 

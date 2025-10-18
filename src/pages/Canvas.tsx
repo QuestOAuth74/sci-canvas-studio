@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +9,21 @@ import { PropertiesPanel } from "@/components/canvas/PropertiesPanel";
 import { BottomBar } from "@/components/canvas/BottomBar";
 import { MenuBar } from "@/components/canvas/MenuBar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
 
-const Canvas = () => {
+const CanvasContent = () => {
   const navigate = useNavigate();
   const [activeTool, setActiveTool] = useState<string>("select");
+  const {
+    undo,
+    redo,
+    cut,
+    copy,
+    paste,
+    deleteSelected,
+    selectAll,
+  } = useCanvas();
 
   const handleExport = () => {
     toast("Export functionality will save your SVG file");
@@ -24,9 +34,42 @@ const Canvas = () => {
     toast.success(`Selected ${shape}`);
   };
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const modifier = isMac ? e.metaKey : e.ctrlKey;
+
+      if (modifier && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if (modifier && e.key === 'z' && e.shiftKey) {
+        e.preventDefault();
+        redo();
+      } else if (modifier && e.key === 'x') {
+        e.preventDefault();
+        cut();
+      } else if (modifier && e.key === 'c') {
+        e.preventDefault();
+        copy();
+      } else if (modifier && e.key === 'v') {
+        e.preventDefault();
+        paste();
+      } else if (modifier && e.key === 'a') {
+        e.preventDefault();
+        selectAll();
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && !modifier) {
+        e.preventDefault();
+        deleteSelected();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo, cut, copy, paste, selectAll, deleteSelected]);
+
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
         {/* Top Header with Menu */}
         <header className="border-b bg-card/50">
           <div className="px-3 py-1.5 flex items-center justify-between">
@@ -63,10 +106,19 @@ const Canvas = () => {
         <PropertiesPanel />
       </div>
 
-        {/* Bottom Bar */}
-        <BottomBar />
-      </div>
-    </TooltipProvider>
+      {/* Bottom Bar */}
+      <BottomBar />
+    </div>
+  );
+};
+
+const Canvas = () => {
+  return (
+    <CanvasProvider>
+      <TooltipProvider>
+        <CanvasContent />
+      </TooltipProvider>
+    </CanvasProvider>
   );
 };
 

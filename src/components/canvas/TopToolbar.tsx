@@ -18,18 +18,34 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useCanvas } from "@/contexts/CanvasContext";
 
 interface TopToolbarProps {
   onExport: () => void;
 }
 
 export const TopToolbar = ({ onExport }: TopToolbarProps) => {
+  const {
+    undo,
+    redo,
+    cut,
+    copy,
+    paste,
+    alignLeft,
+    alignCenter,
+    alignRight,
+    zoomIn,
+    zoomOut,
+    zoomToFit,
+    zoom,
+  } = useCanvas();
+
   return (
     <div className="flex items-center gap-0.5 px-2 py-1 border-b bg-card/50">
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={undo}>
               <Undo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -38,7 +54,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={redo}>
               <Redo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -51,7 +67,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cut}>
               <Scissors className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -60,7 +76,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={copy}>
               <Copy className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -69,7 +85,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={paste}>
               <Clipboard className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -82,7 +98,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={alignLeft}>
               <AlignLeft className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -91,7 +107,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={alignCenter}>
               <AlignCenter className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -100,7 +116,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={alignRight}>
               <AlignRight className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -113,18 +129,18 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={zoomOut}>
               <ZoomOut className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Zoom Out</TooltipContent>
         </Tooltip>
         
-        <span className="text-xs font-medium px-2 min-w-[3rem] text-center">100%</span>
+        <span className="text-xs font-medium px-2 min-w-[3rem] text-center">{zoom}%</span>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={zoomIn}>
               <ZoomIn className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
@@ -133,7 +149,7 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={zoomToFit}>
               <Maximize className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
