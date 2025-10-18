@@ -331,14 +331,22 @@ export const PropertiesPanel = () => {
       canvas.remove(existingGroup);
     }
 
+    // Don't create markers if both are "none"
+    if (startMarker === "none" && endMarker === "none") {
+      canvas.renderAll();
+      return;
+    }
+
     const endpoints = getPathEndpoints(path);
     const markers: FabricObject[] = [];
 
     // Create start marker
     if (startMarker === "dot") {
       const dot = new FabricCircle({
-        left: endpoints.start.x - thickness * 2,
-        top: endpoints.start.y - thickness * 2,
+        left: endpoints.start.x,
+        top: endpoints.start.y,
+        originX: 'center',
+        originY: 'center',
         radius: thickness * 2,
         fill: color,
         stroke: color,
@@ -369,8 +377,10 @@ export const PropertiesPanel = () => {
     // Create end marker
     if (endMarker === "dot") {
       const dot = new FabricCircle({
-        left: endpoints.end.x - thickness * 2,
-        top: endpoints.end.y - thickness * 2,
+        left: endpoints.end.x,
+        top: endpoints.end.y,
+        originX: 'center',
+        originY: 'center',
         radius: thickness * 2,
         fill: color,
         stroke: color,

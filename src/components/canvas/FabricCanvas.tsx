@@ -290,6 +290,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       const brush = new PencilBrush(canvas);
       brush.color = "#000000";
       brush.width = 2;
+      // Ensure round ends while drawing
+      (brush as any).strokeLineCap = "round";
+      (brush as any).strokeLineJoin = "round";
       canvas.freeDrawingBrush = brush;
 
       // Handle path creation
@@ -302,12 +305,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
           (path as any).endMarker = "none";
           (path as any).lineThickness = 2;
           
-          // Set path properties
+          // Set path properties with round caps
           path.set({
             fill: null,
             stroke: "#000000",
             strokeWidth: 2,
             strokeUniform: true,
+            strokeLineCap: "round",
+            strokeLineJoin: "round",
           });
           
           canvas.setActiveObject(path);
