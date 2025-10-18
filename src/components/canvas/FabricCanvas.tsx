@@ -3,75 +3,6 @@ import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loa
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 
-// Helper functions to create simple SVG charts
-const createBarChartSVG = (data: any, width: number, height: number) => {
-  const { labels, values, title } = data;
-  const maxValue = Math.max(...values);
-  const barWidth = (width - 100) / labels.length;
-  const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-  
-  let bars = '';
-  values.forEach((value: number, i: number) => {
-    const barHeight = (value / maxValue) * (height - 100);
-    const x = 60 + i * barWidth;
-    const y = height - 50 - barHeight;
-    bars += `<rect x="${x}" y="${y}" width="${barWidth - 10}" height="${barHeight}" fill="${colors[i % colors.length]}" />`;
-    bars += `<text x="${x + barWidth / 2 - 10}" y="${height - 30}" font-size="12" fill="#666">${labels[i]}</text>`;
-  });
-  
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-      <rect width="${width}" height="${height}" fill="white" stroke="#e0e0e0" stroke-width="2"/>
-      <text x="${width / 2}" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">${title}</text>
-      <line x1="50" y1="${height - 50}" x2="${width - 40}" y2="${height - 50}" stroke="#999" stroke-width="2"/>
-      <line x1="50" y1="50" x2="50" y2="${height - 50}" stroke="#999" stroke-width="2"/>
-      ${bars}
-    </svg>
-  `;
-};
-
-const createPieChartSVG = (data: any, width: number, height: number) => {
-  const { labels, values, title } = data;
-  const total = values.reduce((sum: number, val: number) => sum + val, 0);
-  const centerX = width / 2;
-  const centerY = height / 2 + 20;
-  const radius = Math.min(width, height) / 3;
-  const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
-  
-  let slices = '';
-  let legends = '';
-  let currentAngle = -Math.PI / 2;
-  
-  values.forEach((value: number, i: number) => {
-    const sliceAngle = (value / total) * 2 * Math.PI;
-    const endAngle = currentAngle + sliceAngle;
-    
-    const x1 = centerX + radius * Math.cos(currentAngle);
-    const y1 = centerY + radius * Math.sin(currentAngle);
-    const x2 = centerX + radius * Math.cos(endAngle);
-    const y2 = centerY + radius * Math.sin(endAngle);
-    
-    const largeArc = sliceAngle > Math.PI ? 1 : 0;
-    
-    slices += `<path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z" fill="${colors[i % colors.length]}" stroke="white" stroke-width="2"/>`;
-    
-    const legendY = 50 + i * 25;
-    legends += `<rect x="20" y="${legendY}" width="15" height="15" fill="${colors[i % colors.length]}"/>`;
-    legends += `<text x="40" y="${legendY + 12}" font-size="12" fill="#666">${labels[i]}: ${((value / total) * 100).toFixed(0)}%</text>`;
-    
-    currentAngle = endAngle;
-  });
-  
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
-      <rect width="${width}" height="${height}" fill="white" stroke="#e0e0e0" stroke-width="2"/>
-      <text x="${width / 2}" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">${title}</text>
-      ${slices}
-      ${legends}
-    </svg>
-  `;
-};
-
 interface FabricCanvasProps {
   activeTool: string;
   onShapeCreated?: () => void;
@@ -170,51 +101,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       }
     };
 
-    // Listen for custom event to add charts to canvas
-    const handleAddChart = async (event: CustomEvent) => {
-      const { chartData, chartType } = event.detail;
-
-      try {
-        // Create SVG chart based on type
-        let svgContent = '';
-        const width = 400;
-        const height = 300;
-        
-        if (chartType === 'pie') {
-          svgContent = createPieChartSVG(chartData, width, height);
-        } else if (chartType === 'bar' || chartType === 'histogram') {
-          svgContent = createBarChartSVG(chartData, width, height);
-        }
-
-        // Parse SVG and add to canvas
-        const { objects, options } = await loadSVGFromString(svgContent);
-        const group = util.groupSVGElements(objects, options);
-        
-        // Center on canvas
-        group.set({
-          left: (canvas.width || 0) / 2 - (group.width || 0) / 2,
-          top: (canvas.height || 0) / 2 - (group.height || 0) / 2,
-        });
-        
-        canvas.add(group);
-        canvas.renderAll();
-        toast.success("Chart added to canvas");
-      } catch (error) {
-        console.error("Error adding chart:", error);
-        toast.error("Failed to add chart to canvas");
-      }
-    };
-
     window.addEventListener("addIconToCanvas", handleAddIcon as EventListener);
-    window.addEventListener("addChartToCanvas", handleAddChart as EventListener);
 
     return () => {
       window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
-      window.removeEventListener("addChartToCanvas", handleAddChart as EventListener);
       setCanvas(null);
       canvas.dispose();
     };
-  }, [setCanvas, setSelectedObject, canvas]);
+  }, [setCanvas, setSelectedObject]);
 
   // Handle canvas dimension changes
   useEffect(() => {
