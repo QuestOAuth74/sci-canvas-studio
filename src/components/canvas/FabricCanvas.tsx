@@ -250,11 +250,14 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     fabricCanvas.renderAll();
 
     const handleCanvasClick = (e: any) => {
+      console.log('Canvas clicked, activeTool:', activeTool);
       if (activeTool === "select") return;
 
       const pointer = fabricCanvas.getPointer(e.e);
+      console.log('Pointer position:', pointer);
       
       if (activeTool === "text") {
+        console.log('Creating text with font:', textFont);
         const textDecoration = [];
         if (textUnderline) textDecoration.push('underline');
         if (textOverline) textDecoration.push('overline');
@@ -272,9 +275,11 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           fontStyle: textItalic ? 'italic' : 'normal',
           fill: "#000000",
         });
+        console.log('Text object created:', text);
         fabricCanvas.add(text);
         fabricCanvas.setActiveObject(text);
         fabricCanvas.renderAll();
+        console.log('Text added to canvas');
         return;
       }
       
