@@ -7,6 +7,7 @@ import { CategoryManager } from "@/components/admin/CategoryManager";
 import { ThumbnailGenerator } from "@/components/admin/ThumbnailGenerator";
 import { ThumbnailRegenerator } from "@/components/admin/ThumbnailRegenerator";
 import { SubmittedProjects } from "@/components/admin/SubmittedProjects";
+import { TestimonialManager } from "@/components/admin/TestimonialManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
@@ -32,8 +33,9 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="submitted" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="submitted">Submitted Projects</TabsTrigger>
+            <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="upload">Upload Icons</TabsTrigger>
             <TabsTrigger value="manage">Manage Icons</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
@@ -41,6 +43,10 @@ const Admin = () => {
           
           <TabsContent value="submitted" className="mt-6">
             <SubmittedProjects />
+          </TabsContent>
+          
+          <TabsContent value="testimonials" className="mt-6">
+            <TestimonialManager />
           </TabsContent>
           
           <TabsContent value="upload" className="mt-6">

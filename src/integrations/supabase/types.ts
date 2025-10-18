@@ -198,6 +198,39 @@ export type Database = {
           },
         ]
       }
+      testimonials: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          is_approved: boolean | null
+          message: string
+          name: string
+          scientific_discipline: string
+          user_id: string | null
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean | null
+          message: string
+          name: string
+          scientific_discipline: string
+          user_id?: string | null
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          is_approved?: boolean | null
+          message?: string
+          name?: string
+          scientific_discipline?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null

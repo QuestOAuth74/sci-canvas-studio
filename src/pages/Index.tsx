@@ -201,6 +201,7 @@ const Index = () => {
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={() => navigate("/testimonials")}
                   className="h-14 px-8 text-base font-bold uppercase bg-secondary hover:bg-secondary/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none group"
                 >
                   <MessageCircleHeart className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
