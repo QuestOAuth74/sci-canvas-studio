@@ -27,6 +27,7 @@ interface ValidationResult {
     hasXmlDeclaration: boolean;
     hasSvgTag: boolean;
     hasSvgNamespace: boolean;
+    detectedPrefix?: string;
   };
 }
 
@@ -58,7 +59,29 @@ export const IconUploader = () => {
     }
   };
 
-  // Enhanced SVG validation with multiple checks and better error messages
+  // Normalize namespaced SVG for HTML rendering and thumbnail generation
+  const normalizeSvgForHtml = (content: string): string => {
+    // Detect if root uses a namespace prefix (e.g., <ns0:svg xmlns:ns0="...">)
+    const prefixMatch = content.match(/<\s*([a-zA-Z_][\w.-]*):svg\b[^>]*xmlns:\1=["']http:\/\/www\.w3\.org\/2000\/svg["']/i);
+    
+    if (prefixMatch) {
+      const prefix = prefixMatch[1];
+      console.log(`Normalizing SVG with namespaced root: ${prefix}:svg`);
+      
+      // Remove the prefix from all element tags
+      const prefixRegex = new RegExp(`(<\\/?)${prefix}:`, 'gi');
+      content = content.replace(prefixRegex, '$1');
+    }
+    
+    // Ensure default xmlns on root if not present
+    if (!/xmlns=["']http:\/\/www\.w3\.org\/2000\/svg["']/i.test(content)) {
+      content = content.replace(/<\s*svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    
+    return content;
+  };
+
+  // Enhanced SVG validation with support for namespaced tags
   const validateSVGContent = (content: string, file: File): ValidationResult => {
     try {
       // Remove BOM if present
@@ -66,22 +89,25 @@ export const IconUploader = () => {
       
       // Get first 500 characters for debugging
       const preview = cleanContent.substring(0, 500);
-      const lower = cleanContent.toLowerCase();
       
-      // Multiple validation checks
-      const hasXmlDeclaration = lower.includes('<?xml') || lower.includes('xml version');
-      const hasSvgTag = lower.includes('<svg');
-      const hasSvgNamespace = lower.includes('xmlns="http://www.w3.org/2000/svg"') || 
-                             lower.includes("xmlns='http://www.w3.org/2000/svg'");
-      const hasClosingSvgTag = lower.includes('</svg>');
+      // Support both <svg> and <prefix:svg> tags (e.g., <ns0:svg>)
+      const hasXmlDeclaration = /^<\?xml/i.test(cleanContent.trim());
+      const hasOpenSvgTag = /<\s*(?:[a-zA-Z_][\w.-]*:)?svg\b/i.test(cleanContent);
+      const hasCloseSvgTag = /<\/\s*(?:[a-zA-Z_][\w.-]*:)?svg\s*>/i.test(cleanContent);
+      const hasSvgNamespace = /xmlns(?:\:[a-zA-Z_][\w.-]*)?=["']http:\/\/www\.w3\.org\/2000\/svg["']/i.test(cleanContent);
+      
+      // Detect namespaced root (e.g., <ns0:svg>)
+      const namespacedMatch = cleanContent.match(/<\s*([a-zA-Z_][\w.-]*):svg\b/i);
+      const detectedPrefix = namespacedMatch ? namespacedMatch[1] : undefined;
       
       const debugInfo = {
         fileType: file.type || 'unknown',
         fileSize: file.size,
         firstChars: preview.substring(0, 100),
         hasXmlDeclaration,
-        hasSvgTag,
-        hasSvgNamespace
+        hasSvgTag: hasOpenSvgTag,
+        hasSvgNamespace,
+        detectedPrefix
       };
 
       console.log('SVG Validation Debug:', {
@@ -89,14 +115,15 @@ export const IconUploader = () => {
         fileSize: file.size,
         fileType: file.type,
         hasXmlDeclaration,
-        hasSvgTag,
+        hasOpenSvgTag,
+        hasCloseSvgTag,
         hasSvgNamespace,
-        hasClosingSvgTag,
+        detectedPrefix,
         firstChars: preview.substring(0, 100)
       });
 
       // Validation logic
-      if (!hasSvgTag) {
+      if (!hasOpenSvgTag) {
         return {
           isValid: false,
           error: "No SVG tag found. This file doesn't contain valid SVG markup.",
@@ -104,7 +131,7 @@ export const IconUploader = () => {
         };
       }
 
-      if (!hasClosingSvgTag) {
+      if (!hasCloseSvgTag) {
         return {
           isValid: false,
           error: "Incomplete SVG file. Missing closing </svg> tag.",
@@ -224,13 +251,16 @@ ${result.debugInfo.firstChars}
       
       // Success - valid SVG
       setValidationWarning("");
-      setFilePreview(result.content || "");
+      
+      // Use normalized content for preview if namespaced
+      const normalizedContent = normalizeSvgForHtml(result.content || "");
+      setFilePreview(normalizedContent);
       
       if (result.debugInfo) {
         const debugText = `✓ Valid SVG detected
 File Size: ${(result.debugInfo.fileSize / 1024).toFixed(2)} KB
 Has XML Declaration: ${result.debugInfo.hasXmlDeclaration ? 'Yes' : 'No'}
-Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}`;
+Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.debugInfo.detectedPrefix ? `\nNamespaced Root: ${result.debugInfo.detectedPrefix}:svg (normalized for web)` : ''}`;
         setDebugInfo(debugText);
       }
     }
@@ -248,7 +278,7 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}`;
   // Generate optimized thumbnail from full SVG (target max 50KB)
   const generateThumbnail = (svgContent: string): string | null => {
     try {
-      // Step 1: Remove only XML declarations, DOCTYPE, comments - keep defs for complex SVGs
+      // Step 1: Remove only XML declarations, DOCTYPE, comments, metadata - keep xmlns:xlink and defs
       let optimized = svgContent
         .replace(/<\?xml[^>]*\?>/g, '')
         .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
@@ -271,13 +301,12 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}`;
         }
       }
 
-      // Step 3: Remove unnecessary attributes
+      // Step 3: Remove unnecessary attributes (but keep xmlns:xlink for complex SVGs)
       optimized = optimized
         .replace(/\s+id=["'][^"']*["']/g, '')
         .replace(/\s+class=["'][^"']*["']/g, '')
         .replace(/\s+style=["'][^"']*["']/g, '')
-        .replace(/\s+data-[^=]*=["'][^"']*["']/g, '')
-        .replace(/\s+xmlns:[^=]*=["'][^"']*["']/g, '');
+        .replace(/\s+data-[^=]*=["'][^"']*["']/g, '');
 
       // Step 4: Reduce decimal precision aggressively
       optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
@@ -288,8 +317,8 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}`;
         .replace(/>\s+</g, '><')
         .trim();
 
-      // Step 6: Validate result is still valid SVG (case-insensitive)
-      if (!/\<svg[\s\S]*\<\/svg\>/i.test(optimized)) {
+      // Step 6: Validate result is still valid SVG (support namespaced tags)
+      if (!/<\s*(?:\w+:)?svg[\s\S]*<\/\s*(?:\w+:)?svg\s*>/i.test(optimized)) {
         console.warn('Optimization produced invalid SVG, using original');
         return svgContent; // Return original instead of null
       }
@@ -324,7 +353,10 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}`;
         return;
       }
       
-      const thumbnail = generateThumbnail(result.content);
+      // Use original content for storage, normalized for thumbnail
+      const originalContent = result.content;
+      const normalizedContent = normalizeSvgForHtml(result.content);
+      const thumbnail = generateThumbnail(normalizedContent);
       const sanitizedName = sanitizeFileName(iconName);
       
       const { error } = await supabase
@@ -332,8 +364,8 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}`;
         .insert([{
           name: sanitizedName,
           category: selectedCategory,
-          svg_content: result.content,
-          thumbnail: thumbnail || result.content
+          svg_content: originalContent,
+          thumbnail: thumbnail || normalizedContent
         }]);
 
       if (error) {
