@@ -328,7 +328,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           )}
           
           {!loading && searchQuery && (
-        <ScrollArea type="always" className="flex-1 min-h-0 px-3">
+        <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1">
           <div className="py-3">
             <div className="mb-2 text-sm text-muted-foreground">
               {isSearching ? "Searching..." : `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''}`}
@@ -374,7 +374,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       )}
       
       {!loading && !searchQuery && (
-        <ScrollArea type="always" className="flex-1 min-h-0 px-3">
+        <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1">
           <div className="space-y-2 py-3">
             {/* Pinned Categories Section */}
             {pinnedCategories.length > 0 && (
