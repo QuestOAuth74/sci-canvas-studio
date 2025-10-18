@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft, Share } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
@@ -15,6 +16,9 @@ import { toast } from "sonner";
 const CanvasContent = () => {
   const navigate = useNavigate();
   const [activeTool, setActiveTool] = useState<string>("select");
+  const [canvasName, setCanvasName] = useState("Untitled Diagram");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
   const {
     undo,
     redo,
@@ -32,6 +36,43 @@ const CanvasContent = () => {
   const handleShapeSelect = (shape: string) => {
     setActiveTool(shape);
     toast.success(`Selected ${shape}`);
+  };
+
+  const startEditingName = () => {
+    setTempName(canvasName);
+    setIsEditingName(true);
+  };
+
+  const saveName = () => {
+    const trimmedName = tempName.trim();
+    if (trimmedName.length === 0) {
+      toast.error("Canvas name cannot be empty");
+      setTempName(canvasName);
+      setIsEditingName(false);
+      return;
+    }
+    if (trimmedName.length > 100) {
+      toast.error("Canvas name must be less than 100 characters");
+      return;
+    }
+    setCanvasName(trimmedName);
+    setIsEditingName(false);
+    toast.success("Canvas renamed");
+  };
+
+  const cancelEditing = () => {
+    setTempName(canvasName);
+    setIsEditingName(false);
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      saveName();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEditing();
+    }
   };
 
   // Keyboard shortcuts
@@ -77,9 +118,28 @@ const CanvasContent = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9 border-[2px]">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-xl font-black uppercase tracking-tight">
-              Untitled Diagram
-            </h1>
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="text"
+                  value={tempName}
+                  onChange={(e) => setTempName(e.target.value)}
+                  onKeyDown={handleNameKeyDown}
+                  onBlur={saveName}
+                  autoFocus
+                  className="h-9 text-base font-black uppercase tracking-tight max-w-[300px]"
+                  maxLength={100}
+                />
+              </div>
+            ) : (
+              <button
+                onClick={startEditingName}
+                className="text-xl font-black uppercase tracking-tight hover:bg-accent px-2 py-1 border-[2px] border-transparent hover:border-foreground transition-all"
+                title="Click to rename"
+              >
+                {canvasName}
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <MenuBar />
