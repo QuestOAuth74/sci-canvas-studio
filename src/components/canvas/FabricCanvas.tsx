@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse } from "fabric";
+import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 
@@ -42,60 +42,29 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     const handleAddIcon = async (event: CustomEvent) => {
       const { svgData } = event.detail;
 
-      // Derive intrinsic size from SVG when width/height are missing
-      const parseSvgDims = (svg: string) => {
-        try {
-          const vb = svg.match(/viewBox=["']([^"']+)["']/i);
-          if (vb) {
-            const parts = vb[1].trim().split(/\s+/);
-            if (parts.length === 4) {
-              const w = parseFloat(parts[2]);
-              const h = parseFloat(parts[3]);
-              if (w > 0 && h > 0) return { w, h };
-            }
-          }
-          const wAttr = svg.match(/\bwidth=["']?([\d.]+)(px)?["']?/i);
-          const hAttr = svg.match(/\bheight=["']?([\d.]+)(px)?["']?/i);
-          const w = wAttr ? parseFloat(wAttr[1]) : undefined;
-          const h = hAttr ? parseFloat(hAttr[1]) : undefined;
-          return { w: w || 128, h: h || 128 };
-        } catch {
-          return { w: 128, h: 128 };
-        }
-      };
-
-      let svgUrl: string | null = null;
       try {
-        // Convert SVG string to blob URL for Fabric.js
-        const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
-        svgUrl = URL.createObjectURL(svgBlob);
-
-        const img = await FabricImage.fromURL(svgUrl);
-
-        // Compute scale to fit within 60% of canvas area (maintain aspect)
-        const intrinsic = parseSvgDims(svgData);
-        const naturalW = img.width || intrinsic.w;
-        const naturalH = img.height || intrinsic.h;
+        // Parse SVG string directly with Fabric.js
+        const { objects, options } = await loadSVGFromString(svgData);
+        const group = util.groupSVGElements(objects, options);
+        
+        // Scale to fit within 60% of canvas area
         const maxW = (canvas.width || 0) * 0.6;
         const maxH = (canvas.height || 0) * 0.6;
-        const scale = Math.min(maxW / naturalW, maxH / naturalH, 1);
-        img.scale(scale);
-
-        const scaledW = naturalW * scale;
-        const scaledH = naturalH * scale;
-        img.set({
-          left: (canvas.width || 0) / 2 - scaledW / 2,
-          top: (canvas.height || 0) / 2 - scaledH / 2,
+        const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
+        group.scale(scale);
+        
+        // Center on canvas
+        group.set({
+          left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
+          top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
         });
-
-        canvas.add(img);
+        
+        canvas.add(group);
         canvas.renderAll();
         toast.success("Icon added to canvas");
       } catch (error) {
         console.error("Error adding icon:", error);
         toast.error("Failed to add icon to canvas");
-      } finally {
-        if (svgUrl) URL.revokeObjectURL(svgUrl);
       }
     };
 
