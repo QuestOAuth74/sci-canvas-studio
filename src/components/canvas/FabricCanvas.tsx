@@ -2,8 +2,75 @@ import { useEffect, useRef } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { renderToString } from "react-dom/server";
-import { ChartRenderer } from "./ChartRenderer";
+
+// Helper functions to create simple SVG charts
+const createBarChartSVG = (data: any, width: number, height: number) => {
+  const { labels, values, title } = data;
+  const maxValue = Math.max(...values);
+  const barWidth = (width - 100) / labels.length;
+  const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+  
+  let bars = '';
+  values.forEach((value: number, i: number) => {
+    const barHeight = (value / maxValue) * (height - 100);
+    const x = 60 + i * barWidth;
+    const y = height - 50 - barHeight;
+    bars += `<rect x="${x}" y="${y}" width="${barWidth - 10}" height="${barHeight}" fill="${colors[i % colors.length]}" />`;
+    bars += `<text x="${x + barWidth / 2 - 10}" y="${height - 30}" font-size="12" fill="#666">${labels[i]}</text>`;
+  });
+  
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+      <rect width="${width}" height="${height}" fill="white" stroke="#e0e0e0" stroke-width="2"/>
+      <text x="${width / 2}" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">${title}</text>
+      <line x1="50" y1="${height - 50}" x2="${width - 40}" y2="${height - 50}" stroke="#999" stroke-width="2"/>
+      <line x1="50" y1="50" x2="50" y2="${height - 50}" stroke="#999" stroke-width="2"/>
+      ${bars}
+    </svg>
+  `;
+};
+
+const createPieChartSVG = (data: any, width: number, height: number) => {
+  const { labels, values, title } = data;
+  const total = values.reduce((sum: number, val: number) => sum + val, 0);
+  const centerX = width / 2;
+  const centerY = height / 2 + 20;
+  const radius = Math.min(width, height) / 3;
+  const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+  
+  let slices = '';
+  let legends = '';
+  let currentAngle = -Math.PI / 2;
+  
+  values.forEach((value: number, i: number) => {
+    const sliceAngle = (value / total) * 2 * Math.PI;
+    const endAngle = currentAngle + sliceAngle;
+    
+    const x1 = centerX + radius * Math.cos(currentAngle);
+    const y1 = centerY + radius * Math.sin(currentAngle);
+    const x2 = centerX + radius * Math.cos(endAngle);
+    const y2 = centerY + radius * Math.sin(endAngle);
+    
+    const largeArc = sliceAngle > Math.PI ? 1 : 0;
+    
+    slices += `<path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z" fill="${colors[i % colors.length]}" stroke="white" stroke-width="2"/>`;
+    
+    const legendY = 50 + i * 25;
+    legends += `<rect x="20" y="${legendY}" width="15" height="15" fill="${colors[i % colors.length]}"/>`;
+    legends += `<text x="40" y="${legendY + 12}" font-size="12" fill="#666">${labels[i]}: ${((value / total) * 100).toFixed(0)}%</text>`;
+    
+    currentAngle = endAngle;
+  });
+  
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+      <rect width="${width}" height="${height}" fill="white" stroke="#e0e0e0" stroke-width="2"/>
+      <text x="${width / 2}" y="25" text-anchor="middle" font-size="16" font-weight="bold" fill="#333">${title}</text>
+      ${slices}
+      ${legends}
+    </svg>
+  `;
+};
 
 interface FabricCanvasProps {
   activeTool: string;
@@ -108,65 +175,30 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       const { chartData, chartType } = event.detail;
 
       try {
-        // Create an off-screen container to render the chart
-        const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.left = '-9999px';
-        container.style.width = '600px';
-        container.style.height = '400px';
-        document.body.appendChild(container);
-
-        // Dynamically import and render chart
-        const { createRoot } = await import('react-dom/client');
-        const root = createRoot(container);
+        // Create SVG chart based on type
+        let svgContent = '';
+        const width = 400;
+        const height = 300;
         
-        await new Promise<void>((resolve) => {
-          root.render(
-            <ChartRenderer 
-              data={chartData} 
-              type={chartType} 
-              width={600} 
-              height={400} 
-            />
-          );
-          // Give time for chart to render
-          setTimeout(() => resolve(), 1000);
+        if (chartType === 'pie') {
+          svgContent = createPieChartSVG(chartData, width, height);
+        } else if (chartType === 'bar' || chartType === 'histogram') {
+          svgContent = createBarChartSVG(chartData, width, height);
+        }
+
+        // Parse SVG and add to canvas
+        const { objects, options } = await loadSVGFromString(svgContent);
+        const group = util.groupSVGElements(objects, options);
+        
+        // Center on canvas
+        group.set({
+          left: (canvas.width || 0) / 2 - (group.width || 0) / 2,
+          top: (canvas.height || 0) / 2 - (group.height || 0) / 2,
         });
-
-        // Convert to image using html2canvas
-        const html2canvas = (await import('html2canvas')).default;
-        const chartCanvas = await html2canvas(container, {
-          backgroundColor: '#ffffff',
-          scale: 2,
-        });
-
-        // Convert canvas to data URL
-        const dataUrl = chartCanvas.toDataURL('image/png');
-
-        // Clean up
-        root.unmount();
-        document.body.removeChild(container);
-
-        // Add to Fabric canvas as image
-        FabricImage.fromURL(dataUrl, {
-          crossOrigin: 'anonymous',
-        }).then((img) => {
-          // Scale to fit within canvas
-          const maxW = (canvas.width || 0) * 0.5;
-          const maxH = (canvas.height || 0) * 0.5;
-          const scale = Math.min(maxW / (img.width || 1), maxH / (img.height || 1), 1);
-          img.scale(scale);
-          
-          // Center on canvas
-          img.set({
-            left: (canvas.width || 0) / 2 - (img.width || 0) * scale / 2,
-            top: (canvas.height || 0) / 2 - (img.height || 0) * scale / 2,
-          });
-          
-          canvas.add(img);
-          canvas.renderAll();
-          toast.success("Chart added to canvas");
-        });
+        
+        canvas.add(group);
+        canvas.renderAll();
+        toast.success("Chart added to canvas");
       } catch (error) {
         console.error("Error adding chart:", error);
         toast.error("Failed to add chart to canvas");

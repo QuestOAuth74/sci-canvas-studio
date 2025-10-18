@@ -71,7 +71,7 @@ export const ChartLibrary = ({ chartType, onChartCreate }: ChartLibraryProps) =>
           return;
         }
 
-        // Assume first row is headers, first column is labels, second column is values
+        // First column is X values (labels), second column is Y values
         const newData = jsonData.slice(1).map((row) => ({
           label: String(row[0] || ''),
           value: parseFloat(row[1]) || 0,
@@ -222,7 +222,7 @@ export const ChartLibrary = ({ chartType, onChartCreate }: ChartLibraryProps) =>
                     <Upload className="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-sm text-muted-foreground mb-4 text-center">
                       Upload an Excel file (.xlsx, .xls)<br />
-                      First column: Labels, Second column: Values
+                      <strong>Column 1 (X):</strong> Labels | <strong>Column 2 (Y):</strong> Values
                     </p>
                     <input
                       ref={fileInputRef}
@@ -268,8 +268,8 @@ export const ChartLibrary = ({ chartType, onChartCreate }: ChartLibraryProps) =>
           <div className="text-sm text-muted-foreground">
             <p className="mb-2">Click "Create Chart" to:</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Enter data manually</li>
-              <li>Upload Excel file</li>
+              <li>Enter data manually (X & Y values)</li>
+              <li>Upload Excel file (Column 1: X, Column 2: Y)</li>
               <li>Customize chart appearance</li>
             </ul>
           </div>
