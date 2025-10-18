@@ -141,6 +141,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           selectable: false,
           evented: false,
           hoverCursor: 'default',
+          excludeFromExport: true,
         });
         (line as any).isGridLine = true;
         canvas.add(line);
@@ -155,6 +156,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           selectable: false,
           evented: false,
           hoverCursor: 'default',
+          excludeFromExport: true,
         });
         (line as any).isGridLine = true;
         canvas.add(line);
@@ -179,6 +181,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         selectable: false,
         evented: false,
         hoverCursor: 'default',
+        excludeFromExport: true,
       });
       (topRuler as any).isRuler = true;
       canvas.add(topRuler);
@@ -196,6 +199,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
         selectable: false,
         evented: false,
         hoverCursor: 'default',
+        excludeFromExport: true,
       });
       (leftRuler as any).isRuler = true;
       canvas.add(leftRuler);
@@ -208,6 +212,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           strokeWidth: 1,
           selectable: false,
           evented: false,
+          excludeFromExport: true,
         });
         (mark as any).isRuler = true;
         canvas.add(mark);
@@ -220,6 +225,7 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
           strokeWidth: 1,
           selectable: false,
           evented: false,
+          excludeFromExport: true,
         });
         (mark as any).isRuler = true;
         canvas.add(mark);
