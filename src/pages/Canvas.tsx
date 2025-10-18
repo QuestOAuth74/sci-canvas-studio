@@ -24,6 +24,7 @@ const CanvasContent = () => {
   const [tempName, setTempName] = useState("");
   const [selectedIconCategory, setSelectedIconCategory] = useState<string>("");
   const {
+    canvas,
     undo,
     redo,
     cut,
@@ -106,6 +107,12 @@ const CanvasContent = () => {
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const modifier = isMac ? e.metaKey : e.ctrlKey;
 
+      // Check if user is editing text - if so, don't intercept delete/backspace
+      const activeObject = canvas?.getActiveObject();
+      const isEditingText = activeObject && 
+        (activeObject.type === 'textbox' || activeObject.type === 'i-text' || activeObject.type === 'text') && 
+        (activeObject as any).isEditing;
+
       if (modifier && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         undo();
@@ -124,7 +131,8 @@ const CanvasContent = () => {
       } else if (modifier && e.key === 'a') {
         e.preventDefault();
         selectAll();
-      } else if ((e.key === 'Delete' || e.key === 'Backspace') && !modifier) {
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && !modifier && !isEditingText) {
+        // Only delete the object if not currently editing text
         e.preventDefault();
         deleteSelected();
       } else if (modifier && e.shiftKey && e.key === ']') {
@@ -144,7 +152,7 @@ const CanvasContent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward]);
+  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward]);
 
   return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
