@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, HelpCircle } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
@@ -13,9 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertiesPanel } from "@/components/canvas/PropertiesPanel";
 import { BottomBar } from "@/components/canvas/BottomBar";
 import { MenuBar } from "@/components/canvas/MenuBar";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
+import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
+import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -26,6 +28,7 @@ const CanvasContent = () => {
   const [selectedIconCategory, setSelectedIconCategory] = useState<string>("");
   const [isIconLibraryCollapsed, setIsIconLibraryCollapsed] = useState(false);
   const [isPropertiesPanelCollapsed, setIsPropertiesPanelCollapsed] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const {
     canvas,
     undo,
@@ -116,6 +119,13 @@ const CanvasContent = () => {
         (activeObject.type === 'textbox' || activeObject.type === 'i-text' || activeObject.type === 'text') && 
         (activeObject as any).isEditing;
 
+      // Show shortcuts dialog with ?
+      if (e.key === '?' && !modifier && !isEditingText) {
+        e.preventDefault();
+        setShowShortcuts(true);
+        return;
+      }
+
       if (modifier && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         undo();
@@ -159,13 +169,27 @@ const CanvasContent = () => {
 
   return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+      {/* Welcome Dialog */}
+      <WelcomeDialog />
+      
+      {/* Keyboard Shortcuts Dialog */}
+      <KeyboardShortcutsDialog 
+        open={showShortcuts} 
+        onOpenChange={setShowShortcuts}
+      />
+
       {/* Top Header with Menu - Glass effect */}
       <header className="glass-effect border-b border-border/40">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Back to Projects</TooltipContent>
+            </Tooltip>
             {isEditingName ? (
               <div className="flex items-center gap-2">
                 <Input
@@ -197,10 +221,28 @@ const CanvasContent = () => {
               </span>
             )}
             <MenuBar />
-            <Button onClick={saveProject} disabled={isSaving} variant="default" size="sm" className="h-9 shadow-sm">
-              <Save className="h-3.5 w-3.5 mr-1.5" />
-              Save
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setShowShortcuts(true)}
+                  className="h-9 w-9"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Keyboard Shortcuts (?)</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={saveProject} disabled={isSaving} variant="default" size="sm" className="h-9 shadow-sm">
+                  <Save className="h-3.5 w-3.5 mr-1.5" />
+                  Save
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Save Project (Ctrl+S)</TooltipContent>
+            </Tooltip>
             <UserMenu />
           </div>
         </div>
