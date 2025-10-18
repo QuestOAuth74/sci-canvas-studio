@@ -15,6 +15,10 @@ interface CanvasContextType {
   setRulersEnabled: (enabled: boolean) => void;
   backgroundColor: string;
   setBackgroundColor: (color: string) => void;
+  canvasDimensions: { width: number; height: number };
+  setCanvasDimensions: (dimensions: { width: number; height: number }) => void;
+  paperSize: string;
+  setPaperSize: (sizeId: string) => void;
   
   // Canvas operations
   undo: () => void;
@@ -73,6 +77,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [gridEnabled, setGridEnabled] = useState(true);
   const [rulersEnabled, setRulersEnabled] = useState(true);
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 1200, height: 800 });
+  const [paperSize, setPaperSize] = useState("custom");
   const [clipboard, setClipboard] = useState<FabricObject | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
@@ -385,6 +391,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setRulersEnabled,
     backgroundColor,
     setBackgroundColor,
+    canvasDimensions,
+    setCanvasDimensions,
+    paperSize,
+    setPaperSize,
     undo,
     redo,
     cut,

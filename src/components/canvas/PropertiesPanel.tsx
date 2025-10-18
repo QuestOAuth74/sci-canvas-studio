@@ -6,14 +6,46 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
-import { PAPER_SIZES } from "@/types/paperSizes";
+import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
 
 export const PropertiesPanel = () => {
-  const [paperSize, setPaperSize] = useState("custom");
-  const { gridEnabled, setGridEnabled, rulersEnabled, setRulersEnabled, backgroundColor, setBackgroundColor } = useCanvas();
+  const { 
+    gridEnabled, 
+    setGridEnabled, 
+    rulersEnabled, 
+    setRulersEnabled, 
+    backgroundColor, 
+    setBackgroundColor,
+    paperSize,
+    setPaperSize,
+    setCanvasDimensions,
+    canvasDimensions
+  } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
+
+  const handlePaperSizeChange = (sizeId: string) => {
+    setPaperSize(sizeId);
+    const selected = getPaperSize(sizeId);
+    
+    // Scale down large poster sizes to fit viewport
+    let width = selected.width;
+    let height = selected.height;
+    
+    const maxWidth = window.innerWidth - 400;
+    const maxHeight = window.innerHeight - 200;
+    
+    if (width > maxWidth || height > maxHeight) {
+      const scaleX = maxWidth / width;
+      const scaleY = maxHeight / height;
+      const scale = Math.min(scaleX, scaleY);
+      width = Math.floor(width * scale);
+      height = Math.floor(height * scale);
+    }
+    
+    setCanvasDimensions({ width, height });
+  };
 
   return (
     <div className="w-64 glass-effect border-l border-border/40 h-full">
@@ -81,7 +113,7 @@ export const PropertiesPanel = () => {
 
               <div className="space-y-3">
                 <h3 className="font-semibold text-sm">Paper Size</h3>
-                <Select value={paperSize} onValueChange={setPaperSize}>
+                <Select value={paperSize} onValueChange={handlePaperSizeChange}>
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
@@ -96,6 +128,9 @@ export const PropertiesPanel = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                <div className="text-xs text-muted-foreground">
+                  Canvas: {canvasDimensions.width} × {canvasDimensions.height}px
+                </div>
               </div>
             </TabsContent>
             

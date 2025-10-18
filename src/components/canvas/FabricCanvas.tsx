@@ -9,14 +9,14 @@ interface FabricCanvasProps {
 
 export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { setCanvas, setSelectedObject, gridEnabled, rulersEnabled, backgroundColor } = useCanvas();
+  const { setCanvas, setSelectedObject, gridEnabled, rulersEnabled, backgroundColor, canvasDimensions } = useCanvas();
 
   useEffect(() => {
     if (!canvasRef.current) return;
 
     const canvas = new Canvas(canvasRef.current, {
-      width: window.innerWidth - 128,
-      height: window.innerHeight - 145,
+      width: canvasDimensions.width,
+      height: canvasDimensions.height,
       backgroundColor: backgroundColor,
     });
 
@@ -37,15 +37,6 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
       setSelectedObject(null);
     });
 
-    // Handle window resize
-    const handleResize = () => {
-      canvas.setDimensions({
-        width: window.innerWidth - 128,
-        height: window.innerHeight - 145,
-      });
-    };
-
-    window.addEventListener("resize", handleResize);
 
     // Listen for custom event to add icons to canvas
     const handleAddIcon = (event: CustomEvent) => {
@@ -65,12 +56,25 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     window.addEventListener("addIconToCanvas", handleAddIcon as EventListener);
 
     return () => {
-      window.removeEventListener("resize", handleResize);
       window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
       setCanvas(null);
       canvas.dispose();
     };
-  }, [setCanvas, setSelectedObject]);
+  }, [setCanvas, setSelectedObject, canvasDimensions]);
+
+  // Handle canvas dimension changes
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const canvas = canvasRef.current as any;
+    const fabricCanvas = canvas.__canvas as Canvas;
+    if (!fabricCanvas) return;
+
+    fabricCanvas.setDimensions({
+      width: canvasDimensions.width,
+      height: canvasDimensions.height,
+    });
+    fabricCanvas.renderAll();
+  }, [canvasDimensions]);
 
   // Handle grid, rulers, and background color changes
   useEffect(() => {
