@@ -76,8 +76,11 @@ export const IconManager = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {icons.map((icon) => (
             <div key={icon.id} className="border border-border rounded-lg p-3 space-y-2">
-              <div className="aspect-square border border-border rounded-lg p-2">
-                <div dangerouslySetInnerHTML={{ __html: icon.svg_content }} className="w-full h-full" />
+              <div className="aspect-square border border-border rounded-lg p-2 flex items-center justify-center">
+                <div 
+                  dangerouslySetInnerHTML={{ __html: icon.svg_content }} 
+                  className="w-16 h-16 [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
+                />
               </div>
               <p className="text-sm font-medium truncate">{icon.name}</p>
               <p className="text-xs text-muted-foreground truncate">{icon.category}</p>
