@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Share } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
 import { ShapesLibrary } from "@/components/canvas/ShapesLibrary";
 import { TopToolbar } from "@/components/canvas/TopToolbar";
@@ -15,8 +16,8 @@ import { toast } from "sonner";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [activeTool, setActiveTool] = useState<string>("select");
-  const [canvasName, setCanvasName] = useState("Untitled Diagram");
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
   const {
@@ -27,7 +28,20 @@ const CanvasContent = () => {
     paste,
     deleteSelected,
     selectAll,
+    projectName,
+    setProjectName,
+    isSaving,
+    saveProject,
+    loadProject,
   } = useCanvas();
+
+  // Load project if projectId is in URL
+  useEffect(() => {
+    const projectId = searchParams.get('project');
+    if (projectId) {
+      loadProject(projectId);
+    }
+  }, [searchParams, loadProject]);
 
   const handleExport = () => {
     toast("Export functionality will save your SVG file");
@@ -39,7 +53,7 @@ const CanvasContent = () => {
   };
 
   const startEditingName = () => {
-    setTempName(canvasName);
+    setTempName(projectName);
     setIsEditingName(true);
   };
 
@@ -47,7 +61,7 @@ const CanvasContent = () => {
     const trimmedName = tempName.trim();
     if (trimmedName.length === 0) {
       toast.error("Canvas name cannot be empty");
-      setTempName(canvasName);
+      setTempName(projectName);
       setIsEditingName(false);
       return;
     }
@@ -55,13 +69,13 @@ const CanvasContent = () => {
       toast.error("Canvas name must be less than 100 characters");
       return;
     }
-    setCanvasName(trimmedName);
+    setProjectName(trimmedName);
     setIsEditingName(false);
     toast.success("Canvas renamed");
   };
 
   const cancelEditing = () => {
-    setTempName(canvasName);
+    setTempName(projectName);
     setIsEditingName(false);
   };
 
@@ -137,16 +151,23 @@ const CanvasContent = () => {
                 className="text-xl font-semibold tracking-tight hover:bg-accent/50 px-3 py-1.5 rounded-md border border-transparent hover:border-border/40 transition-all"
                 title="Click to rename"
               >
-                {canvasName}
+                {projectName}
               </button>
             )}
           </div>
           <div className="flex items-center gap-3">
+            {isSaving && (
+              <span className="text-sm text-muted-foreground flex items-center gap-1">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Saving...
+              </span>
+            )}
             <MenuBar />
-            <Button variant="default" size="sm" className="h-9 shadow-sm">
-              <Share className="h-3.5 w-3.5 mr-1.5" />
-              Share
+            <Button onClick={saveProject} disabled={isSaving} variant="default" size="sm" className="h-9 shadow-sm">
+              <Save className="h-3.5 w-3.5 mr-1.5" />
+              Save
             </Button>
+            <UserMenu />
           </div>
         </div>
       </header>

@@ -1,8 +1,19 @@
 import { useState, useEffect } from "react";
-import { iconStorage } from "@/lib/iconStorage";
-import { IconItem, IconCategory } from "@/types/icon";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface Icon {
+  id: string;
+  name: string;
+  category: string;
+  svg_content: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface IconLibraryProps {
   selectedCategory: string;
@@ -10,25 +21,45 @@ interface IconLibraryProps {
 }
 
 export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryProps) => {
-  const [categories, setCategories] = useState<IconCategory[]>([]);
-  const [icons, setIcons] = useState<IconItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [icons, setIcons] = useState<Icon[]>([]);
 
   useEffect(() => {
-    setCategories(iconStorage.getCategories());
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
     loadIcons();
   }, [selectedCategory]);
 
-  const loadIcons = () => {
-    if (selectedCategory === "all") {
-      setIcons(iconStorage.getIcons());
-    } else {
-      setIcons(iconStorage.getIconsByCategory(selectedCategory));
+  const loadCategories = async () => {
+    const { data, error } = await supabase
+      .from('icon_categories')
+      .select('*')
+      .order('name');
+
+    if (!error && data) {
+      setCategories(data);
     }
   };
 
-  const handleIconClick = (icon: IconItem) => {
+  const loadIcons = async () => {
+    let query = supabase.from('icons').select('*');
+
+    if (selectedCategory !== "all") {
+      query = query.eq('category', selectedCategory);
+    }
+
+    const { data, error } = await query.order('name');
+
+    if (!error && data) {
+      setIcons(data);
+    }
+  };
+
+  const handleIconClick = (icon: Icon) => {
     const event = new CustomEvent("addIconToCanvas", {
-      detail: { svgData: icon.svgData },
+      detail: { svgData: icon.svg_content },
     });
     window.dispatchEvent(event);
   };
@@ -69,11 +100,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
                 className="aspect-square border border-border rounded-lg p-2 hover:bg-accent hover:border-primary transition-colors"
                 title={icon.name}
               >
-                <img
-                  src={icon.thumbnail}
-                  alt={icon.name}
-                  className="w-full h-full object-contain"
-                />
+                <div dangerouslySetInnerHTML={{ __html: icon.svg_content }} className="w-full h-full" />
               </button>
             ))}
           </div>

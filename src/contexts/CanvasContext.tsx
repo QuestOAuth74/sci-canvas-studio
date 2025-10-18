@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
 import { Canvas as FabricCanvas, FabricObject } from "fabric";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -19,6 +21,13 @@ interface CanvasContextType {
   setCanvasDimensions: (dimensions: { width: number; height: number }) => void;
   paperSize: string;
   setPaperSize: (sizeId: string) => void;
+  currentProjectId: string | null;
+  setCurrentProjectId: (id: string | null) => void;
+  projectName: string;
+  setProjectName: (name: string) => void;
+  isSaving: boolean;
+  saveProject: () => Promise<void>;
+  loadProject: (id: string) => Promise<void>;
   
   // Canvas operations
   undo: () => void;
@@ -71,6 +80,7 @@ interface CanvasProviderProps {
 }
 
 export const CanvasProvider = ({ children }: CanvasProviderProps) => {
+  const { user } = useAuth();
   const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
   const [zoom, setZoom] = useState(100);
@@ -82,6 +92,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [clipboard, setClipboard] = useState<FabricObject | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState("Untitled Diagram");
+  const [isSaving, setIsSaving] = useState(false);
 
   // History management
   const saveState = useCallback(() => {
@@ -378,6 +391,105 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     URL.revokeObjectURL(url);
   }, [canvas]);
 
+  // Project save/load operations
+  const saveProject = useCallback(async () => {
+    if (!canvas || !user) {
+      toast.error("Please sign in to save projects");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const canvasData = canvas.toJSON();
+      
+      const projectData = {
+        user_id: user.id,
+        name: projectName,
+        canvas_data: canvasData,
+        paper_size: paperSize,
+        canvas_width: canvasDimensions.width,
+        canvas_height: canvasDimensions.height,
+        updated_at: new Date().toISOString()
+      };
+
+      if (currentProjectId) {
+        // Update existing project
+        const { error } = await supabase
+          .from('canvas_projects')
+          .update(projectData)
+          .eq('id', currentProjectId);
+
+        if (error) throw error;
+        toast.success("Project saved");
+      } else {
+        // Create new project
+        const { data, error } = await supabase
+          .from('canvas_projects')
+          .insert([projectData])
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setCurrentProjectId(data.id);
+          toast.success("Project created and saved");
+        }
+      }
+    } catch (error: any) {
+      console.error('Save error:', error);
+      toast.error(error.message || "Failed to save project");
+    } finally {
+      setIsSaving(false);
+    }
+  }, [canvas, user, projectName, paperSize, canvasDimensions, currentProjectId]);
+
+  const loadProject = useCallback(async (id: string) => {
+    if (!canvas || !user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('canvas_projects')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      if (!data) {
+        toast.error("Project not found");
+        return;
+      }
+
+      // Load canvas data
+      await canvas.loadFromJSON(data.canvas_data as Record<string, any>);
+      canvas.renderAll();
+
+      // Update context state
+      setCurrentProjectId(data.id);
+      setProjectName(data.name);
+      setPaperSize(data.paper_size);
+      setCanvasDimensions({
+        width: data.canvas_width,
+        height: data.canvas_height
+      });
+
+      toast.success("Project loaded");
+    } catch (error: any) {
+      console.error('Load error:', error);
+      toast.error(error.message || "Failed to load project");
+    }
+  }, [canvas, user]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!canvas || !user || !currentProjectId) return;
+
+    const autoSaveInterval = setInterval(() => {
+      saveProject();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [canvas, user, currentProjectId, saveProject]);
+
   const value: CanvasContextType = {
     canvas,
     setCanvas,
@@ -395,6 +507,13 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setCanvasDimensions,
     paperSize,
     setPaperSize,
+    currentProjectId,
+    setCurrentProjectId,
+    projectName,
+    setProjectName,
+    isSaving,
+    saveProject,
+    loadProject,
     undo,
     redo,
     cut,

@@ -1,22 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { iconStorage } from "@/lib/iconStorage";
-import { IconCategory } from "@/types/icon";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, FileArchive } from "lucide-react";
 import JSZip from "jszip";
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 export const IconUploader = () => {
-  const [categories] = useState<IconCategory[]>(iconStorage.getCategories());
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [iconName, setIconName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [zipFile, setZipFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    const { data, error } = await supabase
+      .from('icon_categories')
+      .select('*')
+      .order('name');
+
+    if (!error && data) {
+      setCategories(data);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -31,25 +50,29 @@ export const IconUploader = () => {
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const svgData = e.target?.result as string;
+    reader.onload = async (e) => {
+      const svgContent = e.target?.result as string;
       
-      iconStorage.saveIcon({
-        id: Date.now().toString(),
-        name: iconName,
-        category: selectedCategory,
-        svgData,
-        thumbnail: svgData,
-        createdAt: Date.now(),
-      });
+      const { error } = await supabase
+        .from('icons')
+        .insert([{
+          name: iconName,
+          category: selectedCategory,
+          svg_content: svgContent
+        }]);
 
-      toast.success("Icon uploaded successfully!");
-      setIconName("");
-      setFile(null);
-      setSelectedCategory("");
+      if (error) {
+        toast.error("Failed to upload icon");
+        console.error(error);
+      } else {
+        toast.success("Icon uploaded successfully!");
+        setIconName("");
+        setFile(null);
+        setSelectedCategory("");
+      }
     };
 
-    reader.readAsDataURL(file);
+    reader.readAsText(file);
   };
 
   const handleZipUpload = async () => {
@@ -75,28 +98,17 @@ export const IconUploader = () => {
           const content = await file.async('text');
           const iconName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
           
-          // Convert SVG text to data URL
-          const blob = new Blob([content], { type: 'image/svg+xml' });
-          const reader = new FileReader();
-          
-          await new Promise((resolve) => {
-            reader.onload = () => {
-              const svgData = reader.result as string;
-              
-              iconStorage.saveIcon({
-                id: `${Date.now()}-${uploadedCount}`,
-                name: iconName,
-                category: selectedCategory,
-                svgData,
-                thumbnail: svgData,
-                createdAt: Date.now(),
-              });
-              
-              uploadedCount++;
-              resolve(null);
-            };
-            reader.readAsDataURL(blob);
-          });
+          const { error } = await supabase
+            .from('icons')
+            .insert([{
+              name: iconName,
+              category: selectedCategory,
+              svg_content: content
+            }]);
+
+          if (!error) {
+            uploadedCount++;
+          }
         }
       }
 
@@ -124,7 +136,7 @@ export const IconUploader = () => {
         <CardHeader>
           <CardTitle>Upload Single Icon</CardTitle>
           <CardDescription>
-            Upload SVG or ICO files to your icon library
+            Upload SVG files to your icon library
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -155,11 +167,11 @@ export const IconUploader = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="file">Icon File (SVG/ICO)</Label>
+            <Label htmlFor="file">Icon File (SVG)</Label>
             <Input
               id="file"
               type="file"
-              accept=".svg,.ico"
+              accept=".svg"
               onChange={handleFileChange}
             />
           </div>

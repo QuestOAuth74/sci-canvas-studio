@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { iconStorage } from "@/lib/iconStorage";
-import { IconCategory } from "@/types/icon";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,39 +7,67 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 export const CategoryManager = () => {
-  const [categories, setCategories] = useState<IconCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");
 
   useEffect(() => {
     loadCategories();
   }, []);
 
-  const loadCategories = () => {
-    setCategories(iconStorage.getCategories());
+  const loadCategories = async () => {
+    const { data, error } = await supabase
+      .from('icon_categories')
+      .select('*')
+      .order('name');
+
+    if (!error && data) {
+      setCategories(data);
+    }
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (!newCategoryName.trim()) {
       toast.error("Please enter a category name");
       return;
     }
 
     const id = newCategoryName.toLowerCase().replace(/\s+/g, "-");
-    iconStorage.saveCategory({
-      id,
-      name: newCategoryName,
-    });
+    
+    const { error } = await supabase
+      .from('icon_categories')
+      .insert([{ id, name: newCategoryName }]);
 
-    toast.success("Category added");
-    setNewCategoryName("");
-    loadCategories();
+    if (error) {
+      if (error.code === '23505') {
+        toast.error("Category already exists");
+      } else {
+        toast.error("Failed to add category");
+      }
+    } else {
+      toast.success("Category added");
+      setNewCategoryName("");
+      loadCategories();
+    }
   };
 
-  const handleDeleteCategory = (id: string) => {
-    iconStorage.deleteCategory(id);
-    toast.success("Category deleted");
-    loadCategories();
+  const handleDeleteCategory = async (id: string) => {
+    const { error } = await supabase
+      .from('icon_categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      toast.error("Failed to delete category");
+    } else {
+      toast.success("Category deleted");
+      loadCategories();
+    }
   };
 
   return (

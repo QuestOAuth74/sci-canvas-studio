@@ -1,12 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, Settings, Sparkles, Zap, Shield } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield } from "lucide-react";
+import { UserMenu } from "@/components/auth/UserMenu";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
 
   return (
     <div className="min-h-screen bg-background relative">
+      {/* Header with User Menu */}
+      <header className="absolute top-0 right-0 p-4 z-20">
+        <UserMenu />
+      </header>
+
       {/* Neo-brutalist grid pattern */}
       <div className="absolute inset-0 opacity-[0.03]" style={{
         backgroundImage: `
@@ -47,21 +55,23 @@ const Index = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
               <Button 
                 size="lg" 
-                onClick={() => navigate("/canvas")} 
+                onClick={() => navigate(user ? "/projects" : "/auth")} 
                 className="min-w-[240px] h-16 text-lg font-bold uppercase bg-primary hover:bg-primary border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all rounded-none"
               >
                 <Palette className="h-6 w-6 mr-2" />
                 Start Creating
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => navigate("/admin")}
-                className="min-w-[240px] h-16 text-lg font-bold uppercase bg-card hover:bg-muted border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all rounded-none"
-              >
-                <Settings className="h-6 w-6 mr-2" />
-                Admin Panel
-              </Button>
+              {user && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => navigate("/projects")}
+                  className="min-w-[240px] h-16 text-lg font-bold uppercase bg-card hover:bg-muted border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none transition-all rounded-none"
+                >
+                  <FolderOpen className="h-6 w-6 mr-2" />
+                  My Projects
+                </Button>
+              )}
             </div>
           </div>
 

@@ -36,18 +36,21 @@ export const MenuBar = () => {
     exportAsPNGTransparent,
     exportAsJPG,
     exportAsSVG,
+    saveProject,
   } = useCanvas();
 
   const handleNew = () => {
-    toast.info("New diagram");
+    if (confirm("Create new diagram? Unsaved changes will be lost.")) {
+      window.location.href = "/canvas";
+    }
   };
 
   const handleOpen = () => {
-    toast.info("Open diagram");
+    window.location.href = "/projects";
   };
 
   const handleSave = () => {
-    toast.success("Diagram saved");
+    saveProject();
   };
 
   const handleExportPDF = () => {
