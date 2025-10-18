@@ -166,7 +166,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
   const getTotalPages = (icons: Icon[]) => Math.ceil(icons.length / ICONS_PER_PAGE);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       <div className="p-4 border-b border-border/40">
         <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
         <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
@@ -197,7 +197,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       )}
       
       {!loading && (
-        <ScrollArea className="flex-1 h-0 px-3">
+        <ScrollArea type="always" className="flex-1 min-h-0 px-3">
         <Accordion type="multiple" className="w-full space-y-2 py-3">
           {categories.map((category) => {
             const categoryIcons = iconsByCategory[category.id] || [];

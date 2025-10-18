@@ -179,9 +179,9 @@ const CanvasContent = () => {
         <TopToolbar onExport={handleExport} />
 
         {/* Main Editor Area */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="flex flex-1 overflow-hidden min-h-0">
           {/* Left Sidebar - Icon Categories */}
-          <div className="w-64 glass-effect border-r border-border/40 flex flex-col h-full">
+          <div className="w-64 glass-effect border-r border-border/40 flex flex-col h-full min-h-0">
             <IconLibrary 
               selectedCategory={selectedIconCategory} 
               onCategoryChange={setSelectedIconCategory}
