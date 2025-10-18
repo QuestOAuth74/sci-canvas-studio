@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon } from "fabric";
+import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse } from "fabric";
 import { toast } from "sonner";
 
 interface FabricCanvasProps {
@@ -263,6 +263,205 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
             strokeWidth: 2,
           });
           fabricCanvas.add(arrow);
+          break;
+
+        case "arrow-left":
+          const arrowLeft = new Polygon([
+            { x: pointer.x + 50, y: pointer.y - 15 },
+            { x: pointer.x - 30, y: pointer.y - 15 },
+            { x: pointer.x - 30, y: pointer.y - 25 },
+            { x: pointer.x - 50, y: pointer.y },
+            { x: pointer.x - 30, y: pointer.y + 25 },
+            { x: pointer.x - 30, y: pointer.y + 15 },
+            { x: pointer.x + 50, y: pointer.y + 15 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(arrowLeft);
+          break;
+
+        case "arrow-up":
+          const arrowUp = new Polygon([
+            { x: pointer.x - 15, y: pointer.y + 50 },
+            { x: pointer.x - 15, y: pointer.y - 30 },
+            { x: pointer.x - 25, y: pointer.y - 30 },
+            { x: pointer.x, y: pointer.y - 50 },
+            { x: pointer.x + 25, y: pointer.y - 30 },
+            { x: pointer.x + 15, y: pointer.y - 30 },
+            { x: pointer.x + 15, y: pointer.y + 50 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(arrowUp);
+          break;
+
+        case "arrow-down":
+          const arrowDown = new Polygon([
+            { x: pointer.x - 15, y: pointer.y - 50 },
+            { x: pointer.x - 15, y: pointer.y + 30 },
+            { x: pointer.x - 25, y: pointer.y + 30 },
+            { x: pointer.x, y: pointer.y + 50 },
+            { x: pointer.x + 25, y: pointer.y + 30 },
+            { x: pointer.x + 15, y: pointer.y + 30 },
+            { x: pointer.x + 15, y: pointer.y - 50 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(arrowDown);
+          break;
+
+        case "arrow-double-h":
+          const doubleArrowH = new Polygon([
+            { x: pointer.x - 50, y: pointer.y },
+            { x: pointer.x - 30, y: pointer.y - 20 },
+            { x: pointer.x - 30, y: pointer.y - 10 },
+            { x: pointer.x + 30, y: pointer.y - 10 },
+            { x: pointer.x + 30, y: pointer.y - 20 },
+            { x: pointer.x + 50, y: pointer.y },
+            { x: pointer.x + 30, y: pointer.y + 20 },
+            { x: pointer.x + 30, y: pointer.y + 10 },
+            { x: pointer.x - 30, y: pointer.y + 10 },
+            { x: pointer.x - 30, y: pointer.y + 20 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(doubleArrowH);
+          break;
+
+        case "arrow-thick":
+          const thickArrow = new Polygon([
+            { x: pointer.x - 50, y: pointer.y - 20 },
+            { x: pointer.x + 20, y: pointer.y - 20 },
+            { x: pointer.x + 20, y: pointer.y - 35 },
+            { x: pointer.x + 50, y: pointer.y },
+            { x: pointer.x + 20, y: pointer.y + 35 },
+            { x: pointer.x + 20, y: pointer.y + 20 },
+            { x: pointer.x - 50, y: pointer.y + 20 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(thickArrow);
+          break;
+
+        case "process":
+          const process = new Rect({
+            left: pointer.x - 60,
+            top: pointer.y - 40,
+            width: 120,
+            height: 80,
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(process);
+          break;
+
+        case "decision":
+          const decision = new Polygon([
+            { x: pointer.x, y: pointer.y - 50 },
+            { x: pointer.x + 50, y: pointer.y },
+            { x: pointer.x, y: pointer.y + 50 },
+            { x: pointer.x - 50, y: pointer.y },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(decision);
+          break;
+
+        case "data":
+          const data = new Polygon([
+            { x: pointer.x - 40, y: pointer.y - 40 },
+            { x: pointer.x + 50, y: pointer.y - 40 },
+            { x: pointer.x + 40, y: pointer.y + 40 },
+            { x: pointer.x - 50, y: pointer.y + 40 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(data);
+          break;
+
+        case "terminator":
+          const terminator = new Rect({
+            left: pointer.x - 60,
+            top: pointer.y - 30,
+            width: 120,
+            height: 60,
+            rx: 30,
+            ry: 30,
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(terminator);
+          break;
+
+        case "document":
+          const documentShape = new Polygon([
+            { x: pointer.x - 40, y: pointer.y - 50 },
+            { x: pointer.x + 40, y: pointer.y - 50 },
+            { x: pointer.x + 50, y: pointer.y - 40 },
+            { x: pointer.x + 50, y: pointer.y + 50 },
+            { x: pointer.x - 50, y: pointer.y + 50 },
+          ], {
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(documentShape);
+          break;
+
+        case "database":
+          // Database with cylinder shape - use stacked ellipses
+          const dbTop = new Ellipse({
+            left: pointer.x - 40,
+            top: pointer.y - 40,
+            rx: 40,
+            ry: 10,
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          const dbBody = new Rect({
+            left: pointer.x - 40,
+            top: pointer.y - 30,
+            width: 80,
+            height: 70,
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(dbBody, dbTop);
+          break;
+
+        case "callout":
+        case "cloud":
+        case "heart":
+        case "cross":
+          // For complex paths, use simple geometric approximations
+          const simpleShape = new Rect({
+            left: pointer.x - 50,
+            top: pointer.y - 50,
+            width: 100,
+            height: 100,
+            fill: "#3b82f6",
+            stroke: "#000000",
+            strokeWidth: 2,
+          });
+          fabricCanvas.add(simpleShape);
           break;
           
         case "text":

@@ -5,6 +5,10 @@ const CATEGORIES_KEY = "science_canvas_categories";
 
 // Default categories for scientific illustrations
 const DEFAULT_CATEGORIES: IconCategory[] = [
+  { id: "bioicons-chemistry", name: "Bioicons - Chemistry" },
+  { id: "bioicons-biology", name: "Bioicons - Biology" },
+  { id: "bioicons-physics", name: "Bioicons - Physics" },
+  { id: "bioicons-medical", name: "Bioicons - Medical" },
   { id: "cells", name: "Cells & Organelles" },
   { id: "molecules", name: "Molecules & Proteins" },
   { id: "lab", name: "Lab Equipment" },

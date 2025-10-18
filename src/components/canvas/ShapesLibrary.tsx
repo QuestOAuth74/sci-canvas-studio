@@ -8,7 +8,7 @@ interface ShapesLibraryProps {
 }
 
 export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
-  const [expandedSections, setExpandedSections] = useState<string[]>(["basic", "advanced", "misc"]);
+  const [expandedSections, setExpandedSections] = useState<string[]>(["arrows"]);
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev =>
@@ -40,15 +40,35 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
     { id: "cube", label: "Cube", svg: "M 8 15 L 20 8 L 32 15 L 32 28 L 20 35 L 8 28 Z M 8 15 L 20 22 M 32 15 L 20 22 L 20 35" },
   ];
 
+  const arrowShapes = [
+    { id: "arrow-right", label: "Arrow Right", svg: "M 2 18 L 28 18 L 28 12 L 38 20 L 28 28 L 28 22 L 2 22 Z" },
+    { id: "arrow-left", label: "Arrow Left", svg: "M 38 18 L 12 18 L 12 12 L 2 20 L 12 28 L 12 22 L 38 22 Z" },
+    { id: "arrow-up", label: "Arrow Up", svg: "M 18 38 L 18 12 L 12 12 L 20 2 L 28 12 L 22 12 L 22 38 Z" },
+    { id: "arrow-down", label: "Arrow Down", svg: "M 18 2 L 18 28 L 12 28 L 20 38 L 28 28 L 22 28 L 22 2 Z" },
+    { id: "arrow-double-h", label: "Double H", svg: "M 2 20 L 12 12 L 12 16 L 28 16 L 28 12 L 38 20 L 28 28 L 28 24 L 12 24 L 12 28 Z" },
+    { id: "arrow-double-v", label: "Double V", svg: "M 20 2 L 28 12 L 24 12 L 24 28 L 28 28 L 20 38 L 12 28 L 16 28 L 16 12 L 12 12 Z" },
+    { id: "arrow-bent-right", label: "Bent Right", svg: "M 5 15 L 15 15 L 15 5 L 25 5 L 25 25 L 35 25 L 30 30 L 25 35 L 25 30 L 20 30 L 20 10 L 10 10 L 10 15 Z" },
+    { id: "arrow-bent-left", label: "Bent Left", svg: "M 35 15 L 25 15 L 25 5 L 15 5 L 15 25 L 5 25 L 10 30 L 15 35 L 15 30 L 20 30 L 20 10 L 30 10 L 30 15 Z" },
+    { id: "arrow-thick", label: "Thick Arrow", svg: "M 2 15 L 22 15 L 22 8 L 38 20 L 22 32 L 22 25 L 2 25 Z" },
+    { id: "arrow-dashed", label: "Dashed", svg: "M 5 20 L 10 20 M 12 20 L 17 20 M 19 20 L 24 20 M 26 20 L 30 20 L 30 15 L 38 20 L 30 25 L 30 20" },
+  ];
+
+  const flowchartShapes = [
+    { id: "process", label: "Process", svg: "M 5 10 L 35 10 L 35 30 L 5 30 Z" },
+    { id: "decision", label: "Decision", svg: "M 20 5 L 35 20 L 20 35 L 5 20 Z" },
+    { id: "data", label: "Data", svg: "M 8 10 L 35 10 L 32 30 L 5 30 Z" },
+    { id: "terminator", label: "Terminator", svg: "M 10 15 Q 10 10 15 10 L 25 10 Q 30 10 30 15 L 30 25 Q 30 30 25 30 L 15 30 Q 10 30 10 25 Z" },
+    { id: "document", label: "Document", svg: "M 8 2 L 28 2 L 32 6 L 32 38 L 8 38 Z M 28 2 L 28 6 L 32 6" },
+    { id: "multidoc", label: "Multi-Document", svg: "M 10 5 L 30 5 L 30 30 L 10 30 Z M 12 8 L 32 8 L 32 33 M 14 11 L 34 11 L 34 36" },
+    { id: "database", label: "Database", svg: "M 8 8 Q 8 5 20 5 Q 32 5 32 8 L 32 32 Q 32 35 20 35 Q 8 35 8 32 Z M 8 8 Q 8 11 20 11 Q 32 11 32 8" },
+    { id: "manual-input", label: "Manual Input", svg: "M 5 15 L 35 5 L 35 30 L 5 30 Z" },
+  ];
+
   const miscShapes = [
-    { id: "arrow-right", label: "Arrow", svg: "M 2 18 L 28 18 L 28 12 L 38 20 L 28 28 L 28 22 L 2 22 Z" },
-    { id: "double-arrow", label: "Double Arrow", svg: "M 2 20 L 12 12 L 12 16 L 28 16 L 28 12 L 38 20 L 28 28 L 28 24 L 12 24 L 12 28 Z" },
     { id: "callout", label: "Callout", svg: "M 5 5 L 35 5 L 35 25 L 22 25 L 20 35 L 18 25 L 5 25 Z" },
     { id: "cloud", label: "Cloud", svg: "M 12 15 Q 8 15 8 18 Q 8 21 12 21 L 28 21 Q 32 21 32 18 Q 32 15 28 15 Q 28 12 25 12 Q 22 12 22 15 L 18 15 Q 18 12 15 12 Q 12 12 12 15 Z" },
     { id: "heart", label: "Heart", svg: "M 20 30 Q 10 20 10 14 Q 10 8 15 8 Q 18 8 20 12 Q 22 8 25 8 Q 30 8 30 14 Q 30 20 20 30 Z" },
     { id: "cross", label: "Cross", svg: "M 15 5 L 25 5 L 25 15 L 35 15 L 35 25 L 25 25 L 25 35 L 15 35 L 15 25 L 5 25 L 5 15 L 15 15 Z" },
-    { id: "document", label: "Document", svg: "M 8 2 L 28 2 L 32 6 L 32 38 L 8 38 Z M 28 2 L 28 6 L 32 6" },
-    { id: "database", label: "Database", svg: "M 8 8 Q 8 5 20 5 Q 32 5 32 8 L 32 32 Q 32 35 20 35 Q 8 35 8 32 Z M 8 8 Q 8 11 20 11 Q 32 11 32 8 M 8 16 Q 8 19 20 19 Q 32 19 32 16 M 8 24 Q 8 27 20 27 Q 32 27 32 24" },
   ];
 
   const renderShapeGrid = (shapes: typeof basicShapes) => (
@@ -72,6 +92,38 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
     <div className="w-56 border-r bg-card flex flex-col">
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
+          {/* Arrows */}
+          <div className="border rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection("arrows")}
+              className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent text-sm font-medium"
+            >
+              <span>Arrows</span>
+              {expandedSections.includes("arrows") ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+            {expandedSections.includes("arrows") && renderShapeGrid(arrowShapes)}
+          </div>
+
+          {/* Flowchart */}
+          <div className="border rounded-lg overflow-hidden">
+            <button
+              onClick={() => toggleSection("flowchart")}
+              className="w-full px-3 py-2 flex items-center justify-between hover:bg-accent text-sm font-medium"
+            >
+              <span>Flowchart</span>
+              {expandedSections.includes("flowchart") ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+            {expandedSections.includes("flowchart") && renderShapeGrid(flowchartShapes)}
+          </div>
+
           {/* Basic Shapes */}
           <div className="border rounded-lg overflow-hidden">
             <button
