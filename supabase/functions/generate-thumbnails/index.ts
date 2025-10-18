@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       .from('icons')
       .select('id, name, svg_content')
       .is('thumbnail', null)
-      .limit(50); // Process max 50 at a time to avoid memory issues
+      .limit(10); // Process max 10 at a time to avoid memory issues
 
     if (fetchError) {
       console.error('Error fetching icons:', fetchError);
