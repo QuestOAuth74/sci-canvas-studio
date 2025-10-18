@@ -20,6 +20,39 @@ export const FabricCanvas = ({ activeTool }: FabricCanvasProps) => {
     });
 
     canvas.isDrawingMode = false;
+    
+    // Add grid to canvas
+    const drawGrid = () => {
+      const gridSize = 20;
+      const width = canvas.width || 1200;
+      const height = canvas.height || 800;
+
+      // Vertical lines
+      for (let i = 0; i < width / gridSize; i++) {
+        const line = new Line([i * gridSize, 0, i * gridSize, height], {
+          stroke: '#e0e0e0',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          hoverCursor: 'default',
+        });
+        canvas.add(line);
+      }
+
+      // Horizontal lines
+      for (let i = 0; i < height / gridSize; i++) {
+        const line = new Line([0, i * gridSize, width, i * gridSize], {
+          stroke: '#e0e0e0',
+          strokeWidth: 1,
+          selectable: false,
+          evented: false,
+          hoverCursor: 'default',
+        });
+        canvas.add(line);
+      }
+    };
+
+    drawGrid();
     setFabricCanvas(canvas);
 
     // Handle window resize
