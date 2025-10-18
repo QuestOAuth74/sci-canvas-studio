@@ -61,123 +61,77 @@ const svgToDataUrl = (svg: string): string => {
   return `data:image/svg+xml;charset=utf-8,${encoded}`;
 };
 
-// Small helper to delay between retries
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, Icon[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [authState, setAuthState] = useState<string>("checking");
   const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
   const [loadedMap, setLoadedMap] = useState<Record<string, boolean>>({});
-  const [loadedCategories, setLoadedCategories] = useState<Set<string>>(new Set());
-  const [loadingCategories, setLoadingCategories] = useState<Set<string>>(new Set());
-
-  // Connectivity status
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-    setLoading(true);
-    setError(null);
     try {
-      let categoriesData: Category[] | null = null;
-      const maxAttempts = 3;
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 7000);
-          const { data, error } = await supabase
-            .from('icon_categories')
-            .select('*')
-            .order('name')
-            .abortSignal(controller.signal);
-          clearTimeout(timeout);
-          if (error) throw error;
-          categoriesData = data ?? [];
-          break;
-        } catch (e: any) {
-          const isLast = attempt === maxAttempts;
-          const msg = e?.message || String(e);
-          const shouldRetry = msg?.includes('Failed to fetch') || e?.name === 'AbortError';
-          if (!shouldRetry || isLast) {
-            throw new Error(`Failed to load categories: ${msg}`);
-          }
-          await wait(500 * Math.pow(2, attempt - 1));
-        }
+      setLoading(true);
+      setError(null);
+      
+      // Check authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Auth session:", session ? "Authenticated" : "Not authenticated");
+      setAuthState(session ? "authenticated" : "not authenticated");
+      
+      // Load categories
+      console.log("Loading categories...");
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('icon_categories')
+        .select('*')
+        .order('name');
+
+      if (categoriesError) {
+        console.error("Categories error:", categoriesError);
+        throw new Error(`Failed to load categories: ${categoriesError.message}`);
       }
-      console.log('Categories loaded:', categoriesData?.length || 0);
-      setCategories(categoriesData || []);
+      
+      console.log("Categories loaded:", categoriesData?.length || 0);
+      if (categoriesData) {
+        setCategories(categoriesData);
+      }
+
+      // Load all icons
+      console.log("Loading icons...");
+      const { data: iconsData, error: iconsError } = await supabase
+        .from('icons')
+        .select('*')
+        .order('name');
+
+      if (iconsError) {
+        console.error("Icons error:", iconsError);
+        throw new Error(`Failed to load icons: ${iconsError.message}`);
+      }
+      
+      console.log("Icons loaded:", iconsData?.length || 0);
+      if (iconsData) {
+        // Group icons by category
+        const grouped = iconsData.reduce((acc, icon) => {
+          if (!acc[icon.category]) {
+            acc[icon.category] = [];
+          }
+          acc[icon.category].push(icon);
+          return acc;
+        }, {} as Record<string, Icon[]>);
+        
+        console.log("Icons grouped by category:", Object.keys(grouped).length, "categories");
+        setIconsByCategory(grouped);
+      }
     } catch (err) {
-      console.error('Error loading icon library:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load categories');
+      console.error("Error loading icon library:", err);
+      setError(err instanceof Error ? err.message : "Failed to load icons");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadCategoryIcons = async (categoryId: string) => {
-    // Skip if already loaded or currently loading
-    if (loadedCategories.has(categoryId) || loadingCategories.has(categoryId)) {
-      return;
-    }
-
-    setLoadingCategories(prev => new Set(prev).add(categoryId));
-
-    try {
-      let iconsData: Icon[] | null = null;
-      const maxAttempts = 3;
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 7000);
-          const { data, error } = await supabase
-            .from('icons')
-            .select('*')
-            .eq('category', categoryId)
-            .order('name')
-            .abortSignal(controller.signal);
-          clearTimeout(timeout);
-          if (error) throw error;
-          iconsData = data ?? [];
-          break;
-        } catch (e: any) {
-          const isLast = attempt === maxAttempts;
-          const msg = e?.message || String(e);
-          const shouldRetry = msg?.includes('Failed to fetch') || e?.name === 'AbortError';
-          if (!shouldRetry || isLast) {
-            throw new Error(`Failed to load icons: ${msg}`);
-          }
-          await wait(500 * Math.pow(2, attempt - 1));
-        }
-      }
-
-      console.log(`Icons loaded for ${categoryId}:`, iconsData?.length || 0);
-      setIconsByCategory(prev => ({ ...prev, [categoryId]: iconsData || [] }));
-      setLoadedCategories(prev => new Set(prev).add(categoryId));
-    } catch (err) {
-      console.error(`Error loading icons for ${categoryId}:`, err);
-    } finally {
-      setLoadingCategories(prev => {
-        const next = new Set(prev);
-        next.delete(categoryId);
-        return next;
-      });
     }
   };
 
@@ -217,11 +171,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
         <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
         <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
       </div>
-      {!isOnline && (
-        <div className="px-3 py-2 bg-accent/30 text-foreground text-xs border-b border-border/40">
-          You’re offline. Icons will load once connection is restored.
-        </div>
-      )}
+      
       {loading && (
         <div className="px-3 py-4 space-y-4">
           {[1, 2, 3].map((i) => (
@@ -238,32 +188,19 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       )}
       
       {error && (
-        <Alert variant="destructive" className="m-3 space-y-2">
-          <AlertDescription>{error}</AlertDescription>
-          <div>
-            <Button size="sm" variant="secondary" onClick={loadData}>Retry</Button>
-          </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>
+            {error}
+            <div className="mt-2 text-xs">Auth state: {authState}</div>
+          </AlertDescription>
         </Alert>
       )}
       
       {!loading && (
         <ScrollArea type="always" className="flex-1 min-h-0 px-3">
-        <Accordion 
-          type="multiple" 
-          className="w-full space-y-2 py-3"
-          onValueChange={(openCategories) => {
-            // Load icons for newly opened categories
-            openCategories.forEach(categoryId => {
-              if (!loadedCategories.has(categoryId)) {
-                loadCategoryIcons(categoryId);
-              }
-            });
-          }}
-        >
+        <Accordion type="multiple" className="w-full space-y-2 py-3">
           {categories.map((category) => {
             const categoryIcons = iconsByCategory[category.id] || [];
-            const isLoadingCategory = loadingCategories.has(category.id);
-            const isLoadedCategory = loadedCategories.has(category.id);
             const totalPages = getTotalPages(categoryIcons);
             const currentPage = getCurrentPage(category.id);
             const paginatedIcons = getPaginatedIcons(category.id, categoryIcons);
@@ -277,21 +214,13 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
                 <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                   <div className="flex items-center justify-between w-full pr-2">
                     <span>{category.name}</span>
-                    {isLoadedCategory && (
-                      <span className="text-xs text-muted-foreground font-normal">
-                        {categoryIcons.length}
-                      </span>
-                    )}
+                    <span className="text-xs text-muted-foreground font-normal">
+                      {categoryIcons.length}
+                    </span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="border-t border-border/40">
-                  {isLoadingCategory ? (
-                    <div className="grid grid-cols-4 gap-1.5 p-2">
-                      {Array.from({ length: 12 }).map((_, idx) => (
-                        <Skeleton key={idx} className="aspect-square rounded" />
-                      ))}
-                    </div>
-                  ) : categoryIcons.length > 0 ? (
+                  {categoryIcons.length > 0 ? (
                     <div className="space-y-2">
                       <div className="grid grid-cols-4 gap-1.5 p-2">
                         {paginatedIcons.map((icon) => {

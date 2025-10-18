@@ -17,7 +17,6 @@ import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
 
 const CanvasContent = () => {
-  console.log('[Canvas] CanvasContent component rendering');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [activeTool, setActiveTool] = useState<string>("select");
@@ -207,7 +206,6 @@ const CanvasContent = () => {
 };
 
 const Canvas = () => {
-  console.log('[Canvas] Canvas wrapper rendering');
   return (
     <CanvasProvider>
       <TooltipProvider>

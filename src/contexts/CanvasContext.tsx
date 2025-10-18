@@ -94,7 +94,6 @@ interface CanvasProviderProps {
 }
 
 export const CanvasProvider = ({ children }: CanvasProviderProps) => {
-  console.log('[CanvasContext] CanvasProvider initializing');
   const { user } = useAuth();
   const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
