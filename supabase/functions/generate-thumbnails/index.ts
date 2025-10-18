@@ -12,8 +12,45 @@ interface IconRecord {
   thumbnail: string | null;
 }
 
+interface RequestBody {
+  mode?: 'missing' | 'bad_only' | 'all';
+  limit?: number;
+  lastId?: string | null;
+  normalizeColors?: boolean;
+  neutralColor?: string;
+}
+
+interface ThumbnailOptions {
+  normalizeColors: boolean;
+  neutralColor: string;
+}
+
+// Heuristic to detect "bad" thumbnails
+function isBadThumbnail(thumbnail: string | null): boolean {
+  if (!thumbnail || thumbnail.length < 40) return true;
+  
+  // Check for DOCTYPE fragments
+  if (thumbnail.includes('<!DOCTYPE') || thumbnail.includes('!DOCTYPE')) return true;
+  
+  // Check for missing xmlns
+  if (!thumbnail.includes('xmlns=')) return true;
+  
+  // Check if it starts with <svg
+  if (!thumbnail.trim().startsWith('<svg')) return true;
+  
+  // Check for black-only fills/strokes
+  const blackPatterns = [
+    'fill="#000"', 'fill="#000000"', 'fill: #000', 'fill:#000',
+    'stroke="#000"', 'stroke="#000000"', 'stroke: #000', 'stroke:#000',
+    'fill="rgb(0,0,0)"', 'fill="rgb(0, 0, 0)"',
+    'stroke="rgb(0,0,0)"', 'stroke="rgb(0, 0, 0)"'
+  ];
+  
+  return blackPatterns.some(pattern => thumbnail.includes(pattern));
+}
+
 // Generate optimized thumbnail from full SVG
-function generateThumbnail(svgContent: string): string {
+function generateThumbnail(svgContent: string, options: ThumbnailOptions): string {
   try {
     // Remove XML declaration, comments, and DOCTYPE (including multi-line DTD definitions)
     let optimized = svgContent
@@ -51,12 +88,34 @@ function generateThumbnail(svgContent: string): string {
       }
     }
 
-    // Remove unnecessary attributes for thumbnails
+    // Remove unnecessary attributes for thumbnails (id, class, style, data-*)
     optimized = optimized
       .replace(/\s+id=["'][^"']*["']/g, '')
       .replace(/\s+class=["'][^"']*["']/g, '')
       .replace(/\s+style=["'][^"']*["']/g, '')
       .replace(/\s+data-[^=]*=["'][^"']*["']/g, '');
+
+    // Color normalization
+    if (options.normalizeColors) {
+      const { neutralColor } = options;
+      
+      // Replace black fills and strokes with neutral color
+      optimized = optimized
+        .replace(/fill=["']#000000["']/g, `fill="${neutralColor}"`)
+        .replace(/fill=["']#000["']/g, `fill="${neutralColor}"`)
+        .replace(/fill=["']rgb\(0,\s*0,\s*0\)["']/g, `fill="${neutralColor}"`)
+        .replace(/stroke=["']#000000["']/g, `stroke="${neutralColor}"`)
+        .replace(/stroke=["']#000["']/g, `stroke="${neutralColor}"`)
+        .replace(/stroke=["']rgb\(0,\s*0,\s*0\)["']/g, `stroke="${neutralColor}"`);
+      
+      // If no fill or stroke attributes found, add currentColor to root
+      if (!/fill=/.test(optimized) && !/stroke=/.test(optimized)) {
+        optimized = optimized.replace(
+          /<svg/,
+          `<svg fill="currentColor" style="color: ${neutralColor}"`
+        );
+      }
+    }
 
     // Reduce precision of numbers (6 decimals -> 2 decimals)
     optimized = optimized.replace(/(\d+\.\d{3,})/g, (match) => {
@@ -134,14 +193,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Starting thumbnail generation...');
+    // Parse request body
+    const body: RequestBody = req.method === 'POST' ? await req.json() : {};
+    const mode = body.mode || 'missing';
+    const limit = Math.min(Math.max(body.limit || 20, 5), 50); // Clamp between 5-50
+    const lastId = body.lastId || null;
+    const normalizeColors = body.normalizeColors !== false; // Default true
+    const neutralColor = body.neutralColor || '#94a3b8';
 
-    // Fetch icons in smaller batch without thumbnails (memory efficient)
-    const { data: icons, error: fetchError } = await supabase
+    console.log(`Starting thumbnail generation: mode=${mode}, limit=${limit}, lastId=${lastId}, normalizeColors=${normalizeColors}`);
+
+    // Build query based on mode
+    let query = supabase
       .from('icons')
-      .select('id, name, svg_content')
-      .is('thumbnail', null)
-      .limit(10); // Process max 10 at a time to avoid memory issues
+      .select('id, name, svg_content, thumbnail')
+      .order('id', { ascending: true })
+      .limit(limit);
+
+    if (lastId) {
+      query = query.gt('id', lastId);
+    }
+
+    if (mode === 'missing') {
+      query = query.is('thumbnail', null);
+    } else if (mode === 'bad_only') {
+      query = query.not('thumbnail', 'is', null);
+    }
+    // 'all' mode has no filter
+
+    const { data: icons, error: fetchError } = await query;
 
     if (fetchError) {
       console.error('Error fetching icons:', fetchError);
@@ -153,20 +233,43 @@ Deno.serve(async (req) => {
 
     if (!icons || icons.length === 0) {
       return new Response(
-        JSON.stringify({ message: 'No icons need thumbnail generation', processed: 0 }),
+        JSON.stringify({ 
+          message: 'No icons to process', 
+          mode,
+          limit,
+          processed: 0,
+          failed: 0,
+          scanned: 0,
+          lastId: null,
+          hasMore: false
+        }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Processing ${icons.length} icons...`);
+    console.log(`Fetched ${icons.length} icons for processing`);
 
     let processed = 0;
     let failed = 0;
+    let scanned = 0;
+    let newLastId = icons[icons.length - 1]?.id || lastId;
+
+    const options: ThumbnailOptions = {
+      normalizeColors,
+      neutralColor
+    };
 
     // Process icons one at a time to minimize memory usage
     for (const icon of icons as IconRecord[]) {
+      scanned++;
+      
+      // For bad_only mode, check if thumbnail needs reprocessing
+      if (mode === 'bad_only' && !isBadThumbnail(icon.thumbnail)) {
+        continue; // Skip good thumbnails
+      }
+
       try {
-        const thumbnail = generateThumbnail(icon.svg_content);
+        const thumbnail = generateThumbnail(icon.svg_content, options);
         
         // Free memory immediately after processing
         icon.svg_content = '';
@@ -182,7 +285,7 @@ Deno.serve(async (req) => {
         } else {
           processed++;
           if (processed % 10 === 0) {
-            console.log(`Progress: ${processed}/${icons.length} icons processed`);
+            console.log(`Progress: ${processed} icons processed, ${scanned} scanned`);
           }
         }
       } catch (error) {
@@ -191,15 +294,33 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`Thumbnail generation complete. Processed: ${processed}, Failed: ${failed}`);
+    // Check if there are more icons to process
+    const hasMore = icons.length === limit;
+
+    // Get total count for 'missing' and 'all' modes
+    let totalMatched: number | undefined;
+    if (mode === 'missing' || mode === 'all') {
+      let countQuery = supabase.from('icons').select('*', { count: 'exact', head: true });
+      if (mode === 'missing') {
+        countQuery = countQuery.is('thumbnail', null);
+      }
+      const { count } = await countQuery;
+      totalMatched = count || 0;
+    }
+
+    console.log(`Batch complete. Mode: ${mode}, Scanned: ${scanned}, Processed: ${processed}, Failed: ${failed}, HasMore: ${hasMore}`);
 
     return new Response(
       JSON.stringify({
         message: 'Thumbnail generation complete',
+        mode,
+        limit,
         processed,
         failed,
-        total: icons.length,
-        remaining: failed // Indicates if there are more to process
+        scanned,
+        totalMatched,
+        lastId: newLastId,
+        hasMore
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

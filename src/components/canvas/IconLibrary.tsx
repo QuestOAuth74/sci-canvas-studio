@@ -458,7 +458,17 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                         alt={icon.name}
                                         loading="lazy"
                                         onLoad={() => onImgLoad(icon.id)}
-                                        onError={() => onImgError(icon.id)}
+                                        onError={(e) => {
+                                          onImgError(icon.id);
+                                          console.error(`Failed to load icon: ${icon.name} (${icon.id})`);
+                                          // Show a placeholder on error
+                                          const target = e.target as HTMLImageElement;
+                                          target.style.display = 'none';
+                                          const placeholder = document.createElement('div');
+                                          placeholder.className = 'absolute inset-0 flex items-center justify-center text-muted-foreground';
+                                          placeholder.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9l6 6m0-6l-6 6"/></svg>';
+                                          target.parentElement?.appendChild(placeholder);
+                                        }}
                                         className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
                                       />
                                     </button>
