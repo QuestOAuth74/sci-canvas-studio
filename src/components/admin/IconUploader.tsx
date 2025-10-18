@@ -60,14 +60,8 @@ export const IconUploader = () => {
           return;
         }
         
-        // Warn about large files
-        if (selectedFile.size > 500000) {
-          setValidationWarning("⚠️ Large file detected (>500KB). Upload may be slow.");
-        } else if (selectedFile.size > 100000) {
-          setValidationWarning("File size is moderate. Optimization will be applied.");
-        } else {
-          setValidationWarning("");
-        }
+        // No file size restrictions
+        setValidationWarning("");
         
         setFilePreview(content);
       };
@@ -87,7 +81,7 @@ export const IconUploader = () => {
   // Generate optimized thumbnail from full SVG (target max 50KB)
   const generateThumbnail = (svgContent: string): string | null => {
     try {
-      // Step 1: Remove XML declarations, DOCTYPE, comments, metadata
+      // Step 1: Remove only XML declarations, DOCTYPE, comments - keep defs for complex SVGs
       let optimized = svgContent
         .replace(/<\?xml[^>]*\?>/g, '')
         .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
@@ -95,7 +89,6 @@ export const IconUploader = () => {
         .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
         .replace(/<title>[\s\S]*?<\/title>/gi, '')
         .replace(/<desc>[\s\S]*?<\/desc>/gi, '')
-        .replace(/<defs>[\s\S]*?<\/defs>/gi, '')
         .trim();
 
       // Step 2: Ensure viewBox exists
@@ -128,27 +121,10 @@ export const IconUploader = () => {
         .replace(/>\s+</g, '><')
         .trim();
 
-      // Step 6: If still too large, apply more aggressive optimizations
-      if (optimized.length > 50000) {
-        // Remove all fill/stroke colors (will inherit)
-        optimized = optimized
-          .replace(/\s+fill=["'][^"']*["']/g, '')
-          .replace(/\s+stroke=["'][^"']*["']/g, '');
-        
-        // Further reduce precision
-        optimized = optimized.replace(/(\d+\.\d+)/g, (match) => Math.round(parseFloat(match)).toString());
-      }
-
-      // Step 7: Validate result is still valid SVG (case-insensitive)
+      // Step 6: Validate result is still valid SVG (case-insensitive)
       if (!/\<svg[\s\S]*\<\/svg\>/i.test(optimized)) {
         console.warn('Optimization produced invalid SVG, using original');
-        return null;
-      }
-
-      // Step 8: Final size check (do NOT truncate; return null to let server regenerate)
-      if (optimized.length > 100000) {
-        console.warn('Thumbnail still too large after optimization:', optimized.length);
-        return null;
+        return svgContent; // Return original instead of null
       }
 
       console.log(`Thumbnail optimized: ${svgContent.length} → ${optimized.length} bytes`);
@@ -192,18 +168,14 @@ export const IconUploader = () => {
           name: sanitizedName,
           category: selectedCategory,
           svg_content: svgContent,
-          thumbnail: thumbnail || null
+          thumbnail: thumbnail || svgContent // Use original if optimization fails
         }]);
 
       if (error) {
         toast.error("Failed to upload icon");
         console.error(error);
       } else {
-        if (!thumbnail) {
-          toast.success(`Icon "${sanitizedName}" uploaded. Use Thumbnail Generator to create optimized preview.`);
-        } else {
-          toast.success(`Icon "${sanitizedName}" uploaded successfully!`);
-        }
+        toast.success(`Icon "${sanitizedName}" uploaded successfully!`);
         setIconName("");
         setFile(null);
         setFilePreview(null);
@@ -251,17 +223,13 @@ export const IconUploader = () => {
           const iconName = sanitizeFileName(rawName);
           const thumbnail = generateThumbnail(sanitized);
           
-          if (!thumbnail) {
-            needThumbnails++;
-          }
-          
           const { error } = await supabase
             .from('icons')
             .insert([{
               name: iconName,
               category: selectedCategory,
               svg_content: sanitized,
-              thumbnail: thumbnail || null
+              thumbnail: thumbnail || sanitized // Use original if optimization fails
             }]);
 
           if (!error) {
@@ -272,11 +240,7 @@ export const IconUploader = () => {
         }
       }
 
-      if (needThumbnails > 0) {
-        toast.success(`Uploaded ${uploadedCount} icons. ${needThumbnails} need thumbnail generation.`);
-      } else {
-        toast.success(`Successfully uploaded ${uploadedCount} icons!`);
-      }
+      toast.success(`Successfully uploaded ${uploadedCount} icons!`);
       setZipFile(null);
       setSelectedCategory("");
     } catch (error) {
