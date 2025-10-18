@@ -77,6 +77,15 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
 
   useEffect(() => {
     loadData();
+    
+    // Listen for thumbnail generation completion
+    const handleThumbnailsGenerated = () => {
+      console.log('Thumbnails generated, reloading icons...');
+      loadData();
+    };
+    
+    window.addEventListener('thumbnailsGenerated', handleThumbnailsGenerated);
+    return () => window.removeEventListener('thumbnailsGenerated', handleThumbnailsGenerated);
   }, []);
 
   // Debounced search

@@ -40,6 +40,14 @@ export const ThumbnailGenerator = () => {
       
       if (data.processed > 0) {
         toast.success(`Successfully generated ${data.processed} thumbnails!`);
+        
+        // If there are more to process, suggest running again
+        if (data.total === 50 && data.failed === 0) {
+          toast.info("More icons may need processing. Run again to continue.");
+        }
+        
+        // Notify icon library to refresh
+        window.dispatchEvent(new Event('thumbnailsGenerated'));
       } else {
         toast.info("All icons already have thumbnails");
       }

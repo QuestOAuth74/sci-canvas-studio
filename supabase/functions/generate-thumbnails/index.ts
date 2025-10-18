@@ -123,12 +123,12 @@ Deno.serve(async (req) => {
 
     console.log('Starting thumbnail generation...');
 
-    // Fetch all icons that don't have thumbnails
+    // Fetch icons in smaller batch without thumbnails (memory efficient)
     const { data: icons, error: fetchError } = await supabase
       .from('icons')
-      .select('id, name, svg_content, thumbnail')
+      .select('id, name, svg_content')
       .is('thumbnail', null)
-      .limit(1000);
+      .limit(50); // Process max 50 at a time to avoid memory issues
 
     if (fetchError) {
       console.error('Error fetching icons:', fetchError);
@@ -150,10 +150,13 @@ Deno.serve(async (req) => {
     let processed = 0;
     let failed = 0;
 
-    // Process icons in batches
+    // Process icons one at a time to minimize memory usage
     for (const icon of icons as IconRecord[]) {
       try {
         const thumbnail = generateThumbnail(icon.svg_content);
+        
+        // Free memory immediately after processing
+        icon.svg_content = '';
         
         const { error: updateError } = await supabase
           .from('icons')
@@ -165,7 +168,9 @@ Deno.serve(async (req) => {
           failed++;
         } else {
           processed++;
-          console.log(`Processed ${processed}/${icons.length}: ${icon.name} (${icon.svg_content.length} -> ${thumbnail.length} bytes)`);
+          if (processed % 10 === 0) {
+            console.log(`Progress: ${processed}/${icons.length} icons processed`);
+          }
         }
       } catch (error) {
         console.error(`Error processing icon ${icon.name}:`, error);
@@ -180,7 +185,8 @@ Deno.serve(async (req) => {
         message: 'Thumbnail generation complete',
         processed,
         failed,
-        total: icons.length
+        total: icons.length,
+        remaining: failed // Indicates if there are more to process
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
