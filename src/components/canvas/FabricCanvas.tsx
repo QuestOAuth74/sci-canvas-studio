@@ -867,6 +867,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
+              strokeUniform: true,
             }
           );
           const curvedArrowHeadRight = new Polygon([
@@ -893,6 +894,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
+              strokeUniform: true,
             }
           );
           const curvedArrowHeadLeft = new Polygon([
@@ -919,6 +921,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
+              strokeUniform: true,
             }
           );
           const curvedArrowHeadUp = new Polygon([
@@ -945,6 +948,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
+              strokeUniform: true,
             }
           );
           const curvedArrowHeadDown = new Polygon([
@@ -971,6 +975,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
+              strokeUniform: true,
             }
           );
           const elbowArrowRight = new Polygon([
@@ -997,6 +1002,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
+              strokeUniform: true,
             }
           );
           const elbowArrowLeft = new Polygon([
@@ -1023,6 +1029,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
+              strokeUniform: true,
             }
           );
           const elbowArrowUp = new Polygon([
@@ -1049,6 +1056,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
+              strokeUniform: true,
             }
           );
           const elbowArrowDown = new Polygon([
