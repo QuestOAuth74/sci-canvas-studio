@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Heart } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -149,6 +149,65 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer Section */}
+      <footer className="relative z-10 border-t-[4px] border-foreground bg-muted/50 mt-16">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-6xl mx-auto space-y-12">
+            {/* About Section */}
+            <div className="bg-card border-[4px] border-foreground neo-brutalist-shadow p-8 md:p-10">
+              <h2 className="text-3xl md:text-4xl font-black uppercase mb-6 flex items-center gap-3">
+                <div className="p-2 bg-primary border-[3px] border-foreground rotate-3">
+                  <Users className="h-6 w-6 text-foreground" />
+                </div>
+                About BioSketch
+              </h2>
+              <div className="space-y-4 text-base md:text-lg font-medium leading-relaxed">
+                <p>
+                  BioSketch is an <strong>open-source project</strong> created by a community of scientists 
+                  dedicated to providing <strong>free access to medical and scientific illustrations</strong> for everyone.
+                </p>
+                <p>
+                  All resources are sourced from the open web and made available at <strong>no cost</strong>. 
+                  Use our illustrations freely for publications, presentations, educational materials, and more.
+                </p>
+                <p className="text-primary font-bold">
+                  No paywall. No subscriptions. Not for profit.
+                </p>
+              </div>
+            </div>
+
+            {/* Donation Section */}
+            <div className="bg-accent border-[4px] border-foreground neo-brutalist-shadow p-8 md:p-10">
+              <h3 className="text-2xl md:text-3xl font-black uppercase mb-4 flex items-center gap-3">
+                <div className="p-2 bg-secondary border-[3px] border-foreground -rotate-3">
+                  <Heart className="h-6 w-6 text-foreground" />
+                </div>
+                Support the Project
+              </h3>
+              <p className="text-base md:text-lg font-medium leading-relaxed mb-6">
+                While BioSketch is completely free to use, maintaining our servers and domain comes with costs. 
+                If you find this project valuable, please consider supporting us with a donation to help keep 
+                BioSketch accessible for the scientific community.
+              </p>
+              <Button
+                size="lg"
+                className="h-14 px-8 text-base font-bold uppercase bg-primary hover:bg-primary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none group"
+              >
+                <Heart className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                Donate to BioSketch
+              </Button>
+            </div>
+
+            {/* Bottom Footer */}
+            <div className="text-center pt-8 border-t-[3px] border-foreground/20">
+              <p className="text-sm md:text-base font-bold uppercase opacity-70">
+                Made with <Heart className="inline h-4 w-4 text-primary" /> by the Scientific Community
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
