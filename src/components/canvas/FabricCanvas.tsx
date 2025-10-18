@@ -345,7 +345,46 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       canvas.isDrawingMode = false;
       canvas.selection = true;
     }
-  }, [canvas, activeTool, onShapeCreated]);
+  }, [canvas, activeTool]);
+
+  // Handle eraser tool
+  useEffect(() => {
+    if (!canvas) return;
+
+    if (activeTool === "eraser") {
+      canvas.isDrawingMode = true;
+      canvas.selection = false; // Disable selection while erasing
+      
+      // Create and configure the eraser brush (using PencilBrush with destination-out)
+      const eraserBrush = new PencilBrush(canvas);
+      eraserBrush.width = 20; // Default eraser size
+      eraserBrush.color = "rgba(0,0,0,1)"; // Color doesn't matter for eraser
+      canvas.freeDrawingBrush = eraserBrush;
+      
+      // Set cursor for eraser tool
+      canvas.defaultCursor = "crosshair";
+      canvas.hoverCursor = "crosshair";
+
+      // Handle path creation - set composite operation to erase
+      const handleEraserPath = (e: any) => {
+        const path = e.path as Path;
+        if (path) {
+          path.globalCompositeOperation = "destination-out";
+          canvas.renderAll();
+        }
+      };
+
+      canvas.on("path:created", handleEraserPath);
+
+      return () => {
+        canvas.off("path:created", handleEraserPath);
+        canvas.isDrawingMode = false;
+        canvas.selection = true; // Re-enable selection
+        canvas.defaultCursor = "default";
+        canvas.hoverCursor = "move";
+      };
+    }
+  }, [canvas, activeTool]);
 
   // Handle pen tool (bezier curves)
   useEffect(() => {
@@ -505,12 +544,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       canvas.defaultCursor = "crosshair";
     } else if (activeTool === "pen") {
       canvas.defaultCursor = "crosshair";
+    } else if (activeTool === "eraser") {
+      canvas.defaultCursor = "crosshair";
     } else {
       canvas.defaultCursor = "default";
     }
 
     const handleCanvasClick = (e: any) => {
-      if (activeTool === "select") return;
+      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser") return;
 
       const pointer = canvas.getPointer(e.e);
       
