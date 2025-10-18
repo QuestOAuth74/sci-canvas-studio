@@ -115,7 +115,7 @@ export const PropertiesPanel = () => {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <ScrollArea className="flex-1 min-h-0">
+      <ScrollArea type="always" className="flex-1 min-h-0">
         <Tabs defaultValue="diagram" className="w-full">
           <TabsList className="grid w-full grid-cols-2 m-3">
             <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>
