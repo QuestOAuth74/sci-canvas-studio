@@ -1,11 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 interface Icon {
   id: string;
@@ -69,10 +70,52 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
   const [authState, setAuthState] = useState<string>("checking");
   const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
   const [loadedMap, setLoadedMap] = useState<Record<string, boolean>>({});
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Icon[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     loadData();
   }, []);
+
+  // Debounced search
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const performSearch = async (query: string) => {
+    try {
+      setIsSearching(true);
+      const searchTerms = query.trim().split(/\s+/).join(' & ');
+      
+      const { data, error } = await supabase
+        .from('icons')
+        .select('*')
+        .textSearch('search_vector', searchTerms, {
+          type: 'websearch',
+          config: 'english'
+        })
+        .limit(50);
+
+      if (error) throw error;
+      setSearchResults(data || []);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -167,9 +210,22 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="p-4 border-b border-border/40">
-        <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
-        <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
+      <div className="p-4 border-b border-border/40 space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
+          <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
+        </div>
+        
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search icons..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9 pl-9 text-xs"
+          />
+        </div>
       </div>
       
       {loading && (
@@ -196,7 +252,48 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
         </Alert>
       )}
       
-      {!loading && (
+      {!loading && searchQuery && (
+        <ScrollArea type="always" className="flex-1 min-h-0 px-3">
+          <div className="py-3">
+            <div className="mb-2 text-sm text-muted-foreground">
+              {isSearching ? "Searching..." : `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''}`}
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {searchResults.map((icon) => {
+                const safeSvg = sanitizeSvg(icon.svg_content);
+                const thumbSrc = svgToDataUrl(safeSvg);
+                const isLoaded = !!loadedMap[icon.id];
+                
+                return (
+                  <button
+                    key={icon.id}
+                    onClick={() => handleIconClick(icon)}
+                    className="aspect-square border border-border/40 rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/40 hover:border-primary transition-transform hover:scale-105 relative"
+                    title={icon.name}
+                  >
+                    {!isLoaded && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Skeleton className="w-6 h-6 rounded-sm" />
+                      </div>
+                    )}
+                    <img
+                      src={thumbSrc}
+                      alt={icon.name}
+                      loading="lazy"
+                      onLoad={() => onImgLoad(icon.id)}
+                      onError={() => onImgError(icon.id)}
+                      className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
+                      style={{ imageRendering: "pixelated" }}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </ScrollArea>
+      )}
+      
+      {!loading && !searchQuery && (
         <ScrollArea type="always" className="flex-1 min-h-0 px-3">
         <Accordion type="multiple" className="w-full space-y-2 py-3">
           {categories.map((category) => {
