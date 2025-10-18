@@ -12,6 +12,8 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
+  Grid3x3,
+  Ruler,
 } from "lucide-react";
 import {
   Tooltip,
@@ -38,6 +40,10 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
     zoomOut,
     zoomToFit,
     zoom,
+    gridEnabled,
+    setGridEnabled,
+    rulersEnabled,
+    setRulersEnabled,
   } = useCanvas();
 
   return (
@@ -121,6 +127,38 @@ export const TopToolbar = ({ onExport }: TopToolbarProps) => {
             </Button>
           </TooltipTrigger>
           <TooltipContent>Align Right</TooltipContent>
+        </Tooltip>
+      </div>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+      <div className="flex items-center gap-0.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant={gridEnabled ? "default" : "ghost"} 
+              size="icon" 
+              className="h-8 w-8" 
+              onClick={() => setGridEnabled(!gridEnabled)}
+            >
+              <Grid3x3 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Toggle Grid</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              variant={rulersEnabled ? "default" : "ghost"} 
+              size="icon" 
+              className="h-8 w-8" 
+              onClick={() => setRulersEnabled(!rulersEnabled)}
+            >
+              <Ruler className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Toggle Rulers</TooltipContent>
         </Tooltip>
       </div>
 
