@@ -103,8 +103,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-3 border-b border-border/40">
-        <h2 className="text-sm font-semibold text-foreground">Uploaded Icons</h2>
+      <div className="p-4 border-b border-border/40">
+        <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
+        <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
       </div>
       
       {loading && (
@@ -124,32 +125,44 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       )}
       
       {!loading && (
-        <ScrollArea className="flex-1 p-2">
-        <Accordion type="multiple" className="w-full">
+        <ScrollArea className="flex-1 px-3">
+        <Accordion type="multiple" defaultValue={categories.map(c => c.id)} className="w-full space-y-2 py-3">
           {categories.map((category) => {
             const categoryIcons = iconsByCategory[category.id] || [];
             
             return (
-              <AccordionItem key={category.id} value={category.id}>
-                <AccordionTrigger className="text-sm font-medium">
-                  {category.name} ({categoryIcons.length})
+              <AccordionItem 
+                key={category.id} 
+                value={category.id}
+                className="border border-border/40 rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm"
+              >
+                <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
+                  <div className="flex items-center justify-between w-full pr-2">
+                    <span>{category.name}</span>
+                    <span className="text-xs text-muted-foreground font-normal">
+                      {categoryIcons.length}
+                    </span>
+                  </div>
                 </AccordionTrigger>
-                <AccordionContent>
+                <AccordionContent className="border-t border-border/40">
                   {categoryIcons.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2 pt-2">
+                    <div className="grid grid-cols-4 gap-1.5 p-2">
                       {categoryIcons.map((icon) => (
                         <button
                           key={icon.id}
                           onClick={() => handleIconClick(icon)}
-                          className="aspect-square border border-border rounded-lg p-2 hover:bg-accent hover:border-primary transition-colors"
+                          className="aspect-square border border-border/40 rounded p-1.5 hover:bg-accent/30 hover:border-primary transition-all hover:scale-105"
                           title={icon.name}
                         >
-                          <div dangerouslySetInnerHTML={{ __html: icon.svg_content }} className="w-full h-full" />
+                          <div 
+                            dangerouslySetInnerHTML={{ __html: icon.svg_content }} 
+                            className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain" 
+                          />
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-muted-foreground text-sm py-4">
+                    <p className="text-muted-foreground text-xs py-3 px-3 text-center">
                       No icons in this category yet.
                     </p>
                   )}
@@ -159,9 +172,11 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
           })}
         </Accordion>
         {categories.length === 0 && (
-          <p className="text-muted-foreground text-center py-8">
-            No categories yet. Add categories from the admin panel.
-          </p>
+          <div className="text-center py-8 px-4">
+            <p className="text-muted-foreground text-sm">
+              No categories yet. Add categories from the admin panel.
+            </p>
+          </div>
         )}
       </ScrollArea>
       )}

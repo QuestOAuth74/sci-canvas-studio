@@ -180,27 +180,12 @@ const CanvasContent = () => {
 
         {/* Main Editor Area */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Left Library Panel with Tabs */}
-          <div className="w-56 glass-effect border-r border-border/40 flex flex-col">
-            <Tabs defaultValue="shapes" className="flex flex-col h-full">
-              <TabsList className="w-full rounded-none border-b border-border/40 bg-transparent p-0 h-auto">
-                <TabsTrigger value="shapes" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
-                  Shapes
-                </TabsTrigger>
-                <TabsTrigger value="icons" className="flex-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
-                  Icons
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="shapes" className="flex-1 m-0 overflow-hidden">
-                <ShapesLibrary onShapeSelect={handleShapeSelect} />
-              </TabsContent>
-              <TabsContent value="icons" className="flex-1 m-0 overflow-hidden">
-                <IconLibrary 
-                  selectedCategory={selectedIconCategory} 
-                  onCategoryChange={setSelectedIconCategory}
-                />
-              </TabsContent>
-            </Tabs>
+          {/* Left Sidebar - Icon Categories */}
+          <div className="w-64 glass-effect border-r border-border/40 flex flex-col">
+            <IconLibrary 
+              selectedCategory={selectedIconCategory} 
+              onCategoryChange={setSelectedIconCategory}
+            />
           </div>
 
         {/* Canvas */}
