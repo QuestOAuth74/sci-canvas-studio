@@ -44,7 +44,11 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'my-assets' | 'community'>('my-assets');
 
-  const filteredAssets = (viewMode === 'my-assets' ? assets : sharedAssets).filter(asset => {
+  // Get the current asset list based on view mode
+  const currentAssets = viewMode === 'my-assets' ? assets : sharedAssets;
+
+  // Filter assets
+  const filteredAssets = currentAssets.filter(asset => {
     const matchesSearch = search === '' || 
       asset.original_name.toLowerCase().includes(search.toLowerCase()) ||
       asset.file_name.toLowerCase().includes(search.toLowerCase());
@@ -55,8 +59,9 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     return matchesSearch && matchesCategory && matchesType;
   });
 
-  const categories = ['all', ...Array.from(new Set([...assets, ...sharedAssets].map(a => a.category)))];
-  const fileTypes = ['all', ...Array.from(new Set([...assets, ...sharedAssets].map(a => a.file_type)))];
+  // Only show categories and file types that exist in the current view
+  const categories = ['all', ...Array.from(new Set(currentAssets.map(a => a.category)))];
+  const fileTypes = ['all', ...Array.from(new Set(currentAssets.map(a => a.file_type)))];
 
   const handleAssetClick = async (asset: any) => {
     const content = await downloadAssetContent(asset);
@@ -85,6 +90,10 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     if (viewMode === 'community') {
       fetchSharedAssets();
     }
+    // Reset filters when switching views to avoid showing "no results" for categories that don't exist in that view
+    setCategory('all');
+    setFileType('all');
+    setSearch('');
   }, [viewMode]);
 
   const formatFileSize = (bytes: number) => {
@@ -182,7 +191,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
                   ? 'No assets found'
                   : 'No assets yet'}
               </p>
-              {!search && category === 'all' && fileType === 'all' && (
+              {!search && category === 'all' && fileType === 'all' && viewMode === 'my-assets' && (
                 <Button
                   size="sm"
                   variant="outline"
@@ -192,6 +201,11 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
                   <Upload className="h-4 w-4 mr-1" />
                   Upload your first asset
                 </Button>
+              )}
+              {viewMode === 'community' && currentAssets.length === 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  No assets have been shared by the community yet
+                </p>
               )}
             </div>
           ) : (
@@ -215,7 +229,15 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{asset.original_name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium truncate">{asset.original_name}</p>
+                    {viewMode === 'my-assets' && asset.is_shared && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-primary/10 text-primary">
+                        <Share2 className="h-3 w-3" />
+                        Shared
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{formatFileSize(asset.file_size)}</span>
                     <span>•</span>
