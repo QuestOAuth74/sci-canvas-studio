@@ -31,6 +31,10 @@ const CanvasContent = () => {
     paste,
     deleteSelected,
     selectAll,
+    bringToFront,
+    sendToBack,
+    bringForward,
+    sendBackward,
     projectName,
     setProjectName,
     isSaving,
@@ -119,12 +123,24 @@ const CanvasContent = () => {
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && !modifier) {
         e.preventDefault();
         deleteSelected();
+      } else if (modifier && e.shiftKey && e.key === ']') {
+        e.preventDefault();
+        bringToFront();
+      } else if (modifier && !e.shiftKey && e.key === ']') {
+        e.preventDefault();
+        bringForward();
+      } else if (modifier && !e.shiftKey && e.key === '[') {
+        e.preventDefault();
+        sendBackward();
+      } else if (modifier && e.shiftKey && e.key === '[') {
+        e.preventDefault();
+        sendToBack();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, cut, copy, paste, selectAll, deleteSelected]);
+  }, [undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward]);
 
   return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">

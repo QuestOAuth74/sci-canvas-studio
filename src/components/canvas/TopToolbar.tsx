@@ -15,6 +15,10 @@ import {
   Grid3x3,
   Ruler,
   Type,
+  ChevronsUp,
+  ChevronUp,
+  ChevronDown,
+  ChevronsDown,
 } from "lucide-react";
 import {
   Tooltip,
@@ -41,6 +45,10 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
     alignLeft,
     alignCenter,
     alignRight,
+    bringToFront,
+    sendToBack,
+    bringForward,
+    sendBackward,
     zoomIn,
     zoomOut,
     zoomToFit,
@@ -137,6 +145,46 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
             </Button>
           </TooltipTrigger>
           <TooltipContent>Align Right</TooltipContent>
+        </Tooltip>
+      </div>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+      <div className="flex items-center gap-0.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={bringToFront}>
+              <ChevronsUp className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Bring to Front (Ctrl+Shift+])</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={bringForward}>
+              <ChevronUp className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Bring Forward (Ctrl+])</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={sendBackward}>
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Send Backward (Ctrl+[)</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={sendToBack}>
+              <ChevronsDown className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Send to Back (Ctrl+Shift+[)</TooltipContent>
         </Tooltip>
       </div>
 

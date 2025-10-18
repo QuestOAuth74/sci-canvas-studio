@@ -333,6 +333,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       canvas.bringObjectToFront(activeObject);
       canvas.renderAll();
       saveState();
+      toast.success("Moved to front layer");
     }
   }, [canvas, saveState]);
 
@@ -343,6 +344,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       canvas.sendObjectToBack(activeObject);
       canvas.renderAll();
       saveState();
+      toast.success("Moved to back layer");
     }
   }, [canvas, saveState]);
 
@@ -353,6 +355,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       canvas.bringObjectForward(activeObject);
       canvas.renderAll();
       saveState();
+      toast.success("Moved forward one layer");
     }
   }, [canvas, saveState]);
 
@@ -363,6 +366,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       canvas.sendObjectBackwards(activeObject);
       canvas.renderAll();
       saveState();
+      toast.success("Moved backward one layer");
     }
   }, [canvas, saveState]);
 
