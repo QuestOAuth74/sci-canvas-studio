@@ -26,6 +26,41 @@ interface IconLibraryProps {
 
 const ICONS_PER_PAGE = 20;
 
+// Helper functions to sanitize and encode SVG content
+const sanitizeSvg = (raw: string): string => {
+  try {
+    let svg = raw.trim();
+    // Remove XML declarations and DOCTYPE
+    svg = svg
+      .replace(/<\?xml[^>]*?>/gi, "")
+      .replace(/<!DOCTYPE[^>]*>/gi, "")
+      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+      .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
+    
+    // Ensure viewBox if missing and width/height exist
+    if (!/viewBox=/i.test(svg)) {
+      const w = svg.match(/\bwidth=["']?(\d+(\.\d+)?)\s*(px)?["']?/i);
+      const h = svg.match(/\bheight=["']?(\d+(\.\d+)?)\s*(px)?["']?/i);
+      if (w && h) {
+        const width = parseFloat(w[1]);
+        const height = parseFloat(h[1]);
+        svg = svg.replace(/<svg([^>]*?)>/i, `<svg$1 viewBox="0 0 ${width} ${height}">`);
+        svg = svg.replace(/\b(width|height)=["'][^"']*["']/gi, "");
+      }
+    }
+    return svg;
+  } catch {
+    return raw;
+  }
+};
+
+const svgToDataUrl = (svg: string): string => {
+  const encoded = encodeURIComponent(svg)
+    .replace(/%0A/g, "")
+    .replace(/%20/g, " ");
+  return `data:image/svg+xml;charset=utf-8,${encoded}`;
+};
+
 export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, Icon[]>>({});
@@ -33,6 +68,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
   const [error, setError] = useState<string | null>(null);
   const [authState, setAuthState] = useState<string>("checking");
   const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
+  const [loadedMap, setLoadedMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     loadData();
@@ -104,6 +140,14 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       detail: { svgData: icon.svg_content },
     });
     window.dispatchEvent(event);
+  };
+
+  const onImgLoad = (id: string) => {
+    setLoadedMap(prev => ({ ...prev, [id]: true }));
+  };
+
+  const onImgError = (id: string) => {
+    setLoadedMap(prev => ({ ...prev, [id]: true }));
   };
 
   const getCurrentPage = (categoryId: string) => categoryPages[categoryId] || 0;
@@ -179,19 +223,35 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
                   {categoryIcons.length > 0 ? (
                     <div className="space-y-2">
                       <div className="grid grid-cols-4 gap-1.5 p-2">
-                        {paginatedIcons.map((icon) => (
-                          <button
-                            key={icon.id}
-                            onClick={() => handleIconClick(icon)}
-                            className="aspect-square border border-border/40 rounded p-1.5 hover:bg-accent/30 hover:border-primary transition-all hover:scale-105"
-                            title={icon.name}
-                          >
-                            <div 
-                              dangerouslySetInnerHTML={{ __html: icon.svg_content }} 
-                              className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain" 
-                            />
-                          </button>
-                        ))}
+                        {paginatedIcons.map((icon) => {
+                          const safeSvg = sanitizeSvg(icon.svg_content);
+                          const thumbSrc = svgToDataUrl(safeSvg);
+                          const isLoaded = !!loadedMap[icon.id];
+                          
+                          return (
+                            <button
+                              key={icon.id}
+                              onClick={() => handleIconClick(icon)}
+                              className="aspect-square border border-border/40 rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/40 hover:border-primary transition-transform hover:scale-105 relative"
+                              title={icon.name}
+                            >
+                              {!isLoaded && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <Skeleton className="w-6 h-6 rounded-sm" />
+                                </div>
+                              )}
+                              <img
+                                src={thumbSrc}
+                                alt={icon.name}
+                                loading="lazy"
+                                onLoad={() => onImgLoad(icon.id)}
+                                onError={() => onImgError(icon.id)}
+                                className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
+                                style={{ imageRendering: "pixelated" }}
+                              />
+                            </button>
+                          );
+                        })}
                       </div>
                       
                       {totalPages > 1 && (
