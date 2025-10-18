@@ -294,8 +294,12 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
             </div>
             <div className="grid grid-cols-4 gap-1.5">
               {searchResults.map((icon) => {
-                const svgContent = icon.thumbnail || '';
-                const safeSvg = sanitizeSvg(svgContent);
+                // Skip icons without thumbnail data
+                if (!icon.thumbnail) {
+                  return null;
+                }
+                
+                const safeSvg = sanitizeSvg(icon.thumbnail);
                 const thumbSrc = svgToDataUrl(safeSvg);
                 const isLoaded = !!loadedMap[icon.id];
                 
@@ -356,8 +360,12 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
                     <div className="space-y-2">
                       <div className="grid grid-cols-4 gap-1.5 p-2">
                         {paginatedIcons.map((icon) => {
-                          const svgContent = icon.thumbnail || '';
-                          const safeSvg = sanitizeSvg(svgContent);
+                          // Skip icons without thumbnail data
+                          if (!icon.thumbnail) {
+                            return null;
+                          }
+                          
+                          const safeSvg = sanitizeSvg(icon.thumbnail);
                           const thumbSrc = svgToDataUrl(safeSvg);
                           const isLoaded = !!loadedMap[icon.id];
                           
