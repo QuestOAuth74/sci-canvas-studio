@@ -42,94 +42,94 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Neo-Brutalism Theme - Bold & Vibrant */
-    --background: 45 100% 96%;
-    --foreground: 0 0% 10%;
+    /* Neo-Brutalism Medical Theme - Clinical & Bold */
+    --background: 200 30% 97%;
+    --foreground: 210 50% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 210 50% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 210 50% 10%;
     
-    /* Primary - Vibrant Coral */
-    --primary: 10 90% 60%;
-    --primary-foreground: 0 0% 10%;
+    /* Primary - Medical Blue */
+    --primary: 200 95% 50%;
+    --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Bright Yellow */
-    --secondary: 50 100% 65%;
-    --secondary-foreground: 0 0% 10%;
+    /* Secondary - Healthcare Teal */
+    --secondary: 175 70% 45%;
+    --secondary-foreground: 0 0% 100%;
     
-    /* Muted - Soft Cream */
-    --muted: 45 40% 92%;
-    --muted-foreground: 0 0% 40%;
+    /* Muted - Soft Clinical Gray */
+    --muted: 200 15% 92%;
+    --muted-foreground: 210 20% 40%;
     
-    /* Accent - Electric Purple */
-    --accent: 270 85% 65%;
-    --accent-foreground: 0 0% 10%;
+    /* Accent - Medical Green */
+    --accent: 145 65% 50%;
+    --accent-foreground: 0 0% 100%;
     
-    /* Destructive - Bold Red */
+    /* Destructive - Medical Alert Red */
     --destructive: 0 85% 55%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 0 0% 10%;
+    --border: 210 50% 15%;
     --input: 0 0% 100%;
-    --ring: 10 90% 60%;
+    --ring: 200 95% 50%;
     --radius: 0rem;
     
     /* Sidebar */
-    --sidebar-background: 45 80% 90%;
-    --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 10 90% 60%;
-    --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 270 85% 65%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 0 0% 10%;
-    --sidebar-ring: 10 90% 60%;
+    --sidebar-background: 200 25% 94%;
+    --sidebar-foreground: 210 50% 10%;
+    --sidebar-primary: 200 95% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 175 70% 45%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 50% 15%;
+    --sidebar-ring: 200 95% 50%;
   }
 
   .dark {
-    /* Dark Mode - Bold Neo-Brutalism */
-    --background: 270 30% 15%;
-    --foreground: 45 100% 96%;
-    --card: 270 25% 20%;
-    --card-foreground: 45 100% 96%;
-    --popover: 270 25% 20%;
-    --popover-foreground: 45 100% 96%;
+    /* Dark Mode - Medical Neo-Brutalism */
+    --background: 210 40% 12%;
+    --foreground: 200 30% 95%;
+    --card: 210 35% 18%;
+    --card-foreground: 200 30% 95%;
+    --popover: 210 35% 18%;
+    --popover-foreground: 200 30% 95%;
     
-    /* Primary - Vibrant Coral (adjusted for dark) */
-    --primary: 10 85% 65%;
-    --primary-foreground: 0 0% 10%;
+    /* Primary - Medical Blue (adjusted for dark) */
+    --primary: 200 90% 55%;
+    --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Bright Yellow (adjusted) */
-    --secondary: 50 100% 70%;
-    --secondary-foreground: 0 0% 10%;
+    /* Secondary - Healthcare Teal (adjusted) */
+    --secondary: 175 65% 50%;
+    --secondary-foreground: 0 0% 100%;
     
     /* Muted */
-    --muted: 270 20% 25%;
-    --muted-foreground: 45 60% 75%;
+    --muted: 210 25% 22%;
+    --muted-foreground: 200 20% 70%;
     
-    /* Accent - Electric Purple (adjusted) */
-    --accent: 270 80% 70%;
-    --accent-foreground: 0 0% 10%;
+    /* Accent - Medical Green (adjusted) */
+    --accent: 145 60% 55%;
+    --accent-foreground: 0 0% 100%;
     
     /* Destructive */
     --destructive: 0 85% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 45 100% 96%;
-    --input: 270 25% 22%;
-    --ring: 10 85% 65%;
+    --border: 200 30% 90%;
+    --input: 210 35% 20%;
+    --ring: 200 90% 55%;
     
     /* Sidebar */
-    --sidebar-background: 270 28% 18%;
-    --sidebar-foreground: 45 100% 96%;
-    --sidebar-primary: 10 85% 65%;
-    --sidebar-primary-foreground: 0 0% 10%;
-    --sidebar-accent: 270 80% 70%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 45 100% 96%;
-    --sidebar-ring: 10 85% 65%;
+    --sidebar-background: 210 38% 15%;
+    --sidebar-foreground: 200 30% 95%;
+    --sidebar-primary: 200 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 175 65% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 200 30% 90%;
+    --sidebar-ring: 200 90% 55%;
   }
 }
 
