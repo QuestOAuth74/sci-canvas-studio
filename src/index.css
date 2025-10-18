@@ -16,82 +16,120 @@ All colors MUST be HSL.
   }
 
   .neo-brutalist-shadow {
-    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
+    box-shadow: 3px 3px 0px 0px hsl(var(--primary) / 0.15);
   }
 
   .neo-brutalist-shadow-sm {
-    box-shadow: 2px 2px 0px 0px hsl(var(--foreground));
+    box-shadow: 2px 2px 0px 0px hsl(var(--primary) / 0.1);
   }
 
   .neo-brutalist-shadow-lg {
-    box-shadow: 8px 8px 0px 0px hsl(var(--foreground));
+    box-shadow: 5px 5px 0px 0px hsl(var(--primary) / 0.2);
   }
 
   .neo-border {
-    @apply border-[3px] border-foreground;
+    @apply border-2 border-border;
+  }
+  
+  .medical-card {
+    @apply bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow;
+  }
+  
+  .medical-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
   }
 }
 
 @layer base {
   :root {
-    --background: 50 100% 97%;
-    --foreground: 0 0% 5%;
+    /* Medical Theme - Professional Healthcare Colors */
+    --background: 210 40% 98%;
+    --foreground: 215 25% 20%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 5%;
+    --card-foreground: 215 25% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 5%;
-    --primary: 180 100% 50%;
-    --primary-foreground: 0 0% 5%;
-    --secondary: 280 100% 70%;
-    --secondary-foreground: 0 0% 5%;
-    --muted: 60 100% 85%;
-    --muted-foreground: 0 0% 30%;
-    --accent: 45 100% 60%;
-    --accent-foreground: 0 0% 5%;
-    --destructive: 0 100% 60%;
+    --popover-foreground: 215 25% 20%;
+    
+    /* Primary - Medical Blue (trust, professionalism) */
+    --primary: 210 95% 45%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Healthcare Teal (wellness, care) */
+    --secondary: 175 70% 40%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Muted - Soft Gray (clean, minimal) */
+    --muted: 210 30% 95%;
+    --muted-foreground: 215 15% 45%;
+    
+    /* Accent - Soft Green (health, positive) */
+    --accent: 160 60% 45%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Destructive - Medical Red (alerts, warnings) */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 5%;
+    
+    /* UI Elements */
+    --border: 215 20% 85%;
     --input: 0 0% 100%;
-    --ring: 180 100% 50%;
-    --radius: 0.25rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --ring: 210 95% 45%;
+    --radius: 0.5rem;
+    
+    /* Sidebar */
+    --sidebar-background: 210 35% 97%;
+    --sidebar-foreground: 215 25% 25%;
+    --sidebar-primary: 210 95% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 93%;
+    --sidebar-accent-foreground: 215 25% 25%;
+    --sidebar-border: 215 20% 88%;
+    --sidebar-ring: 210 95% 45%;
   }
 
   .dark {
-    --background: 0 0% 10%;
-    --foreground: 0 0% 100%;
-    --card: 0 0% 15%;
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 180 100% 50%;
-    --primary-foreground: 0 0% 5%;
-    --secondary: 280 100% 70%;
-    --secondary-foreground: 0 0% 5%;
-    --muted: 0 0% 25%;
-    --muted-foreground: 0 0% 70%;
-    --accent: 45 100% 60%;
-    --accent-foreground: 0 0% 5%;
-    --destructive: 0 100% 60%;
+    /* Dark Mode - Professional Medical Dark Theme */
+    --background: 215 30% 12%;
+    --foreground: 210 30% 95%;
+    --card: 215 25% 16%;
+    --card-foreground: 210 30% 95%;
+    --popover: 215 25% 16%;
+    --popover-foreground: 210 30% 95%;
+    
+    /* Primary - Lighter Medical Blue for dark mode */
+    --primary: 210 90% 55%;
+    --primary-foreground: 215 30% 10%;
+    
+    /* Secondary - Lighter Teal for dark mode */
+    --secondary: 175 60% 50%;
+    --secondary-foreground: 215 30% 10%;
+    
+    /* Muted */
+    --muted: 215 20% 22%;
+    --muted-foreground: 210 20% 70%;
+    
+    /* Accent - Lighter Green for dark mode */
+    --accent: 160 55% 55%;
+    --accent-foreground: 215 30% 10%;
+    
+    /* Destructive */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 100%;
-    --input: 0 0% 20%;
-    --ring: 180 100% 50%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* UI Elements */
+    --border: 215 20% 30%;
+    --input: 215 25% 18%;
+    --ring: 210 90% 55%;
+    
+    /* Sidebar */
+    --sidebar-background: 215 28% 14%;
+    --sidebar-foreground: 210 30% 90%;
+    --sidebar-primary: 210 90% 55%;
+    --sidebar-primary-foreground: 215 30% 10%;
+    --sidebar-accent: 215 25% 20%;
+    --sidebar-accent-foreground: 210 30% 90%;
+    --sidebar-border: 215 20% 25%;
+    --sidebar-ring: 210 90% 55%;
   }
 }
 
@@ -101,10 +139,10 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-space;
+    @apply bg-background text-foreground font-inter;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
+    @apply font-serif font-bold;
   }
 }
