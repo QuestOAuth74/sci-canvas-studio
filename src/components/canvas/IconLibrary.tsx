@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface Icon {
   id: string;
@@ -22,38 +22,40 @@ interface IconLibraryProps {
 
 export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [icons, setIcons] = useState<Icon[]>([]);
+  const [iconsByCategory, setIconsByCategory] = useState<Record<string, Icon[]>>({});
 
   useEffect(() => {
-    loadCategories();
+    loadData();
   }, []);
 
-  useEffect(() => {
-    loadIcons();
-  }, [selectedCategory]);
-
-  const loadCategories = async () => {
-    const { data, error } = await supabase
+  const loadData = async () => {
+    // Load categories
+    const { data: categoriesData, error: categoriesError } = await supabase
       .from('icon_categories')
       .select('*')
       .order('name');
 
-    if (!error && data) {
-      setCategories(data);
-    }
-  };
-
-  const loadIcons = async () => {
-    let query = supabase.from('icons').select('*');
-
-    if (selectedCategory !== "all") {
-      query = query.eq('category', selectedCategory);
+    if (!categoriesError && categoriesData) {
+      setCategories(categoriesData);
     }
 
-    const { data, error } = await query.order('name');
+    // Load all icons
+    const { data: iconsData, error: iconsError } = await supabase
+      .from('icons')
+      .select('*')
+      .order('name');
 
-    if (!error && data) {
-      setIcons(data);
+    if (!iconsError && iconsData) {
+      // Group icons by category
+      const grouped = iconsData.reduce((acc, icon) => {
+        if (!acc[icon.category]) {
+          acc[icon.category] = [];
+        }
+        acc[icon.category].push(icon);
+        return acc;
+      }, {} as Record<string, Icon[]>);
+      
+      setIconsByCategory(grouped);
     }
   };
 
@@ -65,52 +67,48 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
   };
 
   return (
-    <div className="p-4 space-y-4 h-full bg-gradient-to-b from-background to-muted/20">
-      <div>
-        <h2 className="text-lg font-semibold mb-3 text-foreground">Categories</h2>
-        <div className="space-y-1">
-          <Button
-            variant={selectedCategory === "all" ? "default" : "ghost"}
-            className="w-full justify-start"
-            onClick={() => onCategoryChange("all")}
-          >
-            All Icons
-          </Button>
-          {categories.map((category) => (
-            <Button
-              key={category.id}
-              variant={selectedCategory === category.id ? "default" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => onCategoryChange(category.id)}
-            >
-              {category.name}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Icons</h2>
-        <ScrollArea className="h-[calc(100vh-300px)]">
-          <div className="grid grid-cols-3 gap-2">
-            {icons.map((icon) => (
-              <button
-                key={icon.id}
-                onClick={() => handleIconClick(icon)}
-                className="aspect-square border border-border rounded-lg p-2 hover:bg-accent hover:border-primary transition-colors"
-                title={icon.name}
-              >
-                <div dangerouslySetInnerHTML={{ __html: icon.svg_content }} className="w-full h-full" />
-              </button>
-            ))}
-          </div>
-          {icons.length === 0 && (
-            <p className="text-muted-foreground text-center py-8">
-              No icons in this category yet. Add icons from the admin panel.
-            </p>
-          )}
-        </ScrollArea>
-      </div>
+    <div className="p-4 h-full bg-gradient-to-b from-background to-muted/20">
+      <h2 className="text-lg font-semibold mb-3 text-foreground">Icon Library</h2>
+      <ScrollArea className="h-[calc(100vh-120px)]">
+        <Accordion type="multiple" className="w-full">
+          {categories.map((category) => {
+            const categoryIcons = iconsByCategory[category.id] || [];
+            
+            return (
+              <AccordionItem key={category.id} value={category.id}>
+                <AccordionTrigger className="text-sm font-medium">
+                  {category.name} ({categoryIcons.length})
+                </AccordionTrigger>
+                <AccordionContent>
+                  {categoryIcons.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2 pt-2">
+                      {categoryIcons.map((icon) => (
+                        <button
+                          key={icon.id}
+                          onClick={() => handleIconClick(icon)}
+                          className="aspect-square border border-border rounded-lg p-2 hover:bg-accent hover:border-primary transition-colors"
+                          title={icon.name}
+                        >
+                          <div dangerouslySetInnerHTML={{ __html: icon.svg_content }} className="w-full h-full" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-sm py-4">
+                      No icons in this category yet.
+                    </p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            );
+          })}
+        </Accordion>
+        {categories.length === 0 && (
+          <p className="text-muted-foreground text-center py-8">
+            No categories yet. Add categories from the admin panel.
+          </p>
+        )}
+      </ScrollArea>
     </div>
   );
 };
