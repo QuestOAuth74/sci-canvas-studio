@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -6,7 +6,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X, Star } from "lucide-react";
+import { usePinnedCategories } from "@/hooks/usePinnedCategories";
 
 interface Icon {
   id: string;
@@ -74,6 +75,19 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Icon[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const { pinnedCategoryIds, togglePin, isPinned } = usePinnedCategories();
+
+  // Split categories into pinned and unpinned
+  const { pinnedCategories, unpinnedCategories } = useMemo(() => {
+    if (searchQuery.trim()) {
+      return { pinnedCategories: [], unpinnedCategories: categories };
+    }
+    
+    const pinned = categories.filter(cat => isPinned(cat.id));
+    const unpinned = categories.filter(cat => !isPinned(cat.id));
+    
+    return { pinnedCategories: pinned, unpinnedCategories: unpinned };
+  }, [categories, isPinned, searchQuery]);
 
   useEffect(() => {
     loadData();
@@ -343,8 +357,129 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
       
       {!loading && !searchQuery && (
         <ScrollArea type="always" className="flex-1 min-h-0 px-3">
-        <Accordion type="multiple" className="w-full space-y-2 py-3">
-          {categories.map((category) => {
+          <div className="space-y-2 py-3">
+            {/* Pinned Categories Section */}
+            {pinnedCategories.length > 0 && (
+              <>
+                <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border/40 bg-yellow-500/5 rounded-t mb-2">
+                  ⭐ Pinned Categories
+                </div>
+                <Accordion type="multiple" className="w-full space-y-2">
+                  {pinnedCategories.map((category) => {
+                    const categoryIcons = iconsByCategory[category.id] || [];
+                    const totalPages = getTotalPages(categoryIcons);
+                    const currentPage = getCurrentPage(category.id);
+                    const paginatedIcons = getPaginatedIcons(category.id, categoryIcons);
+                    
+                    return (
+                      <AccordionItem 
+                        key={category.id} 
+                        value={category.id}
+                        className="border border-yellow-500/20 rounded-lg overflow-hidden bg-yellow-500/5 backdrop-blur-sm"
+                      >
+                        <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
+                          <div className="flex items-center justify-between w-full pr-2">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  togglePin(category.id);
+                                }}
+                                className="hover:text-yellow-600 transition-colors"
+                                title="Unpin category"
+                              >
+                                <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                              </button>
+                              <span>{category.name}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground font-normal">
+                              {categoryIcons.length}
+                            </span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="border-t border-border/40">
+                          {categoryIcons.length > 0 ? (
+                            <div className="space-y-2">
+                              <div className="grid grid-cols-4 gap-1.5 p-2">
+                                {paginatedIcons.map((icon) => {
+                                  if (!icon.thumbnail) {
+                                    return null;
+                                  }
+                                  
+                                  const safeSvg = sanitizeSvg(icon.thumbnail);
+                                  const thumbSrc = svgToDataUrl(safeSvg);
+                                  const isLoaded = !!loadedMap[icon.id];
+                                  
+                                  return (
+                                    <button
+                                      key={icon.id}
+                                      onClick={() => handleIconClick(icon)}
+                                      className="aspect-square border border-border/40 rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/40 hover:border-primary transition-transform hover:scale-105 relative"
+                                      title={icon.name}
+                                    >
+                                      {!isLoaded && (
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                          <Skeleton className="w-6 h-6 rounded-sm" />
+                                        </div>
+                                      )}
+                                      <img
+                                        src={thumbSrc}
+                                        alt={icon.name}
+                                        loading="lazy"
+                                        onLoad={() => onImgLoad(icon.id)}
+                                        onError={() => onImgError(icon.id)}
+                                        className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
+                                        style={{ imageRendering: "pixelated" }}
+                                      />
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              
+                              {totalPages > 1 && (
+                                <div className="flex items-center justify-between px-2 pb-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(category.id, Math.max(0, currentPage - 1))}
+                                    disabled={currentPage === 0}
+                                    className="h-7 px-2"
+                                  >
+                                    <ChevronLeft className="h-4 w-4" />
+                                  </Button>
+                                  
+                                  <span className="text-xs text-muted-foreground">
+                                    {currentPage + 1} / {totalPages}
+                                  </span>
+                                  
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setCurrentPage(category.id, Math.min(totalPages - 1, currentPage + 1))}
+                                    disabled={currentPage === totalPages - 1}
+                                    className="h-7 px-2"
+                                  >
+                                    <ChevronRight className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-muted-foreground text-xs py-3 px-3 text-center">
+                              No icons in this category yet.
+                            </p>
+                          )}
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
+              </>
+            )}
+
+            {/* Unpinned Categories Section */}
+            <Accordion type="multiple" className="w-full space-y-2">
+              {unpinnedCategories.map((category) => {
             const categoryIcons = iconsByCategory[category.id] || [];
             const totalPages = getTotalPages(categoryIcons);
             const currentPage = getCurrentPage(category.id);
@@ -358,7 +493,19 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
               >
                 <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                   <div className="flex items-center justify-between w-full pr-2">
-                    <span>{category.name}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePin(category.id);
+                        }}
+                        className="hover:text-yellow-500 transition-colors"
+                        title="Pin category"
+                      >
+                        <Star className="h-4 w-4" />
+                      </button>
+                      <span>{category.name}</span>
+                    </div>
                     <span className="text-xs text-muted-foreground font-normal">
                       {categoryIcons.length}
                     </span>
@@ -440,16 +587,18 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange }: IconLibraryP
                 </AccordionContent>
               </AccordionItem>
             );
-          })}
-        </Accordion>
-        {categories.length === 0 && (
-          <div className="text-center py-8 px-4">
-            <p className="text-muted-foreground text-sm">
-              No categories yet. Add categories from the admin panel.
-            </p>
+              })}
+            </Accordion>
+            
+            {categories.length === 0 && (
+              <div className="text-center py-8 px-4">
+                <p className="text-muted-foreground text-sm">
+                  No categories yet. Add categories from the admin panel.
+                </p>
+              </div>
+            )}
           </div>
-        )}
-      </ScrollArea>
+        </ScrollArea>
       )}
     </div>
   );
