@@ -172,32 +172,28 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
         setCategories(categoriesData);
       }
 
-      // Load icons with only thumbnails initially (exclude heavy svg_content)
-      console.log("Loading icons...");
-      const { data: iconsData, error: iconsError } = await supabase
-        .from('icons')
-        .select('id, name, category, thumbnail')
-        .order('name');
+      // Load icons per-category to avoid PostgREST default row cap (typically 1,000)
+      console.log("Loading icons per category to avoid server row limits...");
+      const grouped: Record<string, Icon[]> = {};
 
-      if (iconsError) {
-        console.error("Icons error:", iconsError);
-        throw new Error(`Failed to load icons: ${iconsError.message}`);
-      }
-      
-      console.log("Icons loaded:", iconsData?.length || 0);
-      if (iconsData) {
-        // Group icons by category
-        const grouped = iconsData.reduce((acc, icon) => {
-          if (!acc[icon.category]) {
-            acc[icon.category] = [];
+      await Promise.all(
+        (categoriesData || []).map(async (cat) => {
+          const { data, error } = await supabase
+            .from('icons')
+            .select('id, name, category, thumbnail')
+            .eq('category', cat.id)
+            .order('name');
+
+          if (error) {
+            console.error(`Icons error for category ${cat.id}:`, error);
+            return;
           }
-          acc[icon.category].push(icon);
-          return acc;
-        }, {} as Record<string, Icon[]>);
-        
-        console.log("Icons grouped by category:", Object.keys(grouped).length, "categories");
-        setIconsByCategory(grouped);
-      }
+          grouped[cat.id] = data || [];
+        })
+      );
+
+      console.log("Icons grouped by category:", Object.keys(grouped).length, "categories");
+      setIconsByCategory(grouped);
     } catch (err) {
       console.error("Error loading icon library:", err);
       setError(err instanceof Error ? err.message : "Failed to load icons");
