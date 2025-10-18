@@ -25,6 +25,7 @@ const CanvasContent = () => {
   const [tempName, setTempName] = useState("");
   const [selectedIconCategory, setSelectedIconCategory] = useState<string>("");
   const [isIconLibraryCollapsed, setIsIconLibraryCollapsed] = useState(false);
+  const [isPropertiesPanelCollapsed, setIsPropertiesPanelCollapsed] = useState(false);
   const {
     canvas,
     undo,
@@ -231,8 +232,11 @@ const CanvasContent = () => {
         <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} />
 
         {/* Right Properties Panel */}
-        <div className="w-64 glass-effect border-l border-border/40 flex flex-col overflow-hidden min-h-0">
-          <PropertiesPanel />
+        <div className={`glass-effect border-l border-border/40 flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
+          <PropertiesPanel 
+            isCollapsed={isPropertiesPanelCollapsed}
+            onToggleCollapse={() => setIsPropertiesPanelCollapsed(!isPropertiesPanelCollapsed)}
+          />
         </div>
       </div>
 

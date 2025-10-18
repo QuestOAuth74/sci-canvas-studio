@@ -12,6 +12,7 @@ import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as FabricCircle, Polygon } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -33,7 +34,7 @@ const GOOGLE_FONTS = [
   { value: "Times New Roman", label: "Times New Roman (System)" },
 ];
 
-export const PropertiesPanel = () => {
+export const PropertiesPanel = ({ isCollapsed, onToggleCollapse }: { isCollapsed?: boolean; onToggleCollapse?: () => void }) => {
   const { 
     gridEnabled, 
     setGridEnabled, 
@@ -462,12 +463,27 @@ export const PropertiesPanel = () => {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <ScrollArea type="always" className="flex-1 min-h-0">
-        <Tabs defaultValue="diagram" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 m-3">
-            <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>
-            <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
-          </TabsList>
+      {/* Toggle button - always visible */}
+      <div className="p-2 border-b border-border/40 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggleCollapse}
+          className="h-8 w-8"
+          title={isCollapsed ? "Expand properties panel" : "Collapse properties panel"}
+        >
+          {isCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Content - hidden when collapsed */}
+      {!isCollapsed && (
+        <ScrollArea type="always" className="flex-1 min-h-0">
+          <Tabs defaultValue="diagram" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 m-3">
+              <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>
+              <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
+            </TabsList>
           
           <div className="px-3 pb-4">
             <TabsContent value="diagram" className="space-y-4 mt-0">
@@ -873,6 +889,7 @@ export const PropertiesPanel = () => {
           </div>
         </Tabs>
       </ScrollArea>
+      )}
     </div>
   );
 };
