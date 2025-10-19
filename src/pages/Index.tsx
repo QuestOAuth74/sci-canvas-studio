@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Heart, MessageCircleHeart } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import carousel1 from "@/assets/carousel-1.png";
+import carousel2 from "@/assets/carousel-2.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -83,6 +86,40 @@ const Index = () => {
                   </Button>
                 </>
               ) : null}
+            </div>
+          </div>
+
+          {/* Carousel Section */}
+          <div className="py-12 animate-fade-in [animation-delay:300ms]">
+            <div className="max-w-5xl mx-auto">
+              <Carousel className="relative" opts={{ loop: true }}>
+                <CarouselContent>
+                  <CarouselItem>
+                    <div className="p-2">
+                      <div className="bg-card border-[4px] border-foreground neo-brutalist-shadow overflow-hidden hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300">
+                        <img 
+                          src={carousel1} 
+                          alt="BioSketch Showcase 1" 
+                          className="w-full h-auto object-cover"
+                        />
+                      </div>
+                    </div>
+                  </CarouselItem>
+                  <CarouselItem>
+                    <div className="p-2">
+                      <div className="bg-card border-[4px] border-foreground neo-brutalist-shadow overflow-hidden hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300">
+                        <img 
+                          src={carousel2} 
+                          alt="BioSketch Showcase 2" 
+                          className="w-full h-auto object-cover"
+                        />
+                      </div>
+                    </div>
+                  </CarouselItem>
+                </CarouselContent>
+                <CarouselPrevious className="bg-primary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all -left-4 md:-left-16" />
+                <CarouselNext className="bg-primary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all -right-4 md:-right-16" />
+              </Carousel>
             </div>
           </div>
 
