@@ -4,7 +4,11 @@ import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { loadAllFonts } from "@/lib/fontLoader";
 import { createConnector } from "@/lib/connectorSystem";
+import { createSVGArrowMarker } from "@/lib/advancedLineSystem";
 import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
+import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
+import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
+import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -55,6 +59,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     startX: null,
     startY: null,
   });
+
+  const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
+  const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
   
   const { 
     canvas,
@@ -104,6 +111,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     } as any);
 
     canvas.isDrawingMode = false;
+    
+    // Initialize connector visual feedback
+    connectorFeedbackRef.current = new ConnectorVisualFeedback(canvas);
     
     setCanvas(canvas);
 
@@ -693,152 +703,107 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvas, activeTool]);
 
-  // Handle pen tool (bezier curves)
+  // Enhanced Pen Tool with smooth bezier curves (draw.io style)
   useEffect(() => {
-    if (!canvas) return;
-    
-    if (activeTool !== "pen") {
-      // Clean up pen tool state when switching away
-      penToolState.tempMarkers.forEach(marker => canvas.remove(marker));
-      penToolState.tempLines.forEach(line => canvas.remove(line));
-      setPenToolState({
-        isDrawing: false,
-        points: [],
-        tempMarkers: [],
-        tempLines: [],
-      });
-      canvas.renderAll();
+    if (!canvas || activeTool !== "pen") {
+      // Clean up bezier tool when switching away
+      if (bezierToolRef.current) {
+        bezierToolRef.current.cancel();
+        bezierToolRef.current = null;
+      }
       return;
     }
 
-    // Set cursor for pen tool
-    canvas.defaultCursor = "crosshair";
-    canvas.hoverCursor = "crosshair";
+    // Initialize enhanced bezier tool
+    bezierToolRef.current = new EnhancedBezierTool(canvas, {
+      smooth: 0.5,
+      snap: true,
+    });
 
-    const handlePenClick = (e: any) => {
+    bezierToolRef.current.start();
+
+    const handleCanvasClick = (e: any) => {
       const pointer = canvas.getPointer(e.e);
-      const newPoint = { x: pointer.x, y: pointer.y };
-
-      // Add visual marker for the point
-      const marker = new Circle({
-        left: pointer.x - 3,
-        top: pointer.y - 3,
-        radius: 3,
-        fill: "#0D9488",
-        stroke: "#ffffff",
-        strokeWidth: 1,
-        selectable: false,
-        evented: false,
-        excludeFromExport: true,
-      });
-      canvas.add(marker);
-
-      const newMarkers = [...penToolState.tempMarkers, marker];
-      const newPoints = [...penToolState.points, newPoint];
-      let newLines = [...penToolState.tempLines];
-
-      // If we have more than one point, draw a line to the previous point
-      if (newPoints.length > 1) {
-        const prevPoint = newPoints[newPoints.length - 2];
-        const line = new Line(
-          [prevPoint.x, prevPoint.y, newPoint.x, newPoint.y],
-          {
-            stroke: "#0D9488",
-            strokeWidth: 1,
-            strokeDashArray: [3, 3],
-            selectable: false,
-            evented: false,
-            excludeFromExport: true,
-          }
-        );
-        canvas.add(line);
-        newLines.push(line);
-      }
-
-      setPenToolState({
-        isDrawing: true,
-        points: newPoints,
-        tempMarkers: newMarkers,
-        tempLines: newLines,
-      });
-
-      canvas.renderAll();
-    };
-
-    const handlePenDblClick = (e: any) => {
-      if (penToolState.points.length < 2) {
-        toast.error("Need at least 2 points to create a path");
-        return;
-      }
-
-      // Build SVG path string from points
-      let pathString = `M ${penToolState.points[0].x} ${penToolState.points[0].y}`;
-      for (let i = 1; i < penToolState.points.length; i++) {
-        pathString += ` L ${penToolState.points[i].x} ${penToolState.points[i].y}`;
-      }
-
-      // Create the final path
-      const path = new Path(pathString, {
-        stroke: "#000000",
-        strokeWidth: 2,
-        fill: null,
-        strokeUniform: true,
-        strokeLineCap: "round",
-        strokeLineJoin: "round",
-      });
-
-      // Remove temporary markers and lines
-      penToolState.tempMarkers.forEach(marker => canvas.remove(marker));
-      penToolState.tempLines.forEach(line => canvas.remove(line));
-
-      // Add the final path
-      canvas.add(path);
-      canvas.setActiveObject(path);
-      canvas.renderAll();
-
-      // Reset pen tool state
-      setPenToolState({
-        isDrawing: false,
-        points: [],
-        tempMarkers: [],
-        tempLines: [],
-      });
-
-      if (onShapeCreated) onShapeCreated();
-      toast.success("Path created! Double-click to finish next path.");
+      bezierToolRef.current?.addPoint(pointer.x, pointer.y);
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && penToolState.isDrawing) {
-        // Cancel pen tool drawing
-        penToolState.tempMarkers.forEach(marker => canvas.remove(marker));
-        penToolState.tempLines.forEach(line => canvas.remove(line));
-        setPenToolState({
-          isDrawing: false,
-          points: [],
-          tempMarkers: [],
-          tempLines: [],
-        });
-        canvas.renderAll();
-        toast.info("Path drawing cancelled");
-      } else if (e.key === "Enter" && penToolState.points.length >= 2) {
-        // Finish the path with Enter key
-        handlePenDblClick({ e: {} });
+      if (e.key === "Escape") {
+        bezierToolRef.current?.cancel();
+        toast.info("Bezier drawing cancelled");
+      } else if (e.key === "Enter") {
+        const path = bezierToolRef.current?.finish();
+        if (path) {
+          toast.success("Smooth bezier curve created!");
+          if (onShapeCreated) onShapeCreated();
+        }
       }
     };
 
-    canvas.on("mouse:down", handlePenClick);
-    canvas.on("mouse:dblclick", handlePenDblClick);
+    canvas.on("mouse:down", handleCanvasClick);
     window.addEventListener("keydown", handleKeyDown);
 
+    toast.info("Click to add points. Press Enter to finish, Escape to cancel.");
+
     return () => {
-      canvas.off("mouse:down", handlePenClick);
-      canvas.off("mouse:dblclick", handlePenDblClick);
+      canvas.off("mouse:down", handleCanvasClick);
       window.removeEventListener("keydown", handleKeyDown);
-      canvas.defaultCursor = "default";
-      canvas.hoverCursor = "move";
+      if (bezierToolRef.current) {
+        bezierToolRef.current.cancel();
+      }
     };
-  }, [canvas, activeTool, penToolState, onShapeCreated]);
+  }, [canvas, activeTool, onShapeCreated]);
+
+  // Enhanced Pen Tool with smooth bezier curves (draw.io style)
+  useEffect(() => {
+    if (!canvas || activeTool !== "pen") {
+      // Clean up bezier tool when switching away
+      if (bezierToolRef.current) {
+        bezierToolRef.current.cancel();
+        bezierToolRef.current = null;
+      }
+      return;
+    }
+
+    // Initialize enhanced bezier tool
+    bezierToolRef.current = new EnhancedBezierTool(canvas, {
+      smooth: 0.5,
+      snap: true,
+    });
+
+    bezierToolRef.current.start();
+
+    const handleCanvasClick = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      bezierToolRef.current?.addPoint(pointer.x, pointer.y);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        bezierToolRef.current?.cancel();
+        toast.info("Bezier drawing cancelled");
+      } else if (e.key === "Enter") {
+        const path = bezierToolRef.current?.finish();
+        if (path) {
+          toast.success("Smooth bezier curve created!");
+          if (onShapeCreated) onShapeCreated();
+        }
+      }
+    };
+
+    canvas.on("mouse:down", handleCanvasClick);
+    window.addEventListener("keydown", handleKeyDown);
+
+    toast.info("Click to add points. Press Enter to finish, Escape to cancel.");
+
+    return () => {
+      canvas.off("mouse:down", handleCanvasClick);
+      window.removeEventListener("keydown", handleKeyDown);
+      if (bezierToolRef.current) {
+        bezierToolRef.current.cancel();
+      }
+    };
+  }, [canvas, activeTool, onShapeCreated]);
 
   // Handle tool changes
   useEffect(() => {
