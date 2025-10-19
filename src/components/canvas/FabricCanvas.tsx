@@ -1906,7 +1906,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
 
   return (
     <div
-      className="flex-1 overflow-hidden"
+      className="w-full h-full overflow-auto relative"
       style={gridEnabled ? {
         background: 'linear-gradient(90deg, #f0f0f0 1px, transparent 1px), linear-gradient(#f0f0f0 1px, transparent 1px)',
         backgroundSize: '20px 20px'

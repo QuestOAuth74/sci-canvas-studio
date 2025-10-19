@@ -320,7 +320,9 @@ const CanvasContent = () => {
           <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
         {/* Canvas */}
-        <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} />
+        <div className="flex-1 overflow-auto relative min-h-0">
+          <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} />
+        </div>
 
         {/* Right Properties Panel */}
         <div className={`glass-effect border-l border-border/40 flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
