@@ -84,6 +84,11 @@ interface CanvasContextType {
   unpinObject: () => void;
   togglePin: () => void;
   isPinned: boolean;
+  
+  // Layer panel operations
+  getCanvasObjects: () => FabricObject[];
+  selectObjectById: (id: string) => void;
+  toggleObjectVisibility: (id: string) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -555,6 +560,36 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [selectedObject]);
 
+  // Layer panel operations
+  const getCanvasObjects = useCallback(() => {
+    if (!canvas) return [];
+    return canvas.getObjects().filter(obj => 
+      !(obj as any).isGridLine && 
+      !(obj as any).isRuler && 
+      !(obj as any).isEraserPath
+    );
+  }, [canvas]);
+
+  const selectObjectById = useCallback((id: string) => {
+    if (!canvas) return;
+    const objects = canvas.getObjects();
+    const targetObject = objects.find(obj => (obj as any).uuid === id || obj === objects[parseInt(id)]);
+    if (targetObject) {
+      canvas.setActiveObject(targetObject);
+      canvas.renderAll();
+    }
+  }, [canvas]);
+
+  const toggleObjectVisibility = useCallback((id: string) => {
+    if (!canvas) return;
+    const objects = canvas.getObjects();
+    const targetObject = objects.find(obj => (obj as any).uuid === id || obj === objects[parseInt(id)]);
+    if (targetObject) {
+      targetObject.set({ visible: !targetObject.visible });
+      canvas.renderAll();
+    }
+  }, [canvas]);
+
   // Project save/load operations
   const saveProject = useCallback(async () => {
     if (!canvas || !user) {
@@ -752,6 +787,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     unpinObject,
     togglePin,
     isPinned,
+    getCanvasObjects,
+    selectObjectById,
+    toggleObjectVisibility,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

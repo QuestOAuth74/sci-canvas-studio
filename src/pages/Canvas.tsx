@@ -11,6 +11,7 @@ import { TopToolbar } from "@/components/canvas/TopToolbar";
 import { Toolbar } from "@/components/canvas/Toolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertiesPanel } from "@/components/canvas/PropertiesPanel";
+import { LayersPanel } from "@/components/canvas/LayersPanel";
 import { BottomBar } from "@/components/canvas/BottomBar";
 import { MenuBar } from "@/components/canvas/MenuBar";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -30,6 +31,7 @@ const CanvasContent = () => {
   const [isIconLibraryCollapsed, setIsIconLibraryCollapsed] = useState(false);
   const [isPropertiesPanelCollapsed, setIsPropertiesPanelCollapsed] = useState(false);
   const [leftSidebarTab, setLeftSidebarTab] = useState<"icons" | "assets">("icons");
+  const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "layers">("properties");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const {
     canvas,
@@ -333,13 +335,50 @@ const CanvasContent = () => {
           <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} />
         </div>
 
-        {/* Right Properties Panel */}
+        {/* Right Sidebar - Properties & Layers */}
         <div className={`glass-effect border-l border-border/40 flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
-          <PropertiesPanel 
-            isCollapsed={isPropertiesPanelCollapsed}
-            onToggleCollapse={() => setIsPropertiesPanelCollapsed(!isPropertiesPanelCollapsed)}
-            activeTool={activeTool}
-          />
+          {isPropertiesPanelCollapsed ? (
+            <div className="p-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsPropertiesPanelCollapsed(false)}
+                className="w-full"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col h-full">
+              <div className="p-2 border-b flex items-center justify-between">
+                <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
+                  <TabsList className="grid w-full grid-cols-2 h-8">
+                    <TabsTrigger value="properties" className="text-xs">Properties</TabsTrigger>
+                    <TabsTrigger value="layers" className="text-xs">Layers</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsPropertiesPanelCollapsed(true)}
+                  className="ml-1 h-8 w-8"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                {rightSidebarTab === "properties" ? (
+                  <PropertiesPanel 
+                    isCollapsed={false}
+                    onToggleCollapse={() => {}}
+                    activeTool={activeTool}
+                  />
+                ) : (
+                  <LayersPanel />
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
