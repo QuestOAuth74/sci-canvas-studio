@@ -29,6 +29,7 @@ interface UploadAssetParams {
   category?: string;
   tags?: string[];
   description?: string;
+  isShared?: boolean;
 }
 
 export function useUserAssets() {
@@ -77,7 +78,7 @@ export function useUserAssets() {
     }
   };
 
-  const uploadAsset = async ({ file, category = 'uncategorized', tags = [], description }: UploadAssetParams): Promise<UserAsset | null> => {
+  const uploadAsset = async ({ file, category = 'uncategorized', tags = [], description, isShared = false }: UploadAssetParams): Promise<UserAsset | null> => {
     try {
       setUploading(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -139,7 +140,9 @@ export function useUserAssets() {
           tags,
           description,
           width,
-          height
+          height,
+          is_shared: isShared,
+          shared_at: isShared ? new Date().toISOString() : null
         })
         .select()
         .single();

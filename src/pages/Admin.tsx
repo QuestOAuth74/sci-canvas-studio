@@ -12,6 +12,7 @@ import { TestimonialManager } from "@/components/admin/TestimonialManager";
 import { IconSubmissionManager } from "@/components/admin/IconSubmissionManager";
 import { IconSanitizer } from "@/components/admin/IconSanitizer";
 import { IconNameCleaner } from "@/components/admin/IconNameCleaner";
+import { CommunityUploader } from "@/components/admin/CommunityUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
@@ -37,10 +38,11 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="submitted" className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="submitted">Submitted Projects</TabsTrigger>
             <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="icon-submissions">Icon Submissions</TabsTrigger>
+            <TabsTrigger value="community-uploads">Community Uploads</TabsTrigger>
             <TabsTrigger value="upload">Upload Icons</TabsTrigger>
             <TabsTrigger value="manage">Manage Icons</TabsTrigger>
             <TabsTrigger value="clean-names">Clean Icon Names</TabsTrigger>
@@ -58,6 +60,10 @@ const Admin = () => {
           
           <TabsContent value="icon-submissions" className="mt-6">
             <IconSubmissionManager />
+          </TabsContent>
+          
+          <TabsContent value="community-uploads" className="mt-6">
+            <CommunityUploader />
           </TabsContent>
           
           <TabsContent value="upload" className="mt-6">
