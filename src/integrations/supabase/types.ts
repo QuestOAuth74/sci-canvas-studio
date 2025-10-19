@@ -109,6 +109,63 @@ export type Database = {
         }
         Relationships: []
       }
+      icon_submissions: {
+        Row: {
+          admin_notes: string | null
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          rejection_reason: string | null
+          svg_content: string
+          thumbnail: string | null
+          updated_at: string | null
+          usage_rights: string
+          usage_rights_details: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          rejection_reason?: string | null
+          svg_content: string
+          thumbnail?: string | null
+          updated_at?: string | null
+          usage_rights: string
+          usage_rights_details?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          rejection_reason?: string | null
+          svg_content?: string
+          thumbnail?: string | null
+          updated_at?: string | null
+          usage_rights?: string
+          usage_rights_details?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       icons: {
         Row: {
           category: string
