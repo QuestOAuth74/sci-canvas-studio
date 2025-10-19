@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { IconCategory, IconItem, IconDbRow } from "@/types/icon";
@@ -31,6 +32,8 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
 
       if (error) throw error;
       
+      console.log('Loaded categories:', data?.length, 'categories found');
+      console.log('Categories:', data?.map(c => c.name).join(', '));
       setCategories(data || []);
     } catch (error) {
       console.error('Error loading categories:', error);
@@ -49,6 +52,8 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
         .order('name');
 
       if (error) throw error;
+
+      console.log(`Loaded ${data?.length || 0} icons for category: ${categoryId}`);
 
       // Convert IconDbRow to IconItem format
       const icons: IconItem[] = (data || []).map((icon: IconDbRow) => ({
@@ -107,16 +112,36 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
 
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1.5">
-          {/* Dynamic Categories from Database */}
-          {filteredCategories.map((c) => {
+          {loading ? (
+            // Loading skeletons
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-12 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : filteredCategories.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              No categories found
+            </div>
+          ) : (
+            /* Dynamic Categories from Database */
+            filteredCategories.map((c) => {
               const sectionId = c.id;
+              const iconCount = iconsByCategory[c.id]?.length;
               return (
                 <div key={c.id} className="border border-border/40 rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm">
                   <button
                     onClick={() => toggleSection(sectionId)}
                     className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-accent/50 text-sm font-semibold transition-colors"
                   >
-                    <span>{c.name}</span>
+                    <span className="flex items-center gap-2">
+                      {c.name}
+                      {iconCount !== undefined && (
+                        <span className="text-xs text-muted-foreground font-normal">
+                          ({iconCount} icon{iconCount !== 1 ? 's' : ''})
+                        </span>
+                      )}
+                    </span>
                     {expandedSections.includes(sectionId) ? (
                       <ChevronDown className="h-4 w-4" />
                     ) : (
@@ -125,32 +150,39 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                   </button>
                   {expandedSections.includes(sectionId) && (
                     <div className="grid grid-cols-4 gap-1.5 p-2 border-t border-border/40">
-                      {(iconsByCategory[c.id] || [])
-                        .filter(icon => !searchQuery || icon.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                        .map((icon) => (
-                          <button
-                            key={icon.id}
-                            onClick={() =>
-                              window.dispatchEvent(
-                                new CustomEvent("addIconToCanvas", { detail: { svgData: icon.svgData } })
-                              )
-                            }
-                            className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105"
-                            title={icon.name}
-                          >
-                            <img 
-                              src={icon.thumbnail} 
-                              alt={icon.name} 
-                              className="w-full h-full object-contain" 
-                              loading="lazy"
-                            />
-                          </button>
-                        ))}
+                      {iconsByCategory[c.id] ? (
+                        iconsByCategory[c.id]
+                          .filter(icon => !searchQuery || icon.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                          .map((icon) => (
+                            <button
+                              key={icon.id}
+                              onClick={() =>
+                                window.dispatchEvent(
+                                  new CustomEvent("addIconToCanvas", { detail: { svgData: icon.svgData } })
+                                )
+                              }
+                              className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105"
+                              title={icon.name}
+                            >
+                              <img 
+                                src={icon.thumbnail} 
+                                alt={icon.name} 
+                                className="w-full h-full object-contain" 
+                                loading="lazy"
+                              />
+                            </button>
+                          ))
+                      ) : (
+                        <div className="col-span-4 text-center py-4 text-sm text-muted-foreground">
+                          Loading icons...
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               );
-            })}
+            })
+          )}
         </div>
       </ScrollArea>
     </div>
