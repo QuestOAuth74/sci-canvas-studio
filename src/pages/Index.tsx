@@ -283,7 +283,10 @@ const Index = () => {
             </div>
 
             {/* Bottom Footer */}
-            <div className="text-center pt-8 border-t-[3px] border-foreground/20">
+            <div className="text-center pt-8 border-t-[3px] border-foreground/20 space-y-3">
+              <p className="text-sm md:text-base font-medium">
+                All content on BioSketch.Art is shared under creative commons license (CC-BY) unless stated otherwise. Terms and Conditions
+              </p>
               <p className="text-sm md:text-base font-bold uppercase opacity-70">
                 Made with <Heart className="inline h-4 w-4 text-primary" /> by the Scientific Community
               </p>
