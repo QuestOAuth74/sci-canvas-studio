@@ -26,7 +26,9 @@ interface ConnectorToolProps {
 }
 
 export const ConnectorTool = ({ onConnectorSelect, activeTool }: ConnectorToolProps) => {
-  const isConnectorActive = activeTool?.startsWith('connector-');
+  const isConnectorActive = (activeTool?.startsWith('connector-') || 
+    activeTool?.startsWith('line-')) && 
+    !activeTool?.startsWith('straight-line');
 
   return (
     <DropdownMenu>
