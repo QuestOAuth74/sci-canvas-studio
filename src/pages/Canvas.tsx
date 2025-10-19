@@ -329,6 +329,7 @@ const CanvasContent = () => {
           <PropertiesPanel 
             isCollapsed={isPropertiesPanelCollapsed}
             onToggleCollapse={() => setIsPropertiesPanelCollapsed(!isPropertiesPanelCollapsed)}
+            activeTool={activeTool}
           />
         </div>
       </div>

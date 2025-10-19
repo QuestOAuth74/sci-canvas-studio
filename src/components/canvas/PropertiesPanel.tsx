@@ -35,7 +35,7 @@ const GOOGLE_FONTS = [
   { value: "Times New Roman", label: "Times New Roman (System)" },
 ];
 
-export const PropertiesPanel = ({ isCollapsed, onToggleCollapse }: { isCollapsed?: boolean; onToggleCollapse?: () => void }) => {
+export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: { isCollapsed?: boolean; onToggleCollapse?: () => void; activeTool?: string }) => {
   const { 
     gridEnabled, 
     setGridEnabled, 
@@ -63,6 +63,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse }: { isCollapsed
   const [freeformLineThickness, setFreeformLineThickness] = useState(2);
   const [freeformStartMarker, setFreeformStartMarker] = useState<"none" | "dot" | "arrow">("none");
   const [freeformEndMarker, setFreeformEndMarker] = useState<"none" | "dot" | "arrow">("none");
+  const [eraserWidth, setEraserWidth] = useState(20);
 
   const COLOR_PALETTE = [
     "#3b82f6", // Blue
@@ -462,6 +463,14 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse }: { isCollapsed
     }
   };
 
+  const handleEraserWidthChange = (value: number[]) => {
+    const width = value[0];
+    setEraserWidth(width);
+    if (canvas && canvas.freeDrawingBrush) {
+      canvas.freeDrawingBrush.width = width;
+    }
+  };
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Toggle button - always visible */}
@@ -748,6 +757,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse }: { isCollapsed
                           placeholder="#000000"
                         />
                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Eraser Controls - Only show when eraser tool is active */}
+              {activeTool === "eraser" && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Eraser</h3>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Eraser Size</Label>
+                        <span className="text-xs text-muted-foreground">{eraserWidth}px</span>
+                      </div>
+                      <Slider
+                        value={[eraserWidth]}
+                        onValueChange={handleEraserWidthChange}
+                        min={5}
+                        max={100}
+                        step={1}
+                        className="w-full"
+                      />
                     </div>
                   </div>
                 </div>

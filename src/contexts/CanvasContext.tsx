@@ -375,10 +375,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const exportAsPNG = useCallback(() => {
     if (!canvas) return;
 
-    // Temporarily hide guides
+    // Temporarily hide guides and eraser paths
     const hidden: FabricObject[] = [];
     canvas.getObjects().forEach((obj) => {
-      if ((obj as any).isGridLine || (obj as any).isRuler) {
+      if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath || obj.globalCompositeOperation === 'destination-out') {
         if (obj.visible) {
           hidden.push(obj);
           obj.visible = false;

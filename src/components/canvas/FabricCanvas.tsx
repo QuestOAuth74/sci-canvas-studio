@@ -528,25 +528,23 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
 
     if (activeTool === "eraser") {
       canvas.isDrawingMode = true;
-      canvas.selection = false; // Disable selection while erasing
+      canvas.selection = false;
       
-      // Create and configure the eraser brush (using PencilBrush with destination-out)
       const eraserBrush = new PencilBrush(canvas);
-      eraserBrush.width = 20; // Default eraser size
-      eraserBrush.color = "rgba(0,0,0,1)"; // Color doesn't matter for eraser
+      eraserBrush.width = 20;
+      eraserBrush.color = "rgba(255,255,255,1)"; // Use white to blend with background
       canvas.freeDrawingBrush = eraserBrush;
       
-      // Set cursor for eraser tool
       canvas.defaultCursor = "crosshair";
       canvas.hoverCursor = "crosshair";
 
-      // Handle path creation - set composite operation to erase
       const handleEraserPath = (e: any) => {
         const path = e.path as Path;
         if (path) {
           path.globalCompositeOperation = "destination-out";
-          // Mark as eraser path so it can be hidden during exports
           (path as any).isEraserPath = true;
+          path.selectable = false;
+          path.evented = false;
           canvas.renderAll();
         }
       };
@@ -556,7 +554,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       return () => {
         canvas.off("path:created", handleEraserPath);
         canvas.isDrawingMode = false;
-        canvas.selection = true; // Re-enable selection
+        canvas.selection = true;
         canvas.defaultCursor = "default";
         canvas.hoverCursor = "move";
       };
