@@ -63,17 +63,34 @@ export function SubmittedProjects() {
   const handleApprove = async (projectId: string) => {
     setActionLoading(true);
     try {
-      const { error } = await supabase
+      // Verify current state before update
+      const { data: before, error: beforeError } = await supabase
+        .from('canvas_projects')
+        .select('id, is_public, approval_status')
+        .eq('id', projectId)
+        .single();
+
+      if (beforeError) throw beforeError;
+      console.log('Before approval:', before);
+
+      if (!before.is_public) {
+        toast.error('Cannot approve: Project is not public');
+        return;
+      }
+
+      const { error, data } = await supabase
         .from('canvas_projects')
         .update({ 
           approval_status: 'approved',
           rejection_reason: null 
         })
-        .eq('id', projectId);
+        .eq('id', projectId)
+        .select();
 
       if (error) throw error;
+      console.log('After approval:', data);
       
-      toast.success('Project approved successfully');
+      toast.success('Project approved and now visible in community');
       loadProjects();
     } catch (error: any) {
       console.error('Error approving project:', error);

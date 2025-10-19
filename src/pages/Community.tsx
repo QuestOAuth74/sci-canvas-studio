@@ -79,6 +79,16 @@ export default function Community() {
     }
 
     const { data: projectsData, error: projectsError } = await projectsQuery;
+    
+    console.log('Community query results:', {
+      count: projectsData?.length,
+      projects: projectsData?.map(p => ({ 
+        id: p.id, 
+        title: p.title, 
+        is_public: p.is_public, 
+        approval_status: p.approval_status 
+      }))
+    });
 
     if (projectsError) {
       toast.error('Failed to load community projects');
@@ -139,6 +149,14 @@ export default function Community() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="text-2xl font-bold">Community Gallery</h1>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={loadProjects}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
+            </Button>
           </div>
           <UserMenu />
         </div>
