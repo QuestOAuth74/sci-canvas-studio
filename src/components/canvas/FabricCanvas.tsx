@@ -35,9 +35,10 @@ const sanitizeSVGNamespaces = (svgContent: string): string => {
 interface FabricCanvasProps {
   activeTool: string;
   onShapeCreated?: () => void;
+  onToolChange?: (tool: string) => void;
 }
 
-export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) => {
+export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: FabricCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [penToolState, setPenToolState] = useState<{
     isDrawing: boolean;
@@ -864,38 +865,55 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     straightLineToolRef.current = new StraightLineTool(canvas, options);
     straightLineToolRef.current.start();
 
-    const handleCanvasClick = (e: any) => {
-      e.stopImmediatePropagation(); // Prevent other handlers from interfering
+    // Drag-to-draw handlers
+    const handleMouseDown = (e: any) => {
+      e.e?.stopImmediatePropagation?.();
       const pointer = canvas.getPointer(e.e);
-      straightLineToolRef.current?.addPoint(pointer.x, pointer.y);
+      straightLineToolRef.current?.startDragLine(pointer.x, pointer.y);
+    };
+
+    const handleMouseMove = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      straightLineToolRef.current?.updateDragLine(pointer.x, pointer.y);
+    };
+
+    const handleMouseUp = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      const line = straightLineToolRef.current?.finishDragLine(pointer.x, pointer.y);
+      if (line) {
+        toast.success("Straight line created!");
+        if (onShapeCreated) onShapeCreated();
+        // Re-initialize tool for drawing more lines
+        straightLineToolRef.current = new StraightLineTool(canvas, options);
+        straightLineToolRef.current.start();
+      }
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         straightLineToolRef.current?.cancel();
-        toast.info("Straight line drawing cancelled");
-      } else if (e.key === "Enter") {
-        const line = straightLineToolRef.current?.finish();
-        if (line) {
-          toast.success("Straight line created!");
-          if (onShapeCreated) onShapeCreated();
-        }
+        onToolChange?.("select");
+        toast.info("Straight line tool cancelled");
       }
     };
 
-    canvas.on("mouse:down", handleCanvasClick);
+    canvas.on("mouse:down", handleMouseDown);
+    canvas.on("mouse:move", handleMouseMove);
+    canvas.on("mouse:up", handleMouseUp);
     window.addEventListener("keydown", handleKeyDown);
 
-    toast.info("Click to add points. Press Enter to finish, Escape to cancel.");
+    toast.info("Click and drag to draw a straight line. Press Escape to exit.");
 
     return () => {
-      canvas.off("mouse:down", handleCanvasClick);
+      canvas.off("mouse:down", handleMouseDown);
+      canvas.off("mouse:move", handleMouseMove);
+      canvas.off("mouse:up", handleMouseUp);
       window.removeEventListener("keydown", handleKeyDown);
       if (straightLineToolRef.current) {
         straightLineToolRef.current.cancel();
       }
     };
-  }, [canvas, activeTool, onShapeCreated]);
+  }, [canvas, activeTool, onShapeCreated, onToolChange]);
 
   // Handle tool changes
   useEffect(() => {

@@ -336,7 +336,7 @@ const CanvasContent = () => {
 
         {/* Canvas */}
         <div className="flex-1 overflow-auto relative min-h-0">
-          <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} />
+          <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
         </div>
 
         {/* Right Sidebar - Properties & Layers */}

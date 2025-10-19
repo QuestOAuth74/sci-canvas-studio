@@ -27,6 +27,8 @@ export class StraightLineTool {
   private tempMarkers: FabricObject[] = [];
   private isDrawing: boolean = false;
   private isFinishing: boolean = false;
+  private isDragging: boolean = false;
+  private dragStartPoint: StraightLinePoint | null = null;
   private options: Required<StraightLineOptions>;
 
   constructor(canvas: FabricCanvas, options?: StraightLineOptions) {
@@ -67,6 +69,48 @@ export class StraightLineTool {
     if (this.points.length === 1) {
       toast.info("Click to add more points. Press Enter to finish.");
     }
+  }
+
+  private snapToGrid(x: number, y: number): StraightLinePoint {
+    if (this.options.snap) {
+      return {
+        x: Math.round(x / this.options.gridSize) * this.options.gridSize,
+        y: Math.round(y / this.options.gridSize) * this.options.gridSize
+      };
+    }
+    return { x, y };
+  }
+
+  startDragLine(x: number, y: number): void {
+    this.isDrawing = true;
+    this.isDragging = true;
+    this.canvas.selection = false;
+    this.canvas.defaultCursor = 'crosshair';
+    
+    const snappedPoint = this.snapToGrid(x, y);
+    this.dragStartPoint = snappedPoint;
+    this.points = [snappedPoint];
+    
+    this.addPointHandle(snappedPoint.x, snappedPoint.y);
+  }
+
+  updateDragLine(x: number, y: number): void {
+    if (!this.isDragging || !this.dragStartPoint) return;
+    
+    const snappedPoint = this.snapToGrid(x, y);
+    this.points = [this.dragStartPoint, snappedPoint];
+    this.updatePath();
+  }
+
+  finishDragLine(x: number, y: number): Group | Path | null {
+    if (!this.isDragging || !this.dragStartPoint) return null;
+    
+    const snappedPoint = this.snapToGrid(x, y);
+    this.points = [this.dragStartPoint, snappedPoint];
+    
+    this.isDragging = false;
+    this.dragStartPoint = null;
+    return this.finish();
   }
 
   private addPointHandle(x: number, y: number): void {
