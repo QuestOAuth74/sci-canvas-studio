@@ -215,7 +215,9 @@ const Index = () => {
               <img 
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
                 alt="BioSketch Art"
-                className="max-w-full h-auto border-[4px] border-foreground neo-brutalist-shadow"
+                width="50"
+                height="50"
+                className="border-[4px] border-foreground neo-brutalist-shadow"
               />
             </div>
 
