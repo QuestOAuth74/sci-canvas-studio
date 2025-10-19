@@ -235,10 +235,24 @@ export function useUserAssets() {
 
       if (error) throw error;
 
-      const text = await data.text();
-      return text;
+      // For SVG files, return as text
+      if (asset.mime_type === 'image/svg+xml') {
+        return await data.text();
+      }
+      
+      // For PNG/JPG images, convert to data URL
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => {
+          console.error('FileReader error');
+          reject(new Error('Failed to read file'));
+        };
+        reader.readAsDataURL(data);
+      });
     } catch (error) {
       console.error('Error downloading asset:', error);
+      toast.error('Failed to download asset');
       return null;
     }
   };

@@ -172,6 +172,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
         } else {
           // Handle as data URL image
           const img = new Image();
+          
           img.onload = () => {
             const fabricImage = new FabricImage(img, {
               left: (canvas.width || 0) / 2,
@@ -190,6 +191,38 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
             canvas.renderAll();
             toast.success("Asset added to canvas");
           };
+          
+          img.onerror = () => {
+            console.error("Failed to load image from data URL");
+            toast.error("Failed to load image asset");
+          };
+          
+          // Set timeout for slow loading images
+          const timeout = setTimeout(() => {
+            console.error("Image loading timeout");
+            toast.error("Image loading timed out");
+          }, 10000);
+          
+          img.onload = () => {
+            clearTimeout(timeout);
+            const fabricImage = new FabricImage(img, {
+              left: (canvas.width || 0) / 2,
+              top: (canvas.height || 0) / 2,
+              originX: "center",
+              originY: "center",
+            });
+            
+            const maxW = (canvas.width || 0) * 0.6;
+            const maxH = (canvas.height || 0) * 0.6;
+            const scale = Math.min(maxW / fabricImage.width!, maxH / fabricImage.height!, 1);
+            fabricImage.scale(scale);
+            
+            canvas.add(fabricImage);
+            canvas.setActiveObject(fabricImage);
+            canvas.renderAll();
+            toast.success("Asset added to canvas");
+          };
+          
           img.src = content;
         }
       } catch (error) {
