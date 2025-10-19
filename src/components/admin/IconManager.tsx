@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Trash2, ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Icon {
   id: string;
@@ -21,18 +22,42 @@ export const IconManager = () => {
   const [totalIcons, setTotalIcons] = useState(0);
   const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [brokenThumbnails, setBrokenThumbnails] = useState<Set<string>>(new Set());
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   
   const ITEMS_PER_PAGE = 100;
 
   useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
     loadIcons(currentPage);
-  }, [currentPage]);
+  }, [currentPage, selectedCategory]);
+
+  const loadCategories = async () => {
+    const { data } = await supabase
+      .from('icon_categories')
+      .select('id, name')
+      .order('name');
+    
+    if (data) {
+      setCategories(data);
+    }
+  };
 
   const loadIcons = async (page: number) => {
+    // Build query with optional category filter
+    let countQuery = supabase.from('icons').select('*', { count: 'exact', head: true });
+    let dataQuery = supabase.from('icons').select('*');
+
+    if (selectedCategory !== "all") {
+      countQuery = countQuery.eq('category', selectedCategory);
+      dataQuery = dataQuery.eq('category', selectedCategory);
+    }
+
     // Get total count
-    const { count } = await supabase
-      .from('icons')
-      .select('*', { count: 'exact', head: true });
+    const { count } = await countQuery;
 
     if (count) {
       setTotalIcons(count);
@@ -43,9 +68,7 @@ export const IconManager = () => {
     const from = (page - 1) * ITEMS_PER_PAGE;
     const to = from + ITEMS_PER_PAGE - 1;
 
-    const { data, error } = await supabase
-      .from('icons')
-      .select('*')
+    const { data, error } = await dataQuery
       .order('name')
       .range(from, to);
 
@@ -162,6 +185,26 @@ export const IconManager = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Category Filter */}
+        <div className="flex items-center gap-4">
+          <label className="text-sm font-medium">Filter by category:</label>
+          <Select value={selectedCategory} onValueChange={(value) => {
+            setSelectedCategory(value);
+            setCurrentPage(1);
+          }}>
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="All categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {icons.map((icon) => {
             const thumbnailSize = getThumbnailSize(icon.thumbnail);
