@@ -865,6 +865,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     straightLineToolRef.current.start();
 
     const handleCanvasClick = (e: any) => {
+      e.stopImmediatePropagation(); // Prevent other handlers from interfering
       const pointer = canvas.getPointer(e.e);
       straightLineToolRef.current?.addPoint(pointer.x, pointer.y);
     };

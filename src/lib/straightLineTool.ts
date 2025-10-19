@@ -26,6 +26,7 @@ export class StraightLineTool {
   private handles: Circle[] = [];
   private tempMarkers: FabricObject[] = [];
   private isDrawing: boolean = false;
+  private isFinishing: boolean = false;
   private options: Required<StraightLineOptions>;
 
   constructor(canvas: FabricCanvas, options?: StraightLineOptions) {
@@ -247,8 +248,11 @@ export class StraightLineTool {
   }
 
   finish(): Group | Path | null {
+    this.isFinishing = true;
+    
     if (!this.isDrawing || this.points.length < 2) {
       this.cancel();
+      this.isFinishing = false;
       return null;
     }
 
@@ -334,6 +338,8 @@ export class StraightLineTool {
   }
 
   cancel(): void {
+    if (this.isFinishing) return; // Don't cancel while finishing
+    
     this.cleanup();
     this.canvas.selection = true;
     this.canvas.defaultCursor = 'default';
