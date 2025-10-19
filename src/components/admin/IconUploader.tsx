@@ -59,8 +59,29 @@ export const IconUploader = () => {
     }
   };
 
+  // Validate and fix SVG content before upload
+  const validateAndFixSVG = (content: string): string => {
+    // Fix namespace issues
+    let fixed = content
+      .replace(/<ns\d+:svg/g, '<svg')
+      .replace(/<\/ns\d+:svg>/g, '</svg>')
+      .replace(/xmlns:ns\d+=/g, 'xmlns=')
+      .replace(/<(\/?)ns\d+:(\w+)/g, '<$1$2')
+      .replace(/ns\d+:/g, '');
+    
+    // Ensure proper xmlns attribute
+    if (!fixed.includes('xmlns="http://www.w3.org/2000/svg"')) {
+      fixed = fixed.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    
+    return fixed;
+  };
+
   // Normalize namespaced SVG for HTML rendering and thumbnail generation
   const normalizeSvgForHtml = (content: string): string => {
+    // First fix namespace issues
+    content = validateAndFixSVG(content);
+    
     // Detect if root uses a namespace prefix (e.g., <ns0:svg xmlns:ns0="...">)
     const prefixMatch = content.match(/<\s*([a-zA-Z_][\w.-]*):svg\b[^>]*xmlns:\1=["']http:\/\/www\.w3\.org\/2000\/svg["']/i);
     

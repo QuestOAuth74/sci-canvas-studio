@@ -4,6 +4,27 @@ import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { loadAllFonts } from "@/lib/fontLoader";
 
+// Sanitize SVG namespace issues before parsing with Fabric.js
+const sanitizeSVGNamespaces = (svgContent: string): string => {
+  let sanitized = svgContent
+    // Replace <ns0:svg> and other namespace prefixes with <svg>
+    .replace(/<ns\d+:svg/g, '<svg')
+    .replace(/<\/ns\d+:svg>/g, '</svg>')
+    // Replace xmlns:ns0="..." with xmlns="..."
+    .replace(/xmlns:ns\d+=/g, 'xmlns=')
+    // Replace <ns0:element> with <element> for any SVG element
+    .replace(/<(\/?)ns\d+:(\w+)/g, '<$1$2')
+    // Remove any remaining ns0: references in attributes
+    .replace(/ns\d+:/g, '');
+  
+  // Ensure proper xmlns attribute exists
+  if (!sanitized.includes('xmlns="http://www.w3.org/2000/svg"')) {
+    sanitized = sanitized.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  
+  return sanitized;
+};
+
 interface FabricCanvasProps {
   activeTool: string;
   onShapeCreated?: () => void;
@@ -95,13 +116,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       try {
         const startTime = performance.now();
         
+        // Sanitize SVG before parsing to fix namespace issues
+        const sanitizedSVG = sanitizeSVGNamespaces(svgData);
+        
         // Create a timeout promise for large SVG parsing
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('SVG parsing timeout')), 20000); // 20 second timeout
         });
         
-        // Parse SVG string with timeout
-        const parsePromise = loadSVGFromString(svgData);
+        // Parse sanitized SVG string with timeout
+        const parsePromise = loadSVGFromString(sanitizedSVG);
         const { objects, options } = await Promise.race([parsePromise, timeoutPromise]) as Awaited<ReturnType<typeof loadSVGFromString>>;
         
         const parseTime = performance.now() - startTime;
@@ -131,9 +155,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
         toast.success("Icon added to canvas");
       } catch (error) {
         console.error("Error adding icon:", error);
+        console.error("SVG content preview:", svgData.substring(0, 500));
+        
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         if (errorMessage.includes('timeout')) {
           toast.error("Icon is too large to process. Please try a simpler icon.");
+        } else if (errorMessage.toLowerCase().includes('namespace') || errorMessage.toLowerCase().includes('parse')) {
+          toast.error("Invalid SVG format. The icon may have formatting issues.");
         } else {
           toast.error(`Failed to add icon: ${errorMessage}`);
         }
@@ -152,7 +180,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
         
         // Try to parse as SVG first
         if (content.trim().startsWith('<svg') || content.includes('xmlns="http://www.w3.org/2000/svg"')) {
-          const { objects, options } = await loadSVGFromString(content);
+          // Sanitize SVG before parsing
+          const sanitizedContent = sanitizeSVGNamespaces(content);
+          const { objects, options } = await loadSVGFromString(sanitizedContent);
           const group = util.groupSVGElements(objects, options);
           
           const maxW = (canvas.width || 0) * 0.6;

@@ -29,6 +29,33 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
     usage_rights_details: '',
   });
 
+  // Validate and fix SVG content
+  const validateAndFixSVG = (content: string): string => {
+    // Fix namespace issues
+    let fixed = content
+      .replace(/<ns\d+:svg/g, '<svg')
+      .replace(/<\/ns\d+:svg>/g, '</svg>')
+      .replace(/xmlns:ns\d+=/g, 'xmlns=')
+      .replace(/<(\/?)ns\d+:(\w+)/g, '<$1$2')
+      .replace(/ns\d+:/g, '');
+    
+    // Ensure proper xmlns attribute
+    if (!fixed.includes('xmlns="http://www.w3.org/2000/svg"')) {
+      fixed = fixed.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    
+    // Basic validation
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(fixed, 'image/svg+xml');
+    const parserError = doc.querySelector('parsererror');
+    
+    if (parserError) {
+      throw new Error('Invalid SVG: ' + parserError.textContent);
+    }
+    
+    return fixed;
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -45,7 +72,7 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
 
     const reader = new FileReader();
     reader.onload = async (event) => {
-      const svgContent = event.target?.result as string;
+      let svgContent = event.target?.result as string;
       
       // Basic SVG validation
       if (!svgContent.includes('<svg')) {
@@ -53,8 +80,15 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
         return;
       }
 
-      setSvgPreview(svgContent);
-      setFormData(prev => ({ ...prev, svg_content: svgContent }));
+      try {
+        // Validate and fix namespace issues
+        svgContent = validateAndFixSVG(svgContent);
+        setSvgPreview(svgContent);
+        setFormData(prev => ({ ...prev, svg_content: svgContent }));
+      } catch (error) {
+        console.error('SVG validation error:', error);
+        toast.error(error instanceof Error ? error.message : 'Invalid SVG file');
+      }
     };
     reader.readAsText(file);
   };
