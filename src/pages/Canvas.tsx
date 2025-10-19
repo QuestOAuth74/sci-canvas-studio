@@ -5,7 +5,6 @@ import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight } from 
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
-import { ShapesLibrary } from "@/components/canvas/ShapesLibrary";
 import { IconLibrary } from "@/components/canvas/IconLibrary";
 import { UserAssetsLibrary } from "@/components/canvas/UserAssetsLibrary";
 import { TopToolbar } from "@/components/canvas/TopToolbar";
