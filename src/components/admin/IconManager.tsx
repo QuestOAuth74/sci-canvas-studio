@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Trash2, ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -24,6 +25,8 @@ export const IconManager = () => {
   const [brokenThumbnails, setBrokenThumbnails] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedIcons, setSelectedIcons] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const ITEMS_PER_PAGE = 100;
 
@@ -32,6 +35,7 @@ export const IconManager = () => {
   }, []);
 
   useEffect(() => {
+    setSelectedIcons(new Set());
     loadIcons(currentPage);
   }, [currentPage, selectedCategory]);
 
@@ -88,6 +92,58 @@ export const IconManager = () => {
     } else {
       toast.success("Icon deleted");
       loadIcons(currentPage);
+    }
+  };
+
+  const toggleIconSelection = (iconId: string) => {
+    const newSelection = new Set(selectedIcons);
+    if (newSelection.has(iconId)) {
+      newSelection.delete(iconId);
+    } else {
+      newSelection.add(iconId);
+    }
+    setSelectedIcons(newSelection);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIcons.size === icons.length) {
+      setSelectedIcons(new Set());
+    } else {
+      setSelectedIcons(new Set(icons.map(icon => icon.id)));
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIcons.size === 0) return;
+    
+    const confirmMessage = `Are you sure you want to delete ${selectedIcons.size} icon${selectedIcons.size > 1 ? 's' : ''}? This action cannot be undone.`;
+    
+    if (!window.confirm(confirmMessage)) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      const deletePromises = Array.from(selectedIcons).map(iconId =>
+        supabase.from('icons').delete().eq('id', iconId)
+      );
+      
+      const results = await Promise.allSettled(deletePromises);
+      const failures = results.filter(r => r.status === 'rejected').length;
+      const successes = selectedIcons.size - failures;
+      
+      if (failures > 0) {
+        toast.error(`Deleted ${successes} icons, ${failures} failed`);
+      } else {
+        toast.success(`Successfully deleted ${successes} icon${successes > 1 ? 's' : ''}`);
+      }
+      
+      setSelectedIcons(new Set());
+      loadIcons(currentPage);
+    } catch (error) {
+      toast.error("Failed to delete icons");
+      console.error(error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -205,20 +261,77 @@ export const IconManager = () => {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Selection Controls */}
+        {icons.length > 0 && (
+          <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/50">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  checked={selectedIcons.size === icons.length && icons.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                  id="select-all"
+                />
+                <label 
+                  htmlFor="select-all" 
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  Select All ({icons.length})
+                </label>
+              </div>
+              {selectedIcons.size > 0 && (
+                <span className="text-sm text-muted-foreground">
+                  {selectedIcons.size} icon{selectedIcons.size > 1 ? 's' : ''} selected
+                </span>
+              )}
+            </div>
+            
+            {selectedIcons.size > 0 && (
+              <Button
+                variant="destructive"
+                onClick={handleBatchDelete}
+                disabled={isDeleting}
+                className="gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete Selected ({selectedIcons.size})
+              </Button>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {icons.map((icon) => {
             const thumbnailSize = getThumbnailSize(icon.thumbnail);
             const isOversized = thumbnailSize > 100000;
             const isBroken = brokenThumbnails.has(icon.id);
+            const isSelected = selectedIcons.has(icon.id);
             
             return (
-              <div key={icon.id} className="border border-border rounded-lg p-3 space-y-2">
-                {(isOversized || isBroken) && (
-                  <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                    <AlertCircle className="h-3 w-3" />
-                    {isOversized ? "Large" : "Error"}
-                  </div>
-                )}
+              <div 
+                key={icon.id} 
+                className={`border rounded-lg p-3 space-y-2 transition-all ${
+                  isSelected 
+                    ? 'border-primary bg-primary/5 ring-2 ring-primary' 
+                    : 'border-border'
+                }`}
+              >
+                {/* Checkbox at top */}
+                <div className="flex items-start justify-between">
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggleIconSelection(icon.id)}
+                    className="mt-1"
+                  />
+                  {(isOversized || isBroken) && (
+                    <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      <AlertCircle className="h-3 w-3" />
+                      {isOversized ? "Large" : "Error"}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Rest of the icon card remains the same */}
                 <div className="aspect-square border border-border rounded-lg p-2 flex items-center justify-center bg-muted">
                   {icon.thumbnail && !isBroken ? (
                     <div 
