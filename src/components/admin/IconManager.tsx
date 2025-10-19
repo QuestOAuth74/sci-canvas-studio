@@ -14,6 +14,7 @@ interface Icon {
   category: string;
   svg_content: string;
   thumbnail: string | null;
+  icon_categories?: { name: string } | null;
 }
 
 export const IconManager = () => {
@@ -75,9 +76,24 @@ export const IconManager = () => {
     const { data, error } = await dataQuery
       .order('name')
       .range(from, to);
+    
+    // Fetch category names separately
+    const { data: categoryData } = await supabase
+      .from('icon_categories')
+      .select('id, name');
+    
+    const categoryMap = new Map(categoryData?.map(cat => [cat.id, cat.name]) || []);
+    
+    // Augment icons with category names
+    const iconsWithCategories = data?.map(icon => ({
+      ...icon,
+      icon_categories: categoryMap.has(icon.category) 
+        ? { name: categoryMap.get(icon.category)! }
+        : null
+    }));
 
-    if (!error && data) {
-      setIcons(data);
+    if (!error && iconsWithCategories) {
+      setIcons(iconsWithCategories);
     }
   };
 
@@ -348,7 +364,9 @@ export const IconManager = () => {
                   )}
                 </div>
                 <p className="text-sm font-medium truncate">{icon.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{icon.category}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {icon.icon_categories?.name || icon.category}
+                </p>
                 {thumbnailSize > 0 && (
                   <p className="text-xs text-muted-foreground">
                     {(thumbnailSize / 1024).toFixed(1)} KB

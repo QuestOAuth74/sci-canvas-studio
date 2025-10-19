@@ -11,6 +11,7 @@ import { SubmittedProjects } from "@/components/admin/SubmittedProjects";
 import { TestimonialManager } from "@/components/admin/TestimonialManager";
 import { IconSubmissionManager } from "@/components/admin/IconSubmissionManager";
 import { IconSanitizer } from "@/components/admin/IconSanitizer";
+import { IconNameCleaner } from "@/components/admin/IconNameCleaner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
@@ -36,12 +37,13 @@ const Admin = () => {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="submitted" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="submitted">Submitted Projects</TabsTrigger>
             <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
             <TabsTrigger value="icon-submissions">Icon Submissions</TabsTrigger>
             <TabsTrigger value="upload">Upload Icons</TabsTrigger>
             <TabsTrigger value="manage">Manage Icons</TabsTrigger>
+            <TabsTrigger value="clean-names">Clean Icon Names</TabsTrigger>
             <TabsTrigger value="sanitize">Icon Sanitizer</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
           </TabsList>
@@ -69,6 +71,10 @@ const Admin = () => {
           
           <TabsContent value="manage" className="mt-6">
             <IconManager />
+          </TabsContent>
+          
+          <TabsContent value="clean-names" className="mt-6">
+            <IconNameCleaner />
           </TabsContent>
           
           <TabsContent value="sanitize" className="mt-6">

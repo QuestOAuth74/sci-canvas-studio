@@ -287,13 +287,45 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
     }
   };
   
-  // Sanitize filename
+  // Sanitize filename - enhanced to prevent corrupted names
   const sanitizeFileName = (fileName: string): string => {
-    return fileName
+    let cleaned = fileName;
+    
+    // Remove upload metadata patterns
+    cleaned = cleaned.replace(/^\d+_[a-zA-Z0-9]+_\d+_[a-zA-Z0-9]+_/, '');
+    
+    // Try to decode Base64 encoded paths
+    if (cleaned.includes('_L2hvbWU') || cleaned.includes('_na1fn_')) {
+      const base64Match = cleaned.match(/_(L2[a-zA-Z0-9+/=]+)/);
+      if (base64Match) {
+        try {
+          const decoded = atob(base64Match[1]);
+          const pathParts = decoded.split('/');
+          cleaned = pathParts[pathParts.length - 1] || cleaned;
+        } catch (e) {
+          console.warn('Failed to decode base64 in filename');
+        }
+      }
+    }
+    
+    // Convert camelCase/PascalCase to readable text
+    cleaned = cleaned
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+    
+    // Standard sanitization
+    cleaned = cleaned
       .replace(/[^a-zA-Z0-9-_\s]/g, '')
-      .replace(/\s+/g, '-')
-      .toLowerCase()
+      .replace(/[-_]+/g, ' ')
+      .replace(/\d{4,}/g, '') // Remove long numbers
+      .replace(/\s+/g, ' ')
+      .trim()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
       .substring(0, 100);
+    
+    return cleaned || 'Unnamed Icon';
   };
 
   // Generate optimized thumbnail from full SVG (target max 50KB)
