@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, LogOut, Settings, ShieldCheck, Users } from 'lucide-react';
+import { User, LogOut, Settings, ShieldCheck, Users, UserCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const UserMenu = () => {
@@ -43,6 +43,10 @@ export const UserMenu = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate('/profile')}>
+          <UserCircle className="mr-2 h-4 w-4" />
+          My Profile
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate('/community')}>
           <Users className="mr-2 h-4 w-4" />
           Community Gallery

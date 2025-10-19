@@ -11,6 +11,7 @@ import Canvas from "./pages/Canvas";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Projects from "./pages/Projects";
+import Profile from "./pages/Profile";
 import Community from "./pages/Community";
 import Testimonials from "./pages/Testimonials";
 import NotFound from "./pages/NotFound";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
             <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
             <Route path="/testimonials" element={<Testimonials />} />
