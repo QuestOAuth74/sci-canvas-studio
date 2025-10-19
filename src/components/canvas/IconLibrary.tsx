@@ -30,7 +30,16 @@ interface IconLibraryProps {
   onToggleCollapse: () => void;
 }
 
-const ICONS_PER_PAGE = 20;
+const ICONS_PER_PAGE = 48;
+
+// Helper to normalize category names for matching
+const slugify = (str: string): string => {
+  return str
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
 
 // Helper functions to sanitize and encode SVG content
 const sanitizeSvg = (raw: string): string => {
@@ -178,21 +187,46 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
 
       await Promise.all(
         (categoriesData || []).map(async (cat) => {
+          const id = cat.id;
+          const name = cat.name;
+          const idSlug = slugify(id);
+          const nameSlug = slugify(name);
+          
+          // Build OR filter for flexible category matching (handles legacy naming)
+          const filters = [
+            `category.eq.${id}`,
+            `category.eq.${name}`,
+            `category.eq.${idSlug}`,
+            `category.eq.${nameSlug}`,
+          ];
+          
+          // Remove duplicates
+          const uniqueFilters = Array.from(new Set(filters));
+          const orFilter = uniqueFilters.join(',');
+
           const { data, error } = await supabase
             .from('icons')
             .select('id, name, category, thumbnail')
-            .eq('category', cat.id)
+            .or(orFilter)
             .order('name');
 
           if (error) {
             console.error(`Icons error for category ${cat.id}:`, error);
             return;
           }
+          
           grouped[cat.id] = data || [];
+          console.log(`Category "${cat.name}" (${cat.id}): ${data?.length || 0} icons`);
         })
       );
 
       console.log("Icons grouped by category:", Object.keys(grouped).length, "categories");
+      
+      // Filter out categories with no icons
+      const nonEmptyCategories = (categoriesData || []).filter(c => (grouped[c.id]?.length || 0) > 0);
+      console.log(`Filtered to ${nonEmptyCategories.length} non-empty categories`);
+      
+      setCategories(nonEmptyCategories);
       setIconsByCategory(grouped);
     } catch (err) {
       console.error("Error loading icon library:", err);
