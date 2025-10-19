@@ -7,6 +7,7 @@ import { createConnector } from "@/lib/connectorSystem";
 import { createSVGArrowMarker } from "@/lib/advancedLineSystem";
 import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
 import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
+import { StraightLineTool } from "@/lib/straightLineTool";
 import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 
@@ -61,6 +62,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
   });
 
   const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
+  const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
   
   const { 
@@ -808,6 +810,92 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     };
   }, [canvas, activeTool, onShapeCreated]);
 
+  // Straight Line Tool with customizable markers
+  useEffect(() => {
+    if (!canvas || !activeTool.startsWith("straight-line")) {
+      if (straightLineToolRef.current) {
+        straightLineToolRef.current.cancel();
+        straightLineToolRef.current = null;
+      }
+      return;
+    }
+
+    // Parse tool options from activeTool string
+    const options: any = {
+      startMarker: 'none',
+      endMarker: 'none',
+      lineStyle: 'solid',
+      strokeWidth: 2,
+      strokeColor: '#000000',
+      snap: true,
+      gridSize: 20,
+    };
+
+    // Parse activeTool to set markers and styles
+    if (activeTool.includes('double-arrow')) {
+      options.startMarker = 'arrow';
+      options.endMarker = 'arrow';
+    } else if (activeTool.includes('arrow')) {
+      options.endMarker = 'arrow';
+    }
+    
+    if (activeTool.includes('dot')) {
+      options.startMarker = 'dot';
+      options.endMarker = 'dot';
+    }
+    
+    if (activeTool.includes('diamond')) {
+      options.startMarker = 'diamond';
+      options.endMarker = 'diamond';
+    }
+    
+    if (activeTool.includes('circle')) {
+      options.startMarker = 'circle';
+      options.endMarker = 'circle';
+    }
+    
+    if (activeTool.includes('dashed')) {
+      options.lineStyle = 'dashed';
+    } else if (activeTool.includes('dotted')) {
+      options.lineStyle = 'dotted';
+    }
+
+    // Initialize straight line tool
+    straightLineToolRef.current = new StraightLineTool(canvas, options);
+    straightLineToolRef.current.start();
+
+    const handleCanvasClick = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      straightLineToolRef.current?.addPoint(pointer.x, pointer.y);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        straightLineToolRef.current?.cancel();
+        toast.info("Straight line drawing cancelled");
+      } else if (e.key === "Enter") {
+        const line = straightLineToolRef.current?.finish();
+        if (line) {
+          toast.success("Straight line created!");
+          if (onShapeCreated) onShapeCreated();
+        }
+      }
+    };
+
+    canvas.on("mouse:down", handleCanvasClick);
+    window.addEventListener("keydown", handleKeyDown);
+
+    toast.info("Click to add points. Press Enter to finish, Escape to cancel.");
+
+    return () => {
+      canvas.off("mouse:down", handleCanvasClick);
+      window.removeEventListener("keydown", handleKeyDown);
+      if (straightLineToolRef.current) {
+        straightLineToolRef.current.cancel();
+      }
+    };
+  }, [canvas, activeTool, onShapeCreated]);
+
   // Handle tool changes
   useEffect(() => {
     if (!canvas) return;
@@ -821,14 +909,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       canvas.defaultCursor = "crosshair";
     } else if (activeTool === "eraser") {
       canvas.defaultCursor = "crosshair";
-    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-')) {
+    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-') || activeTool.startsWith('straight-line')) {
       canvas.defaultCursor = "crosshair";
     } else {
       canvas.defaultCursor = "default";
     }
 
     const handleCanvasClick = (e: any) => {
-      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image") return;
+      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image" || activeTool.startsWith('straight-line')) return;
 
       const pointer = canvas.getPointer(e.e);
       

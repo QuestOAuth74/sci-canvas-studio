@@ -56,7 +56,7 @@ export const KeyboardShortcutsDialog = ({
         { keys: ["S"], description: "Select tool" },
         { keys: ["R"], description: "Rectangle tool" },
         { keys: ["C"], description: "Circle tool" },
-        { keys: ["L"], description: "Line tool" },
+        { keys: ["L"], description: "Straight line tool" },
         { keys: ["T"], description: "Text tool" },
         { keys: ["B"], description: "Bezier pen tool" },
         { keys: ["F"], description: "Freeform line tool" },

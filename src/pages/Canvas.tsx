@@ -168,6 +168,10 @@ const CanvasContent = () => {
       } else if (modifier && e.key === 'l') {
         e.preventDefault();
         togglePin();
+      } else if (!modifier && e.key.toLowerCase() === 'l' && !isEditingText) {
+        e.preventDefault();
+        setActiveTool("straight-line");
+        toast.info("Straight line tool activated");
       }
     };
 

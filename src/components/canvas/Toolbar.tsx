@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ShapesDropdown } from "./ShapesDropdown";
 import { ConnectorTool } from "./ConnectorTool";
+import { StraightLineTool } from "./StraightLineTool";
 
 interface ToolbarProps {
   activeTool: string;
@@ -64,6 +65,17 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Shapes</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <StraightLineTool onLineSelect={onToolChange} activeTool={activeTool} />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Straight Lines (L)</p>
         </TooltipContent>
       </Tooltip>
       
