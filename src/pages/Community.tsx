@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 import { ProjectCard } from '@/components/community/ProjectCard';
 import { ProjectPreviewModal } from '@/components/community/ProjectPreviewModal';
 import { CommunityFilters } from '@/components/community/CommunityFilters';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import {
   Pagination,
   PaginationContent,
@@ -200,8 +202,36 @@ export default function Community() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <Skeleton className="h-48 w-full rounded-none" />
+                  <CardHeader>
+                    <Skeleton className="h-6 w-3/4 mb-2" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Skeleton className="h-6 w-6 rounded-full" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <div className="flex items-center gap-4 mb-3">
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-4 w-12" />
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-5 w-16" />
+                      <Skeleton className="h-5 w-20" />
+                      <Skeleton className="h-5 w-14" />
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Skeleton className="h-3 w-32" />
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
           ) : filteredProjects.length === 0 ? (
             <div className="text-center py-16">
@@ -214,13 +244,14 @@ export default function Community() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    onPreview={() => setSelectedProject(project)}
-                    onLikeChange={loadProjects}
-                  />
+                {paginatedProjects.map((project, index) => (
+                  <div key={project.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                    <ProjectCard
+                      project={project}
+                      onPreview={() => setSelectedProject(project)}
+                      onLikeChange={loadProjects}
+                    />
+                  </div>
                 ))}
               </div>
 

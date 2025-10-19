@@ -116,6 +116,7 @@ export function ProjectCard({ project, onPreview, onLikeChange }: ProjectCardPro
           <img 
             src={project.thumbnail_url} 
             alt={project.title || 'Project thumbnail'}
+            loading="lazy"
             className="w-full h-full object-cover"
           />
         ) : (
