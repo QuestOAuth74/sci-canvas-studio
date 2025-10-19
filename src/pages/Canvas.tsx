@@ -49,6 +49,7 @@ const CanvasContent = () => {
     isSaving,
     saveProject,
     loadProject,
+    togglePin,
   } = useCanvas();
 
   // Load project if projectId is in URL
@@ -162,12 +163,15 @@ const CanvasContent = () => {
       } else if (modifier && e.shiftKey && e.key === '[') {
         e.preventDefault();
         sendToBack();
+      } else if (modifier && e.key === 'l') {
+        e.preventDefault();
+        togglePin();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward]);
+  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, togglePin]);
 
   return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">

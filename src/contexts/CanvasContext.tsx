@@ -78,6 +78,12 @@ interface CanvasContextType {
   setTextBold: (bold: boolean) => void;
   textItalic: boolean;
   setTextItalic: (italic: boolean) => void;
+  
+  // Pin/Lock operations
+  pinObject: () => void;
+  unpinObject: () => void;
+  togglePin: () => void;
+  isPinned: boolean;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -118,6 +124,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [textOverline, setTextOverline] = useState(false);
   const [textBold, setTextBold] = useState(false);
   const [textItalic, setTextItalic] = useState(false);
+  
+  // Pin state
+  const [isPinned, setIsPinned] = useState(false);
 
   // History management
   const saveState = useCallback(() => {
@@ -490,6 +499,62 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     URL.revokeObjectURL(url);
   }, [canvas]);
 
+  // Pin/Lock operations
+  const pinObject = useCallback(() => {
+    if (!canvas || !selectedObject) return;
+    
+    selectedObject.set({
+      lockMovementX: true,
+      lockMovementY: true,
+      lockRotation: true,
+      lockScalingX: true,
+      lockScalingY: true,
+      hasControls: false,
+      hasBorders: true,
+      selectable: true,
+    });
+    (selectedObject as any).isPinned = true;
+    setIsPinned(true);
+    canvas.renderAll();
+    toast.success("Object pinned");
+  }, [canvas, selectedObject]);
+
+  const unpinObject = useCallback(() => {
+    if (!canvas || !selectedObject) return;
+    
+    selectedObject.set({
+      lockMovementX: false,
+      lockMovementY: false,
+      lockRotation: false,
+      lockScalingX: false,
+      lockScalingY: false,
+      hasControls: true,
+      hasBorders: true,
+      selectable: true,
+    });
+    (selectedObject as any).isPinned = false;
+    setIsPinned(false);
+    canvas.renderAll();
+    toast.success("Object unpinned");
+  }, [canvas, selectedObject]);
+
+  const togglePin = useCallback(() => {
+    if (isPinned) {
+      unpinObject();
+    } else {
+      pinObject();
+    }
+  }, [isPinned, pinObject, unpinObject]);
+
+  // Update isPinned state when selectedObject changes
+  useEffect(() => {
+    if (selectedObject) {
+      setIsPinned((selectedObject as any).isPinned || false);
+    } else {
+      setIsPinned(false);
+    }
+  }, [selectedObject]);
+
   // Project save/load operations
   const saveProject = useCallback(async () => {
     if (!canvas || !user) {
@@ -683,6 +748,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setTextBold,
     textItalic,
     setTextItalic,
+    pinObject,
+    unpinObject,
+    togglePin,
+    isPinned,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

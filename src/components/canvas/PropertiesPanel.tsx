@@ -13,7 +13,7 @@ import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as FabricCircle, Polygon } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pin, PinOff } from "lucide-react";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -48,7 +48,9 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     setCanvasDimensions,
     canvasDimensions,
     canvas,
-    selectedObject
+    selectedObject,
+    togglePin,
+    isPinned
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -489,6 +491,38 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
         <ScrollArea type="always" className="flex-1 min-h-0">
+          {/* Pin Object Section - shown when object is selected */}
+          {selectedObject && (
+            <div className="p-3 border-b border-border/40">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-sm font-medium">Pin Object</Label>
+                <Button
+                  variant={isPinned ? "default" : "outline"}
+                  size="sm"
+                  onClick={togglePin}
+                  className="gap-2"
+                >
+                  {isPinned ? (
+                    <>
+                      <Pin className="h-4 w-4" />
+                      Unpin
+                    </>
+                  ) : (
+                    <>
+                      <PinOff className="h-4 w-4" />
+                      Pin
+                    </>
+                  )}
+                </Button>
+              </div>
+              {isPinned && (
+                <p className="text-xs text-muted-foreground">
+                  This object is pinned and cannot be moved or resized
+                </p>
+              )}
+            </div>
+          )}
+
           <Tabs defaultValue="diagram" className="w-full">
             <TabsList className="grid w-full grid-cols-2 m-3">
               <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>
