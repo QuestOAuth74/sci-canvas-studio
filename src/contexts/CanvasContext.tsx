@@ -3,6 +3,7 @@ import { Canvas as FabricCanvas, FabricObject } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { loadAllFonts } from "@/lib/fontLoader";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -571,8 +572,24 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         return;
       }
 
+      // Wait for all fonts to load before rendering
+      toast("Loading project...");
+      await loadAllFonts();
+
       // Load canvas data
       await canvas.loadFromJSON(data.canvas_data as Record<string, any>);
+      
+      // Force font re-application after loading
+      canvas.getObjects().forEach(obj => {
+        if (obj.type === 'textbox' || obj.type === 'text') {
+          const fontFamily = (obj as any).fontFamily;
+          if (fontFamily) {
+            // Re-set the font to trigger proper rendering
+            obj.set({ fontFamily });
+          }
+        }
+      });
+      
       canvas.renderAll();
 
       // Update context state

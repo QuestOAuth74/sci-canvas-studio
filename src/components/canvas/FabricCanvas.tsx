@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
+import { loadAllFonts } from "@/lib/fontLoader";
 
 interface FabricCanvasProps {
   activeTool: string;
@@ -42,15 +43,19 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    const canvas = new Canvas(canvasRef.current, {
-      width: canvasDimensions.width,
-      height: canvasDimensions.height,
-      backgroundColor: backgroundColor,
-      // Make corner controls larger and more distinct for easier resizing
-      controlsAboveOverlay: true,
-      centeredScaling: false,
-      centeredRotation: true,
-    });
+    const initCanvas = async () => {
+      // Load fonts before initializing canvas
+      await loadAllFonts();
+      
+      const canvas = new Canvas(canvasRef.current!, {
+        width: canvasDimensions.width,
+        height: canvasDimensions.height,
+        backgroundColor: backgroundColor,
+        // Make corner controls larger and more distinct for easier resizing
+        controlsAboveOverlay: true,
+        centeredScaling: false,
+        centeredRotation: true,
+      });
 
     // Configure control appearance for easier object manipulation
     canvas.set({
@@ -195,12 +200,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
 
     window.addEventListener("addAssetToCanvas", handleAddAsset as EventListener);
 
-    return () => {
-      window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
-      window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
-      setCanvas(null);
-      canvas.dispose();
+      return () => {
+        window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
+        window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
+        setCanvas(null);
+        canvas.dispose();
+      };
     };
+
+    initCanvas();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

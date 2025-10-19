@@ -23,6 +23,8 @@ import {
 import { useCanvas } from "@/contexts/CanvasContext";
 import { useEffect } from "react";
 import { Textbox } from "fabric";
+import { ensureFontLoaded } from "@/lib/fontLoader";
+import { toast } from "sonner";
 
 const GOOGLE_FONTS = [
   "Inter",
@@ -71,7 +73,14 @@ export const TextFormattingPanel = () => {
     }
   }, [selectedObject, setTextFont, setTextAlign, setTextBold, setTextItalic, setTextUnderline, setTextOverline]);
 
-  const handleFontChange = (font: string) => {
+  const handleFontChange = async (font: string) => {
+    // Ensure font is loaded before applying
+    const loaded = await ensureFontLoaded(font);
+    if (!loaded) {
+      toast.error(`Font "${font}" failed to load`);
+      return;
+    }
+    
     setTextFont(font);
     // Update selected text object if exists
     if (canvas && selectedObject && selectedObject.type === 'textbox') {
