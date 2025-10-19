@@ -210,6 +210,15 @@ const Index = () => {
               </div>
             </div>
 
+            {/* Footer Image */}
+            <div className="flex justify-center py-8">
+              <img 
+                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
+                alt="BioSketch Art"
+                className="max-w-full h-auto border-[4px] border-foreground neo-brutalist-shadow"
+              />
+            </div>
+
             {/* Bottom Footer */}
             <div className="text-center pt-8 border-t-[3px] border-foreground/20">
               <p className="text-sm md:text-base font-bold uppercase opacity-70">
