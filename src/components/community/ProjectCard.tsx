@@ -2,8 +2,12 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Copy, User } from 'lucide-react';
+import { Eye, Copy, Star } from 'lucide-react';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 
 interface ProjectCardProps {
   project: {
@@ -15,17 +19,92 @@ interface ProjectCardProps {
     thumbnail_url: string | null;
     view_count: number;
     cloned_count: number;
+    like_count?: number;
     profiles: {
       full_name: string | null;
       avatar_url: string | null;
     } | null;
   };
   onPreview: () => void;
+  onLikeChange?: () => void;
 }
 
-export function ProjectCard({ project, onPreview }: ProjectCardProps) {
+export function ProjectCard({ project, onPreview, onLikeChange }: ProjectCardProps) {
+  const { user } = useAuth();
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(project.like_count || 0);
+  const [isLiking, setIsLiking] = useState(false);
   const creatorName = project.profiles?.full_name || 'Anonymous';
   const initials = creatorName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+  useEffect(() => {
+    if (user) {
+      checkIfLiked();
+    }
+  }, [user, project.id]);
+
+  const checkIfLiked = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from('project_likes')
+      .select('id')
+      .eq('project_id', project.id)
+      .eq('user_id', user.id)
+      .single();
+    
+    setIsLiked(!!data);
+  };
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error('Please sign in to like projects');
+      return;
+    }
+
+    if (isLiking) return;
+    
+    setIsLiking(true);
+    
+    try {
+      if (isLiked) {
+        // Unlike
+        const { error } = await supabase
+          .from('project_likes')
+          .delete()
+          .eq('project_id', project.id)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        
+        setIsLiked(false);
+        setLikeCount(prev => Math.max(0, prev - 1));
+        toast.success('Removed from favorites');
+      } else {
+        // Like
+        const { error } = await supabase
+          .from('project_likes')
+          .insert({ project_id: project.id, user_id: user.id });
+        
+        if (error) throw error;
+        
+        setIsLiked(true);
+        setLikeCount(prev => prev + 1);
+        toast.success('Added to favorites');
+      }
+      
+      if (onLikeChange) {
+        onLikeChange();
+      }
+    } catch (error: any) {
+      console.error('Like error:', error);
+      toast.error('Failed to update like status');
+    } finally {
+      setIsLiking(false);
+    }
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow overflow-hidden">
@@ -66,6 +145,16 @@ export function ProjectCard({ project, onPreview }: ProjectCardProps) {
         </div>
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLike}
+            disabled={isLiking}
+            className={`h-auto p-1 gap-1 ${isLiked ? 'text-yellow-500' : ''}`}
+          >
+            <Star className={`h-4 w-4 ${isLiked ? 'fill-yellow-500' : ''}`} />
+            {likeCount}
+          </Button>
           <span className="flex items-center gap-1">
             <Eye className="h-4 w-4" />
             {project.view_count}

@@ -29,6 +29,7 @@ interface CommunityProject {
   thumbnail_url: string | null;
   view_count: number;
   cloned_count: number;
+  like_count?: number;
   canvas_width: number;
   canvas_height: number;
   paper_size: string;
@@ -45,7 +46,7 @@ export default function Community() {
   const [projects, setProjects] = useState<CommunityProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'cloned'>('recent');
+  const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'cloned' | 'liked'>('recent');
   const [selectedProject, setSelectedProject] = useState<CommunityProject | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
@@ -66,18 +67,6 @@ export default function Community() {
       .eq('is_public', true)
       .eq('approval_status', 'approved');
 
-    // Apply sorting
-    switch (sortBy) {
-      case 'popular':
-        projectsQuery = projectsQuery.order('view_count', { ascending: false });
-        break;
-      case 'cloned':
-        projectsQuery = projectsQuery.order('cloned_count', { ascending: false });
-        break;
-      default:
-        projectsQuery = projectsQuery.order('updated_at', { ascending: false });
-    }
-
     const { data: projectsData, error: projectsError } = await projectsQuery;
     
     console.log('Community query results:', {
@@ -97,6 +86,21 @@ export default function Community() {
       return;
     }
 
+    // Fetch like counts for all projects
+    const { data: likesData, error: likesError } = await supabase
+      .from('project_likes')
+      .select('project_id');
+
+    if (likesError) {
+      console.error('Failed to load likes:', likesError);
+    }
+
+    // Count likes per project
+    const likesMap = new Map<string, number>();
+    likesData?.forEach(like => {
+      likesMap.set(like.project_id, (likesMap.get(like.project_id) || 0) + 1);
+    });
+
     // Fetch profiles for all unique user_ids
     const userIds = [...new Set(projectsData.map(p => p.user_id))];
     const { data: profilesData, error: profilesError } = await supabase
@@ -108,14 +112,32 @@ export default function Community() {
       console.error('Failed to load profiles:', profilesError);
     }
 
-    // Map profiles to projects
+    // Map profiles and likes to projects
     const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
-    const projectsWithProfiles = projectsData.map(project => ({
+    let projectsWithData = projectsData.map(project => ({
       ...project,
-      profiles: profilesMap.get(project.user_id) || null
+      profiles: profilesMap.get(project.user_id) || null,
+      like_count: likesMap.get(project.id) || 0
     }));
 
-    setProjects(projectsWithProfiles);
+    // Apply sorting
+    switch (sortBy) {
+      case 'liked':
+        projectsWithData.sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
+        break;
+      case 'popular':
+        projectsWithData.sort((a, b) => b.view_count - a.view_count);
+        break;
+      case 'cloned':
+        projectsWithData.sort((a, b) => b.cloned_count - a.cloned_count);
+        break;
+      default:
+        projectsWithData.sort((a, b) => 
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+        );
+    }
+
+    setProjects(projectsWithData);
     setLoading(false);
   };
 
@@ -197,6 +219,7 @@ export default function Community() {
                     key={project.id}
                     project={project}
                     onPreview={() => setSelectedProject(project)}
+                    onLikeChange={loadProjects}
                   />
                 ))}
               </div>
