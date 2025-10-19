@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
+import { LinePropertiesPanel } from "./LinePropertiesPanel";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
@@ -564,6 +565,9 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse }: { isCollapsed
             </TabsContent>
             
             <TabsContent value="style" className="space-y-4 mt-0">
+              {/* Line Properties Panel - shown when a connector is selected */}
+              <LinePropertiesPanel />
+              
               <StylePanel />
 
               {/* Icon Color - Only show for SVG groups (icons) */}

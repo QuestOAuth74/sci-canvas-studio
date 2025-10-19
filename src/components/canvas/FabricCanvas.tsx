@@ -3,6 +3,8 @@ import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loa
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { loadAllFonts } from "@/lib/fontLoader";
+import { createConnector } from "@/lib/connectorSystem";
+import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -42,6 +44,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     points: [],
     tempMarkers: [],
     tempLines: [],
+  });
+  
+  const [connectorState, setConnectorState] = useState<{
+    isDrawing: boolean;
+    startX: number | null;
+    startY: number | null;
+  }>({
+    isDrawing: false,
+    startX: null,
+    startY: null,
   });
   
   const { 
@@ -841,6 +853,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       canvas.defaultCursor = "crosshair";
     } else if (activeTool === "eraser") {
       canvas.defaultCursor = "crosshair";
+    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-')) {
+      canvas.defaultCursor = "crosshair";
     } else {
       canvas.defaultCursor = "default";
     }
@@ -849,6 +863,61 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image") return;
 
       const pointer = canvas.getPointer(e.e);
+      
+      // Handle connector tools
+      if (activeTool.startsWith('connector-') || activeTool.startsWith('line-')) {
+        if (!connectorState.isDrawing) {
+          // Start drawing
+          setConnectorState({
+            isDrawing: true,
+            startX: pointer.x,
+            startY: pointer.y,
+          });
+          toast.info("Click to set end point");
+          return;
+        } else {
+          // Finish drawing
+          const getConnectorProps = () => {
+            let startMarker: ArrowMarkerType = 'none';
+            let endMarker: ArrowMarkerType = 'arrow';
+            let routingStyle: RoutingStyle = 'straight';
+
+            if (activeTool === 'connector-curved') routingStyle = 'curved';
+            else if (activeTool === 'connector-orthogonal') routingStyle = 'orthogonal';
+            else if (activeTool === 'line-double-arrow') startMarker = 'arrow';
+            else if (activeTool === 'line-plain') endMarker = 'none';
+            else if (activeTool === 'line-circle-arrow') startMarker = 'circle';
+            else if (activeTool === 'line-diamond') {
+              startMarker = 'diamond';
+              endMarker = 'none';
+            }
+
+            return { startMarker, endMarker, routingStyle };
+          };
+
+          const props = getConnectorProps();
+          createConnector(canvas, {
+            startX: connectorState.startX!,
+            startY: connectorState.startY!,
+            endX: pointer.x,
+            endY: pointer.y,
+            ...props,
+            strokeColor: '#000000',
+            strokeWidth: 2,
+          });
+
+          setConnectorState({
+            isDrawing: false,
+            startX: null,
+            startY: null,
+          });
+
+          canvas.renderAll();
+          if (onShapeCreated) onShapeCreated();
+          toast.success("Connector created!");
+          return;
+        }
+      }
       
       if (activeTool === "text") {
         const textDecoration = [];
@@ -1973,7 +2042,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
     return () => {
       canvas.off("mouse:down", handleCanvasClick);
     };
-  }, [canvas, activeTool, textFont, textAlign, textUnderline, textOverline, textBold, textItalic]);
+  }, [canvas, activeTool, textFont, textAlign, textUnderline, textOverline, textBold, textItalic, connectorState.isDrawing, connectorState.startX, connectorState.startY]);
 
   return (
     <div

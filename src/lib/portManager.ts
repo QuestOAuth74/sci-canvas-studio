@@ -1,0 +1,125 @@
+import { FabricObject, Circle } from "fabric";
+import { Port, PortPosition, ShapeWithPorts } from "@/types/connector";
+
+// Calculate ports for a shape based on its geometry
+export function calculateShapePorts(shape: FabricObject): Port[] {
+  const ports: Port[] = [];
+  const width = (shape.width || 100) * (shape.scaleX || 1);
+  const height = (shape.height || 100) * (shape.scaleY || 1);
+  const left = shape.left || 0;
+  const top = shape.top || 0;
+  const centerX = left + width / 2;
+  const centerY = top + height / 2;
+
+  // Define 8 connection points
+  const portDefinitions: Array<{ pos: PortPosition; relX: number; relY: number }> = [
+    { pos: 'top', relX: 0.5, relY: 0 },
+    { pos: 'right', relX: 1, relY: 0.5 },
+    { pos: 'bottom', relX: 0.5, relY: 1 },
+    { pos: 'left', relX: 0, relY: 0.5 },
+    { pos: 'top-left', relX: 0, relY: 0 },
+    { pos: 'top-right', relX: 1, relY: 0 },
+    { pos: 'bottom-right', relX: 1, relY: 1 },
+    { pos: 'bottom-left', relX: 0, relY: 1 },
+  ];
+
+  portDefinitions.forEach(({ pos, relX, relY }) => {
+    ports.push({
+      id: `${shape.get('id') || 'shape'}-${pos}`,
+      position: pos,
+      x: left + width * relX,
+      y: top + height * relY,
+      relX,
+      relY,
+      type: 'both',
+    });
+  });
+
+  return ports;
+}
+
+// Find the nearest port to a given point
+export function findNearestPort(
+  shape: FabricObject,
+  point: { x: number; y: number },
+  maxDistance: number = 30
+): Port | null {
+  const ports = calculateShapePorts(shape);
+  let nearestPort: Port | null = null;
+  let minDistance = maxDistance;
+
+  ports.forEach(port => {
+    const distance = Math.sqrt(
+      Math.pow(port.x - point.x, 2) + Math.pow(port.y - point.y, 2)
+    );
+    if (distance < minDistance) {
+      minDistance = distance;
+      nearestPort = port;
+    }
+  });
+
+  return nearestPort;
+}
+
+// Show visual indicators for connection ports
+export function showPortIndicators(
+  shape: FabricObject,
+  canvas: any,
+  activePort?: Port | null
+): Circle[] {
+  const ports = calculateShapePorts(shape);
+  const indicators: Circle[] = [];
+
+  ports.forEach(port => {
+    const indicator = new Circle({
+      left: port.x,
+      top: port.y,
+      radius: 5,
+      fill: activePort?.id === port.id ? '#0D9488' : '#ffffff',
+      stroke: '#0D9488',
+      strokeWidth: 2,
+      originX: 'center',
+      originY: 'center',
+      selectable: false,
+      evented: false,
+      hasControls: false,
+      hasBorders: false,
+    } as any);
+
+    canvas.add(indicator);
+    indicators.push(indicator);
+  });
+
+  return indicators;
+}
+
+// Remove port indicators from canvas
+export function hidePortIndicators(canvas: any, indicators: Circle[]): void {
+  indicators.forEach(indicator => {
+    canvas.remove(indicator);
+  });
+}
+
+// Update ports when a shape is moved or resized
+export function updateShapePorts(shape: ShapeWithPorts): void {
+  if (!shape.ports) {
+    shape.ports = calculateShapePorts(shape);
+  } else {
+    shape.ports = calculateShapePorts(shape);
+  }
+}
+
+// Get entry/exit angle for a port (useful for routing)
+export function getPortAngle(port: Port): number {
+  const angleMap: Record<PortPosition, number> = {
+    'top': -90,
+    'right': 0,
+    'bottom': 90,
+    'left': 180,
+    'top-left': -135,
+    'top-right': -45,
+    'bottom-right': 45,
+    'bottom-left': 135,
+  };
+  return angleMap[port.position] || 0;
+}
