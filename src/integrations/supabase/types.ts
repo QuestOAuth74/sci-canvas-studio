@@ -109,6 +109,38 @@ export type Database = {
         }
         Relationships: []
       }
+      icon_review_status: {
+        Row: {
+          icon_id: string
+          id: string
+          ignore_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+        }
+        Insert: {
+          icon_id: string
+          id?: string
+          ignore_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Update: {
+          icon_id?: string
+          id?: string
+          ignore_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "icon_review_status_icon_id_fkey"
+            columns: ["icon_id"]
+            isOneToOne: true
+            referencedRelation: "icons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       icon_submissions: {
         Row: {
           admin_notes: string | null
