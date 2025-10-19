@@ -30,7 +30,7 @@ interface IconLibraryProps {
   onToggleCollapse: () => void;
 }
 
-const ICONS_PER_PAGE = 48;
+const ICONS_PER_PAGE = 20;
 
 // Helper to normalize category names for matching
 const slugify = (str: string): string => {
