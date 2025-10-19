@@ -1456,6 +1456,208 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
           break;
         }
 
+        case "paren-left": {
+          const height = 80;
+          const width = 30;
+          const parenLeft = new Path(
+            `M ${pointer.x + width} ${pointer.y} Q ${pointer.x} ${pointer.y + height/2} ${pointer.x + width} ${pointer.y + height}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          canvas.add(parenLeft);
+          canvas.setActiveObject(parenLeft);
+          break;
+        }
+
+        case "paren-right": {
+          const height = 80;
+          const width = 30;
+          const parenRight = new Path(
+            `M ${pointer.x} ${pointer.y} Q ${pointer.x + width} ${pointer.y + height/2} ${pointer.x} ${pointer.y + height}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          canvas.add(parenRight);
+          canvas.setActiveObject(parenRight);
+          break;
+        }
+
+        case "paren-top": {
+          const width = 80;
+          const height = 30;
+          const parenTop = new Path(
+            `M ${pointer.x} ${pointer.y + height} Q ${pointer.x + width/2} ${pointer.y} ${pointer.x + width} ${pointer.y + height}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          canvas.add(parenTop);
+          canvas.setActiveObject(parenTop);
+          break;
+        }
+
+        case "paren-bottom": {
+          const width = 80;
+          const height = 30;
+          const parenBottom = new Path(
+            `M ${pointer.x} ${pointer.y} Q ${pointer.x + width/2} ${pointer.y + height} ${pointer.x + width} ${pointer.y}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          canvas.add(parenBottom);
+          canvas.setActiveObject(parenBottom);
+          break;
+        }
+
+        case "bracket-left": {
+          const height = 80;
+          const width = 20;
+          const bracketLeft = new Path(
+            `M ${pointer.x + width} ${pointer.y} L ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + height} L ${pointer.x + width} ${pointer.y + height}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          canvas.add(bracketLeft);
+          canvas.setActiveObject(bracketLeft);
+          break;
+        }
+
+        case "bracket-right": {
+          const height = 80;
+          const width = 20;
+          const bracketRight = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x + width} ${pointer.y} L ${pointer.x + width} ${pointer.y + height} L ${pointer.x} ${pointer.y + height}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          canvas.add(bracketRight);
+          canvas.setActiveObject(bracketRight);
+          break;
+        }
+
+        case "bracket-top": {
+          const width = 80;
+          const height = 20;
+          const bracketTop = new Path(
+            `M ${pointer.x} ${pointer.y + height} L ${pointer.x} ${pointer.y} L ${pointer.x + width} ${pointer.y} L ${pointer.x + width} ${pointer.y + height}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          canvas.add(bracketTop);
+          canvas.setActiveObject(bracketTop);
+          break;
+        }
+
+        case "bracket-bottom": {
+          const width = 80;
+          const height = 20;
+          const bracketBottom = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + height} L ${pointer.x + width} ${pointer.y + height} L ${pointer.x + width} ${pointer.y}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          canvas.add(bracketBottom);
+          canvas.setActiveObject(bracketBottom);
+          break;
+        }
+
+        case "paren-left-arrow": {
+          const height = 80;
+          const width = 30;
+          const parenLeftArrow = new Path(
+            `M ${pointer.x + width} ${pointer.y} Q ${pointer.x} ${pointer.y + height/2} ${pointer.x + width} ${pointer.y + height}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          
+          const arrowSize = 8;
+          const arrowAngle = Math.PI / 4;
+          const arrow = new Path(
+            `M ${pointer.x + width} ${pointer.y + height} L ${pointer.x + width - arrowSize * Math.cos(arrowAngle)} ${pointer.y + height - arrowSize * Math.sin(arrowAngle)} M ${pointer.x + width} ${pointer.y + height} L ${pointer.x + width + arrowSize * Math.cos(arrowAngle)} ${pointer.y + height - arrowSize * Math.sin(arrowAngle)}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: false,
+            }
+          );
+          
+          const group = new Group([parenLeftArrow, arrow], {
+            selectable: true,
+          });
+          canvas.add(group);
+          canvas.setActiveObject(group);
+          break;
+        }
+
+        case "paren-right-arrow": {
+          const height = 80;
+          const width = 30;
+          const parenRightArrow = new Path(
+            `M ${pointer.x} ${pointer.y} Q ${pointer.x + width} ${pointer.y + height/2} ${pointer.x} ${pointer.y + height}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: true,
+            }
+          );
+          
+          const arrowSize = 8;
+          const arrowAngle = Math.PI / 4;
+          const arrow = new Path(
+            `M ${pointer.x} ${pointer.y + height} L ${pointer.x - arrowSize * Math.cos(arrowAngle)} ${pointer.y + height - arrowSize * Math.sin(arrowAngle)} M ${pointer.x} ${pointer.y + height} L ${pointer.x + arrowSize * Math.cos(arrowAngle)} ${pointer.y + height - arrowSize * Math.sin(arrowAngle)}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              selectable: false,
+            }
+          );
+          
+          const group = new Group([parenRightArrow, arrow], {
+            selectable: true,
+          });
+          canvas.add(group);
+          canvas.setActiveObject(group);
+          break;
+        }
+
         case "curved-arrow-right": {
           const curvedPathRight = new Path(
             `M ${pointer.x} ${pointer.y} Q ${pointer.x + 50} ${pointer.y - 40} ${pointer.x + 100} ${pointer.y}`,

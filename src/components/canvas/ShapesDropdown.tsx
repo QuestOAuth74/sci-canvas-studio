@@ -217,6 +217,51 @@ export const ShapesDropdown = ({ onShapeSelect, activeTool }: ShapesDropdownProp
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
+        <DropdownMenuLabel>Parenthesis & Brackets</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => handleShapeClick("paren-left")}>
+            <span className="mr-2 text-lg">(</span>
+            <span>Left Parenthesis (</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("paren-right")}>
+            <span className="mr-2 text-lg">)</span>
+            <span>Right Parenthesis )</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("paren-top")}>
+            <span className="mr-2 text-lg">⌢</span>
+            <span>Top Parenthesis ⌢</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("paren-bottom")}>
+            <span className="mr-2 text-lg">⌣</span>
+            <span>Bottom Parenthesis ⌣</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("bracket-left")}>
+            <span className="mr-2 text-lg">[</span>
+            <span>Left Bracket [</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("bracket-right")}>
+            <span className="mr-2 text-lg">]</span>
+            <span>Right Bracket ]</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("bracket-top")}>
+            <span className="mr-2 text-lg">⊤</span>
+            <span>Top Bracket ⊤</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("bracket-bottom")}>
+            <span className="mr-2 text-lg">⊥</span>
+            <span>Bottom Bracket ⊥</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("paren-left-arrow")}>
+            <span className="mr-2 text-lg">(→</span>
+            <span>Left Paren Arrow (→</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleShapeClick("paren-right-arrow")}>
+            <span className="mr-2 text-lg">)→</span>
+            <span>Right Paren Arrow )→</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
         <DropdownMenuLabel>Curved Connectors</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => handleShapeClick("curved-arrow-right")}>
