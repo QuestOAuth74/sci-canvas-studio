@@ -33,11 +33,12 @@ export const ThumbnailGenerator = () => {
 
       if (totalError) throw totalError;
 
-      // Get count with thumbnails
+      // Get count with valid thumbnails (not null AND not empty)
       const { count: withThumbnailsCount, error: withThumbnailsError } = await supabase
         .from('icons')
         .select('*', { count: 'exact', head: true })
-        .not('thumbnail', 'is', null);
+        .not('thumbnail', 'is', null)
+        .neq('thumbnail', '');
 
       if (withThumbnailsError) throw withThumbnailsError;
 

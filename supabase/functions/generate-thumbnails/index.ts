@@ -12,6 +12,56 @@ interface IconRecord {
   thumbnail: string | null;
 }
 
+// Ultra-aggressive optimization for large SVGs (fallback)
+function generateUltraCompressedThumbnail(svgContent: string): string | null {
+  try {
+    let optimized = svgContent
+      // Remove all XML/metadata
+      .replace(/<\?xml[^>]*\?>/g, '')
+      .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
+      .replace(/<title>[\s\S]*?<\/title>/gi, '')
+      .replace(/<desc>[\s\S]*?<\/desc>/gi, '')
+      .replace(/<defs>[\s\S]*?<\/defs>/gi, '')
+      
+      // Remove ALL styling and attributes except essential structure
+      .replace(/\s+id=["'][^"']*["']/g, '')
+      .replace(/\s+class=["'][^"']*["']/g, '')
+      .replace(/\s+style=["'][^"']*["']/g, '')
+      .replace(/\s+fill=["'][^"']*["']/g, '')
+      .replace(/\s+stroke=["'][^"']*["']/g, '')
+      .replace(/\s+stroke-width=["'][^"']*["']/g, '')
+      .replace(/\s+opacity=["'][^"']*["']/g, '')
+      .replace(/\s+data-[^=]*=["'][^"']*["']/g, '')
+      .replace(/\s+xmlns:[^=]*=["'][^"']*["']/g, '')
+      
+      // Convert all numbers to integers (lose precision for thumbnails)
+      .replace(/(\d+\.\d+)/g, (match) => Math.round(parseFloat(match)).toString())
+      
+      // Extreme whitespace minification
+      .replace(/\s+/g, ' ')
+      .replace(/>\s+</g, '><')
+      .trim();
+
+    // Ensure viewBox exists
+    if (!optimized.includes('viewBox')) {
+      const widthMatch = optimized.match(/width=["']([^"']*)["']/);
+      const heightMatch = optimized.match(/height=["']([^"']*)["']/);
+      if (widthMatch && heightMatch) {
+        const width = Math.round(parseFloat(widthMatch[1]));
+        const height = Math.round(parseFloat(heightMatch[1]));
+        optimized = optimized.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
+      }
+    }
+
+    return optimized;
+  } catch (error) {
+    console.error('Ultra compression failed:', error);
+    return null;
+  }
+}
+
 // Generate optimized thumbnail from full SVG (target max 50KB)
 function generateThumbnail(svgContent: string): string | null {
   try {
@@ -73,10 +123,18 @@ function generateThumbnail(svgContent: string): string | null {
       return null;
     }
 
-    // Step 8: Final size check (do NOT truncate; return null to retry later)
+    // Step 8: Final size check with ultra-compression fallback
     if (optimized.length > 100000) {
-      console.error('Thumbnail too large after optimization:', optimized.length, 'bytes');
-      return null;
+      console.warn(`Thumbnail still too large (${optimized.length} bytes), trying ultra compression...`);
+      const ultraCompressed = generateUltraCompressedThumbnail(svgContent);
+      
+      if (!ultraCompressed || ultraCompressed.length > 100000) {
+        console.error('Even ultra compression failed, thumbnail too complex');
+        return null;
+      }
+      
+      optimized = ultraCompressed;
+      console.log(`Ultra compression successful: ${optimized.length} bytes`);
     }
 
     const originalSize = svgContent.length;
@@ -138,11 +196,11 @@ Deno.serve(async (req) => {
 
     console.log('Starting thumbnail generation...');
 
-    // Fetch icons without thumbnails, including recently uploaded ones
+    // Fetch icons without thumbnails (NULL or empty), including recently uploaded ones
     const { data: icons, error: fetchError } = await supabase
       .from('icons')
       .select('id, name, svg_content')
-      .is('thumbnail', null)
+      .or('thumbnail.is.null,thumbnail.eq.')
       .order('created_at', { ascending: false })
       .limit(50); // Process max 50 at a time
 
