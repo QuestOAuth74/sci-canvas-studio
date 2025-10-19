@@ -839,6 +839,16 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                     </div>
 
                     <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Smoothness</Label>
+                        <span className="text-xs text-muted-foreground">{activeTool === 'freeform-line' ? 'High' : 'Default'}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Freeform lines are automatically smoothed for natural curves
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label className="text-xs">Start Marker</Label>
                       <Select value={freeformStartMarker} onValueChange={(value) => handleFreeformStartMarkerChange(value as "none" | "dot" | "arrow")}>
                         <SelectTrigger className="h-8 text-xs">

@@ -478,7 +478,12 @@ export const FabricCanvas = ({ activeTool, onShapeCreated }: FabricCanvasProps) 
       const brush = new PencilBrush(canvas);
       brush.color = "#000000";
       brush.width = 2;
-      // Ensure round ends while drawing
+      
+      // CRITICAL: Set decimate to very low for smooth curves
+      // decimate controls path simplification (0 = no simplification, keeps all points)
+      (brush as any).decimate = 0.01; // Keep almost all points for smooth curves
+      
+      // Ensure smooth rendering
       (brush as any).strokeLineCap = "round";
       (brush as any).strokeLineJoin = "round";
       canvas.freeDrawingBrush = brush;
