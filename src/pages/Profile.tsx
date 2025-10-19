@@ -60,15 +60,16 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+    // Validate file type (only PNG and JPG)
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Please upload a PNG or JPG file only');
       return;
     }
 
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be less than 2MB');
+    // Validate file size (max 150KB)
+    if (file.size > 150 * 1024) {
+      toast.error('Image must be less than 150KB');
       return;
     }
 
@@ -161,7 +162,7 @@ export default function Profile() {
                 <Input
                   id="avatar-upload"
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/jpg"
                   onChange={handleAvatarUpload}
                   className="hidden"
                 />
