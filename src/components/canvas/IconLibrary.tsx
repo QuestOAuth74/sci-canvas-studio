@@ -496,9 +496,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                   </button>
                                   <span>{category.name}</span>
                                 </div>
-                                <span className="text-xs text-muted-foreground font-normal">
-                                  {categoryIcons.length}
-                                </span>
+                  <span className="text-xs text-muted-foreground font-normal">
+                    {iconsByCategory[category.id] ? categoryIcons.length : ''}
+                  </span>
                               </div>
                             </AccordionTrigger>
                             <AccordionContent className="px-3 pb-3 pt-1">
@@ -606,9 +606,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                               </button>
                               <span>{category.name}</span>
                             </div>
-                            <span className="text-xs text-muted-foreground font-normal">
-                              {categoryIcons.length}
-                            </span>
+                  <span className="text-xs text-muted-foreground font-normal">
+                    {iconsByCategory[category.id] ? categoryIcons.length : ''}
+                  </span>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-3 pb-3 pt-1">
