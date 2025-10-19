@@ -1,6 +1,23 @@
 import { Canvas as FabricCanvas } from "fabric";
 import { supabase } from "@/integrations/supabase/client";
 
+// Helper function to safely encode SVG to base64 with unicode support
+const svgToBase64 = (svgContent: string): string => {
+  try {
+    // Use TextEncoder to handle unicode properly
+    const encoder = new TextEncoder();
+    const data = encoder.encode(svgContent);
+    let binary = '';
+    for (let i = 0; i < data.length; i++) {
+      binary += String.fromCharCode(data[i]);
+    }
+    return btoa(binary);
+  } catch (error) {
+    // Fallback: URL encode the SVG instead
+    return encodeURIComponent(svgContent);
+  }
+};
+
 export async function generateIconThumbnail(svgContent: string): Promise<string> {
   try {
     // For icons, create a simple thumbnail by converting SVG to data URL
@@ -34,14 +51,16 @@ export async function generateIconThumbnail(svgContent: string): Promise<string>
       img.onerror = () => {
         URL.revokeObjectURL(url);
         // Return a simple data URL as fallback
-        resolve(`data:image/svg+xml;base64,${btoa(svgContent)}`);
+        const base64 = svgToBase64(svgContent);
+        resolve(`data:image/svg+xml;base64,${base64}`);
       };
       
       img.src = url;
     });
   } catch (error) {
     console.error('Error generating icon thumbnail:', error);
-    return `data:image/svg+xml;base64,${btoa(svgContent)}`;
+    const base64 = svgToBase64(svgContent);
+    return `data:image/svg+xml;base64,${base64}`;
   }
 }
 
