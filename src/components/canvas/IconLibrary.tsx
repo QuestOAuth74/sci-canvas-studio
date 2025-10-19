@@ -192,12 +192,12 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           const idSlug = slugify(id);
           const nameSlug = slugify(name);
           
-          // Build OR filter for flexible category matching (handles legacy naming)
+          // Build OR filter for flexible category matching (handles legacy naming and variations)
           const filters = [
             `category.eq.${id}`,
             `category.eq.${name}`,
-            `category.eq.${idSlug}`,
-            `category.eq.${nameSlug}`,
+            `category.ilike.%${id}%`,
+            `category.ilike.%${nameSlug}%`,
           ];
           
           // Remove duplicates
