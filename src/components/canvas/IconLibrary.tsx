@@ -87,6 +87,8 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Icon[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState<Record<string, boolean>>({});
+  const [openAccordions, setOpenAccordions] = useState<string[]>([]);
   const { pinnedCategoryIds, togglePin, isPinned } = usePinnedCategories();
 
   // Split categories into pinned and unpinned
@@ -154,6 +156,53 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
     }
   };
 
+  const loadIconsForCategory = async (categoryId: string, categoryName: string) => {
+    // Prevent duplicate loading
+    if (iconsByCategory[categoryId] || loadingCategories[categoryId]) {
+      return;
+    }
+
+    setLoadingCategories(prev => ({ ...prev, [categoryId]: true }));
+
+    try {
+      const id = categoryId;
+      const name = categoryName;
+      const idSlug = slugify(id);
+      const nameSlug = slugify(name);
+      
+      // Build OR filter for flexible category matching
+      const filters = [
+        `category.eq.${id}`,
+        `category.eq.${name}`,
+        `category.ilike.%${id}%`,
+        `category.ilike.%${nameSlug}%`,
+      ];
+      
+      const uniqueFilters = Array.from(new Set(filters));
+      const orFilter = uniqueFilters.join(',');
+
+      const { data, error } = await supabase
+        .from('icons')
+        .select('id, name, category, thumbnail')
+        .or(orFilter)
+        .order('name');
+
+      if (error) {
+        console.error(`Icons error for category ${categoryId}:`, error);
+        toast.error(`Failed to load icons for ${categoryName}`);
+        return;
+      }
+      
+      setIconsByCategory(prev => ({ ...prev, [categoryId]: data || [] }));
+      console.log(`Loaded ${data?.length || 0} icons for "${categoryName}" (${categoryId})`);
+    } catch (error) {
+      console.error(`Error loading category ${categoryId}:`, error);
+      toast.error(`Failed to load icons for ${categoryName}`);
+    } finally {
+      setLoadingCategories(prev => ({ ...prev, [categoryId]: false }));
+    }
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -164,7 +213,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       console.log("Auth session:", session ? "Authenticated" : "Not authenticated");
       setAuthState(session ? "authenticated" : "not authenticated");
       
-      // Load categories
+      // Load categories only (icons loaded on-demand)
       console.log("Loading categories...");
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('icon_categories')
@@ -179,55 +228,15 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       console.log("Categories loaded:", categoriesData?.length || 0);
       if (categoriesData) {
         setCategories(categoriesData);
+        
+        // Auto-load pinned categories for quick access
+        const pinnedCats = categoriesData.filter(cat => pinnedCategoryIds.includes(cat.id));
+        console.log(`Auto-loading ${pinnedCats.length} pinned categories...`);
+        
+        pinnedCats.forEach(cat => {
+          loadIconsForCategory(cat.id, cat.name);
+        });
       }
-
-      // Load icons per-category to avoid PostgREST default row cap (typically 1,000)
-      console.log("Loading icons per category to avoid server row limits...");
-      const grouped: Record<string, Icon[]> = {};
-
-      await Promise.all(
-        (categoriesData || []).map(async (cat) => {
-          const id = cat.id;
-          const name = cat.name;
-          const idSlug = slugify(id);
-          const nameSlug = slugify(name);
-          
-          // Build OR filter for flexible category matching (handles legacy naming and variations)
-          const filters = [
-            `category.eq.${id}`,
-            `category.eq.${name}`,
-            `category.ilike.%${id}%`,
-            `category.ilike.%${nameSlug}%`,
-          ];
-          
-          // Remove duplicates
-          const uniqueFilters = Array.from(new Set(filters));
-          const orFilter = uniqueFilters.join(',');
-
-          const { data, error } = await supabase
-            .from('icons')
-            .select('id, name, category, thumbnail')
-            .or(orFilter)
-            .order('name');
-
-          if (error) {
-            console.error(`Icons error for category ${cat.id}:`, error);
-            return;
-          }
-          
-          grouped[cat.id] = data || [];
-          console.log(`Category "${cat.name}" (${cat.id}): ${data?.length || 0} icons`);
-        })
-      );
-
-      console.log("Icons grouped by category:", Object.keys(grouped).length, "categories");
-      
-      // Filter out categories with no icons
-      const nonEmptyCategories = (categoriesData || []).filter(c => (grouped[c.id]?.length || 0) > 0);
-      console.log(`Filtered to ${nonEmptyCategories.length} non-empty categories`);
-      
-      setCategories(nonEmptyCategories);
-      setIconsByCategory(grouped);
     } catch (err) {
       console.error("Error loading icon library:", err);
       setError(err instanceof Error ? err.message : "Failed to load icons");
@@ -445,7 +454,21 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                     <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border/40 bg-yellow-500/5 rounded-t mb-2">
                       ⭐ Pinned Categories
                     </div>
-                    <Accordion type="multiple" className="w-full space-y-2">
+                    <Accordion 
+                      type="multiple" 
+                      className="w-full space-y-2"
+                      value={openAccordions}
+                      onValueChange={(values) => {
+                        setOpenAccordions(values);
+                        // Load icons for newly opened categories
+                        values.forEach(categoryId => {
+                          const category = categories.find(c => c.id === categoryId);
+                          if (category && !iconsByCategory[categoryId]) {
+                            loadIconsForCategory(categoryId, category.name);
+                          }
+                        });
+                      }}
+                    >
                       {pinnedCategories.map((category) => {
                         const categoryIcons = iconsByCategory[category.id] || [];
                         const totalPages = getTotalPages(categoryIcons);
@@ -478,11 +501,29 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                 </span>
                               </div>
                             </AccordionTrigger>
-                            <AccordionContent className="border-t border-border/40">
-                              {categoryIcons.length > 0 ? (
+                            <AccordionContent className="px-3 pb-3 pt-1">
+                              {loadingCategories[category.id] ? (
+                                <div className="grid grid-cols-4 gap-1.5">
+                                  {Array.from({ length: 8 }).map((_, idx) => (
+                                    <Skeleton key={idx} className="aspect-square rounded" />
+                                  ))}
+                                </div>
+                              ) : categoryIcons.length === 0 ? (
+                                <div className="text-center py-4 text-xs text-muted-foreground">
+                                  No icons in this category
+                                </div>
+                              ) : (
                                 <div className="space-y-2">
-                                  <div className="grid grid-cols-4 gap-1.5 p-2">
-                                    {paginatedIcons.map((icon) => renderIconButton(icon))}
+                                  <div className="grid grid-cols-4 gap-1.5">
+                                    {paginatedIcons.map((icon, index) => (
+                                      <div 
+                                        key={icon.id}
+                                        className="animate-fade-in"
+                                        style={{ animationDelay: `${index * 20}ms` }}
+                                      >
+                                        {renderIconButton(icon)}
+                                      </div>
+                                    ))}
                                   </div>
                                   
                                   {totalPages > 1 && (
@@ -513,10 +554,6 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                     </div>
                                   )}
                                 </div>
-                              ) : (
-                                <p className="text-muted-foreground text-xs py-3 px-3 text-center">
-                                  No icons in this category yet.
-                                </p>
                               )}
                             </AccordionContent>
                           </AccordionItem>
@@ -527,7 +564,21 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                 )}
 
                 {/* Unpinned Categories Section */}
-                <Accordion type="multiple" className="w-full space-y-2">
+                <Accordion 
+                  type="multiple" 
+                  className="w-full space-y-2"
+                  value={openAccordions}
+                  onValueChange={(values) => {
+                    setOpenAccordions(values);
+                    // Load icons for newly opened categories
+                    values.forEach(categoryId => {
+                      const category = categories.find(c => c.id === categoryId);
+                      if (category && !iconsByCategory[categoryId]) {
+                        loadIconsForCategory(categoryId, category.name);
+                      }
+                    });
+                  }}
+                >
                   {unpinnedCategories.map((category) => {
                     const categoryIcons = iconsByCategory[category.id] || [];
                     const totalPages = getTotalPages(categoryIcons);
@@ -560,11 +611,29 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                             </span>
                           </div>
                         </AccordionTrigger>
-                        <AccordionContent className="border-t border-border/40">
-                          {categoryIcons.length > 0 ? (
+                        <AccordionContent className="px-3 pb-3 pt-1">
+                          {loadingCategories[category.id] ? (
+                            <div className="grid grid-cols-4 gap-1.5">
+                              {Array.from({ length: 8 }).map((_, idx) => (
+                                <Skeleton key={idx} className="aspect-square rounded" />
+                              ))}
+                            </div>
+                          ) : categoryIcons.length === 0 ? (
+                            <div className="text-center py-4 text-xs text-muted-foreground">
+                              No icons in this category
+                            </div>
+                          ) : (
                             <div className="space-y-2">
-                              <div className="grid grid-cols-4 gap-1.5 p-2">
-                                {paginatedIcons.map((icon) => renderIconButton(icon))}
+                              <div className="grid grid-cols-4 gap-1.5">
+                                {paginatedIcons.map((icon, index) => (
+                                  <div 
+                                    key={icon.id}
+                                    className="animate-fade-in"
+                                    style={{ animationDelay: `${index * 20}ms` }}
+                                  >
+                                    {renderIconButton(icon)}
+                                  </div>
+                                ))}
                               </div>
                               
                               {totalPages > 1 && (
@@ -595,10 +664,6 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                 </div>
                               )}
                             </div>
-                          ) : (
-                            <p className="text-muted-foreground text-xs py-3 px-3 text-center">
-                              No icons in this category yet.
-                            </p>
                           )}
                         </AccordionContent>
                       </AccordionItem>
