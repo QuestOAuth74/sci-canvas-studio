@@ -198,8 +198,15 @@ export const WelcomeDialog = () => {
   const currentStep = steps[step];
   const StepIcon = currentStep.icon;
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && dontShowAgain) {
+      localStorage.setItem(WELCOME_DIALOG_KEY, "true");
+    }
+    setOpen(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
