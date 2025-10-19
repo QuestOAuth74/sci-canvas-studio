@@ -1,15 +1,28 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Heart, MessageCircleHeart } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Heart, MessageCircleHeart, Upload } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
+import { supabase } from "@/integrations/supabase/client";
 import carousel1 from "@/assets/carousel-1.png";
 import carousel2 from "@/assets/carousel-2.png";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
+  const [showSubmitDialog, setShowSubmitDialog] = useState(false);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from('icon_categories')
+      .select('id, name')
+      .order('name')
+      .then(({ data }) => setCategories(data || []));
+  }, []);
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -86,6 +99,17 @@ const Index = () => {
                   </Button>
                 </>
               ) : null}
+              {user && (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => setShowSubmitDialog(true)}
+                  className="min-w-[240px] h-16 text-lg font-bold uppercase bg-muted hover:bg-muted/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none hover:scale-105 group"
+                >
+                  <Upload className="h-6 w-6 mr-2 group-hover:scale-110 transition-transform" />
+                  Suggest an Icon
+                </Button>
+              )}
             </div>
           </div>
 
@@ -267,6 +291,13 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Icon Submission Dialog */}
+      <IconSubmissionDialog
+        open={showSubmitDialog}
+        onOpenChange={setShowSubmitDialog}
+        categories={categories}
+      />
     </div>
   );
 };
