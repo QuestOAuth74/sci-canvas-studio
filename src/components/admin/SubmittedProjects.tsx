@@ -88,8 +88,13 @@ export function SubmittedProjects() {
         .select();
 
       if (error) throw error;
-      console.log('After approval:', data);
       
+      // Check if update actually succeeded
+      if (!data || data.length === 0) {
+        throw new Error('Update failed - no rows returned. You may not have permission to update this project.');
+      }
+      
+      console.log('After approval:', data);
       toast.success('Project approved and now visible in community');
       loadProjects();
     } catch (error: any) {
