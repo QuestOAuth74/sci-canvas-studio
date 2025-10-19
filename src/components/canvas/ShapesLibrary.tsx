@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronRight, Search } from "lucide-react";
-import { iconStorage } from "@/lib/iconStorage";
-import { IconCategory, IconItem } from "@/types/icon";
+import { supabase } from "@/integrations/supabase/client";
+import { IconCategory, IconItem, IconDbRow } from "@/types/icon";
+import { toast } from "sonner";
 
 interface ShapesLibraryProps {
   onShapeSelect: (shape: string) => void;
@@ -15,10 +16,56 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [categories, setCategories] = useState<IconCategory[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, IconItem[]>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setCategories(iconStorage.getCategories());
+    loadCategories();
   }, []);
+
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('icon_categories')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      toast.error('Failed to load icon categories');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadIconsForCategory = async (categoryId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('icons')
+        .select('*')
+        .eq('category', categoryId)
+        .order('name');
+
+      if (error) throw error;
+
+      // Convert IconDbRow to IconItem format
+      const icons: IconItem[] = (data || []).map((icon: IconDbRow) => ({
+        id: icon.id,
+        name: icon.name,
+        category: icon.category,
+        svgData: icon.svg_content,
+        thumbnail: icon.thumbnail || undefined,
+        createdAt: new Date(icon.created_at).getTime(),
+      }));
+
+      setIconsByCategory(current => ({ ...current, [categoryId]: icons }));
+    } catch (error) {
+      console.error('Error loading icons:', error);
+      toast.error('Failed to load icons');
+    }
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => {
@@ -26,8 +73,7 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
       
       // Lazy load icons only when expanding
       if (isExpanding && !iconsByCategory[section]) {
-        const icons = iconStorage.getIconsByCategory(section);
-        setIconsByCategory(current => ({ ...current, [section]: icons }));
+        loadIconsForCategory(section);
       }
       
       return isExpanding
@@ -37,8 +83,9 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   };
 
   const filteredCategories = categories.filter((c) => {
-    if (!searchQuery) return (iconsByCategory[c.id]?.length || 0) > 0 || !iconsByCategory[c.id];
-    const icons = iconsByCategory[c.id] || iconStorage.getIconsByCategory(c.id);
+    if (!searchQuery) return true;
+    const icons = iconsByCategory[c.id];
+    if (!icons) return true; // Show category until icons are loaded
     return icons.some(icon => icon.name.toLowerCase().includes(searchQuery.toLowerCase()));
   });
 
