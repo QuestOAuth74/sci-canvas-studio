@@ -288,7 +288,7 @@ const Index = () => {
                 All content on BioSketch.Art is shared under creative commons license (CC-BY) unless stated otherwise. Terms and Conditions
               </p>
               <p className="text-sm md:text-base font-bold uppercase opacity-70">
-                Made with <Heart className="inline h-4 w-4 text-primary" /> by the Scientific Community
+                Made with <Heart className="inline h-4 w-4 text-red-500 animate-pulse" /> by the Scientific Community
               </p>
             </div>
           </div>
