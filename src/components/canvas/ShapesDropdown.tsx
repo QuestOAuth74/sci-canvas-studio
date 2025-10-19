@@ -39,7 +39,14 @@ interface ShapesDropdownProps {
 }
 
 export const ShapesDropdown = ({ onShapeSelect, activeTool }: ShapesDropdownProps) => {
-  const isShapeActive = activeTool && activeTool !== "select" && activeTool !== "text";
+  // Define tools that should NOT activate the shapes dropdown
+  const nonShapeTools = ['select', 'text', 'pen', 'freeform-line', 'eraser', 'image'];
+  const nonShapeToolPrefixes = ['connector-'];
+  
+  const isShapeActive = activeTool 
+    ? !nonShapeTools.includes(activeTool) && 
+      !nonShapeToolPrefixes.some(prefix => activeTool.startsWith(prefix))
+    : false;
 
   const handleShapeClick = (shape: string) => {
     onShapeSelect(shape);
