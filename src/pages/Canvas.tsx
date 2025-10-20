@@ -118,11 +118,22 @@ const CanvasContent = () => {
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const modifier = isMac ? e.metaKey : e.ctrlKey;
 
-      // Check if user is editing text - if so, don't intercept delete/backspace
+      // Check if user is editing text - either canvas text OR HTML inputs
       const activeObject = canvas?.getActiveObject();
-      const isEditingText = activeObject && 
+      const isEditingCanvasText = activeObject && 
         (activeObject.type === 'textbox' || activeObject.type === 'i-text' || activeObject.type === 'text') && 
         (activeObject as any).isEditing;
+
+      // Check if focus is on any HTML input element
+      const activeElement = document.activeElement;
+      const isEditingHTMLInput = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        activeElement.tagName === 'SELECT' ||
+        activeElement.getAttribute('contenteditable') === 'true'
+      );
+
+      const isEditingText = isEditingCanvasText || isEditingHTMLInput;
 
       // Show shortcuts dialog with ?
       if (e.key === '?' && !modifier && !isEditingText) {
