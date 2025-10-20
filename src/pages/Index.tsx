@@ -281,12 +281,20 @@ const Index = () => {
                 height="150"
                 className="border-[4px] border-foreground neo-brutalist-shadow"
               />
-              <button
-                onClick={() => navigate("/release-notes")}
-                className="px-4 py-2 bg-accent border-[3px] border-foreground neo-brutalist-shadow-sm font-bold text-sm uppercase hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all hover:bg-accent/80"
-              >
-                v1.1.0
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate("/release-notes")}
+                  className="px-4 py-2 bg-accent border-[3px] border-foreground neo-brutalist-shadow-sm font-bold text-sm uppercase hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all hover:bg-accent/80"
+                >
+                  v1.1.0
+                </button>
+                <button
+                  onClick={() => navigate("/contact")}
+                  className="px-4 py-2 bg-primary border-[3px] border-foreground neo-brutalist-shadow-sm font-bold text-sm uppercase hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all hover:bg-primary/80"
+                >
+                  Contact Us
+                </button>
+              </div>
             </div>
 
             {/* Bottom Footer */}
