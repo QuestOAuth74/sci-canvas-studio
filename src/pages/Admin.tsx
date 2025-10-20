@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BarChart3 } from "lucide-react";
+import { ArrowLeft, BarChart3, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IconUploader } from "@/components/admin/IconUploader";
 import { IconManager } from "@/components/admin/IconManager";
@@ -34,14 +34,24 @@ const Admin = () => {
               <span className="text-sm text-muted-foreground">Admin</span>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/admin/analytics")}
-            className="neo-brutalist-shadow-sm"
-          >
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Analytics
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/admin/analytics")}
+              className="neo-brutalist-shadow-sm"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/admin/email-notifications")}
+              className="neo-brutalist-shadow-sm"
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Send Email
+            </Button>
+          </div>
         </div>
       </header>
 

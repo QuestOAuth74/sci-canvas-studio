@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.send-contact-reply]
 verify_jwt = false
+
+[functions.send-bulk-email]
+verify_jwt = false
