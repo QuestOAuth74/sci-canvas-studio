@@ -91,6 +91,42 @@ export type Database = {
           },
         ]
       }
+      contact_messages: {
+        Row: {
+          admin_notes: string | null
+          country: string
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          is_read: boolean | null
+          message: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          country: string
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          country?: string
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       icon_categories: {
         Row: {
           created_at: string | null

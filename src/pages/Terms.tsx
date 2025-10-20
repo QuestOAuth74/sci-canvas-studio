@@ -226,9 +226,15 @@ const Terms = () => {
               </div>
               <p className="text-lg md:text-xl font-black uppercase">Questions?</p>
             </div>
-            <p className="text-base md:text-lg font-bold">
-              If you have questions about these terms, please contact us through the application's support channels.
+            <p className="text-base md:text-lg font-bold mb-4">
+              If you have questions about these terms, please contact us through our contact form.
             </p>
+            <button
+              onClick={() => navigate("/contact")}
+              className="px-6 py-3 bg-accent border-[3px] border-foreground neo-brutalist-shadow font-bold text-base uppercase hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+            >
+              Contact Us
+            </button>
           </div>
         </div>
       </div>
