@@ -272,7 +272,7 @@ const Index = () => {
             </div>
 
             {/* Footer Image */}
-            <div className="flex justify-center py-8">
+            <div className="flex flex-col items-center py-8 gap-4">
               <img 
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
                 alt="BioSketch Art"
@@ -280,6 +280,12 @@ const Index = () => {
                 height="150"
                 className="border-[4px] border-foreground neo-brutalist-shadow"
               />
+              <button
+                onClick={() => navigate("/release-notes")}
+                className="px-4 py-2 bg-accent border-[3px] border-foreground neo-brutalist-shadow-sm font-bold text-sm uppercase hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all hover:bg-accent/80"
+              >
+                v1.1.0
+              </button>
             </div>
 
             {/* Bottom Footer */}

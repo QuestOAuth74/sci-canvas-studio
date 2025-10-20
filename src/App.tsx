@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import Community from "./pages/Community";
 import Testimonials from "./pages/Testimonials";
 import MySubmissions from "./pages/MySubmissions";
+import ReleaseNotes from "./pages/ReleaseNotes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
             <Route path="/my-submissions" element={<ProtectedRoute><MySubmissions /></ProtectedRoute>} />
             <Route path="/testimonials" element={<Testimonials />} />
+            <Route path="/release-notes" element={<ReleaseNotes />} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
