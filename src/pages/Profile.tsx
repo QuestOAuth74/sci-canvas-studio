@@ -67,9 +67,9 @@ export default function Profile() {
       return;
     }
 
-    // Validate file size (max 150KB)
-    if (file.size > 150 * 1024) {
-      toast.error('Image must be less than 150KB');
+    // Validate file size (max 500KB)
+    if (file.size > 500 * 1024) {
+      toast.error('Image must be less than 500KB');
       return;
     }
 
@@ -77,7 +77,7 @@ export default function Profile() {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `avatars/${user.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('user-assets')
