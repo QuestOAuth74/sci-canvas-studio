@@ -114,11 +114,6 @@ export default function Share() {
                 </CardTitle>
               </div>
             </div>
-            <CardDescription className="text-base font-semibold">
-              We're not soliciting donations at this time. The best way to support BioSketch 
-              is by sharing it with colleagues, students, and others who might benefit from 
-              free scientific illustration tools.
-            </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-6">
