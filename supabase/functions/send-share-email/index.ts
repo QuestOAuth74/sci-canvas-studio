@@ -123,7 +123,7 @@ const handler = async (req: Request): Promise<Response> => {
             </ul>
 
             <div style="text-align: center; margin: 32px 0;">
-              <a href="https://biosketch.lovable.app" 
+              <a href="https://biosketch.art"
                  style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: bold; font-size: 16px;">
                 Start Creating with BioSketch →
               </a>
@@ -145,7 +145,7 @@ const handler = async (req: Request): Promise<Response> => {
             </p>
             <p style="margin: 8px 0 0 0;">
               BioSketch • Free Scientific Illustration Tool • 
-              <a href="https://biosketch.lovable.app" style="color: #667eea;">biosketch.lovable.app</a>
+              <a href="https://biosketch.art" style="color: #667eea;">biosketch.art</a>
             </p>
           </div>
 
@@ -154,7 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "BioSketch <onboarding@resend.dev>",
+      from: "BioSketch <noreply@biosketch.art>",
       to: [recipientEmail],
       subject: `${senderName} wants to share BioSketch with you!`,
       html: emailHtml,
