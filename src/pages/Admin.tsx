@@ -13,6 +13,7 @@ import { IconSubmissionManager } from "@/components/admin/IconSubmissionManager"
 import { IconSanitizer } from "@/components/admin/IconSanitizer";
 import { IconNameCleaner } from "@/components/admin/IconNameCleaner";
 import { CommunityUploader } from "@/components/admin/CommunityUploader";
+import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Admin = () => {
@@ -91,6 +92,10 @@ const Admin = () => {
             <CategoryManager />
           </TabsContent>
         </Tabs>
+
+        <div className="mt-12">
+          <ContactMessagesManager />
+        </div>
       </div>
     </div>
   );
