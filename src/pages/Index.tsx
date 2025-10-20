@@ -291,7 +291,13 @@ const Index = () => {
             {/* Bottom Footer */}
             <div className="text-center pt-8 border-t-[3px] border-foreground/20 space-y-3">
               <p className="text-sm md:text-base font-medium">
-                All content on BioSketch.Art is shared under creative commons license (CC-BY) unless stated otherwise. Terms and Conditions
+                All content on BioSketch.Art is shared under creative commons license (CC-BY) unless stated otherwise.{" "}
+                <button
+                  onClick={() => navigate("/terms")}
+                  className="underline hover:text-primary transition-colors font-semibold"
+                >
+                  Terms and Conditions
+                </button>
               </p>
               <p className="text-sm md:text-base font-bold uppercase opacity-70">
                 Made with <Heart className="inline h-4 w-4 text-red-500 animate-pulse" /> by the Scientific Community
