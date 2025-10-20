@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { HCaptchaWrapper, HCaptchaHandle } from '@/components/ui/hcaptcha-wrapper';
+import { useToast } from '@/hooks/use-toast';
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -21,6 +23,7 @@ const signUpSchema = signInSchema.extend({
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading } = useAuth();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
 
@@ -35,6 +38,12 @@ export default function Auth() {
   const [signInErrors, setSignInErrors] = useState<any>({});
   const [signUpErrors, setSignUpErrors] = useState<any>({});
 
+  // Captcha states
+  const [signInCaptchaToken, setSignInCaptchaToken] = useState<string>('');
+  const [signUpCaptchaToken, setSignUpCaptchaToken] = useState<string>('');
+  const signInCaptchaRef = useRef<HCaptchaHandle>(null);
+  const signUpCaptchaRef = useRef<HCaptchaHandle>(null);
+
   useEffect(() => {
     if (user && !loading) {
       navigate('/');
@@ -45,6 +54,15 @@ export default function Auth() {
     e.preventDefault();
     setSignInErrors({});
     
+    if (!signInCaptchaToken) {
+      toast({
+        title: "Captcha Required",
+        description: "Please complete the captcha verification",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const result = signInSchema.safeParse({ email: signInEmail, password: signInPassword });
     if (!result.success) {
       const errors: any = {};
@@ -61,6 +79,9 @@ export default function Auth() {
 
     if (!error) {
       navigate('/');
+    } else {
+      setSignInCaptchaToken('');
+      signInCaptchaRef.current?.resetCaptcha();
     }
   };
 
@@ -68,6 +89,15 @@ export default function Auth() {
     e.preventDefault();
     setSignUpErrors({});
     
+    if (!signUpCaptchaToken) {
+      toast({
+        title: "Captcha Required",
+        description: "Please complete the captcha verification",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const result = signUpSchema.safeParse({ 
       email: signUpEmail, 
       password: signUpPassword,
@@ -89,6 +119,11 @@ export default function Auth() {
 
     if (!error) {
       setActiveTab('signin');
+      setSignUpCaptchaToken('');
+      signUpCaptchaRef.current?.resetCaptcha();
+    } else {
+      setSignUpCaptchaToken('');
+      signUpCaptchaRef.current?.resetCaptcha();
     }
   };
 
@@ -147,6 +182,11 @@ export default function Auth() {
                     <p className="text-sm text-destructive">{signInErrors.password}</p>
                   )}
                 </div>
+                <HCaptchaWrapper
+                  ref={signInCaptchaRef}
+                  onVerify={(token) => setSignInCaptchaToken(token)}
+                  onExpire={() => setSignInCaptchaToken('')}
+                />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Sign In
@@ -197,6 +237,11 @@ export default function Auth() {
                     <p className="text-sm text-destructive">{signUpErrors.password}</p>
                   )}
                 </div>
+                <HCaptchaWrapper
+                  ref={signUpCaptchaRef}
+                  onVerify={(token) => setSignUpCaptchaToken(token)}
+                  onExpire={() => setSignUpCaptchaToken('')}
+                />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account

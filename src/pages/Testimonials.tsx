@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
+import { HCaptchaWrapper, HCaptchaHandle } from "@/components/ui/hcaptcha-wrapper";
 
 const testimonialSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
@@ -45,6 +46,8 @@ const Testimonials = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showForm, setShowForm] = useState(true);
+  const [captchaToken, setCaptchaToken] = useState<string>('');
+  const captchaRef = useRef<HCaptchaHandle>(null);
 
   const ITEMS_PER_PAGE = 6;
 
@@ -83,6 +86,15 @@ const Testimonials = () => {
     e.preventDefault();
     setErrors({});
 
+    if (!captchaToken) {
+      toast({
+        title: "Captcha Required",
+        description: "Please complete the captcha verification",
+        variant: "destructive"
+      });
+      return;
+    }
+
     // Validate form data
     const validation = testimonialSchema.safeParse(formData);
     if (!validation.success) {
@@ -111,6 +123,8 @@ const Testimonials = () => {
       setSubmitted(true);
       setShowForm(false);
       setFormData({ name: "", country: "", scientific_discipline: "", message: "", rating: 5 });
+      setCaptchaToken('');
+      captchaRef.current?.resetCaptcha();
       
       toast({
         title: "Thank you! 🎉",
@@ -131,6 +145,8 @@ const Testimonials = () => {
         title: "Oops!",
         description: "Something went wrong. Please try again.",
       });
+      setCaptchaToken('');
+      captchaRef.current?.resetCaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -270,6 +286,12 @@ const Testimonials = () => {
                     </p>
                   </div>
                 </div>
+
+                <HCaptchaWrapper
+                  ref={captchaRef}
+                  onVerify={(token) => setCaptchaToken(token)}
+                  onExpire={() => setCaptchaToken('')}
+                />
 
                 <Button
                   type="submit"

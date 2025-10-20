@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Mail, User, Globe, MessageSquare } from "lucide-react";
 import { z } from "zod";
+import { HCaptchaWrapper, HCaptchaHandle } from "@/components/ui/hcaptcha-wrapper";
 
 const contactSchema = z.object({
   email: z.string().trim().email({ message: "Please enter a valid email address" }).max(255),
@@ -28,6 +29,8 @@ const Contact = () => {
   });
   const [wordCount, setWordCount] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [captchaToken, setCaptchaToken] = useState<string>('');
+  const captchaRef = useRef<HCaptchaHandle>(null);
 
   const countWords = (text: string) => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -42,6 +45,16 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // Check captcha
+    if (!captchaToken) {
+      toast({
+        title: "Captcha Required",
+        description: "Please complete the captcha verification",
+        variant: "destructive"
+      });
+      return;
+    }
 
     // Check word count
     if (wordCount > 500) {
@@ -93,6 +106,8 @@ const Contact = () => {
         message: ""
       });
       setWordCount(0);
+      setCaptchaToken('');
+      captchaRef.current?.resetCaptcha();
     } catch (error) {
       console.error("Error submitting contact form:", error);
       toast({
@@ -100,6 +115,8 @@ const Contact = () => {
         description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
+      setCaptchaToken('');
+      captchaRef.current?.resetCaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -221,6 +238,13 @@ const Contact = () => {
                 <p className="text-sm font-bold text-destructive">{errors.message}</p>
               )}
             </div>
+
+            {/* hCaptcha */}
+            <HCaptchaWrapper
+              ref={captchaRef}
+              onVerify={(token) => setCaptchaToken(token)}
+              onExpire={() => setCaptchaToken('')}
+            />
 
             {/* Submit Button */}
             <Button
