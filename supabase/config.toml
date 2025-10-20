@@ -1,1 +1,4 @@
 project_id = "tljsbmpglwmzyaoxsqyj"
+
+[functions.send-share-email]
+verify_jwt = true

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Heart, MessageCircleHeart, Upload } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, Upload } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -238,26 +238,27 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Donation Section */}
+            {/* Share Section */}
             <div className="bg-accent border-[4px] border-foreground neo-brutalist-shadow p-8 md:p-10">
               <h3 className="text-2xl md:text-3xl font-black uppercase mb-4 flex items-center gap-3">
                 <div className="p-2 bg-secondary border-[3px] border-foreground -rotate-3">
-                  <Heart className="h-6 w-6 text-foreground" />
+                  <Share2 className="h-6 w-6 text-foreground" />
                 </div>
-                Support the Project
+                Share BioSketch
               </h3>
               <p className="text-base md:text-lg font-medium leading-relaxed mb-6">
-                While BioSketch is completely free to use, maintaining our servers and domain comes with costs. 
-                If you find this project valuable, please consider supporting us with a donation to help keep 
-                BioSketch accessible for the scientific community.
+                We're not soliciting donations at this time. The best way to support BioSketch 
+                is by sharing it with colleagues, students, and others who might benefit from 
+                free scientific illustration tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
                   size="lg"
+                  onClick={() => navigate('/share')}
                   className="h-14 px-8 text-base font-bold uppercase bg-primary hover:bg-primary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none group"
                 >
-                  <Heart className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Donate to BioSketch
+                  <Share2 className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+                  Share BioSketch
                 </Button>
                 <Button
                   size="lg"
@@ -300,7 +301,7 @@ const Index = () => {
                 </button>
               </p>
               <p className="text-sm md:text-base font-bold uppercase opacity-70">
-                Made with <Heart className="inline h-4 w-4 text-red-500 animate-pulse" /> by the Scientific Community
+                Made with <Share2 className="inline h-4 w-4 text-primary animate-pulse" /> by the Scientific Community
               </p>
             </div>
           </div>
