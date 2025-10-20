@@ -29,7 +29,7 @@ export const IconManager = () => {
   const [selectedIcons, setSelectedIcons] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
   
-  const ITEMS_PER_PAGE = 100;
+  const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
     loadCategories();
