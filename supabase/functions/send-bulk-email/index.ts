@@ -45,14 +45,14 @@ const handler = async (req: Request): Promise<Response> => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch recipients
-    let recipients: Array<{ email: string; full_name: string }> = [];
+    // Fetch recipients (include user_id for notifications)
+    let recipients: Array<{ id: string; email: string; full_name: string }> = [];
     
     if (recipientIds === "all") {
       console.log("Fetching all users...");
       const { data, error } = await supabase
         .from("profiles")
-        .select("email, full_name")
+        .select("id, email, full_name")
         .not("email", "is", null);
       
       if (error) throw error;
@@ -61,7 +61,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`Fetching ${recipientIds.length} specific users...`);
       const { data, error } = await supabase
         .from("profiles")
-        .select("email, full_name")
+        .select("id, email, full_name")
         .in("id", recipientIds)
         .not("email", "is", null);
       
@@ -202,6 +202,30 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     console.log(`Bulk email complete. Success: ${successCount}, Failed: ${failureCount}`);
+
+    // Store notifications in database
+    try {
+      const notificationRecords = recipients.map(recipient => ({
+        user_id: recipient.id,
+        subject: subject,
+        message: message,
+        sender_name: adminName || 'BioSketch Team',
+        sent_via_email: true,
+        is_read: false
+      }));
+
+      const { error: notificationError } = await supabase
+        .from('user_notifications')
+        .insert(notificationRecords);
+
+      if (notificationError) {
+        console.error('Error creating notifications:', notificationError);
+      } else {
+        console.log(`Created ${notificationRecords.length} notification records`);
+      }
+    } catch (notifError: any) {
+      console.error('Exception creating notifications:', notifError);
+    }
 
     return new Response(
       JSON.stringify({

@@ -12,6 +12,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface Profile {
   id: string;
@@ -29,20 +38,45 @@ const EmailNotifications = () => {
   const [adminName, setAdminName] = useState("BioSketch Team");
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [sendToAll, setSendToAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const ITEMS_PER_PAGE = 20;
 
-  const { data: users, isLoading: loadingUsers } = useQuery({
-    queryKey: ['all-users'],
+  // Fetch users with pagination and search
+  const { data: usersData, isLoading: loadingUsers } = useQuery({
+    queryKey: ['all-users', currentPage, searchQuery],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('profiles')
-        .select('id, email, full_name, country')
+        .select('id, email, full_name, country', { count: 'exact' })
         .not('email', 'is', null)
         .order('full_name');
       
+      // Apply search filter
+      if (searchQuery.trim()) {
+        query = query.or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
+      }
+      
+      // Apply pagination
+      const from = (currentPage - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+      query = query.range(from, to);
+      
+      const { data, error, count } = await query;
+      
       if (error) throw error;
-      return data as Profile[];
+      return { 
+        users: data as Profile[], 
+        totalCount: count || 0 
+      };
     }
   });
+
+  const users = usersData?.users || [];
+  const totalCount = usersData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const showingFrom = totalCount > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0;
+  const showingTo = Math.min(currentPage * ITEMS_PER_PAGE, totalCount);
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
@@ -94,11 +128,18 @@ const EmailNotifications = () => {
   };
 
   const handleSelectAll = () => {
-    if (!users) return;
-    if (selectedUsers.length === users.length) {
-      setSelectedUsers([]);
+    if (users.length === 0) return;
+    const visibleUserIds = users.map(u => u.id);
+    
+    // Check if all visible users are selected
+    const allVisibleSelected = visibleUserIds.every(id => selectedUsers.includes(id));
+    
+    if (allVisibleSelected) {
+      // Deselect all visible users
+      setSelectedUsers(prev => prev.filter(id => !visibleUserIds.includes(id)));
     } else {
-      setSelectedUsers(users.map(u => u.id));
+      // Select all visible users (add to existing selections)
+      setSelectedUsers(prev => [...new Set([...prev, ...visibleUserIds])]);
     }
   };
 
@@ -131,7 +172,7 @@ const EmailNotifications = () => {
     sendEmailMutation.mutate();
   };
 
-  const recipientCount = sendToAll ? users?.length || 0 : selectedUsers.length;
+  const recipientCount = sendToAll ? totalCount : selectedUsers.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8">
@@ -167,10 +208,15 @@ const EmailNotifications = () => {
                   <Checkbox
                     id="sendToAll"
                     checked={sendToAll}
-                    onCheckedChange={(checked) => setSendToAll(checked as boolean)}
+                    onCheckedChange={(checked) => {
+                      setSendToAll(checked as boolean);
+                      if (checked) {
+                        setSelectedUsers([]);
+                      }
+                    }}
                   />
                   <Label htmlFor="sendToAll" className="cursor-pointer font-bold">
-                    Send to All Users ({users?.length || 0})
+                    Send to All Users ({totalCount})
                   </Label>
                 </div>
 
@@ -178,13 +224,29 @@ const EmailNotifications = () => {
 
                 {!sendToAll && (
                   <>
+                    <Input
+                      placeholder="Search by name or email..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="w-full"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Showing {showingFrom} - {showingTo} of {totalCount} users
+                      {selectedUsers.length > 0 && ` • ${selectedUsers.length} selected`}
+                    </p>
+                    
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handleSelectAll}
                       className="w-full"
                     >
-                      {selectedUsers.length === users?.length ? 'Deselect All' : 'Select All'}
+                      {users.length > 0 && users.every(u => selectedUsers.includes(u.id)) 
+                        ? 'Deselect Page' 
+                        : 'Select Page'}
                     </Button>
 
                     <ScrollArea className="h-[400px] pr-4">
@@ -192,9 +254,13 @@ const EmailNotifications = () => {
                         <div className="flex items-center justify-center py-8">
                           <Loader2 className="h-6 w-6 animate-spin text-primary" />
                         </div>
+                      ) : users.length === 0 ? (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                          No users found
+                        </div>
                       ) : (
                         <div className="space-y-2">
-                          {users?.map((user) => (
+                          {users.map((user) => (
                             <div
                               key={user.id}
                               className="flex items-start space-x-2 p-2 rounded hover:bg-muted/50"
@@ -210,12 +276,59 @@ const EmailNotifications = () => {
                               >
                                 <div className="font-medium">{user.full_name || 'No name'}</div>
                                 <div className="text-xs text-muted-foreground">{user.email}</div>
+                                {user.country && (
+                                  <div className="text-xs text-muted-foreground">{user.country}</div>
+                                )}
                               </Label>
                             </div>
                           ))}
                         </div>
                       )}
                     </ScrollArea>
+                    
+                    {totalPages > 1 && (
+                      <Pagination className="mt-4">
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                              className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                          </PaginationItem>
+                          
+                          {[...Array(totalPages)].map((_, idx) => {
+                            const pageNum = idx + 1;
+                            if (
+                              pageNum === 1 || 
+                              pageNum === totalPages || 
+                              (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                            ) {
+                              return (
+                                <PaginationItem key={pageNum}>
+                                  <PaginationLink
+                                    onClick={() => setCurrentPage(pageNum)}
+                                    isActive={currentPage === pageNum}
+                                    className="cursor-pointer"
+                                  >
+                                    {pageNum}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                              return <PaginationEllipsis key={pageNum} />;
+                            }
+                            return null;
+                          })}
+                          
+                          <PaginationItem>
+                            <PaginationNext 
+                              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                              className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    )}
                   </>
                 )}
               </div>
