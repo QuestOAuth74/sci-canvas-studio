@@ -5,10 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Mail, Trash2, Eye, EyeOff, StickyNote, MapPin, Calendar } from "lucide-react";
+import { Mail, Trash2, Eye, EyeOff, StickyNote, MapPin, Calendar, Reply, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 export const ContactMessagesManager = () => {
@@ -16,7 +18,10 @@ export const ContactMessagesManager = () => {
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [replyDialogOpen, setReplyDialogOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState("");
+  const [replyMessage, setReplyMessage] = useState("");
+  const [adminName, setAdminName] = useState("BioSketch Support Team");
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
 
   const queryClient = useQueryClient();
@@ -88,6 +93,47 @@ export const ContactMessagesManager = () => {
     onError: () => {
       toast.error("Failed to delete message");
     },
+  });
+
+  const sendReply = useMutation({
+    mutationFn: async ({ 
+      recipientEmail, 
+      recipientName, 
+      replyMessage, 
+      adminName,
+      originalMessage 
+    }: {
+      recipientEmail: string;
+      recipientName: string;
+      replyMessage: string;
+      adminName: string;
+      originalMessage: string;
+    }) => {
+      const { data, error } = await supabase.functions.invoke('send-contact-reply', {
+        body: {
+          recipientEmail,
+          recipientName,
+          replyMessage,
+          adminName,
+          originalMessage
+        }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contact-messages"] });
+      toast.success("Reply sent successfully!");
+      setReplyDialogOpen(false);
+      setReplyMessage('');
+      // Mark message as read after replying
+      if (selectedMessage && !selectedMessage.is_read) {
+        updateReadStatus.mutate({ id: selectedMessage.id, is_read: true });
+      }
+    },
+    onError: (error) => {
+      toast.error("Failed to send reply: " + error.message);
+    }
   });
 
   const filteredMessages = messages?.filter(msg => 
@@ -203,8 +249,21 @@ export const ContactMessagesManager = () => {
                             id: message.id, 
                             is_read: !message.is_read 
                           })}
+                          title={message.is_read ? "Mark as unread" : "Mark as read"}
                         >
                           {message.is_read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedMessage(message);
+                            setReplyMessage('');
+                            setReplyDialogOpen(true);
+                          }}
+                          title="Reply to message"
+                        >
+                          <Reply className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
@@ -214,6 +273,7 @@ export const ContactMessagesManager = () => {
                             setAdminNotes(message.admin_notes || "");
                             setNotesDialogOpen(true);
                           }}
+                          title="Add/Edit notes"
                         >
                           <StickyNote className="h-4 w-4" />
                         </Button>
@@ -224,6 +284,7 @@ export const ContactMessagesManager = () => {
                             setSelectedMessage(message);
                             setDeleteDialogOpen(true);
                           }}
+                          title="Delete message"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -237,6 +298,82 @@ export const ContactMessagesManager = () => {
         </CardContent>
       </Card>
 
+      {/* Reply Dialog */}
+      <Dialog open={replyDialogOpen} onOpenChange={setReplyDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Reply to Contact Message</DialogTitle>
+            <DialogDescription>
+              Sending reply to {selectedMessage?.full_name} ({selectedMessage?.email})
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Original Message Context */}
+            <div className="bg-muted/30 border-l-4 border-primary p-4 rounded">
+              <p className="text-xs font-semibold text-muted-foreground mb-2">
+                Original Message:
+              </p>
+              <p className="text-sm whitespace-pre-wrap">
+                {selectedMessage?.message}
+              </p>
+            </div>
+
+            {/* Admin Name Input */}
+            <div className="space-y-2">
+              <Label>Your Name (optional)</Label>
+              <Input 
+                value={adminName}
+                onChange={(e) => setAdminName(e.target.value)}
+                placeholder="BioSketch Support Team"
+              />
+            </div>
+
+            {/* Reply Message */}
+            <div className="space-y-2">
+              <Label>Your Reply</Label>
+              <Textarea
+                value={replyMessage}
+                onChange={(e) => setReplyMessage(e.target.value)}
+                placeholder="Type your reply here..."
+                rows={8}
+                className="resize-none"
+                maxLength={5000}
+              />
+              <p className="text-xs text-muted-foreground">
+                {replyMessage.length} / 5000 characters
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReplyDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => sendReply.mutate({
+                recipientEmail: selectedMessage?.email,
+                recipientName: selectedMessage?.full_name,
+                replyMessage,
+                adminName: adminName || 'BioSketch Support Team',
+                originalMessage: selectedMessage?.message
+              })}
+              disabled={!replyMessage.trim() || sendReply.isPending}
+            >
+              {sendReply.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                'Send Reply'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes Dialog */}
       <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
         <DialogContent>
           <DialogHeader>
