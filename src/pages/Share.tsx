@@ -26,7 +26,7 @@ export default function Share() {
     senderName: user?.user_metadata?.full_name || '',
     recipientName: '',
     recipientEmail: '',
-    personalMessage: '',
+    personalMessage: "I've been using BioSketch for my scientific illustrations and thought you might find it useful too! It's completely free and has made creating diagrams so much easier.",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,7 +61,7 @@ export default function Share() {
         senderName: user?.user_metadata?.full_name || '',
         recipientName: '',
         recipientEmail: '',
-        personalMessage: '',
+        personalMessage: "I've been using BioSketch for my scientific illustrations and thought you might find it useful too! It's completely free and has made creating diagrams so much easier.",
       });
 
     } catch (error) {
@@ -189,12 +189,12 @@ export default function Share() {
             <div className="bg-muted p-4 rounded-lg space-y-2">
               <h4 className="font-semibold">What will they receive?</h4>
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>An introduction from you (if you add a personal message)</li>
-                <li>Information about BioSketch's drag-and-drop interface</li>
-                <li>Details about the extensive scientific icon library</li>
-                <li>Professional export capabilities for publications</li>
-                <li>Emphasis that it's completely free and open-source</li>
-                <li>A direct link to start creating</li>
+                <li>Your personal message introducing BioSketch</li>
+                <li>Overview of the intuitive drag-and-drop canvas</li>
+                <li>Hundreds of scientific icons across biology, chemistry, and more</li>
+                <li>Export options for high-quality PNG and SVG files</li>
+                <li>Cloud save feature to access projects from anywhere</li>
+                <li>Direct link to start creating immediately—100% free, no signup required</li>
               </ul>
             </div>
           </CardContent>
