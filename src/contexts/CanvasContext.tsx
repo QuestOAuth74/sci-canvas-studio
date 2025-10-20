@@ -245,24 +245,63 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const zoomToFit = useCallback(() => {
     if (!canvas) return;
-    const objects = canvas.getObjects().filter(obj => obj.selectable !== false);
-    if (objects.length === 0) return;
+    const objects = canvas.getObjects().filter(obj => 
+      obj.selectable !== false && 
+      !(obj as any).isGridLine && 
+      !(obj as any).isRuler
+    );
+    
+    if (objects.length === 0) {
+      toast.info("No objects to fit");
+      return;
+    }
 
-    const group = new (canvas.constructor as any).Group(objects);
-    const groupWidth = group.width || 0;
-    const groupHeight = group.height || 0;
+    // Calculate the bounding box of all objects
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    objects.forEach(obj => {
+      const bound = obj.getBoundingRect();
+      minX = Math.min(minX, bound.left);
+      minY = Math.min(minY, bound.top);
+      maxX = Math.max(maxX, bound.left + bound.width);
+      maxY = Math.max(maxY, bound.top + bound.height);
+    });
+
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
     
-    const canvasWidth = canvas.width || 800;
-    const canvasHeight = canvas.height || 600;
+    // Get the actual viewport container dimensions
+    const container = (canvas as any).wrapperEl?.parentElement;
+    const viewportWidth = container ? container.clientWidth : canvas.width || 800;
+    const viewportHeight = container ? container.clientHeight : canvas.height || 600;
     
-    const scaleX = canvasWidth / groupWidth;
-    const scaleY = canvasHeight / groupHeight;
-    const scale = Math.min(scaleX, scaleY) * 0.9;
+    // Calculate zoom to fit with 10% padding
+    const scaleX = (viewportWidth * 0.9) / contentWidth;
+    const scaleY = (viewportHeight * 0.9) / contentHeight;
+    const scale = Math.min(scaleX, scaleY);
     
-    const newZoom = Math.round(scale * 100);
+    // Apply zoom
+    const newZoom = Math.max(10, Math.min(300, Math.round(scale * 100)));
     setZoom(newZoom);
     canvas.setZoom(scale);
+    
+    // Center the content
+    const contentCenterX = (minX + maxX) / 2;
+    const contentCenterY = (minY + maxY) / 2;
+    const viewportCenterX = viewportWidth / 2;
+    const viewportCenterY = viewportHeight / 2;
+    
+    canvas.viewportTransform = [
+      scale, 0, 0, scale,
+      viewportCenterX - contentCenterX * scale,
+      viewportCenterY - contentCenterY * scale
+    ];
+    
     canvas.renderAll();
+    toast.success("Fit to screen");
   }, [canvas]);
 
   // Alignment operations
