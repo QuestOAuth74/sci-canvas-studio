@@ -13,13 +13,12 @@ import { CommunityFilters } from '@/components/community/CommunityFilters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 interface CommunityProject {
   id: string;
@@ -50,8 +49,6 @@ export default function Community() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'cloned' | 'liked'>('recent');
   const [selectedProject, setSelectedProject] = useState<CommunityProject | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     if (user) {
@@ -153,16 +150,6 @@ export default function Community() {
     return matchesSearch;
   });
 
-  // Reset to page 1 when search or sort changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, sortBy]);
-
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -242,49 +229,29 @@ export default function Community() {
               </p>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {paginatedProjects.map((project, index) => (
-                  <div key={project.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-                    <ProjectCard
-                      project={project}
-                      onPreview={() => setSelectedProject(project)}
-                      onLikeChange={loadProjects}
-                    />
-                  </div>
+            <Carousel
+              opts={{
+                align: "start",
+                slidesToScroll: 6,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {filteredProjects.map((project, index) => (
+                  <CarouselItem key={project.id} className="md:basis-1/3 lg:basis-1/4 xl:basis-1/6">
+                    <div className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
+                      <ProjectCard
+                        project={project}
+                        onPreview={() => setSelectedProject(project)}
+                        onLikeChange={loadProjects}
+                      />
+                    </div>
+                  </CarouselItem>
                 ))}
-              </div>
-
-              {totalPages > 1 && (
-                <Pagination className="mt-8">
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(page)}
-                          isActive={currentPage === page}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <PaginationNext
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              )}
-            </>
+              </CarouselContent>
+              <CarouselPrevious className="left-0" />
+              <CarouselNext className="right-0" />
+            </Carousel>
           )}
         </div>
       </main>
