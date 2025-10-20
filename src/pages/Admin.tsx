@@ -14,7 +14,7 @@ import { IconSanitizer } from "@/components/admin/IconSanitizer";
 import { IconNameCleaner } from "@/components/admin/IconNameCleaner";
 import { CommunityUploader } from "@/components/admin/CommunityUploader";
 import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -56,63 +56,155 @@ const Admin = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="submitted" className="w-full">
-          <TabsList className="grid w-full grid-cols-9">
-            <TabsTrigger value="submitted">Submitted Projects</TabsTrigger>
-            <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
-            <TabsTrigger value="icon-submissions">Icon Submissions</TabsTrigger>
-            <TabsTrigger value="community-uploads">Community Uploads</TabsTrigger>
-            <TabsTrigger value="upload">Upload Icons</TabsTrigger>
-            <TabsTrigger value="manage">Manage Icons</TabsTrigger>
-            <TabsTrigger value="clean-names">Clean Icon Names</TabsTrigger>
-            <TabsTrigger value="sanitize">Icon Sanitizer</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="submitted" className="mt-6">
+        {/* Quick Navigation */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b mb-8 py-4 -mx-4 px-4">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('submitted-projects')?.scrollIntoView({ behavior: 'smooth' })}>
+              Submitted Projects
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('testimonials')?.scrollIntoView({ behavior: 'smooth' })}>
+              Testimonials
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('icon-submissions')?.scrollIntoView({ behavior: 'smooth' })}>
+              Icon Submissions
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('community-uploads')?.scrollIntoView({ behavior: 'smooth' })}>
+              Community Uploads
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('upload-icons')?.scrollIntoView({ behavior: 'smooth' })}>
+              Upload Icons
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('manage-icons')?.scrollIntoView({ behavior: 'smooth' })}>
+              Manage Icons
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('clean-names')?.scrollIntoView({ behavior: 'smooth' })}>
+              Clean Names
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('sanitize')?.scrollIntoView({ behavior: 'smooth' })}>
+              Sanitizer
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}>
+              Categories
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('contact-messages')?.scrollIntoView({ behavior: 'smooth' })}>
+              Contact
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-12">
+          {/* Section 1: Submitted Projects */}
+          <section id="submitted-projects">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Submitted Projects</h2>
+              <p className="text-muted-foreground">Review and manage community submitted projects</p>
+            </div>
             <SubmittedProjects />
-          </TabsContent>
-          
-          <TabsContent value="testimonials" className="mt-6">
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 2: Testimonials */}
+          <section id="testimonials">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Testimonials</h2>
+              <p className="text-muted-foreground">Approve, reject, or delete user testimonials</p>
+            </div>
             <TestimonialManager />
-          </TabsContent>
-          
-          <TabsContent value="icon-submissions" className="mt-6">
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 3: Icon Submissions */}
+          <section id="icon-submissions">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Icon Submissions</h2>
+              <p className="text-muted-foreground">Review and manage community submitted icons</p>
+            </div>
             <IconSubmissionManager />
-          </TabsContent>
-          
-          <TabsContent value="community-uploads" className="mt-6">
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 4: Community Uploads */}
+          <section id="community-uploads">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Community Uploads</h2>
+              <p className="text-muted-foreground">Upload assets to the community library</p>
+            </div>
             <CommunityUploader />
-          </TabsContent>
-          
-          <TabsContent value="upload" className="mt-6">
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 5: Upload Icons */}
+          <section id="upload-icons">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Upload Icons</h2>
+              <p className="text-muted-foreground">Upload, cleanup, and generate thumbnails for icons</p>
+            </div>
             <div className="space-y-6">
               <IconUploader />
               <IconCleanup />
               <ThumbnailGenerator />
               <ThumbnailRegenerator />
             </div>
-          </TabsContent>
-          
-          <TabsContent value="manage" className="mt-6">
-            <IconManager />
-          </TabsContent>
-          
-          <TabsContent value="clean-names" className="mt-6">
-            <IconNameCleaner />
-          </TabsContent>
-          
-          <TabsContent value="sanitize" className="mt-6">
-            <IconSanitizer />
-          </TabsContent>
-          
-          <TabsContent value="categories" className="mt-6">
-            <CategoryManager />
-          </TabsContent>
-        </Tabs>
+          </section>
 
-        <div className="mt-12">
-          <ContactMessagesManager />
+          <Separator className="my-12" />
+
+          {/* Section 6: Manage Icons */}
+          <section id="manage-icons">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Manage Icons</h2>
+              <p className="text-muted-foreground">View, edit, and delete existing icons</p>
+            </div>
+            <IconManager />
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 7: Clean Icon Names */}
+          <section id="clean-names">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Clean Icon Names</h2>
+              <p className="text-muted-foreground">Scan and fix corrupted icon names</p>
+            </div>
+            <IconNameCleaner />
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 8: Icon Sanitizer */}
+          <section id="sanitize">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Icon Sanitizer</h2>
+              <p className="text-muted-foreground">Sanitize and validate icon SVG content</p>
+            </div>
+            <IconSanitizer />
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 9: Categories */}
+          <section id="categories">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Categories</h2>
+              <p className="text-muted-foreground">Add, view, and manage icon categories</p>
+            </div>
+            <CategoryManager />
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 10: Contact Messages */}
+          <section id="contact-messages">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Contact Messages</h2>
+              <p className="text-muted-foreground">View and respond to user contact form submissions</p>
+            </div>
+            <ContactMessagesManager />
+          </section>
         </div>
       </div>
     </div>
