@@ -14,12 +14,18 @@ import {
   Ban, 
   Gavel 
 } from "lucide-react";
+import { SEOHead } from "@/components/SEO/SEOHead";
 
 const Terms = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Terms and Conditions - BioSketch"
+        description="Terms of service and usage guidelines for BioSketch scientific illustration tool. Learn about licensing, usage rights, and community guidelines."
+        canonical="https://biosketch.art/terms"
+      />
       {/* Header */}
       <div className="border-b-[4px] border-foreground bg-card">
         <div className="container mx-auto px-4 py-6">

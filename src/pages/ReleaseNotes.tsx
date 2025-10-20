@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, Sparkles } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
+import { SEOHead } from "@/components/SEO/SEOHead";
 
 const ReleaseNotes = () => {
   const navigate = useNavigate();
@@ -36,6 +37,11 @@ const ReleaseNotes = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="What's New - BioSketch Release Notes"
+        description="Latest features and improvements in BioSketch. Discover new tools for creating scientific illustrations including community gallery, icon suggestions, and advanced connectors."
+        canonical="https://biosketch.art/release-notes"
+      />
       {/* Header */}
       <header className="border-b-[4px] border-foreground bg-card sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">

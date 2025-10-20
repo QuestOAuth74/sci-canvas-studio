@@ -9,6 +9,8 @@ import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialo
 import { supabase } from "@/integrations/supabase/client";
 import carousel1 from "@/assets/carousel-1.png";
 import carousel2 from "@/assets/carousel-2.png";
+import { SEOHead } from "@/components/SEO/SEOHead";
+import { getWebApplicationSchema, getOrganizationSchema } from "@/components/SEO/StructuredData";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -24,8 +26,23 @@ const Index = () => {
       .then(({ data }) => setCategories(data || []));
   }, []);
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@graph": [
+      getWebApplicationSchema(),
+      getOrganizationSchema()
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-background relative">
+      <SEOHead
+        title="BioSketch - Free Scientific Illustration Tool for Researchers"
+        description="Create stunning scientific illustrations with BioSketch - a free drag-and-drop tool for scientists and researchers. Build publication-ready figures with our extensive biomedical icon library."
+        canonical="https://biosketch.art/"
+        keywords="scientific illustration, biomedical graphics, research illustration software, free science graphics, publication figures, scientific diagrams, biology illustration, medical graphics creator"
+        structuredData={structuredData}
+      />
       {/* Header with User Menu */}
       <header className="absolute top-0 right-0 p-4 z-20">
         <UserMenu />

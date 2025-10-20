@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Mail, User, Globe, MessageSquare } from "lucide-react";
 import { z } from "zod";
 import { HCaptchaWrapper, HCaptchaHandle } from "@/components/ui/hcaptcha-wrapper";
+import { SEOHead } from "@/components/SEO/SEOHead";
 
 const contactSchema = z.object({
   email: z.string().trim().email({ message: "Please enter a valid email address" }).max(255),
@@ -124,6 +125,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Contact Us - BioSketch"
+        description="Get in touch with the BioSketch team. Send us your questions, feedback, or suggestions for improving our scientific illustration tool."
+        canonical="https://biosketch.art/contact"
+      />
       {/* Header */}
       <div className="border-b-[4px] border-foreground bg-card">
         <div className="container mx-auto px-4 py-6">

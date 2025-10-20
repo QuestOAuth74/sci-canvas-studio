@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
 import { HCaptchaWrapper, HCaptchaHandle } from "@/components/ui/hcaptcha-wrapper";
+import { SEOHead } from "@/components/SEO/SEOHead";
 
 const testimonialSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
@@ -154,6 +155,11 @@ const Testimonials = () => {
 
   return (
     <div className="min-h-screen bg-background relative">
+      <SEOHead
+        title="Testimonials - BioSketch"
+        description="What scientists and researchers say about BioSketch. Read reviews from our community of users who create scientific illustrations with BioSketch."
+        canonical="https://biosketch.art/testimonials"
+      />
       {/* Header */}
       <header className="absolute top-0 right-0 p-4 z-20">
         <UserMenu />

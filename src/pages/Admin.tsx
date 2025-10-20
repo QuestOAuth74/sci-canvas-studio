@@ -15,12 +15,18 @@ import { IconNameCleaner } from "@/components/admin/IconNameCleaner";
 import { CommunityUploader } from "@/components/admin/CommunityUploader";
 import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
 import { Separator } from "@/components/ui/separator";
+import { SEOHead } from "@/components/SEO/SEOHead";
 
 const Admin = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Admin Dashboard - BioSketch"
+        description="BioSketch Admin Dashboard"
+        noindex={true}
+      />
       <header className="border-b glass-effect shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">

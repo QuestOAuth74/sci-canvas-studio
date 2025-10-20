@@ -10,6 +10,7 @@ import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { HCaptchaWrapper, HCaptchaHandle } from '@/components/ui/hcaptcha-wrapper';
 import { useToast } from '@/hooks/use-toast';
+import { SEOHead } from '@/components/SEO/SEOHead';
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -137,6 +138,11 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+      <SEOHead
+        title="Sign In - BioSketch"
+        description="Sign in to BioSketch to access your scientific illustrations and projects"
+        noindex={true}
+      />
       <Card className="w-full max-w-md backdrop-blur-sm bg-card/80 border-border shadow-xl">
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
