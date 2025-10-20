@@ -18,6 +18,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@/components/ui/pagination';
 import { AssetUploadDialog } from './AssetUploadDialog';
 
 interface UserAssetsLibraryProps {
@@ -43,6 +52,8 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   const [fileType, setFileType] = useState('all');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'my-assets' | 'community'>('my-assets');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   // Get the current asset list based on view mode
   const currentAssets = viewMode === 'my-assets' ? assets : sharedAssets;
@@ -62,6 +73,12 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   // Only show categories and file types that exist in the current view
   const categories = ['all', ...Array.from(new Set(currentAssets.map(a => a.category)))];
   const fileTypes = ['all', ...Array.from(new Set(currentAssets.map(a => a.file_type)))];
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAssets.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedAssets = filteredAssets.slice(startIndex, endIndex);
 
   const handleAssetClick = async (asset: any) => {
     const content = await downloadAssetContent(asset);
@@ -94,7 +111,13 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     setCategory('all');
     setFileType('all');
     setSearch('');
+    setCurrentPage(1);
   }, [viewMode]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, category, fileType]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
@@ -180,7 +203,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-2">
           {loading ? (
-            Array.from({ length: 6 }).map((_, i) => (
+            Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className="h-20 w-full" />
             ))
           ) : filteredAssets.length === 0 ? (
@@ -209,7 +232,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
               )}
             </div>
           ) : (
-            filteredAssets.map((asset) => (
+            paginatedAssets.map((asset) => (
               <div
                 key={asset.id}
                 className="group relative flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent cursor-pointer transition-colors"
@@ -280,6 +303,56 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
           )}
         </div>
       </ScrollArea>
+
+      {filteredAssets.length > ITEMS_PER_PAGE && (
+        <div className="p-4 border-t space-y-2">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              {[...Array(totalPages)].map((_, idx) => {
+                const pageNum = idx + 1;
+                if (
+                  pageNum === 1 || 
+                  pageNum === totalPages || 
+                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                ) {
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(pageNum)}
+                        isActive={currentPage === pageNum}
+                        className="cursor-pointer"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                  return <PaginationEllipsis key={pageNum} />;
+                }
+                return null;
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+          
+          <p className="text-xs text-center text-muted-foreground">
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredAssets.length)} of {filteredAssets.length}
+          </p>
+        </div>
+      )}
 
       <AssetUploadDialog
         open={uploadDialogOpen}
