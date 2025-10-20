@@ -582,11 +582,27 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const toggleObjectVisibility = useCallback((id: string) => {
     if (!canvas) return;
+    
     const objects = canvas.getObjects();
-    const targetObject = objects.find(obj => (obj as any).uuid === id || obj === objects[parseInt(id)]);
+    const targetObject = objects.find(obj => 
+      (obj as any).uuid === id || 
+      obj === objects[parseInt(id)]
+    );
+    
     if (targetObject) {
-      targetObject.set({ visible: !targetObject.visible });
+      const newVisibility = !targetObject.visible;
+      targetObject.set({ visible: newVisibility });
+      
+      // If hiding the currently selected object, deselect it
+      if (!newVisibility && canvas.getActiveObject() === targetObject) {
+        canvas.discardActiveObject();
+      }
+      
+      // Fire object:modified event to trigger layer panel update
+      canvas.fire('object:modified', { target: targetObject });
       canvas.renderAll();
+      
+      toast.success(newVisibility ? "Object shown" : "Object hidden");
     }
   }, [canvas]);
 

@@ -18,11 +18,27 @@ export const LayersPanel = () => {
   const [layers, setLayers] = useState<Layer[]>([]);
   const [, setRefresh] = useState(0);
 
+  const getObjectName = (obj: FabricObject, index: number): string => {
+    if ((obj as any).name) return (obj as any).name;
+    
+    if (obj.type === 'textbox' || obj.type === 'text') {
+      const text = (obj as any).text || '';
+      return text.length > 20 ? text.substring(0, 20) + '...' : text || 'Text';
+    }
+    
+    if (obj.type === 'group') return 'Icon';
+    if (obj.type === 'rect') return 'Rectangle';
+    if (obj.type === 'circle') return 'Circle';
+    if (obj.type === 'path') return 'Line';
+    
+    return `${obj.type || 'Object'} ${index + 1}`;
+  };
+
   const updateLayers = () => {
     const objects = getCanvasObjects();
     const newLayers = objects.map((obj, index) => ({
       id: (obj as any).uuid || index.toString(),
-      name: (obj as any).name || `${obj.type || 'Object'} ${index + 1}`,
+      name: getObjectName(obj, index),
       visible: obj.visible !== false,
       locked: (obj as any).isPinned || false,
       fabricObject: obj,
@@ -64,7 +80,6 @@ export const LayersPanel = () => {
   const toggleVisibility = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     toggleObjectVisibility(id);
-    updateLayers();
   };
 
   const isSelected = (layer: Layer) => {
@@ -91,11 +106,11 @@ export const LayersPanel = () => {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6 shrink-0"
+                  className={`h-6 w-6 shrink-0 transition-all ${!layer.visible && 'opacity-50 hover:opacity-100'}`}
                   onClick={(e) => toggleVisibility(layer.id, e)}
                 >
                   {layer.visible ? (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4 text-primary" />
                   ) : (
                     <EyeOff className="h-4 w-4 text-muted-foreground" />
                   )}
@@ -105,7 +120,9 @@ export const LayersPanel = () => {
                   <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 )}
                 
-                <span className="flex-1 text-sm truncate">{layer.name}</span>
+                <span className={`flex-1 text-sm truncate transition-opacity ${!layer.visible && 'opacity-50'}`}>
+                  {layer.name}
+                </span>
               </div>
             ))
           )}
