@@ -57,6 +57,43 @@ function getConnectorStyle(relType: string): any {
   return styleMap[normalized] || { type: 'straight', style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2 };
 }
 
+// Robust JSON extraction with multiple fallback strategies
+function extractJSON(text: string): any {
+  // Strategy 1: Try parsing raw text
+  try {
+    return JSON.parse(text);
+  } catch {}
+  
+  // Strategy 2: Look for markdown code blocks
+  const markdownMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+  if (markdownMatch) {
+    try {
+      return JSON.parse(markdownMatch[1]);
+    } catch {}
+  }
+  
+  // Strategy 3: Find JSON object boundaries more carefully
+  const jsonMatch = text.match(/\{(?:[^{}]|(\{(?:[^{}]|(\{[^{}]*\}))*\}))*\}/);
+  if (jsonMatch) {
+    try {
+      return JSON.parse(jsonMatch[0]);
+    } catch {}
+  }
+  
+  // Strategy 4: Remove common prefixes and try again
+  const cleaned = text
+    .replace(/^[^{]*/, '') // Remove everything before first {
+    .replace(/[^}]*$/, ''); // Remove everything after last }
+  
+  if (cleaned) {
+    try {
+      return JSON.parse(cleaned);
+    } catch {}
+  }
+  
+  return null;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -664,7 +701,10 @@ OUTPUT (JSON ONLY):
   ]
 }
 
-Compare your layout to the reference image visually. Return ONLY valid JSON.`;
+Compare your layout to the reference image visually. 
+
+CRITICAL: Return ONLY the JSON object. No markdown. No explanations. No additional text.
+Start your response with { and end with }.`;
 
     const layoutResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -675,7 +715,10 @@ Compare your layout to the reference image visually. Return ONLY valid JSON.`;
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: 'You are a layout generation assistant. Match the reference image precisely. Always respond with valid JSON only.' },
+          { 
+            role: 'system', 
+            content: 'You are a layout generation assistant. Match the reference image precisely. CRITICAL: Respond with ONLY valid JSON, no markdown blocks, no explanations, no additional text. Start with { and end with }.' 
+          },
           {
             role: 'user',
             content: [
@@ -689,7 +732,8 @@ Compare your layout to the reference image visually. Return ONLY valid JSON.`;
             ]
           }
         ],
-        max_tokens: 4000,
+        max_tokens: 6000,
+        temperature: 0.3,
       }),
     });
 
@@ -704,17 +748,36 @@ Compare your layout to the reference image visually. Return ONLY valid JSON.`;
 
     const layoutData = await layoutResponse.json();
     const layoutText = layoutData.choices[0].message.content;
-    console.log('AI proposed layout generated');
 
-    const layoutJsonMatch = layoutText.match(/\{[\s\S]*\}/);
-    if (!layoutJsonMatch) {
-      return new Response(JSON.stringify({ error: 'Failed to parse layout response' }), {
+    console.log('Raw AI layout response received, attempting to parse...');
+
+    // Try robust JSON extraction
+    const proposedLayout = extractJSON(layoutText);
+
+    if (!proposedLayout) {
+      console.error('Failed to extract JSON from response. Raw response:', layoutText.substring(0, 500));
+      return new Response(JSON.stringify({ 
+        error: 'Failed to parse layout response - AI did not return valid JSON',
+        details: 'The AI response could not be parsed. This may indicate a complex image requiring manual adjustment.',
+        raw_response_preview: layoutText.substring(0, 200)
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const proposedLayout = JSON.parse(layoutJsonMatch[0]);
+    // Validate structure
+    if (!proposedLayout.objects || !Array.isArray(proposedLayout.objects)) {
+      console.error('Invalid layout structure - missing objects array');
+      return new Response(JSON.stringify({ 
+        error: 'Invalid layout structure - missing objects array'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`AI proposed layout parsed successfully: ${proposedLayout.objects.length} objects, ${proposedLayout.connectors?.length || 0} connectors`);
     console.log('AI proposed layout generated');
     console.log('[PROGRESS] layout_generation | 100% | Layout generation complete');
 
