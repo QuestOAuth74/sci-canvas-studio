@@ -136,17 +136,16 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
 
       if (data.error) {
         toast.error(data.error);
-        return;
+      } else {
+        setResponse(data);
+        setActiveTab("checks");
+        
+        const { metadata } = data;
+        toast.success(
+          `Generated ${metadata.total_objects} objects, ${metadata.total_connectors} connectors. ` +
+          `Checks: ${metadata.checks_passed} passed, ${metadata.checks_corrected} corrected.`
+        );
       }
-
-      setResponse(data);
-      setActiveTab("checks");
-      
-      const { metadata } = data;
-      toast.success(
-        `Generated ${metadata.total_objects} objects, ${metadata.total_connectors} connectors. ` +
-        `Checks: ${metadata.checks_passed} passed, ${metadata.checks_corrected} corrected.`
-      );
     } catch (error: any) {
       console.error("Generation error:", error);
       toast.error(error.message || "Failed to generate figure");
