@@ -632,160 +632,84 @@ Return ONLY JSON:
       });
     }
 
-    // STEP 3: Generate Proposed Layout (with reference image context)
+    // STEP 3: Generate Layout Deterministically (no LLM - more reliable)
     console.log('[PROGRESS] layout_generation | 0% | Generating layout...');
-    console.log('Generating layout with visual reference...');
+    console.log('Generating layout deterministically from analyzed elements...');
     
-    const layoutPrompt = `You are generating a scientific diagram layout. Recreate the reference image PRECISELY.
-
-Canvas: ${canvasWidth}x${canvasHeight}
-
-SPATIAL ANALYSIS FROM REFERENCE:
-${JSON.stringify(analysis.spatial_analysis, null, 2)}
-
-ELEMENTS WITH ICONS:
-${JSON.stringify(elementsWithMatches.map((m) => ({
-  index: m.element_index,
-  element_name: m.element.name,
-  position_x: m.element.position_x,
-  position_y: m.element.position_y,
-  bounding_box: m.element.bounding_box,
-  estimated_size: m.element.estimated_size,
-  rotation: m.element.rotation || 0,
-  category: m.element.category,
-  available_icons: m.matches.slice(0, 3).map((i: any) => ({ 
-    id: i.id, 
-    name: i.name, 
-    category: i.category 
-  }))
-})), null, 2)}
-
-RELATIONSHIPS WITH VISUAL DETAILS:
-${JSON.stringify(analysis.spatial_relationships, null, 2)}
-
-LAYOUT REQUIREMENTS:
-1. Use EXACT position_x and position_y from elements (±2% tolerance only)
-2. Maintain alignment from spatial_analysis (elements that should align must align)
-3. Preserve spacing ratios from reference
-4. Match connector routing from visual_details
-5. All icons scale to ~200px, adjust 'scale' for size variations
-
-OUTPUT (JSON ONLY):
-{
-  "objects": [
-    {
-      "type": "icon",
-      "element_index": 0,
-      "icon_id": "uuid-from-available-icons",
-      "icon_name": "name",
-      "x": 45.5,
-      "y": 30.2,
-      "scale": 0.6,
-      "rotation": 0,
-      "label": "Element Name",
-      "labelPosition": "bottom"
-    }
-  ],
-  "connectors": [
-    {
-      "from": 0,
-      "to": 1,
-      "type": "curved",
-      "style": "solid",
-      "strokeWidth": 2,
-      "color": "#000000",
-      "endMarker": "arrow",
-      "startMarker": "none",
-      "label": "optional"
-    }
-  ]
-}
-
-Compare your layout to the reference image visually. 
-
-CRITICAL: Return ONLY the JSON object. No markdown. No explanations. No additional text.
-Start your response with { and end with }.`;
-
-    const layoutResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are a layout generation assistant. Match the reference image precisely. CRITICAL: Respond with ONLY valid JSON, no markdown blocks, no explanations, no additional text. Start with { and end with }.' 
-          },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: layoutPrompt },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 6000,
-        temperature: 0.3,
-      }),
+    // Build layout directly from analyzed data
+    const composedObjects = elementsWithMatches.map((m) => {
+      const chosenIcon = m.matches[0]; // Use best match
+      
+      // Clamp positions to [0, 100]
+      const x = Math.max(0, Math.min(100, m.element.position_x));
+      const y = Math.max(0, Math.min(100, m.element.position_y));
+      
+      // Calculate scale based on bounding box or size estimate
+      let scale = 0.5;
+      if (m.element.bounding_box?.width) {
+        scale = Math.max(0.4, Math.min(1.2, m.element.bounding_box.width / 200));
+      } else {
+        const sizeMap: Record<string, number> = { large: 0.8, medium: 0.5, small: 0.35 };
+        scale = sizeMap[m.element.estimated_size] || 0.5;
+      }
+      
+      return {
+        type: 'icon',
+        element_index: m.element_index,
+        icon_id: chosenIcon.id,
+        icon_name: chosenIcon.name,
+        x,
+        y,
+        scale,
+        rotation: m.element.rotation || 0,
+        label: m.element.name,
+        labelPosition: 'bottom'
+      };
     });
-
-    if (!layoutResponse.ok) {
-      const errorText = await layoutResponse.text();
-      console.error('Layout generation error:', layoutResponse.status, errorText);
-      return new Response(JSON.stringify({ error: 'Failed to generate layout' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const layoutData = await layoutResponse.json();
-    const layoutText = layoutData.choices[0].message.content;
-
-    console.log('Raw AI layout response received, attempting to parse...');
-
-    // Try robust JSON extraction
-    const proposedLayout = extractJSON(layoutText);
-
-    if (!proposedLayout) {
-      console.error('Failed to extract JSON from response. Raw response:', layoutText.substring(0, 500));
-      return new Response(JSON.stringify({ 
-        error: 'Failed to parse layout response - AI did not return valid JSON',
-        details: 'The AI response could not be parsed. This may indicate a complex image requiring manual adjustment.',
-        raw_response_preview: layoutText.substring(0, 200)
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Validate structure
-    if (!proposedLayout.objects || !Array.isArray(proposedLayout.objects)) {
-      console.error('Invalid layout structure - missing objects array');
-      return new Response(JSON.stringify({ 
-        error: 'Invalid layout structure - missing objects array'
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log(`AI proposed layout parsed successfully: ${proposedLayout.objects.length} objects, ${proposedLayout.connectors?.length || 0} connectors`);
-    console.log('AI proposed layout generated');
+    
+    // Build connectors from spatial relationships
+    const composedConnectors = (analysis.spatial_relationships || []).map((rel: any) => {
+      const fromElem = elementsWithMatches.find(m => m.element_index === rel.from_element);
+      const toElem = elementsWithMatches.find(m => m.element_index === rel.to_element);
+      
+      if (!fromElem || !toElem) return null;
+      
+      const fromIdx = elementsWithMatches.indexOf(fromElem);
+      const toIdx = elementsWithMatches.indexOf(toElem);
+      
+      const style = getConnectorStyle(rel.relationship_type);
+      
+      return {
+        from: fromIdx,
+        to: toIdx,
+        type: style.type,
+        style: style.style,
+        strokeWidth: style.strokeWidth,
+        color: style.color,
+        endMarker: style.endMarker,
+        startMarker: 'none',
+        label: rel.label || ''
+      };
+    }).filter(Boolean);
+    
+    const proposedLayout = {
+      objects: composedObjects,
+      connectors: composedConnectors
+    };
+    
+    console.log(`Layout composed: ${proposedLayout.objects.length} objects, ${proposedLayout.connectors.length} connectors`);
     console.log('[PROGRESS] layout_generation | 100% | Layout generation complete');
 
-    // STEP 3.5: Self-Critique and Refinement Loop
-    console.log('[PROGRESS] self_critique | 0% | Starting self-critique...');
-    console.log('AI self-critique: reviewing layout against reference...');
+
+    // STEP 3.5: Optional Self-Critique (only in strict mode, resilient to refusals)
+    let critiqueResult: any = null;
     
-    const critiquePrompt = `You generated this layout:
+    if (strict) {
+      console.log('[PROGRESS] self_critique | 0% | Starting self-critique...');
+      console.log('AI self-critique: reviewing layout against reference (strict mode)...');
+      
+      try {
+        const critiquePrompt = `You generated this layout:
 
 PROPOSED LAYOUT:
 ${JSON.stringify(proposedLayout, null, 2)}
@@ -839,89 +763,98 @@ Return ONLY JSON:
   "confidence": "high|medium|low"
 }`;
 
-    let critiqueResult: any = null;
-    
-    try {
-      const critiqueResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: critiquePrompt },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+        const critiqueResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: critiquePrompt },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                    }
                   }
-                }
-              ]
-            }
-          ],
-          max_tokens: 2000,
-        }),
-      });
+                ]
+              }
+            ],
+            max_tokens: 2000,
+          }),
+        });
 
-      if (critiqueResponse.ok) {
-        const critiqueData = await critiqueResponse.json();
-        const critiqueText = critiqueData.choices[0].message.content;
-        const critiqueJsonMatch = critiqueText.match(/\{[\s\S]*\}/);
-        
-        if (critiqueJsonMatch) {
-          critiqueResult = JSON.parse(critiqueJsonMatch[0]);
-          console.log(`Self-critique complete: ${critiqueResult.overall_accuracy} accuracy`);
-          console.log(`  Issues found: ${critiqueResult.issues?.length || 0}`);
-          console.log(`  Fixes recommended: ${critiqueResult.recommended_fixes?.length || 0}`);
+        if (critiqueResponse.ok) {
+          const critiqueData = await critiqueResponse.json();
+          const critiqueText = critiqueData.choices[0].message.content;
           
-          // Apply automatic fixes to proposedLayout
-          if (critiqueResult.recommended_fixes && critiqueResult.recommended_fixes.length > 0) {
-            let fixesApplied = 0;
+          // Check for refusal
+          if (critiqueText.toLowerCase().includes("i'm sorry") || 
+              critiqueText.toLowerCase().includes("i can't") ||
+              critiqueText.toLowerCase().includes("cannot assist")) {
+            console.log('Critique refused by AI, skipping critique step');
+          } else {
+            const critiqueJsonMatch = critiqueText.match(/\{[\s\S]*\}/);
             
-            for (const fix of critiqueResult.recommended_fixes) {
-              try {
-                if (fix.fix_type === 'move_object' && fix.target !== undefined) {
-                  const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
-                  if (objIdx >= 0 && proposedLayout.objects[objIdx]) {
-                    if (fix.new_x !== undefined) proposedLayout.objects[objIdx].x = fix.new_x;
-                    if (fix.new_y !== undefined) proposedLayout.objects[objIdx].y = fix.new_y;
-                    fixesApplied++;
-                    console.log(`    Applied fix: moved element ${fix.target} to (${fix.new_x}, ${fix.new_y})`);
-                  }
-                } else if (fix.fix_type === 'adjust_scale' && fix.target !== undefined) {
-                  const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
-                  if (objIdx >= 0 && proposedLayout.objects[objIdx] && fix.new_scale !== undefined) {
-                    proposedLayout.objects[objIdx].scale = fix.new_scale;
-                    fixesApplied++;
-                    console.log(`    Applied fix: adjusted scale of element ${fix.target} to ${fix.new_scale}`);
-                  }
-                } else if (fix.fix_type === 'adjust_rotation' && fix.target !== undefined) {
-                  const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
-                  if (objIdx >= 0 && proposedLayout.objects[objIdx] && fix.new_rotation !== undefined) {
-                    proposedLayout.objects[objIdx].rotation = fix.new_rotation;
-                    fixesApplied++;
-                    console.log(`    Applied fix: adjusted rotation of element ${fix.target}`);
+            if (critiqueJsonMatch) {
+              critiqueResult = JSON.parse(critiqueJsonMatch[0]);
+              console.log(`Self-critique complete: ${critiqueResult.overall_accuracy} accuracy`);
+              console.log(`  Issues found: ${critiqueResult.issues?.length || 0}`);
+              console.log(`  Fixes recommended: ${critiqueResult.recommended_fixes?.length || 0}`);
+              
+              // Apply automatic fixes to proposedLayout
+              if (critiqueResult.recommended_fixes && critiqueResult.recommended_fixes.length > 0) {
+                let fixesApplied = 0;
+                
+                for (const fix of critiqueResult.recommended_fixes) {
+                  try {
+                    if (fix.fix_type === 'move_object' && fix.target !== undefined) {
+                      const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
+                      if (objIdx >= 0 && proposedLayout.objects[objIdx]) {
+                        if (fix.new_x !== undefined) proposedLayout.objects[objIdx].x = fix.new_x;
+                        if (fix.new_y !== undefined) proposedLayout.objects[objIdx].y = fix.new_y;
+                        fixesApplied++;
+                        console.log(`    Applied fix: moved element ${fix.target} to (${fix.new_x}, ${fix.new_y})`);
+                      }
+                    } else if (fix.fix_type === 'adjust_scale' && fix.target !== undefined) {
+                      const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
+                      if (objIdx >= 0 && proposedLayout.objects[objIdx] && fix.new_scale !== undefined) {
+                        proposedLayout.objects[objIdx].scale = fix.new_scale;
+                        fixesApplied++;
+                        console.log(`    Applied fix: adjusted scale of element ${fix.target} to ${fix.new_scale}`);
+                      }
+                    } else if (fix.fix_type === 'adjust_rotation' && fix.target !== undefined) {
+                      const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
+                      if (objIdx >= 0 && proposedLayout.objects[objIdx] && fix.new_rotation !== undefined) {
+                        proposedLayout.objects[objIdx].rotation = fix.new_rotation;
+                        fixesApplied++;
+                        console.log(`    Applied fix: adjusted rotation of element ${fix.target}`);
+                      }
+                    }
+                  } catch (fixError) {
+                    console.log(`    Failed to apply fix: ${fix.fix_type}`);
                   }
                 }
-              } catch (fixError) {
-                console.log(`    Failed to apply fix: ${fix.fix_type}`);
+                
+                console.log(`  Total fixes applied: ${fixesApplied}`);
               }
             }
-            
-            console.log(`  Total fixes applied: ${fixesApplied}`);
           }
         }
+      } catch (critiqueError) {
+        console.log('Self-critique failed, proceeding without critique:', critiqueError);
       }
-    } catch (critiqueError) {
-      console.log('Self-critique failed, proceeding with original layout:', critiqueError);
+      
+      console.log('[PROGRESS] self_critique | 100% | Self-critique complete');
+    } else {
+      console.log('Skipping self-critique (not in strict mode)');
     }
-    console.log('[PROGRESS] self_critique | 100% | Self-critique complete');
 
     // STEP 4: Build Deterministic Final Layout
     console.log('[PROGRESS] final_processing | 0% | Building final layout...');
@@ -1058,6 +991,7 @@ Return ONLY JSON:
       checks_passed: checks.filter(c => c.status === 'pass').length,
       checks_corrected: checks.filter(c => c.status === 'corrected').length,
       checks_missing: checks.filter(c => c.status === 'missing').length,
+      layout_source: 'deterministic',
       self_critique: critiqueResult ? {
         overall_accuracy: critiqueResult.overall_accuracy,
         issues_found: critiqueResult.issues?.length || 0,
