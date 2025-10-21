@@ -708,6 +708,146 @@ Compare your layout to the reference image visually. Return ONLY valid JSON.`;
 
     const proposedLayout = JSON.parse(layoutJsonMatch[0]);
 
+    // STEP 3.5: Self-Critique and Refinement Loop
+    console.log('AI self-critique: reviewing layout against reference...');
+    
+    const critiquePrompt = `You generated this layout:
+
+PROPOSED LAYOUT:
+${JSON.stringify(proposedLayout, null, 2)}
+
+ORIGINAL ANALYSIS (from reference image):
+Elements: ${JSON.stringify(analysis.identified_elements.map((e: any) => ({
+  name: e.name,
+  position_x: e.position_x,
+  position_y: e.position_y,
+  bounding_box: e.bounding_box
+})), null, 2)}
+
+Spatial Analysis: ${JSON.stringify(analysis.spatial_analysis, null, 2)}
+
+Relationships: ${JSON.stringify(analysis.spatial_relationships.length)} connectors expected
+
+TASK: Compare your proposed layout against the reference image and original analysis.
+
+Identify ALL issues with your layout:
+1. POSITION ERRORS: Elements not at correct positions (compare to position_x, position_y)
+2. SPACING PROBLEMS: Elements too close/far compared to reference
+3. ALIGNMENT ISSUES: Elements that should align but don't (check spatial_analysis.alignment)
+4. MISSING/WRONG CONNECTORS: Count and verify all relationships
+5. SIZE INCONSISTENCIES: Elements scaled incorrectly
+6. ROTATION ERRORS: Incorrect rotation angles
+
+Return ONLY JSON:
+{
+  "overall_accuracy": "excellent|good|fair|poor",
+  "issues": [
+    {
+      "type": "position|spacing|connector|alignment|size|rotation",
+      "severity": "critical|moderate|minor",
+      "element_or_connector": "name or connector description",
+      "problem": "specific issue description",
+      "current_value": "what you generated",
+      "should_be": "what it should be"
+    }
+  ],
+  "recommended_fixes": [
+    {
+      "fix_type": "move_object|adjust_spacing|add_connector|remove_connector|adjust_scale|adjust_rotation",
+      "target": "element_index or connector indices",
+      "action": "specific fix to apply",
+      "new_x": 45.5,
+      "new_y": 30.2,
+      "new_scale": 0.6,
+      "reason": "why this fix improves accuracy"
+    }
+  ],
+  "confidence": "high|medium|low"
+}`;
+
+    let critiqueResult: any = null;
+    
+    try {
+      const critiqueResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: critiquePrompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 2000,
+        }),
+      });
+
+      if (critiqueResponse.ok) {
+        const critiqueData = await critiqueResponse.json();
+        const critiqueText = critiqueData.choices[0].message.content;
+        const critiqueJsonMatch = critiqueText.match(/\{[\s\S]*\}/);
+        
+        if (critiqueJsonMatch) {
+          critiqueResult = JSON.parse(critiqueJsonMatch[0]);
+          console.log(`Self-critique complete: ${critiqueResult.overall_accuracy} accuracy`);
+          console.log(`  Issues found: ${critiqueResult.issues?.length || 0}`);
+          console.log(`  Fixes recommended: ${critiqueResult.recommended_fixes?.length || 0}`);
+          
+          // Apply automatic fixes to proposedLayout
+          if (critiqueResult.recommended_fixes && critiqueResult.recommended_fixes.length > 0) {
+            let fixesApplied = 0;
+            
+            for (const fix of critiqueResult.recommended_fixes) {
+              try {
+                if (fix.fix_type === 'move_object' && fix.target !== undefined) {
+                  const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
+                  if (objIdx >= 0 && proposedLayout.objects[objIdx]) {
+                    if (fix.new_x !== undefined) proposedLayout.objects[objIdx].x = fix.new_x;
+                    if (fix.new_y !== undefined) proposedLayout.objects[objIdx].y = fix.new_y;
+                    fixesApplied++;
+                    console.log(`    Applied fix: moved element ${fix.target} to (${fix.new_x}, ${fix.new_y})`);
+                  }
+                } else if (fix.fix_type === 'adjust_scale' && fix.target !== undefined) {
+                  const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
+                  if (objIdx >= 0 && proposedLayout.objects[objIdx] && fix.new_scale !== undefined) {
+                    proposedLayout.objects[objIdx].scale = fix.new_scale;
+                    fixesApplied++;
+                    console.log(`    Applied fix: adjusted scale of element ${fix.target} to ${fix.new_scale}`);
+                  }
+                } else if (fix.fix_type === 'adjust_rotation' && fix.target !== undefined) {
+                  const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
+                  if (objIdx >= 0 && proposedLayout.objects[objIdx] && fix.new_rotation !== undefined) {
+                    proposedLayout.objects[objIdx].rotation = fix.new_rotation;
+                    fixesApplied++;
+                    console.log(`    Applied fix: adjusted rotation of element ${fix.target}`);
+                  }
+                }
+              } catch (fixError) {
+                console.log(`    Failed to apply fix: ${fix.fix_type}`);
+              }
+            }
+            
+            console.log(`  Total fixes applied: ${fixesApplied}`);
+          }
+        }
+      }
+    } catch (critiqueError) {
+      console.log('Self-critique failed, proceeding with original layout:', critiqueError);
+    }
+
     // STEP 4: Build Deterministic Final Layout
     console.log('Building deterministic final layout...');
     
@@ -842,6 +982,15 @@ Compare your layout to the reference image visually. Return ONLY valid JSON.`;
       checks_passed: checks.filter(c => c.status === 'pass').length,
       checks_corrected: checks.filter(c => c.status === 'corrected').length,
       checks_missing: checks.filter(c => c.status === 'missing').length,
+      self_critique: critiqueResult ? {
+        overall_accuracy: critiqueResult.overall_accuracy,
+        issues_found: critiqueResult.issues?.length || 0,
+        fixes_recommended: critiqueResult.recommended_fixes?.length || 0,
+        confidence: critiqueResult.confidence,
+        critical_issues: critiqueResult.issues?.filter((i: any) => i.severity === 'critical').length || 0,
+        moderate_issues: critiqueResult.issues?.filter((i: any) => i.severity === 'moderate').length || 0,
+        minor_issues: critiqueResult.issues?.filter((i: any) => i.severity === 'minor').length || 0
+      } : null
     };
 
     console.log('Final layout complete:', metadata);
@@ -853,6 +1002,7 @@ Compare your layout to the reference image visually. Return ONLY valid JSON.`;
         layout: finalLayout,
         checks,
         metadata,
+        critique: critiqueResult || null
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -53,12 +53,39 @@ interface Check {
   issue?: string;
 }
 
+interface CritiqueIssue {
+  type: string;
+  severity: 'critical' | 'moderate' | 'minor';
+  element_or_connector: string;
+  problem: string;
+  current_value?: string;
+  should_be?: string;
+}
+
+interface CritiqueFix {
+  fix_type: string;
+  target?: number;
+  action: string;
+  new_x?: number;
+  new_y?: number;
+  new_scale?: number;
+  reason: string;
+}
+
+interface Critique {
+  overall_accuracy: 'excellent' | 'good' | 'fair' | 'poor';
+  issues: CritiqueIssue[];
+  recommended_fixes: CritiqueFix[];
+  confidence: 'high' | 'medium' | 'low';
+}
+
 interface GenerationResponse {
   analysis: any;
   proposed_layout: GeneratedLayout;
   layout: GeneratedLayout;
   checks: Check[];
   metadata: any;
+  critique?: Critique | null;
 }
 
 export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGeneratorProps) => {
@@ -433,6 +460,71 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
                         ))}
                       </div>
                     </div>
+                    
+                    {/* Self-Critique Section */}
+                    {response.metadata.self_critique && (
+                      <div className="col-span-2 mt-2 pt-3 border-t">
+                        <div className="text-sm font-medium mb-2">AI Self-Critique</div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Overall accuracy:</span>
+                            <span className={`ml-2 font-semibold ${
+                              response.metadata.self_critique.overall_accuracy === 'excellent' ? 'text-green-600' :
+                              response.metadata.self_critique.overall_accuracy === 'good' ? 'text-blue-600' :
+                              response.metadata.self_critique.overall_accuracy === 'fair' ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>
+                              {response.metadata.self_critique.overall_accuracy}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Confidence:</span>
+                            <span className="ml-2 font-semibold">{response.metadata.self_critique.confidence}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Issues found:</span>
+                            <span className="ml-2">{response.metadata.self_critique.issues_found}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Fixes applied:</span>
+                            <span className="ml-2">{response.metadata.self_critique.fixes_recommended}</span>
+                          </div>
+                          {response.metadata.self_critique.critical_issues > 0 && (
+                            <div className="col-span-2">
+                              <span className="text-red-600">⚠ {response.metadata.self_critique.critical_issues} critical issue(s)</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Detailed Issues */}
+                        {response.critique && response.critique.issues && response.critique.issues.length > 0 && (
+                          <div className="mt-3">
+                            <div className="text-xs font-medium mb-1">Identified Issues:</div>
+                            <div className="space-y-1 max-h-40 overflow-y-auto">
+                              {response.critique.issues.map((issue: CritiqueIssue, idx: number) => (
+                                <div key={idx} className="text-xs p-2 rounded bg-background/50 border">
+                                  <div className="flex items-start gap-2">
+                                    <Badge variant={
+                                      issue.severity === 'critical' ? 'destructive' :
+                                      issue.severity === 'moderate' ? 'default' : 'secondary'
+                                    } className="text-[10px] px-1 py-0">
+                                      {issue.severity}
+                                    </Badge>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium">{issue.element_or_connector}</div>
+                                      <div className="text-muted-foreground">{issue.problem}</div>
+                                      {issue.should_be && (
+                                        <div className="text-green-600 mt-0.5">→ {issue.should_be}</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </Card>
               </TabsContent>
