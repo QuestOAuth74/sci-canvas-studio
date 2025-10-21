@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, Upload } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, Upload, Heart } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -319,7 +319,7 @@ const Index = () => {
             </div>
 
             {/* Bottom Footer */}
-            <div className="text-center pt-8 border-t-[3px] border-foreground/20 space-y-3">
+            <div className="text-center pt-8 border-t-[3px] border-foreground/20 space-y-6">
               <p className="text-sm md:text-base font-medium">
                 All content on BioSketch.Art is shared under creative commons license (CC-BY) unless stated otherwise.{" "}
                 <button
@@ -329,9 +329,24 @@ const Index = () => {
                   Terms and Conditions
                 </button>
               </p>
-              <p className="text-sm md:text-base font-bold uppercase opacity-70">
-                Made with <Share2 className="inline h-4 w-4 text-primary animate-pulse" /> by the Scientific Community
-              </p>
+              
+              {/* Glowing Made With Love Section */}
+              <div className="flex justify-center animate-fade-in">
+                <div className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary via-secondary to-accent border-[4px] border-foreground neo-brutalist-shadow-lg hover:-translate-y-1 hover:neo-brutalist-shadow-xl transition-all duration-300 group">
+                  <span className="text-lg md:text-xl font-black uppercase tracking-wide text-foreground">
+                    Made with
+                  </span>
+                  <div className="relative">
+                    <Heart className="h-7 w-7 md:h-8 md:w-8 text-foreground fill-foreground animate-pulse" />
+                    <div className="absolute inset-0 h-7 w-7 md:h-8 md:w-8">
+                      <Heart className="h-full w-full text-secondary fill-secondary animate-ping opacity-75" />
+                    </div>
+                  </div>
+                  <span className="text-lg md:text-xl font-black uppercase tracking-wide text-foreground">
+                    by the Scientific Community
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
