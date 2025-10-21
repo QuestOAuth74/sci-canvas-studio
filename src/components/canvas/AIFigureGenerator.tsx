@@ -156,15 +156,29 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const { objects, options } = await loadSVGFromString(iconData.svg_content);
           const group = util.groupSVGElements(objects, options);
 
+          // Get original dimensions
+          const originalWidth = group.width || 100;
+          const originalHeight = group.height || 100;
+
+          // Calculate scale to normalize to ~200x200px target
+          const TARGET_SIZE = 200;
+          const maxDimension = Math.max(originalWidth, originalHeight);
+          const normalizationScale = TARGET_SIZE / maxDimension;
+
+          // Apply AI's scale on top of normalization
+          const finalScale = normalizationScale * obj.scale;
+
           // Convert percentage to pixels
           const x = (obj.x / 100) * canvasWidth;
           const y = (obj.y / 100) * canvasHeight;
 
+          console.log(`Icon: ${iconData.name}, Original: ${originalWidth.toFixed(0)}x${originalHeight.toFixed(0)}, AI Scale: ${obj.scale}, Final Scale: ${finalScale.toFixed(2)}, Final size: ~${(maxDimension * finalScale).toFixed(0)}px`);
+
           group.set({
             left: x,
             top: y,
-            scaleX: obj.scale,
-            scaleY: obj.scale,
+            scaleX: finalScale,
+            scaleY: finalScale,
             angle: obj.rotation,
           });
 

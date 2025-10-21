@@ -160,14 +160,29 @@ Focus on accuracy over completeness. Only identify elements you are confident ab
     console.log('Searching for matching icons...');
     const iconMatches = await Promise.all(
       analysis.identified_elements.map(async (element: any) => {
-        const searchTerms = element.search_terms.join(' | ');
+        // Detect if element is likely a receptor
+        const isReceptor = element.name.toLowerCase().includes('receptor') || 
+                          element.category.toLowerCase().includes('receptor') ||
+                          element.search_terms.some((term: string) => 
+                            term.toLowerCase().includes('receptor') ||
+                            term.toLowerCase().includes('gpcr') ||
+                            term.toLowerCase().includes('membrane protein')
+                          );
         
-        // Search using full-text search and name matching
-        const { data: icons, error } = await supabase
+        console.log(`Searching for: ${element.name} (${isReceptor ? 'RECEPTOR' : 'standard'})`);
+        
+        let query = supabase
           .from('icons')
-          .select('id, name, category, svg_content, thumbnail')
-          .or(`name.ilike.%${element.name}%,category.ilike.%${element.category}%`)
-          .limit(5);
+          .select('id, name, category, svg_content, thumbnail');
+
+        if (isReceptor) {
+          // Prioritize receptor icons
+          query = query.or(`name.ilike.%receptor%,category.ilike.%receptor%,name.ilike.%${element.name}%`);
+        } else {
+          query = query.or(`name.ilike.%${element.name}%,category.ilike.%${element.category}%`);
+        }
+        
+        const { data: icons, error } = await query.limit(5);
 
         if (error) {
           console.error('Icon search error:', error);
@@ -209,6 +224,28 @@ Elements with available icons: ${JSON.stringify(elementsWithMatches.map((m, idx)
   available_icons: m.matches.map((i: any) => ({ id: i.id, name: i.name, category: i.category }))
 })))}
 
+SIZING REQUIREMENTS:
+- Target icon size: 200x200 pixels on canvas
+- Use scale values to normalize icons to this size
+- Typical scale range: 0.3 to 0.8 (adjust based on icon complexity)
+- Smaller, detailed icons: scale 0.6-0.8
+- Larger, simple icons: scale 0.3-0.5
+- The scale value should normalize icons to approximately 200x200px target size
+
+LAYOUT ACCURACY REQUIREMENTS:
+- Study the reference image's spatial layout carefully
+- Maintain relative positioning and distances as shown in reference
+- Preserve directional flow (e.g., if reference shows left-to-right flow, maintain that)
+- Keep minimum 50-100px spacing between adjacent objects
+- Match the visual "density" of the reference (don't spread too far or cluster too tight)
+- Align objects that appear aligned in the reference
+
+POSITIONING GUIDELINES:
+- Use percentage coordinates (0-100) for x, y
+- Consider canvas dimensions: ${canvasWidth}x${canvasHeight}
+- Maintain aspect ratios and proportions from reference image
+- Ensure objects stay within canvas bounds with adequate margins
+
 Generate a JSON layout with proper positioning. Use percentages for x,y coordinates (0-100).
 CRITICAL: You MUST use valid icon_id values from the available_icons list above. Do NOT use empty strings or placeholder IDs.
 Return ONLY valid JSON in this format:
@@ -220,7 +257,7 @@ Return ONLY valid JSON in this format:
       "icon_name": "name",
       "x": 20,
       "y": 30,
-      "scale": 1.0,
+      "scale": 0.5,
       "rotation": 0,
       "label": "optional label",
       "labelPosition": "bottom"
@@ -308,7 +345,9 @@ Return ONLY valid JSON in this format:
         icons_matched: elementsWithMatches.length,
         total_objects: validObjects.length,
         total_connectors: validConnectors.length,
-        filtered_objects: (layout.objects?.length || 0) - validObjects.length
+        filtered_objects: (layout.objects?.length || 0) - validObjects.length,
+        target_icon_size: '200x200px',
+        receptor_icons_used: validObjects.filter((obj: any) => obj.icon_name.toLowerCase().includes('receptor')).length
       }
     };
 
