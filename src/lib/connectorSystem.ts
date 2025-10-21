@@ -62,6 +62,13 @@ function createArrowMarker(
         { x: 0, y: size / 2 },
       ];
       break;
+    case 'tee':
+      // Perpendicular bar at the end (like inhibition marker)
+      points = [
+        { x: 0, y: -size / 2 },
+        { x: 0, y: size / 2 },
+      ];
+      break;
   }
 
   // Rotate and translate points
