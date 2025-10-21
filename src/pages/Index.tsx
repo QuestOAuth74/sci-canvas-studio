@@ -6,6 +6,8 @@ import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
+import { FeaturedProjectPopup } from "@/components/community/FeaturedProjectPopup";
+import { ProjectPreviewModal } from "@/components/community/ProjectPreviewModal";
 import { supabase } from "@/integrations/supabase/client";
 import carousel1 from "@/assets/carousel-1.png";
 import carousel2 from "@/assets/carousel-2.png";
@@ -17,6 +19,8 @@ const Index = () => {
   const { user, isAdmin } = useAuth();
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   useEffect(() => {
     supabase
@@ -339,6 +343,26 @@ const Index = () => {
         onOpenChange={setShowSubmitDialog}
         categories={categories}
       />
+
+      {/* Featured Project Popup */}
+      <FeaturedProjectPopup
+        onViewProject={(project) => {
+          setSelectedProject(project);
+          setShowPreviewModal(true);
+        }}
+      />
+
+      {/* Project Preview Modal */}
+      {selectedProject && (
+        <ProjectPreviewModal
+          project={selectedProject}
+          isOpen={showPreviewModal}
+          onClose={() => {
+            setShowPreviewModal(false);
+            setSelectedProject(null);
+          }}
+        />
+      )}
     </div>
   );
 };
