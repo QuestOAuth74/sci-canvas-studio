@@ -10,6 +10,7 @@ import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2 } from 'lu
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
+import { cn } from '@/lib/utils';
 
 interface Project {
   id: string;
@@ -33,6 +34,7 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [shareDialogProject, setShareDialogProject] = useState<Project | null>(null);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
@@ -74,10 +76,17 @@ export default function Projects() {
       return;
     }
 
-    // Optimistically remove from UI
-    setProjects(prev => prev.filter(p => p.id !== projectId));
-    toast.loading('Deleting project...', { id: 'delete-project' });
+    // Start fade-out animation
+    setDeletingIds(prev => new Set(prev).add(projectId));
+    toast.loading('Deleting project...', { id: `delete-project-${projectId}` });
 
+    // Wait for animation to complete
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Remove from UI
+    setProjects(prev => prev.filter(p => p.id !== projectId));
+
+    // Delete from database
     const { error } = await supabase
       .from('canvas_projects')
       .delete()
@@ -85,12 +94,22 @@ export default function Projects() {
       .eq('user_id', user?.id);
 
     if (error) {
-      // Revert optimistic update
-      setProjects(prev => [...prev, project]);
-      toast.error(`Failed to delete: ${error.message}`, { id: 'delete-project' });
+      // Reload projects to restore the item
+      toast.error(`Failed to delete: ${error.message}`, { id: `delete-project-${projectId}` });
       console.error('Delete error:', error);
+      await loadProjects();
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(projectId);
+        return newSet;
+      });
     } else {
-      toast.success('Project deleted', { id: 'delete-project' });
+      toast.success('Project deleted', { id: `delete-project-${projectId}` });
+      setDeletingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(projectId);
+        return newSet;
+      });
     }
   };
 
@@ -156,7 +175,13 @@ export default function Projects() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project) => (
-              <Card key={project.id} className="hover:shadow-lg transition-shadow">
+              <Card 
+                key={project.id} 
+                className={cn(
+                  "hover:shadow-lg transition-shadow animate-fade-in",
+                  deletingIds.has(project.id) && "animate-fade-out opacity-0 scale-95 pointer-events-none"
+                )}
+              >
                 <CardHeader>
                   <CardTitle className="truncate">{project.name}</CardTitle>
                   <CardDescription>
@@ -189,6 +214,7 @@ export default function Projects() {
                     onClick={() => deleteProject(project.id, project.name)}
                     variant="destructive"
                     size="icon"
+                    disabled={deletingIds.has(project.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
