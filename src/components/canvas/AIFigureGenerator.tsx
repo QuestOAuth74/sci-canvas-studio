@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Canvas as FabricCanvas, FabricImage, Text as FabricText, Group, loadSVGFromString, util } from "fabric";
+import { Canvas as FabricCanvas, FabricImage, Text as FabricText, Group, Rect, Circle, loadSVGFromString, util } from "fabric";
 import { createConnector } from "@/lib/connectorSystem";
 
 interface AIFigureGeneratorProps {
@@ -21,13 +21,22 @@ interface AIFigureGeneratorProps {
 
 interface GeneratedLayout {
   objects: Array<{
-    type: string;
+    type: 'icon' | 'shape';
     element_index: number;
-    icon_id: string;
-    icon_name: string;
+    // Icon properties
+    icon_id?: string;
+    icon_name?: string;
+    scale?: number;
+    // Shape properties
+    shape_type?: 'rectangle' | 'circle' | 'oval';
+    width?: number;
+    height?: number;
+    fill_color?: string;
+    stroke_color?: string;
+    stroke_width?: number;
+    // Common properties
     x: number;
     y: number;
-    scale: number;
     rotation: number;
     label?: string;
     labelPosition?: "top" | "bottom" | "left" | "right";
@@ -298,36 +307,99 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         v.length === 36 &&
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
-      // Collect valid indices and icon ids to fetch in one round-trip
-      const validIdxs: number[] = [];
+      // Separate shapes and icons
+      const shapeIdxs: number[] = [];
+      const iconIdxs: number[] = [];
       const iconIds: string[] = [];
+      
       objects.forEach((obj, i) => {
-        if (obj.icon_id && isValidUuid(obj.icon_id)) {
-          validIdxs.push(i);
+        if (obj.type === 'shape') {
+          shapeIdxs.push(i);
+        } else if (obj.type === 'icon' && obj.icon_id && isValidUuid(obj.icon_id)) {
+          iconIdxs.push(i);
           iconIds.push(obj.icon_id);
         }
       });
 
-      if (validIdxs.length === 0) {
-        toast.error("No valid icons to add to canvas");
+      if (shapeIdxs.length === 0 && iconIdxs.length === 0) {
+        toast.error("No valid objects to add to canvas");
         return;
       }
 
-      const { data: icons, error } = await supabase
-        .from('icons')
-        .select('id, svg_content, name')
-        .in('id', iconIds);
+      // Fetch icons only if there are any
+      let iconMap = new Map();
+      if (iconIds.length > 0) {
+        const { data: icons, error } = await supabase
+          .from('icons')
+          .select('id, svg_content, name')
+          .in('id', iconIds);
 
-      if (error) {
-        throw new Error(`Failed to fetch icons: ${error.message}`);
+        if (error) {
+          throw new Error(`Failed to fetch icons: ${error.message}`);
+        }
+        iconMap = new Map(icons?.map(icon => [icon.id, icon]) || []);
       }
-
-      const iconMap = new Map(icons?.map(icon => [icon.id, icon]) || []);
 
       const addedObjects: any[] = [];
       const indexMap: Record<number, number> = {}; // maps layout index -> addedObjects index
 
-      for (const i of validIdxs) {
+      // First, add all shapes
+      for (const i of shapeIdxs) {
+        const obj = objects[i];
+        
+        try {
+          const x = (obj.x / 100) * canvasWidth;
+          const y = (obj.y / 100) * canvasHeight;
+          const width = obj.width || 100;
+          const height = obj.height || 60;
+          
+          let shapeObj;
+          if (obj.shape_type === 'circle' || obj.shape_type === 'oval') {
+            shapeObj = new Circle({
+              left: x,
+              top: y,
+              radius: Math.min(width, height) / 2,
+              fill: obj.fill_color || '#E8F5E9',
+              stroke: obj.stroke_color || '#2E7D32',
+              strokeWidth: obj.stroke_width || 2,
+              angle: obj.rotation || 0,
+            });
+          } else {
+            shapeObj = new Rect({
+              left: x,
+              top: y,
+              width,
+              height,
+              fill: obj.fill_color || '#E8F5E9',
+              stroke: obj.stroke_color || '#2E7D32',
+              strokeWidth: obj.stroke_width || 2,
+              angle: obj.rotation || 0,
+            });
+          }
+          
+          canvas.add(shapeObj);
+          addedObjects.push(shapeObj);
+          indexMap[i] = addedObjects.length - 1;
+          
+          if (obj.label) {
+            const text = new FabricText(obj.label, {
+              left: x + width / 2,
+              top: y + height / 2,
+              fontSize: 14,
+              fill: '#000000',
+              fontFamily: 'Arial',
+              originX: 'center',
+              originY: 'center',
+            });
+            canvas.add(text);
+          }
+        } catch (err) {
+          console.error(`Failed to create shape:`, err);
+        }
+      }
+
+      // Then, add all icons
+      for (const i of iconIdxs) {
         const obj = objects[i];
         const iconData = iconMap.get(obj.icon_id);
         if (!iconData) continue;
@@ -426,7 +498,15 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
 
       canvas.renderAll();
       
-      toast.success(`Added ${addedObjects.length} icons to canvas${useProposed ? ' (raw AI layout)' : ' (corrected layout)'}`);
+      const shapesCount = shapeIdxs.length;
+      const iconsCount = iconIdxs.length;
+      const summary = shapesCount > 0 && iconsCount > 0 
+        ? `${shapesCount} shapes + ${iconsCount} icons`
+        : shapesCount > 0 
+        ? `${shapesCount} shapes`
+        : `${iconsCount} icons`;
+      
+      toast.success(`Added ${summary} to canvas${useProposed ? ' (raw AI layout)' : ' (corrected layout)'}`);
       onOpenChange(false);
       
       setImage(null);

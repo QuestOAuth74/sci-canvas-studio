@@ -162,12 +162,18 @@ serve(async (req) => {
     
     const elementSystemPrompt = `You are a scientific illustration analysis expert. PASS 1: Analyze elements and their precise positions.
 
+CRITICAL: Distinguish between simple geometric shapes with labels vs. biological/scientific elements:
+- Simple shapes: rectangles, circles, ovals with text labels → mark as "shape" type
+- Biological elements: proteins, organs, cells, molecules → mark as "icon" type
+
 Return valid JSON ONLY:
 {
   "identified_elements": [
     {
-      "name": "precise element name",
-      "category": "biology|chemistry|physics|anatomy|protein|enzyme|receptor|organ|cell|molecule",
+      "name": "precise element name or label text",
+      "element_type": "shape|icon",
+      "shape_type": "rectangle|circle|oval|none",
+      "category": "biology|chemistry|physics|anatomy|protein|enzyme|receptor|organ|cell|molecule|text_label",
       "description": "detailed description including visual characteristics",
       "position_x": 45.5,
       "position_y": 30.2,
@@ -175,6 +181,8 @@ Return valid JSON ONLY:
       "estimated_size": "large|medium|small",
       "rotation": 0,
       "visual_notes": "color, shape, distinguishing features",
+      "fill_color": "#RRGGBB if colored shape",
+      "stroke_color": "#RRGGBB if bordered",
       "search_terms": ["most_specific_term", "broader_term", "category_term", "alternative_name"]
     }
   ],
@@ -194,6 +202,12 @@ Return valid JSON ONLY:
     "diagram_type": "pathway|cycle|network|hierarchy|process_flow"
   }
 }
+
+ELEMENT TYPE DETECTION:
+- If element is a simple rectangle/circle/oval with text → element_type: "shape"
+- If element is a biological/scientific icon/illustration → element_type: "icon"
+- Shapes should have fill_color and stroke_color if visible
+- Icons need search_terms for database matching
 
 SPATIAL ANALYSIS REQUIREMENTS:
 - Provide pixel coordinates if measurable, AND precise percentages (0-100)
@@ -383,11 +397,16 @@ CONNECTOR ANALYSIS REQUIREMENTS:
 
     console.log(`Analysis complete: ${analysis.identified_elements.length} elements, ${analysis.spatial_relationships.length} connectors`);
 
-    // STEP 2A: AI-Powered Search Term Generation
+    // STEP 2A: AI-Powered Search Term Generation (only for icon elements)
     console.log('[PROGRESS] search_term_generation | 0% | Generating search terms...');
     console.log('Generating optimal search terms with AI...');
     const elementsWithAISearchTerms = await Promise.all(
       analysis.identified_elements.map(async (element: any, idx: number) => {
+        // Skip search term generation for shape elements
+        if (element.element_type === 'shape') {
+          console.log(`[${idx}] Skipping search for shape: ${element.name}`);
+          return { ...element, element_type: 'shape', ai_search_terms: [], search_confidence: 'n/a' };
+        }
         const searchTermPrompt = `Element: "${element.name}"
 Description: "${element.description}"
 Category: "${element.category}"
@@ -437,10 +456,18 @@ Return ONLY JSON:
       })
     );
 
-    // STEP 2B: Enhanced Icon Matching with Receptor Priority
+    // STEP 2B: Enhanced Icon Matching with Receptor Priority (skip shapes)
     console.log('Searching for matching icons...');
     const iconMatches = await Promise.all(
       elementsWithAISearchTerms.map(async (element: any, idx: number) => {
+        // Skip icon matching for shape elements
+        if (element.element_type === 'shape') {
+          return {
+            element_index: idx,
+            element,
+            matches: [] // No icon matches for shapes
+          };
+        }
         const searchTerms = element.ai_search_terms || element.search_terms || [element.name];
         const isReceptor = element.name.toLowerCase().includes('receptor') || 
                           element.category.toLowerCase().includes('receptor') ||
@@ -620,12 +647,16 @@ Return ONLY JSON:
     console.log(`Icon matching complete: ${iconMatchesVerified.filter(m => m.matches.length > 0).length} elements matched`);
     console.log('[PROGRESS] icon_verification | 100% | Icon verification complete');
 
-    const elementsWithMatches = iconMatchesVerified.filter(m => m.matches.length > 0);
+    // Separate shapes and icons
+    const shapeElements = iconMatchesVerified.filter(m => m.element.element_type === 'shape');
+    const iconElements = iconMatchesVerified.filter(m => m.matches.length > 0);
     
-    if (elementsWithMatches.length === 0) {
+    console.log(`Elements breakdown: ${shapeElements.length} shapes, ${iconElements.length} icons`);
+    
+    if (shapeElements.length === 0 && iconElements.length === 0) {
       return new Response(JSON.stringify({ 
-        error: 'No matching icons found in database for any elements',
-        suggestion: 'Try uploading icons that match the biological/scientific elements in your reference image'
+        error: 'No elements could be processed from the reference image',
+        suggestion: 'Try uploading a clearer reference image'
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -636,15 +667,39 @@ Return ONLY JSON:
     console.log('[PROGRESS] layout_generation | 0% | Generating layout...');
     console.log('Generating layout deterministically from analyzed elements...');
     
-    // Build layout directly from analyzed data
-    const composedObjects = elementsWithMatches.map((m) => {
-      const chosenIcon = m.matches[0]; // Use best match
-      
-      // Clamp positions to [0, 100]
+    // Build layout with both shapes and icons
+    const allElements = [...shapeElements, ...iconElements];
+    
+    const composedObjects = allElements.map((m) => {
       const x = Math.max(0, Math.min(100, m.element.position_x));
       const y = Math.max(0, Math.min(100, m.element.position_y));
       
-      // Calculate scale based on bounding box or size estimate
+      // For shapes: create shape objects
+      if (m.element.element_type === 'shape') {
+        let width = 100, height = 60;
+        if (m.element.bounding_box) {
+          width = m.element.bounding_box.width || 100;
+          height = m.element.bounding_box.height || 60;
+        }
+        
+        return {
+          type: 'shape',
+          element_index: m.element_index,
+          shape_type: m.element.shape_type || 'rectangle',
+          x,
+          y,
+          width,
+          height,
+          rotation: m.element.rotation || 0,
+          label: m.element.name,
+          fill_color: m.element.fill_color || '#E8F5E9',
+          stroke_color: m.element.stroke_color || '#2E7D32',
+          stroke_width: 2
+        };
+      }
+      
+      // For icons: create icon objects
+      const chosenIcon = m.matches[0];
       let scale = 0.5;
       if (m.element.bounding_box?.width) {
         scale = Math.max(0.4, Math.min(1.2, m.element.bounding_box.width / 200));
@@ -669,13 +724,13 @@ Return ONLY JSON:
     
     // Build connectors from spatial relationships
     const composedConnectors = (analysis.spatial_relationships || []).map((rel: any) => {
-      const fromElem = elementsWithMatches.find(m => m.element_index === rel.from_element);
-      const toElem = elementsWithMatches.find(m => m.element_index === rel.to_element);
+      const fromElem = allElements.find((m: any) => m.element_index === rel.from_element);
+      const toElem = allElements.find((m: any) => m.element_index === rel.to_element);
       
       if (!fromElem || !toElem) return null;
       
-      const fromIdx = elementsWithMatches.indexOf(fromElem);
-      const toIdx = elementsWithMatches.indexOf(toElem);
+      const fromIdx = allElements.indexOf(fromElem);
+      const toIdx = allElements.indexOf(toElem);
       
       const style = getConnectorStyle(rel.relationship_type);
       
@@ -860,18 +915,39 @@ Return ONLY JSON:
     console.log('[PROGRESS] final_processing | 0% | Building final layout...');
     console.log('Building deterministic final layout...');
     
-    // Build objects with strict positioning from analysis
-    const finalObjects = elementsWithMatches.map((m) => {
+    // Build objects with strict positioning from analysis (shapes + icons)
+    const finalObjects = allElements.map((m) => {
+      const x = Math.max(0, Math.min(100, m.element.position_x));
+      const y = Math.max(0, Math.min(100, m.element.position_y));
+      
+      // For shapes
+      if (m.element.element_type === 'shape') {
+        const proposedObj = proposedLayout.objects?.find((o: any) => o.element_index === m.element_index);
+        let width = proposedObj?.width || m.element.bounding_box?.width || 100;
+        let height = proposedObj?.height || m.element.bounding_box?.height || 60;
+        
+        return {
+          type: 'shape',
+          element_index: m.element_index,
+          shape_type: m.element.shape_type || 'rectangle',
+          x,
+          y,
+          width,
+          height,
+          rotation: m.element.rotation || 0,
+          label: m.element.name,
+          fill_color: m.element.fill_color || '#E8F5E9',
+          stroke_color: m.element.stroke_color || '#2E7D32',
+          stroke_width: 2
+        };
+      }
+      
+      // For icons
       const proposedObj = proposedLayout.objects?.find((o: any) => o.element_index === m.element_index);
       const chosenIcon = proposedObj?.icon_id && m.matches.find((i: any) => i.id === proposedObj.icon_id)
         ? m.matches.find((i: any) => i.id === proposedObj.icon_id)
-        : m.matches[0]; // fallback to best match
+        : m.matches[0];
 
-      // Clamp positions to [0, 100]
-      const x = Math.max(0, Math.min(100, m.element.position_x));
-      const y = Math.max(0, Math.min(100, m.element.position_y));
-
-      // Scale: use AI's suggestion if available, else use size mapping
       let scale = 0.5;
       if (proposedObj?.scale) {
         scale = proposedObj.scale;
@@ -983,7 +1059,8 @@ Return ONLY JSON:
 
     const metadata = {
       elements_identified: analysis.identified_elements.length,
-      icons_matched: elementsWithMatches.length,
+      icons_matched: iconElements.length,
+      shapes_identified: shapeElements.length,
       total_objects: finalObjects.length,
       total_connectors: finalConnectors.length,
       avg_position_deviation_percent: avgDeviation,
