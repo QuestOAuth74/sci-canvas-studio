@@ -768,50 +768,19 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           )}
 
           {/* Actions */}
-          <div className="flex gap-2">
-            {image && !response && (
-              <>
-                <Button
-                  onClick={() => handleGenerate(false)}
-                  disabled={isGenerating}
-                  className="flex-1"
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Generate Figure
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => handleGenerate(true)}
-                  disabled={isGenerating}
-                  variant="outline"
-                >
-                  Strict Mode
-                </Button>
-              </>
-            )}
-
-            {response && (
-              <>
-                <Button onClick={() => applyLayout(false)} className="flex-1">
-                  Apply Corrected Layout
-                </Button>
-                <Button onClick={() => applyLayout(true)} variant="outline">
-                  Apply Raw AI
-                </Button>
-                <Button variant="ghost" onClick={handleReset}>
-                  Reset
-                </Button>
-              </>
-            )}
-          </div>
+          {response && (
+            <div className="flex gap-2">
+              <Button onClick={() => applyLayout(false)} className="flex-1">
+                Apply Corrected Layout
+              </Button>
+              <Button onClick={() => applyLayout(true)} variant="outline">
+                Apply Raw AI
+              </Button>
+              <Button variant="ghost" onClick={handleReset}>
+                Reset
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
