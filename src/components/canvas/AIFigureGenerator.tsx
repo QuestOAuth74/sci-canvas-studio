@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Canvas as FabricCanvas, FabricImage, Text as FabricText, Group, loadSVGFromString, util } from "fabric";
@@ -88,12 +89,74 @@ interface GenerationResponse {
   critique?: Critique | null;
 }
 
+interface ProgressStage {
+  id: string;
+  name: string;
+  description: string;
+  status: 'pending' | 'active' | 'complete' | 'error';
+  progress: number;
+  details?: string;
+}
+
+const initialProgressStages: ProgressStage[] = [
+  {
+    id: 'element_detection',
+    name: 'Analyzing Elements',
+    description: 'Identifying biological elements and their positions',
+    status: 'pending',
+    progress: 0
+  },
+  {
+    id: 'connector_analysis',
+    name: 'Analyzing Connectors',
+    description: 'Detecting arrows and relationships',
+    status: 'pending',
+    progress: 0
+  },
+  {
+    id: 'search_term_generation',
+    name: 'Generating Search Terms',
+    description: 'AI-powered term optimization for icon matching',
+    status: 'pending',
+    progress: 0
+  },
+  {
+    id: 'icon_verification',
+    name: 'Verifying Icon Matches',
+    description: 'Semantically ranking best icon matches',
+    status: 'pending',
+    progress: 0
+  },
+  {
+    id: 'layout_generation',
+    name: 'Generating Layout',
+    description: 'Creating diagram layout with visual reference',
+    status: 'pending',
+    progress: 0
+  },
+  {
+    id: 'self_critique',
+    name: 'Self-Critique & Refinement',
+    description: 'AI reviewing and correcting layout accuracy',
+    status: 'pending',
+    progress: 0
+  },
+  {
+    id: 'final_processing',
+    name: 'Final Processing',
+    description: 'Building final layout and running checks',
+    status: 'pending',
+    progress: 0
+  }
+];
+
 export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGeneratorProps) => {
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [response, setResponse] = useState<GenerationResponse | null>(null);
   const [activeTab, setActiveTab] = useState("reference");
+  const [progressStages, setProgressStages] = useState<ProgressStage[]>(initialProgressStages);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -121,6 +184,53 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
     if (!image || !canvas) return;
 
     setIsGenerating(true);
+    
+    // Reset progress stages
+    setProgressStages(initialProgressStages.map(s => ({ 
+      ...s, 
+      status: 'pending', 
+      progress: 0 
+    })));
+
+    // Simulate progress tracking based on estimated timings
+    const stageTimings = [
+      { id: 'element_detection', duration: 7000 },
+      { id: 'connector_analysis', duration: 7000 },
+      { id: 'search_term_generation', duration: 12000 },
+      { id: 'icon_verification', duration: 12000 },
+      { id: 'layout_generation', duration: 9000 },
+      { id: 'self_critique', duration: 9000 },
+      { id: 'final_processing', duration: 2500 }
+    ];
+
+    let elapsed = 0;
+    const updateProgress = () => {
+      elapsed += 100; // Update every 100ms
+      
+      let totalDuration = 0;
+      for (let i = 0; i < stageTimings.length; i++) {
+        const stage = stageTimings[i];
+        totalDuration += stage.duration;
+        
+        if (elapsed < totalDuration) {
+          const stageElapsed = elapsed - (totalDuration - stage.duration);
+          const stageProgress = Math.min(100, (stageElapsed / stage.duration) * 100);
+          
+          setProgressStages(stages => stages.map(s => {
+            if (s.id === stage.id) {
+              return { ...s, status: 'active', progress: stageProgress };
+            } else if (stageTimings.findIndex(st => st.id === s.id) < i) {
+              return { ...s, status: 'complete', progress: 100 };
+            }
+            return s;
+          }));
+          break;
+        }
+      }
+    };
+
+    const progressInterval = setInterval(updateProgress, 100);
+
     try {
       const { data, error } = await supabase.functions.invoke('generate-figure-from-reference', {
         body: {
@@ -132,11 +242,24 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         }
       });
 
+      clearInterval(progressInterval);
+
       if (error) throw error;
 
       if (data.error) {
+        // Mark current stage as error
+        setProgressStages(stages => stages.map(s => 
+          s.status === 'active' ? { ...s, status: 'error' } : s
+        ));
         toast.error(data.error);
       } else {
+        // Mark all as complete
+        setProgressStages(stages => stages.map(s => ({ 
+          ...s, 
+          status: 'complete', 
+          progress: 100 
+        })));
+        
         setResponse(data);
         setActiveTab("checks");
         
@@ -147,6 +270,11 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         );
       }
     } catch (error: any) {
+      clearInterval(progressInterval);
+      // Mark current stage as error
+      setProgressStages(stages => stages.map(s => 
+        s.status === 'active' ? { ...s, status: 'error' } : s
+      ));
       console.error("Generation error:", error);
       toast.error(error.message || "Failed to generate figure");
     } finally {
@@ -300,6 +428,84 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
     setDescription("");
     setResponse(null);
     setActiveTab("reference");
+    setProgressStages(initialProgressStages);
+  };
+
+  const ProgressDisplay = ({ stages }: { stages: ProgressStage[] }) => {
+    const currentStage = stages.find(s => s.status === 'active');
+    const completedCount = stages.filter(s => s.status === 'complete').length;
+    const totalProgress = (completedCount / stages.length) * 100;
+    
+    return (
+      <div className="space-y-3">
+        {/* Overall Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">
+              {currentStage ? currentStage.name : 'Processing...'}
+            </span>
+            <span className="text-muted-foreground">
+              {completedCount}/{stages.length} stages
+            </span>
+          </div>
+          <Progress value={totalProgress} className="h-2" />
+          {currentStage && (
+            <p className="text-xs text-muted-foreground">
+              {currentStage.description}
+            </p>
+          )}
+        </div>
+        
+        {/* Stage List */}
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {stages.map((stage) => (
+            <div 
+              key={stage.id} 
+              className={`flex items-start gap-3 p-2 rounded-lg border ${
+                stage.status === 'active' ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800' :
+                stage.status === 'complete' ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' :
+                stage.status === 'error' ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' :
+                'bg-muted/50 border-border'
+              }`}
+            >
+              <div className="flex-shrink-0 mt-0.5">
+                {stage.status === 'complete' && (
+                  <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                )}
+                {stage.status === 'active' && (
+                  <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-400 animate-spin" />
+                )}
+                {stage.status === 'error' && (
+                  <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                )}
+                {stage.status === 'pending' && (
+                  <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30" />
+                )}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium">{stage.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {stage.description}
+                </div>
+                
+                {stage.status === 'active' && stage.progress > 0 && (
+                  <div className="mt-1">
+                    <Progress value={stage.progress} className="h-1" />
+                  </div>
+                )}
+                
+                {stage.details && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {stage.details}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -352,18 +558,49 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
 
           {/* Optional Description */}
           {image && !response && (
-            <div className="space-y-2">
-              <Label>Description (Optional)</Label>
-              <Textarea
-                placeholder="e.g., 'metabolic pathway with mitochondria and glucose molecules'"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                maxLength={500}
-                rows={3}
-              />
-              <p className="text-xs text-muted-foreground">
-                {description.length}/500 characters
-              </p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Description (Optional)</Label>
+                <Textarea
+                  placeholder="e.g., 'metabolic pathway with mitochondria and glucose molecules'"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={500}
+                  rows={3}
+                  disabled={isGenerating}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {description.length}/500 characters
+                </p>
+              </div>
+
+              {/* Progress Display */}
+              {isGenerating && (
+                <Card className="p-4">
+                  <ProgressDisplay stages={progressStages} />
+                </Card>
+              )}
+
+              {/* Generate Buttons */}
+              {!isGenerating && (
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => handleGenerate(false)}
+                    className="flex-1"
+                    disabled={isGenerating}
+                  >
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Generate Figure
+                  </Button>
+                  <Button 
+                    onClick={() => handleGenerate(true)}
+                    variant="outline"
+                    disabled={isGenerating}
+                  >
+                    Strict Mode
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 

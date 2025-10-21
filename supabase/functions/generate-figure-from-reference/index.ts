@@ -120,6 +120,7 @@ serve(async (req) => {
     }
 
     // STEP 1A: PASS 1 - Element Detection & Precise Positioning
+    console.log('[PROGRESS] element_detection | 0% | Starting element analysis...');
     console.log('Pass 1: Analyzing elements and positions...');
     
     const elementSystemPrompt = `You are a scientific illustration analysis expert. PASS 1: Analyze elements and their precise positions.
@@ -210,6 +211,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
     const elementData = await elementResponse.json();
     const elementText = elementData.choices[0].message.content;
     console.log('Pass 1 complete');
+    console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
 
     const elementJsonMatch = elementText.match(/\{[\s\S]*\}/);
     if (!elementJsonMatch) {
@@ -222,6 +224,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
     const elementAnalysis = JSON.parse(elementJsonMatch[0]);
 
     // STEP 1B: PASS 2 - Deep Connector Analysis
+    console.log('[PROGRESS] connector_analysis | 0% | Starting connector analysis...');
     console.log('Pass 2: Analyzing connectors in detail...');
     
     const connectorSystemPrompt = `You are a connector analysis expert. PASS 2: Analyze ONLY the connectors/arrows/lines between elements.
@@ -310,6 +313,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     const connectorData = await connectorResponse.json();
     const connectorText = connectorData.choices[0].message.content;
     console.log('Pass 2 complete');
+    console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
 
     const connectorJsonMatch = connectorText.match(/\{[\s\S]*\}/);
     if (!connectorJsonMatch) {
@@ -343,6 +347,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     console.log(`Analysis complete: ${analysis.identified_elements.length} elements, ${analysis.spatial_relationships.length} connectors`);
 
     // STEP 2A: AI-Powered Search Term Generation
+    console.log('[PROGRESS] search_term_generation | 0% | Generating search terms...');
     console.log('Generating optimal search terms with AI...');
     const elementsWithAISearchTerms = await Promise.all(
       analysis.identified_elements.map(async (element: any, idx: number) => {
@@ -488,6 +493,7 @@ Return ONLY JSON:
     );
 
     // STEP 2C: AI-Powered Icon Verification
+    console.log('[PROGRESS] icon_verification | 0% | Verifying icon matches...');
     console.log('Verifying icon matches with AI...');
     const verifiedMatches = await Promise.all(
       iconMatches.map(async (match) => {
@@ -575,6 +581,7 @@ Return ONLY JSON:
 
     const iconMatchesVerified = verifiedMatches;
     console.log(`Icon matching complete: ${iconMatchesVerified.filter(m => m.matches.length > 0).length} elements matched`);
+    console.log('[PROGRESS] icon_verification | 100% | Icon verification complete');
 
     const elementsWithMatches = iconMatchesVerified.filter(m => m.matches.length > 0);
     
@@ -589,6 +596,7 @@ Return ONLY JSON:
     }
 
     // STEP 3: Generate Proposed Layout (with reference image context)
+    console.log('[PROGRESS] layout_generation | 0% | Generating layout...');
     console.log('Generating layout with visual reference...');
     
     const layoutPrompt = `You are generating a scientific diagram layout. Recreate the reference image PRECISELY.
@@ -707,8 +715,11 @@ Compare your layout to the reference image visually. Return ONLY valid JSON.`;
     }
 
     const proposedLayout = JSON.parse(layoutJsonMatch[0]);
+    console.log('AI proposed layout generated');
+    console.log('[PROGRESS] layout_generation | 100% | Layout generation complete');
 
     // STEP 3.5: Self-Critique and Refinement Loop
+    console.log('[PROGRESS] self_critique | 0% | Starting self-critique...');
     console.log('AI self-critique: reviewing layout against reference...');
     
     const critiquePrompt = `You generated this layout:
@@ -847,8 +858,10 @@ Return ONLY JSON:
     } catch (critiqueError) {
       console.log('Self-critique failed, proceeding with original layout:', critiqueError);
     }
+    console.log('[PROGRESS] self_critique | 100% | Self-critique complete');
 
     // STEP 4: Build Deterministic Final Layout
+    console.log('[PROGRESS] final_processing | 0% | Building final layout...');
     console.log('Building deterministic final layout...');
     
     // Build objects with strict positioning from analysis
@@ -994,6 +1007,7 @@ Return ONLY JSON:
     };
 
     console.log('Final layout complete:', metadata);
+    console.log('[PROGRESS] final_processing | 100% | Final layout complete');
 
     return new Response(
       JSON.stringify({
