@@ -39,22 +39,42 @@ function normalizeRelationship(relType: string): string {
   return synonyms[normalized] || normalized;
 }
 
-// Strict style mapping based on relationship type
-function getConnectorStyle(relType: string): any {
+// Get connector style based on relationship type and visual analysis
+function getConnectorStyle(relType: string, visualDetails?: any): any {
   const normalized = normalizeRelationship(relType);
   
+  // Base style map (provides colors and markers based on semantic relationship)
   const styleMap: Record<string, any> = {
-    'activates': { type: 'curved', style: 'solid', color: '#00AA00', endMarker: 'arrow', strokeWidth: 2 },
-    'inhibits': { type: 'straight', style: 'dashed', color: '#FF0000', endMarker: 'tee', strokeWidth: 2 },
-    'produces': { type: 'curved', style: 'solid', color: '#0066CC', endMarker: 'arrow', strokeWidth: 3 },
-    'converts': { type: 'straight', style: 'solid', color: '#333333', endMarker: 'arrow', strokeWidth: 2 },
-    'binds_to': { type: 'straight', style: 'dashed', color: '#666666', endMarker: 'circle', strokeWidth: 1 },
-    'flows_to': { type: 'curved', style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2 },
-    'signals': { type: 'straight', style: 'dashed', color: '#FF6600', endMarker: 'arrow', strokeWidth: 1 },
-    'source': { type: 'straight', style: 'solid', color: '#999999', endMarker: 'open-arrow', strokeWidth: 1 },
+    'activates': { style: 'solid', color: '#00AA00', endMarker: 'arrow', strokeWidth: 2 },
+    'inhibits': { style: 'dashed', color: '#FF0000', endMarker: 'tee', strokeWidth: 2 },
+    'produces': { style: 'solid', color: '#0066CC', endMarker: 'arrow', strokeWidth: 3 },
+    'converts': { style: 'solid', color: '#333333', endMarker: 'arrow', strokeWidth: 2 },
+    'binds_to': { style: 'dashed', color: '#666666', endMarker: 'circle', strokeWidth: 1 },
+    'flows_to': { style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2 },
+    'signals': { style: 'dashed', color: '#FF6600', endMarker: 'arrow', strokeWidth: 1 },
+    'source': { style: 'solid', color: '#999999', endMarker: 'open-arrow', strokeWidth: 1 },
   };
   
-  return styleMap[normalized] || { type: 'straight', style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2 };
+  const baseStyle = styleMap[normalized] || { style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2 };
+  
+  // Determine routing type from visual analysis (prefer straight lines for cleaner diagrams)
+  let routingType = 'straight'; // Default to straight for cleaner layouts
+  
+  if (visualDetails?.line_type) {
+    const lineType = visualDetails.line_type.toLowerCase();
+    if (lineType.includes('curved') || lineType.includes('bezier')) {
+      routingType = 'curved';
+    } else if (lineType.includes('orthogonal') || lineType.includes('elbow')) {
+      routingType = 'elbow';
+    } else {
+      routingType = 'straight';
+    }
+  }
+  
+  return {
+    type: routingType,
+    ...baseStyle
+  };
 }
 
 // Robust JSON extraction with multiple fallback strategies
@@ -314,14 +334,18 @@ Return valid JSON ONLY:
 
 CONNECTOR ANALYSIS REQUIREMENTS:
 - Identify ALL connectors: arrows, lines, paths between elements
-- Line type: straight, curved, orthogonal (90° turns), or complex bezier
+- Line type: CRITICAL - accurately identify if straight, curved, orthogonal (90° turns), or complex bezier
+  * Straight lines are most common in hierarchical/flow diagrams
+  * Only mark as curved if there is visible curvature
+  * Default to straight when uncertain
 - Line style: solid (━), dashed (┄), dotted (···), double (═)
 - Thickness: thin (1-2px), medium (2-3px), thick (4+px)
 - Markers: arrow (→), tee (⊣ for inhibition), circle (○), diamond (◊), none
 - Path: does it go directly or curve around other elements?
 - Labels: any text written on or near the connector
 - Relationship type: use ONLY activates|inhibits|produces|converts|binds_to|flows_to|signals|source
-- Color: if not black, specify hex color`;
+- Color: if not black, specify hex color
+- IMPORTANT: Be precise about line_type - this determines visual routing in the final diagram`;
 
     const connectorUserPrompt = "PASS 2 - Analyze ALL connectors, arrows, and lines in detail.";
 
@@ -670,9 +694,33 @@ Return ONLY JSON:
     // Build layout with both shapes and icons
     const allElements = [...shapeElements, ...iconElements];
     
-    const composedObjects = allElements.map((m) => {
-      const x = Math.max(0, Math.min(100, m.element.position_x));
-      const y = Math.max(0, Math.min(100, m.element.position_y));
+    // Detect if this is a hierarchical/flow diagram for better layout
+    const isHierarchical = analysis.overall_layout?.flow_direction?.includes('top_to_bottom') || 
+                          analysis.overall_layout?.diagram_type?.includes('hierarchy') ||
+                          analysis.overall_layout?.diagram_type?.includes('pathway');
+    
+    // If hierarchical, organize elements by vertical position for proper alignment
+    const sortedElements = isHierarchical 
+      ? [...allElements].sort((a, b) => (a.element.position_y || 0) - (b.element.position_y || 0))
+      : allElements;
+    
+    const composedObjects = sortedElements.map((m) => {
+      let x = Math.max(0, Math.min(100, m.element.position_x));
+      let y = Math.max(0, Math.min(100, m.element.position_y));
+      
+      // For hierarchical layouts, snap Y positions to create clear tiers
+      if (isHierarchical && analysis.spatial_analysis?.alignment) {
+        const verticalGroups = analysis.spatial_analysis.alignment.horizontally_aligned || [];
+        for (const group of verticalGroups) {
+          if (group.includes(m.element_index)) {
+            // Find average Y position for this tier
+            const tierElements = allElements.filter(e => group.includes(e.element_index));
+            const avgY = tierElements.reduce((sum, e) => sum + (e.element.position_y || 0), 0) / tierElements.length;
+            y = Math.round(avgY);
+            break;
+          }
+        }
+      }
       
       // For shapes: create shape objects
       if (m.element.element_type === 'shape') {
@@ -732,7 +780,8 @@ Return ONLY JSON:
       const fromIdx = allElements.indexOf(fromElem);
       const toIdx = allElements.indexOf(toElem);
       
-      const style = getConnectorStyle(rel.relationship_type);
+      // Pass visual details to respect the actual line type from the reference image
+      const style = getConnectorStyle(rel.relationship_type, rel.visual_details);
       
       return {
         from: fromIdx,
@@ -991,7 +1040,7 @@ Return ONLY JSON:
       const toIdx = finalObjects.indexOf(toObj);
 
       const relType = normalizeRelationship(rel.relationship_type);
-      const strictStyle = getConnectorStyle(relType);
+      const strictStyle = getConnectorStyle(relType, rel.visual_details);
 
       const proposedConn = proposedLayout.connectors?.find((c: any) => 
         c.from === fromIdx && c.to === toIdx
