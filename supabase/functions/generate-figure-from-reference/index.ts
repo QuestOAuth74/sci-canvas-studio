@@ -342,11 +342,64 @@ CONNECTOR ANALYSIS REQUIREMENTS:
 
     console.log(`Analysis complete: ${analysis.identified_elements.length} elements, ${analysis.spatial_relationships.length} connectors`);
 
-    // STEP 2: Enhanced Icon Matching with Receptor Priority
+    // STEP 2A: AI-Powered Search Term Generation
+    console.log('Generating optimal search terms with AI...');
+    const elementsWithAISearchTerms = await Promise.all(
+      analysis.identified_elements.map(async (element: any, idx: number) => {
+        const searchTermPrompt = `Element: "${element.name}"
+Description: "${element.description}"
+Category: "${element.category}"
+Visual notes: "${element.visual_notes}"
+
+Generate 5 optimal database search terms to find a matching biological/scientific icon.
+Consider: scientific names, common names, visual descriptors, related terms, broader categories.
+
+Return ONLY JSON:
+{
+  "search_terms": ["term1", "term2", "term3", "term4", "term5"],
+  "confidence": "high|medium|low"
+}`;
+
+        try {
+          const searchTermResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [
+                { role: 'system', content: 'You are a scientific terminology expert. Always return valid JSON only.' },
+                { role: 'user', content: searchTermPrompt }
+              ],
+              max_tokens: 300,
+            }),
+          });
+
+          if (searchTermResponse.ok) {
+            const data = await searchTermResponse.json();
+            const content = data.choices[0].message.content;
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]);
+              return { ...element, ai_search_terms: parsed.search_terms, search_confidence: parsed.confidence };
+            }
+          }
+        } catch (error) {
+          console.log(`  AI search term generation failed for ${element.name}, using fallback`);
+        }
+
+        // Fallback to original search terms
+        return { ...element, ai_search_terms: element.search_terms, search_confidence: 'fallback' };
+      })
+    );
+
+    // STEP 2B: Enhanced Icon Matching with Receptor Priority
     console.log('Searching for matching icons...');
     const iconMatches = await Promise.all(
-      analysis.identified_elements.map(async (element: any, idx: number) => {
-        const searchTerms = element.search_terms || [element.name];
+      elementsWithAISearchTerms.map(async (element: any, idx: number) => {
+        const searchTerms = element.ai_search_terms || element.search_terms || [element.name];
         const isReceptor = element.name.toLowerCase().includes('receptor') || 
                           element.category.toLowerCase().includes('receptor') ||
                           searchTerms.some((term: string) => 
@@ -357,7 +410,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
                           );
         
         console.log(`[${idx}] Searching: ${element.name} (${isReceptor ? 'RECEPTOR' : 'standard'})`);
-        console.log(`  Search terms: ${searchTerms.join(', ')}`);
+        console.log(`  AI-generated search terms: ${searchTerms.join(', ')}`);
         
         let matches: any[] = [];
         
@@ -367,7 +420,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
             .from('icons')
             .select('id, name, category, svg_content, thumbnail')
             .or('name.ilike.%receptor%,category.ilike.%receptor%,name.ilike.%channel%,name.ilike.%membrane%,name.ilike.%gpcr%')
-            .limit(5);
+            .limit(8);
           
           if (receptorMatches && receptorMatches.length > 0) {
             matches = receptorMatches;
@@ -381,7 +434,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
             .from('icons')
             .select('id, name, category, svg_content, thumbnail')
             .ilike('name', element.name)
-            .limit(3);
+            .limit(5);
           
           if (exactMatch && exactMatch.length > 0) {
             matches = exactMatch;
@@ -389,14 +442,14 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           }
         }
         
-        // Stage 2: Search terms match
-        if (matches.length < 3) {
-          for (const term of searchTerms.slice(0, 3)) {
+        // Stage 2: AI-generated search terms match
+        if (matches.length < 5) {
+          for (const term of searchTerms.slice(0, 5)) {
             const { data: termMatches } = await supabase
               .from('icons')
               .select('id, name, category, svg_content, thumbnail')
               .or(`name.ilike.%${term}%,category.ilike.%${term}%`)
-              .limit(5);
+              .limit(8);
             
             if (termMatches && termMatches.length > 0) {
               termMatches.forEach(m => {
@@ -404,8 +457,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
                   matches.push(m);
                 }
               });
-              console.log(`  Stage 2 (term "${term}"): Found ${termMatches.length} matches`);
-              if (matches.length >= 5) break;
+              console.log(`  Stage 2 (AI term "${term}"): Found ${termMatches.length} matches`);
+              if (matches.length >= 8) break;
             }
           }
         }
@@ -416,7 +469,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
             .from('icons')
             .select('id, name, category, svg_content, thumbnail')
             .ilike('category', element.category)
-            .limit(3);
+            .limit(5);
           
           if (categoryMatches && categoryMatches.length > 0) {
             matches = categoryMatches;
@@ -424,19 +477,106 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           }
         }
         
-        console.log(`  Total matches: ${matches.length}`);
+        console.log(`  Total candidate matches: ${matches.length}`);
 
         return {
           element,
           element_index: idx,
-          matches: matches.slice(0, 5)
+          matches: matches.slice(0, 8) // Keep top 8 for verification
         };
       })
     );
 
-    console.log(`Found matches for ${iconMatches.filter(m => m.matches.length > 0).length} elements`);
+    // STEP 2C: AI-Powered Icon Verification
+    console.log('Verifying icon matches with AI...');
+    const verifiedMatches = await Promise.all(
+      iconMatches.map(async (match) => {
+        if (match.matches.length === 0) {
+          return match;
+        }
 
-    const elementsWithMatches = iconMatches.filter(m => m.matches.length > 0);
+        if (match.matches.length === 1) {
+          console.log(`  [${match.element_index}] Only 1 match, skipping verification`);
+          return match;
+        }
+
+        const verificationPrompt = `Element from scientific diagram:
+Name: "${match.element.name}"
+Description: "${match.element.description}"
+Category: "${match.element.category}"
+Visual characteristics: "${match.element.visual_notes}"
+
+Available icon options:
+${match.matches.map((icon: any, i: number) => `${i + 1}. "${icon.name}" (category: ${icon.category})`).join('\n')}
+
+Question: Which icon option is the BEST semantic and visual match for this biological element?
+Consider: scientific accuracy, semantic meaning, visual representation, common usage in diagrams.
+
+Return ONLY JSON:
+{
+  "best_match_index": 1,
+  "confidence": "high|medium|low",
+  "reasoning": "brief explanation"
+}`;
+
+        try {
+          const verifyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [
+                { role: 'system', content: 'You are a scientific illustration expert specializing in biological icon selection.' },
+                { role: 'user', content: verificationPrompt }
+              ],
+              max_tokens: 200,
+            }),
+          });
+
+          if (verifyResponse.ok) {
+            const data = await verifyResponse.json();
+            const content = data.choices[0].message.content;
+            const jsonMatch = content.match(/\{[\s\S]*\}/);
+            
+            if (jsonMatch) {
+              const verification = JSON.parse(jsonMatch[0]);
+              const bestIdx = verification.best_match_index - 1; // Convert to 0-indexed
+              
+              if (bestIdx >= 0 && bestIdx < match.matches.length) {
+                // Reorder matches to put best match first
+                const bestMatch = match.matches[bestIdx];
+                const reorderedMatches = [bestMatch, ...match.matches.filter((_: any, i: number) => i !== bestIdx)];
+                
+                console.log(`  [${match.element_index}] AI verified: "${bestMatch.name}" (${verification.confidence} confidence)`);
+                console.log(`    Reasoning: ${verification.reasoning}`);
+                
+                return {
+                  ...match,
+                  matches: reorderedMatches.slice(0, 5),
+                  verification: {
+                    confidence: verification.confidence,
+                    reasoning: verification.reasoning
+                  }
+                };
+              }
+            }
+          }
+        } catch (error) {
+          console.log(`  [${match.element_index}] Verification failed, using database order`);
+        }
+
+        // Fallback: keep original order
+        return { ...match, matches: match.matches.slice(0, 5) };
+      })
+    );
+
+    const iconMatchesVerified = verifiedMatches;
+    console.log(`Icon matching complete: ${iconMatchesVerified.filter(m => m.matches.length > 0).length} elements matched`);
+
+    const elementsWithMatches = iconMatchesVerified.filter(m => m.matches.length > 0);
     
     if (elementsWithMatches.length === 0) {
       return new Response(JSON.stringify({ 
