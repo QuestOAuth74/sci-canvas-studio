@@ -291,20 +291,28 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       const canvasWidth = canvas.width || 800;
       const canvasHeight = canvas.height || 600;
 
-      const validObjects = layoutToApply.objects.filter(obj => {
-        const isValid = obj.icon_id && 
-          typeof obj.icon_id === 'string' && 
-          obj.icon_id.length === 36 &&
-          obj.icon_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-        return isValid;
+      // Build a mapping from layout object index -> addedObjects index to keep connectors valid
+      const objects = layoutToApply.objects || [];
+      const isValidUuid = (v: string) =>
+        typeof v === 'string' &&
+        v.length === 36 &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
+      // Collect valid indices and icon ids to fetch in one round-trip
+      const validIdxs: number[] = [];
+      const iconIds: string[] = [];
+      objects.forEach((obj, i) => {
+        if (obj.icon_id && isValidUuid(obj.icon_id)) {
+          validIdxs.push(i);
+          iconIds.push(obj.icon_id);
+        }
       });
 
-      if (validObjects.length === 0) {
+      if (validIdxs.length === 0) {
         toast.error("No valid icons to add to canvas");
         return;
       }
 
-      const iconIds = validObjects.map(obj => obj.icon_id);
       const { data: icons, error } = await supabase
         .from('icons')
         .select('id, svg_content, name')
@@ -315,15 +323,18 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       }
 
       const iconMap = new Map(icons?.map(icon => [icon.id, icon]) || []);
-      const addedObjects: any[] = [];
 
-      for (const obj of validObjects) {
+      const addedObjects: any[] = [];
+      const indexMap: Record<number, number> = {}; // maps layout index -> addedObjects index
+
+      for (const i of validIdxs) {
+        const obj = objects[i];
         const iconData = iconMap.get(obj.icon_id);
         if (!iconData) continue;
 
         try {
-          const { objects, options } = await loadSVGFromString(iconData.svg_content);
-          const group = util.groupSVGElements(objects, options);
+          const { objects: svgObjects, options } = await loadSVGFromString(iconData.svg_content);
+          const group = util.groupSVGElements(svgObjects, options);
 
           const originalWidth = group.width || 100;
           const originalHeight = group.height || 100;
@@ -345,6 +356,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
 
           canvas.add(group);
           addedObjects.push(group);
+          indexMap[i] = addedObjects.length - 1; // remember mapping
 
           if (obj.label) {
             const labelOffsets = {
@@ -352,7 +364,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               bottom: { x: 0, y: 40 },
               left: { x: -60, y: 0 },
               right: { x: 60, y: 0 },
-            };
+            } as const;
             const offset = labelOffsets[obj.labelPosition || 'bottom'];
 
             const text = new FabricText(obj.label, {
@@ -365,13 +377,16 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             canvas.add(text);
           }
         } catch (err) {
-          console.error(`Failed to load icon ${iconData.name}:`, err);
+          console.error(`Failed to load icon ${iconData?.name || obj.icon_id}:`, err);
         }
       }
 
       for (const conn of layoutToApply.connectors) {
-        const fromObj = addedObjects[conn.from];
-        const toObj = addedObjects[conn.to];
+        const fromAdded = indexMap[conn.from];
+        const toAdded = indexMap[conn.to];
+
+        const fromObj = addedObjects[fromAdded];
+        const toObj = addedObjects[toAdded];
 
         if (fromObj && toObj) {
           const startX = (fromObj.left || 0) + ((fromObj.width || 0) * (fromObj.scaleX || 1)) / 2;
