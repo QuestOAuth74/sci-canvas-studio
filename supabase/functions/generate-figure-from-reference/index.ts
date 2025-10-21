@@ -119,10 +119,12 @@ serve(async (req) => {
       });
     }
 
-    // STEP 1: Vision Analysis with Enhanced Prompt
-    const systemPrompt = `You are a scientific illustration analysis expert specializing in biological diagrams. Analyze the provided reference image with EXTREME PRECISION.
+    // STEP 1A: PASS 1 - Element Detection & Precise Positioning
+    console.log('Pass 1: Analyzing elements and positions...');
+    
+    const elementSystemPrompt = `You are a scientific illustration analysis expert. PASS 1: Analyze elements and their precise positions.
 
-Your response must be valid JSON following this exact structure:
+Return valid JSON ONLY:
 {
   "identified_elements": [
     {
@@ -131,23 +133,23 @@ Your response must be valid JSON following this exact structure:
       "description": "detailed description including visual characteristics",
       "position_x": 45.5,
       "position_y": 30.2,
+      "bounding_box": { "width": 120, "height": 80 },
       "estimated_size": "large|medium|small",
       "rotation": 0,
       "visual_notes": "color, shape, distinguishing features",
       "search_terms": ["most_specific_term", "broader_term", "category_term", "alternative_name"]
     }
   ],
-  "spatial_relationships": [
-    {
-      "from_element": 0,
-      "to_element": 1,
-      "relationship_type": "activates|inhibits|produces|converts|binds_to|flows_to|signals|source",
-      "connector_style": "solid_arrow|dashed_arrow|double_arrow|thick_line|thin_line",
-      "directionality": "unidirectional|bidirectional",
-      "label": "optional label on connector",
-      "justification": "why this relationship exists"
-    }
-  ],
+  "spatial_analysis": {
+    "alignment": {
+      "horizontally_aligned": [[0, 1], [2, 3]],
+      "vertically_aligned": [[0, 2], [1, 3]]
+    },
+    "spacing": [
+      { "from": 0, "to": 1, "distance_pixels": 150, "distance_percent": 15.0 }
+    ],
+    "layout_pattern": "grid|vertical_flow|horizontal_flow|branching|circular|free_form"
+  },
   "overall_layout": {
     "flow_direction": "left_to_right|top_to_bottom|circular|radial|hierarchical|network",
     "complexity": "simple|moderate|complex",
@@ -155,23 +157,21 @@ Your response must be valid JSON following this exact structure:
   }
 }
 
-CRITICAL INSTRUCTIONS:
-1. Provide PRECISE position_x and position_y as percentages (0-100) from top-left
-2. Measure spacing and alignment carefully - accuracy is critical
-3. Identify connector types: solid arrows (→), dashed arrows (⇢), tee markers (⊣ for inhibition)
-4. Note labels or text on connectors
-5. Search terms: HIGHLY SPECIFIC first ["ACE2", "angiotensin converting enzyme 2", "enzyme", "biology"]
-6. For receptors: include "receptor", "GPCR", "membrane" in search terms
-7. For enzymes: include function and "enzyme" in search terms
-8. Position accuracy within ±2% is required
-9. Relationship types: use ONLY activates|inhibits|produces|converts|binds_to|flows_to|signals|source
-10. Justification: brief explanation of why this connection exists in the diagram`;
+SPATIAL ANALYSIS REQUIREMENTS:
+- Provide pixel coordinates if measurable, AND precise percentages (0-100)
+- Measure distances between adjacent elements in pixels AND percentages
+- Identify which elements are aligned (share x or y coordinates within ±2%)
+- Note spacing consistency: evenly spaced or clustered?
+- Detect layout patterns: grid, hierarchy, pathway, etc.
+- Bounding box: estimate width and height in pixels if visible
+- Search terms: HIGHLY SPECIFIC first, then broader ["ACE2", "angiotensin converting enzyme 2", "enzyme", "biology"]
+- Position accuracy within ±2% is CRITICAL`;
 
-    const userPrompt = description 
-      ? `Analyze this scientific diagram. User description: "${description}"`
-      : "Analyze this scientific diagram and identify all elements.";
+    const elementUserPrompt = description 
+      ? `PASS 1 - Analyze elements and positions in this diagram. User description: "${description}"`
+      : "PASS 1 - Analyze all elements and their precise positions.";
 
-    const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const elementResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiApiKey}`,
@@ -180,11 +180,11 @@ CRITICAL INSTRUCTIONS:
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: elementSystemPrompt },
           {
             role: 'user',
             content: [
-              { type: 'text', text: userPrompt },
+              { type: 'text', text: elementUserPrompt },
               {
                 type: 'image_url',
                 image_url: {
@@ -198,28 +198,149 @@ CRITICAL INSTRUCTIONS:
       }),
     });
 
-    if (!visionResponse.ok) {
-      const errorText = await visionResponse.text();
-      console.error('OpenAI Vision API error:', visionResponse.status, errorText);
-      return new Response(JSON.stringify({ error: 'Failed to analyze image' }), {
+    if (!elementResponse.ok) {
+      const errorText = await elementResponse.text();
+      console.error('Pass 1 error:', elementResponse.status, errorText);
+      return new Response(JSON.stringify({ error: 'Failed to analyze elements' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const visionData = await visionResponse.json();
-    const analysisText = visionData.choices[0].message.content;
-    console.log('Vision analysis:', analysisText);
+    const elementData = await elementResponse.json();
+    const elementText = elementData.choices[0].message.content;
+    console.log('Pass 1 complete');
 
-    const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return new Response(JSON.stringify({ error: 'Failed to parse AI response' }), {
+    const elementJsonMatch = elementText.match(/\{[\s\S]*\}/);
+    if (!elementJsonMatch) {
+      return new Response(JSON.stringify({ error: 'Failed to parse element analysis' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const analysis = JSON.parse(jsonMatch[0]);
+    const elementAnalysis = JSON.parse(elementJsonMatch[0]);
+
+    // STEP 1B: PASS 2 - Deep Connector Analysis
+    console.log('Pass 2: Analyzing connectors in detail...');
+    
+    const connectorSystemPrompt = `You are a connector analysis expert. PASS 2: Analyze ONLY the connectors/arrows/lines between elements.
+
+Elements identified (for reference):
+${elementAnalysis.identified_elements.map((e: any, i: number) => `${i}: ${e.name} at (${e.position_x}, ${e.position_y})`).join('\n')}
+
+Return valid JSON ONLY:
+{
+  "connectors": [
+    {
+      "from_element": 0,
+      "to_element": 1,
+      "relationship_type": "activates|inhibits|produces|converts|binds_to|flows_to|signals|source",
+      "visual_style": {
+        "line_type": "straight|curved|orthogonal|bezier",
+        "line_style": "solid|dashed|dotted|double",
+        "thickness": "thin|medium|thick",
+        "color": "#000000"
+      },
+      "markers": {
+        "start": "none|arrow|circle|diamond|tee",
+        "end": "none|arrow|circle|diamond|tee"
+      },
+      "routing": {
+        "path_description": "direct|curves_around|multiple_waypoints",
+        "approximate_waypoints": [[x1,y1], [x2,y2]]
+      },
+      "label": "text on or near connector",
+      "label_position": "midpoint|offset",
+      "directionality": "unidirectional|bidirectional",
+      "justification": "why this connection exists"
+    }
+  ]
+}
+
+CONNECTOR ANALYSIS REQUIREMENTS:
+- Identify ALL connectors: arrows, lines, paths between elements
+- Line type: straight, curved, orthogonal (90° turns), or complex bezier
+- Line style: solid (━), dashed (┄), dotted (···), double (═)
+- Thickness: thin (1-2px), medium (2-3px), thick (4+px)
+- Markers: arrow (→), tee (⊣ for inhibition), circle (○), diamond (◊), none
+- Path: does it go directly or curve around other elements?
+- Labels: any text written on or near the connector
+- Relationship type: use ONLY activates|inhibits|produces|converts|binds_to|flows_to|signals|source
+- Color: if not black, specify hex color`;
+
+    const connectorUserPrompt = "PASS 2 - Analyze ALL connectors, arrows, and lines in detail.";
+
+    const connectorResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: connectorSystemPrompt },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: connectorUserPrompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 3000,
+      }),
+    });
+
+    if (!connectorResponse.ok) {
+      const errorText = await connectorResponse.text();
+      console.error('Pass 2 error:', connectorResponse.status, errorText);
+      return new Response(JSON.stringify({ error: 'Failed to analyze connectors' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const connectorData = await connectorResponse.json();
+    const connectorText = connectorData.choices[0].message.content;
+    console.log('Pass 2 complete');
+
+    const connectorJsonMatch = connectorText.match(/\{[\s\S]*\}/);
+    if (!connectorJsonMatch) {
+      return new Response(JSON.stringify({ error: 'Failed to parse connector analysis' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const connectorAnalysis = JSON.parse(connectorJsonMatch[0]);
+
+    // Merge analyses into final structure
+    const analysis = {
+      identified_elements: elementAnalysis.identified_elements,
+      spatial_relationships: connectorAnalysis.connectors.map((c: any) => ({
+        from_element: c.from_element,
+        to_element: c.to_element,
+        relationship_type: c.relationship_type,
+        connector_style: c.visual_style?.line_style || 'solid',
+        directionality: c.directionality,
+        label: c.label || '',
+        justification: c.justification || '',
+        visual_details: c.visual_style,
+        markers: c.markers,
+        routing: c.routing
+      })),
+      spatial_analysis: elementAnalysis.spatial_analysis,
+      overall_layout: elementAnalysis.overall_layout
+    };
+
+    console.log(`Analysis complete: ${analysis.identified_elements.length} elements, ${analysis.spatial_relationships.length} connectors`);
 
     // STEP 2: Enhanced Icon Matching with Receptor Priority
     console.log('Searching for matching icons...');
@@ -327,10 +448,15 @@ CRITICAL INSTRUCTIONS:
       });
     }
 
-    // STEP 3: Generate Proposed Layout (let AI try)
+    // STEP 3: Generate Proposed Layout (with reference image context)
+    console.log('Generating layout with visual reference...');
+    
     const layoutPrompt = `You are generating a scientific diagram layout. Recreate the reference image PRECISELY.
 
 Canvas: ${canvasWidth}x${canvasHeight}
+
+SPATIAL ANALYSIS FROM REFERENCE:
+${JSON.stringify(analysis.spatial_analysis, null, 2)}
 
 ELEMENTS WITH ICONS:
 ${JSON.stringify(elementsWithMatches.map((m) => ({
@@ -338,6 +464,7 @@ ${JSON.stringify(elementsWithMatches.map((m) => ({
   element_name: m.element.name,
   position_x: m.element.position_x,
   position_y: m.element.position_y,
+  bounding_box: m.element.bounding_box,
   estimated_size: m.element.estimated_size,
   rotation: m.element.rotation || 0,
   category: m.element.category,
@@ -348,8 +475,15 @@ ${JSON.stringify(elementsWithMatches.map((m) => ({
   }))
 })), null, 2)}
 
-RELATIONSHIPS:
+RELATIONSHIPS WITH VISUAL DETAILS:
 ${JSON.stringify(analysis.spatial_relationships, null, 2)}
+
+LAYOUT REQUIREMENTS:
+1. Use EXACT position_x and position_y from elements (±2% tolerance only)
+2. Maintain alignment from spatial_analysis (elements that should align must align)
+3. Preserve spacing ratios from reference
+4. Match connector routing from visual_details
+5. All icons scale to ~200px, adjust 'scale' for size variations
 
 OUTPUT (JSON ONLY):
 {
@@ -382,7 +516,7 @@ OUTPUT (JSON ONLY):
   ]
 }
 
-Generate now. Return ONLY valid JSON.`;
+Compare your layout to the reference image visually. Return ONLY valid JSON.`;
 
     const layoutResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -393,8 +527,19 @@ Generate now. Return ONLY valid JSON.`;
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: 'You are a layout generation assistant. Always respond with valid JSON only.' },
-          { role: 'user', content: layoutPrompt }
+          { role: 'system', content: 'You are a layout generation assistant. Match the reference image precisely. Always respond with valid JSON only.' },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: layoutPrompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                }
+              }
+            ]
+          }
         ],
         max_tokens: 4000,
       }),
