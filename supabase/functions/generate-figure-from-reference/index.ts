@@ -183,18 +183,34 @@ Focus on accuracy over completeness. Only identify elements you are confident ab
 
     console.log(`Found matches for ${iconMatches.filter(m => m.matches.length > 0).length} elements`);
 
+    // Filter to only include elements with icon matches
+    const elementsWithMatches = iconMatches.filter(m => m.matches.length > 0);
+    
+    if (elementsWithMatches.length === 0) {
+      return new Response(JSON.stringify({ 
+        error: 'No matching icons found in database for any elements',
+        suggestion: 'Try uploading icons that match the biological/scientific elements in your reference image'
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Step 3: Generate layout using AI
     const layoutPrompt = `Based on this analysis, create a canvas layout. 
 Canvas dimensions: ${canvasWidth}x${canvasHeight}
 
-Analysis: ${JSON.stringify(analysis)}
+IMPORTANT: Only use elements that have matching icons available. Do NOT include elements without matches.
 
-Icon matches available: ${JSON.stringify(iconMatches.map(m => ({
+Elements with available icons: ${JSON.stringify(elementsWithMatches.map((m, idx) => ({
+  index: idx,
   element: m.element.name,
-  available_icons: m.matches.map(i => ({ id: i.id, name: i.name, category: i.category }))
+  category: m.element.category,
+  available_icons: m.matches.map((i: any) => ({ id: i.id, name: i.name, category: i.category }))
 })))}
 
 Generate a JSON layout with proper positioning. Use percentages for x,y coordinates (0-100).
+CRITICAL: You MUST use valid icon_id values from the available_icons list above. Do NOT use empty strings or placeholder IDs.
 Return ONLY valid JSON in this format:
 {
   "objects": [
@@ -261,14 +277,38 @@ Return ONLY valid JSON in this format:
 
     const layout = JSON.parse(layoutJsonMatch[0]);
 
+    // Validate and filter objects with valid icon_ids
+    const validObjects = (layout.objects || []).filter((obj: any) => {
+      const isValidUUID = obj.icon_id && 
+        typeof obj.icon_id === 'string' && 
+        obj.icon_id.length === 36 && 
+        obj.icon_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+      
+      if (!isValidUUID) {
+        console.log(`Filtered out object with invalid icon_id: ${obj.icon_name || 'unknown'} (${obj.icon_id})`);
+      }
+      return isValidUUID;
+    });
+
+    // Update connector indices to match filtered objects
+    const validConnectors = (layout.connectors || []).filter((conn: any) => {
+      return conn.from < validObjects.length && conn.to < validObjects.length;
+    });
+
+    const finalLayout = {
+      objects: validObjects,
+      connectors: validConnectors
+    };
+
     // Add metadata
     const response = {
-      layout,
+      layout: finalLayout,
       metadata: {
         elements_identified: analysis.identified_elements.length,
-        icons_matched: iconMatches.filter(m => m.matches.length > 0).length,
-        total_objects: layout.objects?.length || 0,
-        total_connectors: layout.connectors?.length || 0,
+        icons_matched: elementsWithMatches.length,
+        total_objects: validObjects.length,
+        total_connectors: validConnectors.length,
+        filtered_objects: (layout.objects?.length || 0) - validObjects.length
       }
     };
 

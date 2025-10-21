@@ -109,22 +109,47 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       const canvasWidth = canvas.width || 800;
       const canvasHeight = canvas.height || 600;
 
+      // Filter objects with valid icon_id (valid UUID format)
+      const validObjects = generatedLayout.objects.filter(obj => {
+        const isValid = obj.icon_id && 
+          typeof obj.icon_id === 'string' && 
+          obj.icon_id.length === 36 &&
+          obj.icon_id.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+        return isValid;
+      });
+
+      if (validObjects.length === 0) {
+        toast.error("No valid icons to add to canvas");
+        return;
+      }
+
+      const skippedCount = generatedLayout.objects.length - validObjects.length;
+      if (skippedCount > 0) {
+        toast.warning(`${skippedCount} element${skippedCount > 1 ? 's' : ''} couldn't be matched to database icons`);
+      }
+
       // Fetch all icons SVG content
-      const iconIds = generatedLayout.objects.map(obj => obj.icon_id);
+      const iconIds = validObjects.map(obj => obj.icon_id);
       const { data: icons, error } = await supabase
         .from('icons')
         .select('id, svg_content, name')
         .in('id', iconIds);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Database query error:", error);
+        throw new Error(`Failed to fetch icons: ${error.message}`);
+      }
 
       const iconMap = new Map(icons?.map(icon => [icon.id, icon]) || []);
       const addedObjects: any[] = [];
 
       // Add icons to canvas
-      for (const obj of generatedLayout.objects) {
+      for (const obj of validObjects) {
         const iconData = iconMap.get(obj.icon_id);
-        if (!iconData) continue;
+        if (!iconData) {
+          console.warn(`Icon not found in database: ${obj.icon_id} (${obj.icon_name})`);
+          continue;
+        }
 
         try {
           // Load SVG
@@ -195,7 +220,11 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       }
 
       canvas.renderAll();
-      toast.success(`Added ${addedObjects.length} icons to canvas`);
+      
+      const successMsg = addedObjects.length === 1 
+        ? "Added 1 icon to canvas" 
+        : `Added ${addedObjects.length} icons to canvas`;
+      toast.success(successMsg);
       onOpenChange(false);
       
       // Reset state
@@ -205,7 +234,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       setMetadata(null);
     } catch (error: any) {
       console.error("Apply to canvas error:", error);
-      toast.error("Failed to apply layout to canvas");
+      const errorMsg = error.message || "Failed to apply layout to canvas";
+      toast.error(errorMsg);
     }
   };
 
