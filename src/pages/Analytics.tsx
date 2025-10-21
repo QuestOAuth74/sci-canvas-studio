@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2 } from "lucide-react";
+import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -220,7 +220,20 @@ const Analytics = () => {
                       }
                     >
                       <TableCell className="font-medium">
-                        {user.full_name || 'No name'}
+                        <div className="flex items-center gap-2">
+                          <span>{user.full_name || 'No name'}</span>
+                          {user.project_count > 0 && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => navigate(`/admin/user-projects?userId=${user.id}&userName=${encodeURIComponent(user.full_name || 'User')}`)}
+                              className="h-6 px-2 text-xs hover:bg-primary/10"
+                            >
+                              <Eye className="h-3 w-3 mr-1" />
+                              View ({user.project_count})
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {user.email}
