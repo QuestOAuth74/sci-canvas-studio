@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Copy, Sparkles, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface CommunityProject {
   id: string;
@@ -33,6 +35,7 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
   const [project, setProject] = useState<CommunityProject | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const loadFeaturedProject = async () => {
@@ -92,6 +95,13 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
   };
 
   const handleViewProject = () => {
+    if (!user) {
+      handleClose();
+      toast.info("Please sign in to view community projects");
+      navigate("/auth");
+      return;
+    }
+    
     if (project) {
       handleClose();
       onViewProject(project);
