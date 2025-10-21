@@ -119,7 +119,7 @@ export default function Auth() {
     setIsLoading(false);
 
     if (!error) {
-      setActiveTab('signin');
+      navigate('/canvas');
       setSignUpCaptchaToken('');
       signUpCaptchaRef.current?.resetCaptcha();
     } else {
