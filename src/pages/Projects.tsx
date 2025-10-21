@@ -347,7 +347,7 @@ export default function Projects() {
                       <div className="space-y-2 text-sm">
                         <p className="flex items-center gap-2 text-muted-foreground">
                           <Sparkles className="h-4 w-4" />
-                          Join 1,000+ scientists creating publication-ready figures
+                          Join other scientists creating publication-ready figures
                         </p>
                         <p className="flex items-center gap-2 text-muted-foreground">
                           ⚡ Average time to first project: 5 minutes
