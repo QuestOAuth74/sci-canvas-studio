@@ -72,6 +72,7 @@ export default function Projects() {
     const { data, error } = await supabase
       .from('canvas_projects')
       .select('id, name, updated_at, paper_size, canvas_width, canvas_height, is_public, title, description, keywords, citations, approval_status')
+      .eq('user_id', user?.id)
       .order('updated_at', { ascending: false });
 
     if (error) {
