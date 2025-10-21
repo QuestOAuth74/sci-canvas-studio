@@ -102,25 +102,30 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-2xl neo-border border-4 border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <DialogHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="h-5 w-5 text-primary animate-pulse" />
-            <Badge variant="secondary" className="neo-brutalist-shadow">
-              Featured Community Project
+      <DialogContent className="sm:max-w-3xl border border-border/40 bg-background/98 backdrop-blur-xl shadow-2xl">
+        <DialogHeader className="space-y-3 pb-2">
+          <div className="flex items-center gap-3">
+            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+            <Badge 
+              variant="secondary" 
+              className="text-xs font-medium tracking-wide uppercase bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
+            >
+              Featured Illustration
             </Badge>
           </div>
-          <DialogTitle className="text-2xl font-bold text-foreground">
+          <DialogTitle className="text-3xl font-semibold tracking-tight text-foreground leading-tight">
             {project.title || 'Untitled Project'}
           </DialogTitle>
-          <DialogDescription className="text-base text-muted-foreground">
-            {project.description || 'A creative scientific illustration from our community'}
-          </DialogDescription>
+          {project.description && (
+            <DialogDescription className="text-base leading-relaxed text-muted-foreground/80">
+              {project.description}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-6 py-2">
           {/* Thumbnail */}
-          <div className="relative aspect-video w-full rounded-lg overflow-hidden neo-brutalist-shadow border-4 border-border bg-muted">
+          <div className="relative aspect-video w-full rounded-md overflow-hidden shadow-lg border border-border/30 bg-muted/30">
             {project.thumbnail_url ? (
               <img
                 src={project.thumbnail_url}
@@ -128,39 +133,46 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
                 className="w-full h-full object-contain"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground/60">
                 No preview available
               </div>
             )}
           </div>
 
           {/* Creator & Stats */}
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold border-2 border-primary">
+          <div className="flex items-center justify-between pt-2 pb-1 border-t border-border/30">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-medium text-sm border border-primary/20">
                 {project.profiles?.full_name?.[0]?.toUpperCase() || '?'}
               </div>
-              <span className="font-medium text-foreground">
-                by {project.profiles?.full_name || 'Anonymous'}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground/60 uppercase tracking-wider">Created by</span>
+                <span className="font-medium text-foreground text-sm">
+                  {project.profiles?.full_name || 'Anonymous'}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Eye className="h-4 w-4" />
-                {project.view_count}
-              </span>
-              <span className="flex items-center gap-1">
-                <Copy className="h-4 w-4" />
-                {project.cloned_count}
-              </span>
+            <div className="flex items-center gap-5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <Eye className="h-4 w-4 opacity-60" />
+                <span className="font-medium">{project.view_count}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Copy className="h-4 w-4 opacity-60" />
+                <span className="font-medium">{project.cloned_count}</span>
+              </div>
             </div>
           </div>
 
           {/* Keywords */}
           {project.keywords && project.keywords.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               {project.keywords.slice(0, 5).map((keyword, index) => (
-                <Badge key={index} variant="outline" className="text-xs">
+                <Badge 
+                  key={index} 
+                  variant="outline" 
+                  className="text-xs font-normal bg-muted/40 hover:bg-muted/60 border-border/30 transition-colors"
+                >
                   {keyword}
                 </Badge>
               ))}
@@ -168,18 +180,19 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
           )}
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-2">
+        <DialogFooter className="flex-col sm:flex-row gap-3 pt-2 border-t border-border/30">
           <Button
             variant="outline"
             onClick={handleClose}
-            className="neo-border border-2"
+            className="border-border/40 hover:bg-muted/50 transition-colors"
           >
-            Close
+            Maybe Later
           </Button>
           <Button
             onClick={handleViewProject}
-            className="neo-brutalist-shadow bg-primary text-primary-foreground hover:translate-x-1 hover:translate-y-1 transition-transform"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
           >
+            <Sparkles className="h-4 w-4 mr-2" />
             View Full Project
           </Button>
         </DialogFooter>
