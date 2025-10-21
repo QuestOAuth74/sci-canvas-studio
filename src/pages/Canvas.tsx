@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
@@ -20,6 +21,8 @@ import { toast } from "sonner";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
+import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -33,6 +36,8 @@ const CanvasContent = () => {
   const [leftSidebarTab, setLeftSidebarTab] = useState<"icons" | "assets">("icons");
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "layers">("properties");
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
+  const { isAdmin } = useAuth();
   const {
     canvas,
     undo,
@@ -203,6 +208,13 @@ const CanvasContent = () => {
 
       {/* Save Upload Handler */}
       <SaveUploadHandler />
+      
+      {/* AI Figure Generator */}
+      <AIFigureGenerator 
+        canvas={canvas}
+        open={aiGeneratorOpen} 
+        onOpenChange={setAiGeneratorOpen} 
+      />
 
       {/* Top Header with Menu - Glass effect */}
       <header className="glass-effect border-b border-border/40">
@@ -265,6 +277,23 @@ const CanvasContent = () => {
               </TooltipTrigger>
               <TooltipContent>Keyboard Shortcuts (?)</TooltipContent>
             </Tooltip>
+            {isAdmin && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAiGeneratorOpen(true)}
+                    className="h-9"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    AI Generate
+                    <Badge variant="secondary" className="ml-2">Admin</Badge>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>AI Figure Generator</TooltipContent>
+              </Tooltip>
+            )}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button onClick={saveProject} disabled={isSaving} variant="default" size="sm" className="h-9 shadow-sm">
