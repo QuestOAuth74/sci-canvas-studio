@@ -36,6 +36,8 @@ interface GeneratedLayout {
     style: string;
     strokeWidth: number;
     color: string;
+    startMarker?: string;
+    endMarker?: string;
     label?: string;
   }>;
 }
@@ -152,35 +154,35 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         }
 
         try {
-          // Load SVG
-          const { objects, options } = await loadSVGFromString(iconData.svg_content);
-          const group = util.groupSVGElements(objects, options);
+        // Load SVG
+        const { objects, options } = await loadSVGFromString(iconData.svg_content);
+        const group = util.groupSVGElements(objects, options);
 
-          // Get original dimensions
-          const originalWidth = group.width || 100;
-          const originalHeight = group.height || 100;
+        // Get original dimensions
+        const originalWidth = group.width || 100;
+        const originalHeight = group.height || 100;
 
-          // Calculate scale to normalize to ~200x200px target
-          const TARGET_SIZE = 200;
-          const maxDimension = Math.max(originalWidth, originalHeight);
-          const normalizationScale = TARGET_SIZE / maxDimension;
+        // Calculate scale to normalize to ~200x200px target
+        const TARGET_SIZE = 200;
+        const maxDimension = Math.max(originalWidth, originalHeight);
+        const normalizationScale = TARGET_SIZE / maxDimension;
 
-          // Apply AI's scale on top of normalization
-          const finalScale = normalizationScale * obj.scale;
+        // Apply AI's scale on top of normalization
+        const finalScale = normalizationScale * obj.scale;
 
-          // Convert percentage to pixels
-          const x = (obj.x / 100) * canvasWidth;
-          const y = (obj.y / 100) * canvasHeight;
+        console.log(`Icon: ${iconData.name}, Original: ${originalWidth.toFixed(0)}x${originalHeight.toFixed(0)}px, Scale: ${finalScale.toFixed(2)}, Final size: ~${(maxDimension * finalScale).toFixed(0)}px`);
 
-          console.log(`Icon: ${iconData.name}, Original: ${originalWidth.toFixed(0)}x${originalHeight.toFixed(0)}, AI Scale: ${obj.scale}, Final Scale: ${finalScale.toFixed(2)}, Final size: ~${(maxDimension * finalScale).toFixed(0)}px`);
+        // Convert percentage to pixels
+        const x = (obj.x / 100) * canvasWidth;
+        const y = (obj.y / 100) * canvasHeight;
 
-          group.set({
-            left: x,
-            top: y,
-            scaleX: finalScale,
-            scaleY: finalScale,
-            angle: obj.rotation,
-          });
+        group.set({
+          left: x,
+          top: y,
+          scaleX: finalScale,
+          scaleY: finalScale,
+          angle: obj.rotation,
+        });
 
           canvas.add(group);
           addedObjects.push(group);
@@ -209,27 +211,46 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         }
       }
 
-      // Add connectors
+      // Add connectors with enhanced styling
       for (const conn of generatedLayout.connectors) {
         const fromObj = addedObjects[conn.from];
         const toObj = addedObjects[conn.to];
 
         if (fromObj && toObj) {
-          const startX = fromObj.left || 0;
-          const startY = fromObj.top || 0;
-          const endX = toObj.left || 0;
-          const endY = toObj.top || 0;
+          // Calculate center positions
+          const startX = (fromObj.left || 0) + ((fromObj.width || 0) * (fromObj.scaleX || 1)) / 2;
+          const startY = (fromObj.top || 0) + ((fromObj.height || 0) * (fromObj.scaleY || 1)) / 2;
+          const endX = (toObj.left || 0) + ((toObj.width || 0) * (toObj.scaleX || 1)) / 2;
+          const endY = (toObj.top || 0) + ((toObj.height || 0) * (toObj.scaleY || 1)) / 2;
 
           createConnector(canvas, {
             startX,
             startY,
             endX,
             endY,
-            startMarker: 'none',
-            endMarker: 'arrow',
-            lineStyle: conn.style === 'dashed' ? 'dashed' : 'solid',
-            routingStyle: conn.type === 'curved' ? 'curved' : 'straight',
+            startMarker: (conn.startMarker || 'none') as any,
+            endMarker: (conn.endMarker || 'arrow') as any,
+            lineStyle: (conn.style === 'dashed' ? 'dashed' : 'solid') as any,
+            routingStyle: (conn.type === 'curved' ? 'curved' : 'straight') as any,
+            strokeColor: conn.color || '#000000',
+            strokeWidth: conn.strokeWidth || 2,
           });
+
+          // Add connector label if exists
+          if (conn.label) {
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2;
+            const text = new FabricText(conn.label, {
+              left: midX,
+              top: midY - 10,
+              fontSize: 11,
+              fill: '#333333',
+              backgroundColor: '#FFFFFF',
+              padding: 2,
+              selectable: false,
+            });
+            canvas.add(text);
+          }
         }
       }
 

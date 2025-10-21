@@ -72,34 +72,51 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are a scientific illustration analysis assistant. Analyze the provided reference image and identify all biological/scientific elements, their spatial relationships, and connections.
+    const systemPrompt = `You are a scientific illustration analysis expert specializing in biological diagrams. Analyze the provided reference image with EXTREME PRECISION.
 
 Your response must be valid JSON following this exact structure:
 {
   "identified_elements": [
     {
-      "name": "element name",
-      "category": "biology|chemistry|physics|anatomy|etc",
-      "description": "brief description",
-      "position": "approximate position in image",
-      "search_terms": ["term1", "term2", "term3"]
+      "name": "precise element name",
+      "category": "biology|chemistry|physics|anatomy|protein|enzyme|receptor|organ|cell|molecule",
+      "description": "detailed description including visual characteristics",
+      "position_x": 45.5,
+      "position_y": 30.2,
+      "estimated_size": "large|medium|small",
+      "rotation": 0,
+      "visual_notes": "color, shape, distinguishing features",
+      "search_terms": ["most_specific_term", "broader_term", "category_term", "alternative_name"]
     }
   ],
   "spatial_relationships": [
     {
       "from_element": 0,
       "to_element": 1,
-      "relationship": "above|below|left|right|connected|flows_to",
-      "connector_type": "straight|curved|arrow"
+      "relationship_type": "activates|inhibits|produces|converts|binds_to|flows_to|signals",
+      "connector_style": "solid_arrow|dashed_arrow|double_arrow|thick_line|thin_line",
+      "directionality": "unidirectional|bidirectional",
+      "label": "optional label on connector (e.g., enzyme name, +/-)"
     }
   ],
   "overall_layout": {
-    "flow_direction": "left_to_right|top_to_bottom|circular|hierarchical",
-    "complexity": "simple|moderate|complex"
+    "flow_direction": "left_to_right|top_to_bottom|circular|radial|hierarchical|network",
+    "complexity": "simple|moderate|complex",
+    "diagram_type": "pathway|cycle|network|hierarchy|process_flow"
   }
 }
 
-Focus on accuracy over completeness. Only identify elements you are confident about.`;
+CRITICAL INSTRUCTIONS:
+1. Provide PRECISE position_x and position_y as percentages (0-100) measuring from top-left corner
+2. Measure distances and spacing carefully - this is critical for layout accuracy
+3. Identify connector types accurately (solid vs dashed vs arrows vs double arrows)
+4. Note any labels or text on connectors
+5. Search terms should be HIGHLY SPECIFIC first, then broader (e.g., ["angiotensinogen", "protein precursor", "hormone", "biology"])
+6. For biological elements, prioritize scientific accuracy over visual appearance
+7. If you see a receptor, specify its type and include "receptor", "GPCR", "membrane" in search terms
+8. If you see an enzyme, include its name, function, and "enzyme" in search terms
+9. estimated_size should reflect relative size in the reference image (large/medium/small)
+10. Position coordinates must be accurate within 5% - measure carefully`;
 
     const userPrompt = description 
       ? `Analyze this scientific diagram. User description: "${description}"`
@@ -128,7 +145,7 @@ Focus on accuracy over completeness. Only identify elements you are confident ab
             ]
           }
         ],
-        max_tokens: 2000,
+        max_tokens: 4000,
       }),
     });
 
@@ -156,42 +173,96 @@ Focus on accuracy over completeness. Only identify elements you are confident ab
 
     const analysis = JSON.parse(jsonMatch[0]);
 
-    // Step 2: Search icons database for matches
+    // Step 2: Search icons database for matches with multi-stage approach
     console.log('Searching for matching icons...');
     const iconMatches = await Promise.all(
       analysis.identified_elements.map(async (element: any) => {
-        // Detect if element is likely a receptor
+        const searchTerms = element.search_terms || [element.name];
         const isReceptor = element.name.toLowerCase().includes('receptor') || 
                           element.category.toLowerCase().includes('receptor') ||
-                          element.search_terms.some((term: string) => 
+                          searchTerms.some((term: string) => 
                             term.toLowerCase().includes('receptor') ||
                             term.toLowerCase().includes('gpcr') ||
-                            term.toLowerCase().includes('membrane protein')
+                            term.toLowerCase().includes('membrane')
                           );
         
         console.log(`Searching for: ${element.name} (${isReceptor ? 'RECEPTOR' : 'standard'})`);
+        console.log(`  Search terms: ${searchTerms.join(', ')}`);
         
-        let query = supabase
+        // Multi-stage search
+        let matches: any[] = [];
+        
+        // Stage 1: Exact name match
+        const { data: exactMatch } = await supabase
           .from('icons')
-          .select('id, name, category, svg_content, thumbnail');
-
-        if (isReceptor) {
-          // Prioritize receptor icons
-          query = query.or(`name.ilike.%receptor%,category.ilike.%receptor%,name.ilike.%${element.name}%`);
-        } else {
-          query = query.or(`name.ilike.%${element.name}%,category.ilike.%${element.category}%`);
+          .select('id, name, category, svg_content, thumbnail')
+          .ilike('name', element.name)
+          .limit(3);
+        
+        if (exactMatch && exactMatch.length > 0) {
+          matches = exactMatch;
+          console.log(`  Stage 1 (exact): Found ${matches.length} matches`);
         }
         
-        const { data: icons, error } = await query.limit(5);
-
-        if (error) {
-          console.error('Icon search error:', error);
-          return { element, matches: [] };
+        // Stage 2: Search terms match (if no exact match or need more)
+        if (matches.length < 3) {
+          for (const term of searchTerms.slice(0, 3)) {
+            const { data: termMatches } = await supabase
+              .from('icons')
+              .select('id, name, category, svg_content, thumbnail')
+              .or(`name.ilike.%${term}%,category.ilike.%${term}%`)
+              .limit(5);
+            
+            if (termMatches && termMatches.length > 0) {
+              // Add unique matches
+              termMatches.forEach(m => {
+                if (!matches.find(existing => existing.id === m.id)) {
+                  matches.push(m);
+                }
+              });
+              console.log(`  Stage 2 (term "${term}"): Found ${termMatches.length} matches`);
+              if (matches.length >= 5) break;
+            }
+          }
         }
+        
+        // Stage 3: Receptor priority search
+        if (isReceptor && matches.length < 3) {
+          const { data: receptorMatches } = await supabase
+            .from('icons')
+            .select('id, name, category, svg_content, thumbnail')
+            .or('name.ilike.%receptor%,category.ilike.%receptor%,name.ilike.%channel%,name.ilike.%membrane%')
+            .limit(5);
+          
+          if (receptorMatches && receptorMatches.length > 0) {
+            receptorMatches.forEach(m => {
+              if (!matches.find(existing => existing.id === m.id)) {
+                matches.push(m);
+              }
+            });
+            console.log(`  Stage 3 (receptor): Found ${receptorMatches.length} matches`);
+          }
+        }
+        
+        // Stage 4: Category fallback
+        if (matches.length === 0) {
+          const { data: categoryMatches } = await supabase
+            .from('icons')
+            .select('id, name, category, svg_content, thumbnail')
+            .ilike('category', element.category)
+            .limit(3);
+          
+          if (categoryMatches && categoryMatches.length > 0) {
+            matches = categoryMatches;
+            console.log(`  Stage 4 (category): Found ${matches.length} matches`);
+          }
+        }
+        
+        console.log(`  Total matches: ${matches.length}`);
 
         return {
           element,
-          matches: icons || []
+          matches: matches.slice(0, 5) // Limit to top 5
         };
       })
     );
@@ -211,55 +282,74 @@ Focus on accuracy over completeness. Only identify elements you are confident ab
       });
     }
 
-    // Step 3: Generate layout using AI
-    const layoutPrompt = `Based on this analysis, create a canvas layout. 
+    // Step 3: Generate layout using AI with enhanced prompt
+    const layoutPrompt = `You are generating a scientific diagram layout that must PRECISELY recreate the reference image.
+
 Canvas dimensions: ${canvasWidth}x${canvasHeight}
 
-IMPORTANT: Only use elements that have matching icons available. Do NOT include elements without matches.
-
-Elements with available icons: ${JSON.stringify(elementsWithMatches.map((m, idx) => ({
+AVAILABLE ELEMENTS WITH ICONS:
+${JSON.stringify(elementsWithMatches.map((m, idx) => ({
   index: idx,
-  element: m.element.name,
+  element_name: m.element.name,
+  position_x: m.element.position_x,
+  position_y: m.element.position_y,
+  estimated_size: m.element.estimated_size,
+  rotation: m.element.rotation || 0,
   category: m.element.category,
-  available_icons: m.matches.map((i: any) => ({ id: i.id, name: i.name, category: i.category }))
-})))}
+  available_icons: m.matches.slice(0, 3).map((i: any) => ({ 
+    id: i.id, 
+    name: i.name, 
+    category: i.category 
+  }))
+})), null, 2)}
 
-SIZING REQUIREMENTS:
-- Target icon size: 200x200 pixels on canvas
-- Use scale values to normalize icons to this size
-- Typical scale range: 0.3 to 0.8 (adjust based on icon complexity)
-- Smaller, detailed icons: scale 0.6-0.8
-- Larger, simple icons: scale 0.3-0.5
-- The scale value should normalize icons to approximately 200x200px target size
+SPATIAL RELATIONSHIPS TO RECREATE:
+${JSON.stringify(analysis.spatial_relationships, null, 2)}
 
-LAYOUT ACCURACY REQUIREMENTS:
-- Study the reference image's spatial layout carefully
-- Maintain relative positioning and distances as shown in reference
-- Preserve directional flow (e.g., if reference shows left-to-right flow, maintain that)
-- Keep minimum 50-100px spacing between adjacent objects
-- Match the visual "density" of the reference (don't spread too far or cluster too tight)
-- Align objects that appear aligned in the reference
+CRITICAL SIZING REQUIREMENTS:
+- Target icon size: 200x200 pixels
+- Scale based on estimated_size from analysis:
+  * "large": scale 0.7-0.9
+  * "medium": scale 0.5-0.7
+  * "small": scale 0.3-0.5
+- Icons should maintain relative size differences from reference
 
-POSITIONING GUIDELINES:
-- Use percentage coordinates (0-100) for x, y
-- Consider canvas dimensions: ${canvasWidth}x${canvasHeight}
-- Maintain aspect ratios and proportions from reference image
-- Ensure objects stay within canvas bounds with adequate margins
+CRITICAL POSITIONING REQUIREMENTS:
+- Use the EXACT position_x and position_y from the elements above
+- DO NOT modify positions by more than ±5%
+- Maintain relative spacing EXACTLY as shown in reference
+- If reference shows tight clustering, cluster tightly
+- If reference shows wide spacing, maintain wide spacing
+- Align objects that appear aligned in the reference image
+- Ensure minimum 50px spacing between adjacent objects
 
-Generate a JSON layout with proper positioning. Use percentages for x,y coordinates (0-100).
-CRITICAL: You MUST use valid icon_id values from the available_icons list above. Do NOT use empty strings or placeholder IDs.
-Return ONLY valid JSON in this format:
+CONNECTOR STYLING RULES (FOLLOW STRICTLY):
+Based on relationship_type, use these styles:
+- "activates" → { "type": "curved", "style": "solid", "color": "#00AA00", "endMarker": "arrow", "strokeWidth": 2 }
+- "inhibits" → { "type": "straight", "style": "dashed", "color": "#FF0000", "endMarker": "tee", "strokeWidth": 2 }
+- "produces" → { "type": "curved", "style": "solid", "color": "#0066CC", "endMarker": "arrow", "strokeWidth": 3 }
+- "converts" → { "type": "straight", "style": "solid", "color": "#333333", "endMarker": "arrow", "strokeWidth": 2 }
+- "binds_to" → { "type": "straight", "style": "dashed", "color": "#666666", "endMarker": "circle", "strokeWidth": 1 }
+- "flows_to" → { "type": "curved", "style": "solid", "color": "#000000", "endMarker": "arrow", "strokeWidth": 2 }
+- "signals" → { "type": "straight", "style": "dashed", "color": "#FF6600", "endMarker": "arrow", "strokeWidth": 1 }
+
+CONNECTOR LABEL REQUIREMENTS:
+- If relationship has a "label" field, include it in the connector
+- Labels should be positioned at connector midpoint
+- Use fontSize: 11 for labels
+
+OUTPUT FORMAT (VALID JSON ONLY):
 {
   "objects": [
     {
       "type": "icon",
-      "icon_id": "uuid-from-matches",
-      "icon_name": "name",
-      "x": 20,
-      "y": 30,
-      "scale": 0.5,
+      "icon_id": "uuid-from-available-icons",
+      "icon_name": "name-from-available-icons",
+      "x": 45.5,
+      "y": 30.2,
+      "scale": 0.6,
       "rotation": 0,
-      "label": "optional label",
+      "label": "Element Name",
       "labelPosition": "bottom"
     }
   ],
@@ -267,13 +357,26 @@ Return ONLY valid JSON in this format:
     {
       "from": 0,
       "to": 1,
-      "type": "straight",
+      "type": "curved",
       "style": "solid",
       "strokeWidth": 2,
-      "color": "#000000"
+      "color": "#000000",
+      "endMarker": "arrow",
+      "startMarker": "none",
+      "label": "optional label"
     }
   ]
-}`;
+}
+
+VALIDATION RULES:
+1. ALL icon_id values MUST be from the available_icons list above
+2. ALL x,y positions MUST use position_x, position_y from elements (±5% max)
+3. EVERY connector MUST follow the styling rules based on relationship_type
+4. Number of objects should match number of elements with available icons
+5. Connectors should recreate ALL spatial_relationships from analysis
+6. Choose the BEST matching icon_id from available_icons for each element
+
+Generate the layout now. Return ONLY valid JSON.`;
 
     const layoutResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -287,7 +390,7 @@ Return ONLY valid JSON in this format:
           { role: 'system', content: 'You are a layout generation assistant. Always respond with valid JSON only.' },
           { role: 'user', content: layoutPrompt }
         ],
-        max_tokens: 2000,
+        max_tokens: 4000,
       }),
     });
 
@@ -337,7 +440,17 @@ Return ONLY valid JSON in this format:
       connectors: validConnectors
     };
 
-    // Add metadata
+    // Add metadata with detailed feedback
+    const positionAccuracy = validObjects.every((obj: any) => 
+      obj.x >= 0 && obj.x <= 100 && obj.y >= 0 && obj.y <= 100
+    ) ? "All positions within valid range (0-100%)" : "Some positions out of range";
+    
+    const connectorStyles = validConnectors.reduce((acc: any, conn: any) => {
+      const style = `${conn.type}-${conn.style}`;
+      acc[style] = (acc[style] || 0) + 1;
+      return acc;
+    }, {});
+
     const response = {
       layout: finalLayout,
       metadata: {
@@ -347,7 +460,10 @@ Return ONLY valid JSON in this format:
         total_connectors: validConnectors.length,
         filtered_objects: (layout.objects?.length || 0) - validObjects.length,
         target_icon_size: '200x200px',
-        receptor_icons_used: validObjects.filter((obj: any) => obj.icon_name.toLowerCase().includes('receptor')).length
+        receptor_icons_used: validObjects.filter((obj: any) => obj.icon_name.toLowerCase().includes('receptor')).length,
+        position_accuracy: positionAccuracy,
+        connector_styles: connectorStyles,
+        avg_scale: validObjects.reduce((sum: number, obj: any) => sum + (obj.scale || 0.5), 0) / validObjects.length
       }
     };
 
