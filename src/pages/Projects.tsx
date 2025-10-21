@@ -67,16 +67,30 @@ export default function Projects() {
   const deleteProject = async (projectId: string, projectName: string) => {
     if (!confirm(`Delete "${projectName}"? This cannot be undone.`)) return;
 
+    // Find the project to verify ownership
+    const project = projects.find(p => p.id === projectId);
+    if (!project) {
+      toast.error('Project not found');
+      return;
+    }
+
+    // Optimistically remove from UI
+    setProjects(prev => prev.filter(p => p.id !== projectId));
+    toast.loading('Deleting project...', { id: 'delete-project' });
+
     const { error } = await supabase
       .from('canvas_projects')
       .delete()
-      .eq('id', projectId);
+      .eq('id', projectId)
+      .eq('user_id', user?.id);
 
     if (error) {
-      toast.error('Failed to delete project');
+      // Revert optimistic update
+      setProjects(prev => [...prev, project]);
+      toast.error(`Failed to delete: ${error.message}`, { id: 'delete-project' });
+      console.error('Delete error:', error);
     } else {
-      toast.success('Project deleted');
-      loadProjects();
+      toast.success('Project deleted', { id: 'delete-project' });
     }
   };
 
