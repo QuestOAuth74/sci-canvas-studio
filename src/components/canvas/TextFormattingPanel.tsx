@@ -65,9 +65,20 @@ export const TextFormattingPanel = () => {
 
   const getTextScript = () => {
     if (selectedObject && selectedObject.type === 'textbox') {
-      const deltaY = (selectedObject as any).deltaY || 0;
-      if (deltaY > 0) return 'sub';
-      if (deltaY < 0) return 'super';
+      const textbox = selectedObject as any;
+      
+      // Check if there's a selection
+      if (textbox.selectionStart !== undefined && textbox.selectionStart !== textbox.selectionEnd) {
+        const styles = textbox.getSelectionStyles(textbox.selectionStart, textbox.selectionEnd);
+        
+        // Check if all selected characters have subscript
+        const allSub = styles.every((style: any) => style.deltaY > 0);
+        if (allSub) return 'sub';
+        
+        // Check if all selected characters have superscript
+        const allSuper = styles.every((style: any) => style.deltaY < 0);
+        if (allSuper) return 'super';
+      }
     }
     return 'normal';
   };
@@ -154,35 +165,71 @@ export const TextFormattingPanel = () => {
 
   const handleSubscriptChange = () => {
     if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      const textbox = selectedObject as Textbox;
-      const currentScript = getTextScript();
-      if (currentScript === 'sub') {
-        // Remove subscript
-        (textbox as any).deltaY = 0;
-        textbox.set({ fontSize: (textbox.fontSize || 20) / 0.6 });
+      const textbox = selectedObject as any;
+      
+      // Check if user has text selected
+      if (textbox.selectionStart !== undefined && textbox.selectionStart !== textbox.selectionEnd) {
+        // Apply subscript to selected characters only
+        const currentStyles = textbox.getSelectionStyles(textbox.selectionStart, textbox.selectionEnd);
+        const hasSubscript = currentStyles.some((style: any) => style.deltaY > 0);
+        
+        if (hasSubscript) {
+          // Remove subscript
+          textbox.setSelectionStyles({
+            deltaY: 0,
+            fontSize: undefined,
+          }, textbox.selectionStart, textbox.selectionEnd);
+          toast.success("Subscript removed");
+        } else {
+          // Apply subscript
+          const baseFontSize = textbox.fontSize || 20;
+          textbox.setSelectionStyles({
+            deltaY: baseFontSize * 0.3,
+            fontSize: baseFontSize * 0.6,
+          }, textbox.selectionStart, textbox.selectionEnd);
+          toast.success("Subscript applied");
+        }
+        
+        canvas.renderAll();
       } else {
-        // Apply subscript
-        (textbox as any).deltaY = 5;
-        textbox.set({ fontSize: (textbox.fontSize || 20) * 0.6 });
+        // No selection - inform user to select text first
+        toast.info("Select text first to apply subscript");
       }
-      canvas.renderAll();
     }
   };
 
   const handleSuperscriptChange = () => {
     if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      const textbox = selectedObject as Textbox;
-      const currentScript = getTextScript();
-      if (currentScript === 'super') {
-        // Remove superscript
-        (textbox as any).deltaY = 0;
-        textbox.set({ fontSize: (textbox.fontSize || 20) / 0.6 });
+      const textbox = selectedObject as any;
+      
+      // Check if user has text selected
+      if (textbox.selectionStart !== undefined && textbox.selectionStart !== textbox.selectionEnd) {
+        // Apply superscript to selected characters only
+        const currentStyles = textbox.getSelectionStyles(textbox.selectionStart, textbox.selectionEnd);
+        const hasSuperscript = currentStyles.some((style: any) => style.deltaY < 0);
+        
+        if (hasSuperscript) {
+          // Remove superscript
+          textbox.setSelectionStyles({
+            deltaY: 0,
+            fontSize: undefined,
+          }, textbox.selectionStart, textbox.selectionEnd);
+          toast.success("Superscript removed");
+        } else {
+          // Apply superscript
+          const baseFontSize = textbox.fontSize || 20;
+          textbox.setSelectionStyles({
+            deltaY: -baseFontSize * 0.3,
+            fontSize: baseFontSize * 0.6,
+          }, textbox.selectionStart, textbox.selectionEnd);
+          toast.success("Superscript applied");
+        }
+        
+        canvas.renderAll();
       } else {
-        // Apply superscript
-        (textbox as any).deltaY = -5;
-        textbox.set({ fontSize: (textbox.fontSize || 20) * 0.6 });
+        // No selection - inform user to select text first
+        toast.info("Select text first to apply superscript");
       }
-      canvas.renderAll();
     }
   };
 
