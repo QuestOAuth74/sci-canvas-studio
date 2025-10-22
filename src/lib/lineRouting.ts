@@ -1,4 +1,4 @@
-import { Point } from "fabric";
+import { Point, FabricObject, Canvas as FabricCanvas } from "fabric";
 import { Port } from "@/types/connector";
 
 // Straight line routing - direct line between two points
@@ -91,6 +91,148 @@ export function pointsToPath(points: Point[]): string {
   }
   
   return path;
+}
+
+// Find obstacles between start and end points
+function findObstacles(
+  canvas: FabricCanvas,
+  start: Point,
+  end: Point,
+  excludeIds: string[]
+): FabricObject[] {
+  const bounds = {
+    left: Math.min(start.x, end.x) - 20,
+    top: Math.min(start.y, end.y) - 20,
+    right: Math.max(start.x, end.x) + 20,
+    bottom: Math.max(start.y, end.y) + 20
+  };
+  
+  return canvas.getObjects().filter(obj => {
+    // Skip connectors, grid, rulers, and excluded shapes
+    if ((obj as any).isConnector || 
+        (obj as any).isGridLine || 
+        (obj as any).isRuler || 
+        (obj as any).isAlignmentGuide ||
+        excludeIds.includes((obj as any).id)) {
+      return false;
+    }
+    
+    // Check if object intersects with connector path bounds
+    const objBounds = obj.getBoundingRect();
+    return !(
+      objBounds.left > bounds.right ||
+      objBounds.left + objBounds.width < bounds.left ||
+      objBounds.top > bounds.bottom ||
+      objBounds.top + objBounds.height < bounds.top
+    );
+  });
+}
+
+// Smart orthogonal routing with obstacle avoidance
+export function routeOrthogonalSmart(
+  canvas: FabricCanvas,
+  start: Point,
+  end: Point,
+  startPort?: Port,
+  endPort?: Port,
+  sourceShapeId?: string,
+  targetShapeId?: string
+): Point[] {
+  // Find obstacles
+  const excludeIds = [sourceShapeId, targetShapeId].filter(Boolean) as string[];
+  const obstacles = findObstacles(canvas, start, end, excludeIds);
+  
+  // If no obstacles, use simple routing
+  if (obstacles.length === 0) {
+    return routeOrthogonal(start, end, startPort, endPort);
+  }
+  
+  // Simple obstacle avoidance: route around bounding box
+  const points: Point[] = [start];
+  const clearance = 20; // Minimum distance from obstacles
+  
+  // Calculate obstacle bounds
+  const obstacleBounds = obstacles.map(obj => {
+    const bounds = obj.getBoundingRect();
+    return {
+      left: bounds.left - clearance,
+      top: bounds.top - clearance,
+      right: bounds.left + bounds.width + clearance,
+      bottom: bounds.top + bounds.height + clearance
+    };
+  });
+  
+  // Check if path is blocked
+  const isPathBlocked = (p1: Point, p2: Point): boolean => {
+    return obstacleBounds.some(bounds => {
+      // Check if line segment intersects obstacle
+      if (p1.x === p2.x) {
+        // Vertical line
+        const x = p1.x;
+        const minY = Math.min(p1.y, p2.y);
+        const maxY = Math.max(p1.y, p2.y);
+        return x > bounds.left && x < bounds.right && 
+               !(maxY < bounds.top || minY > bounds.bottom);
+      } else if (p1.y === p2.y) {
+        // Horizontal line
+        const y = p1.y;
+        const minX = Math.min(p1.x, p2.x);
+        const maxX = Math.max(p1.x, p2.x);
+        return y > bounds.top && y < bounds.bottom && 
+               !(maxX < bounds.left || minX > bounds.right);
+      }
+      return false;
+    });
+  };
+  
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  
+  // Try simple L-shape first
+  if (Math.abs(dx) > Math.abs(dy)) {
+    const midX = start.x + dx / 2;
+    const point1 = new Point(midX, start.y);
+    const point2 = new Point(midX, end.y);
+    
+    if (!isPathBlocked(start, point1) && !isPathBlocked(point1, point2) && !isPathBlocked(point2, end)) {
+      points.push(point1, point2);
+    } else {
+      // Route around obstacles
+      const mainObstacle = obstacleBounds[0];
+      if (start.y < mainObstacle.top) {
+        // Go over the obstacle
+        points.push(new Point(start.x, mainObstacle.top - clearance));
+        points.push(new Point(end.x, mainObstacle.top - clearance));
+      } else {
+        // Go under the obstacle
+        points.push(new Point(start.x, mainObstacle.bottom + clearance));
+        points.push(new Point(end.x, mainObstacle.bottom + clearance));
+      }
+    }
+  } else {
+    const midY = start.y + dy / 2;
+    const point1 = new Point(start.x, midY);
+    const point2 = new Point(end.x, midY);
+    
+    if (!isPathBlocked(start, point1) && !isPathBlocked(point1, point2) && !isPathBlocked(point2, end)) {
+      points.push(point1, point2);
+    } else {
+      // Route around obstacles
+      const mainObstacle = obstacleBounds[0];
+      if (start.x < mainObstacle.left) {
+        // Go left of the obstacle
+        points.push(new Point(mainObstacle.left - clearance, start.y));
+        points.push(new Point(mainObstacle.left - clearance, end.y));
+      } else {
+        // Go right of the obstacle
+        points.push(new Point(mainObstacle.right + clearance, start.y));
+        points.push(new Point(mainObstacle.right + clearance, end.y));
+      }
+    }
+  }
+  
+  points.push(end);
+  return points;
 }
 
 // Calculate smooth corners for orthogonal paths

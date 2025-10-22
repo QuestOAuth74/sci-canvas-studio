@@ -121,6 +121,10 @@ export function createConnector(
     routingStyle = 'straight',
     strokeWidth = 2,
     strokeColor = '#000000',
+    sourceShapeId = null,
+    sourcePort = null,
+    targetShapeId = null,
+    targetPort = null,
   } = options;
 
   const start = new Point(startX, startY);
@@ -164,6 +168,10 @@ export function createConnector(
   // Store connector data
   const connectorData: ConnectorData = {
     id: `connector-${Date.now()}`,
+    sourceShapeId,
+    sourcePort,
+    targetShapeId,
+    targetPort,
     startMarker,
     endMarker,
     lineStyle,
@@ -174,6 +182,10 @@ export function createConnector(
 
   (path as ShapeWithPorts).connectorData = connectorData;
   (path as ShapeWithPorts).isConnector = true;
+
+  // Store marker references for later updates
+  if (startMarkerObj) (path as any).startMarkerObj = startMarkerObj;
+  if (endMarkerObj) (path as any).endMarkerObj = endMarkerObj;
 
   // Add to canvas
   canvas.add(path);
@@ -230,6 +242,49 @@ export function updateConnector(
 
   if (connector instanceof Path) {
     connector.set({ path: (Path as any).parsePath(pathData) } as any);
+  }
+
+  // Update markers
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const endAngle = (Math.atan2(dy, dx) * 180) / Math.PI;
+  const startAngle = endAngle + 180;
+
+  // Remove old markers
+  const startMarkerObj = (connector as any).startMarkerObj;
+  const endMarkerObj = (connector as any).endMarkerObj;
+  
+  if (startMarkerObj) {
+    canvas.remove(startMarkerObj);
+  }
+  if (endMarkerObj) {
+    canvas.remove(endMarkerObj);
+  }
+
+  // Create new markers at updated positions
+  const newStartMarker = createArrowMarker(
+    start.x, 
+    start.y, 
+    startAngle, 
+    data.startMarker, 
+    data.strokeColor
+  );
+  const newEndMarker = createArrowMarker(
+    end.x, 
+    end.y, 
+    endAngle, 
+    data.endMarker, 
+    data.strokeColor
+  );
+
+  // Store and add new markers
+  if (newStartMarker) {
+    (connector as any).startMarkerObj = newStartMarker;
+    canvas.add(newStartMarker);
+  }
+  if (newEndMarker) {
+    (connector as any).endMarkerObj = newEndMarker;
+    canvas.add(newEndMarker);
   }
 
   canvas.renderAll();

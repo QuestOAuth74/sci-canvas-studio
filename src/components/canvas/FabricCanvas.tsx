@@ -3,7 +3,7 @@ import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loa
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { loadAllFonts } from "@/lib/fontLoader";
-import { createConnector } from "@/lib/connectorSystem";
+import { createConnector, updateConnector } from "@/lib/connectorSystem";
 import { createSVGArrowMarker } from "@/lib/advancedLineSystem";
 import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
 import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
@@ -190,6 +190,34 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
+    // Handle connector updates when shapes move
+    const handleConnectorUpdate = (e: any) => {
+      const target = e.target;
+      if (!target) return;
+      
+      const shapeId = (target as any).id;
+      if (!shapeId) return;
+
+      // Find all connectors attached to this shape
+      const connectors = canvas.getObjects().filter(obj => {
+        const connector = obj as any;
+        return connector.isConnector && 
+               connector.connectorData &&
+               (connector.connectorData.sourceShapeId === shapeId || 
+                connector.connectorData.targetShapeId === shapeId);
+      });
+
+      // Update each connector
+      connectors.forEach(connector => {
+        updateConnector(canvas, connector as any);
+      });
+    };
+
+    canvas.on('object:moving', handleConnectorUpdate);
+    canvas.on('object:modified', handleConnectorUpdate);
+    canvas.on('object:scaling', handleConnectorUpdate);
+    canvas.on('object:rotating', handleConnectorUpdate);
+
 
     // Listen for custom event to add icons to canvas
     const handleAddIcon = async (event: CustomEvent) => {
@@ -351,6 +379,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         if (alignmentRendererRef.current) {
           alignmentRendererRef.current.dispose();
         }
+        canvas.off('object:moving', handleConnectorUpdate);
+        canvas.off('object:modified', handleConnectorUpdate);
+        canvas.off('object:scaling', handleConnectorUpdate);
+        canvas.off('object:rotating', handleConnectorUpdate);
         setCanvas(null);
         canvas.dispose();
       };
