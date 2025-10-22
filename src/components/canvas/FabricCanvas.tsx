@@ -10,6 +10,8 @@ import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
 import { StraightLineTool } from "@/lib/straightLineTool";
 import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
+import { AlignmentGuideRenderer } from "@/lib/alignmentGuides";
+import { calculateAlignmentGuides, findSnapPosition, measureDistances } from "@/lib/smartAlignment";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -65,6 +67,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
+  const alignmentRendererRef = useRef<AlignmentGuideRenderer | null>(null);
   
   const { 
     canvas,
@@ -81,6 +84,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     textOverline,
     textBold,
     textItalic,
+    smartSnapEnabled,
+    snapThreshold,
   } = useCanvas();
 
   useEffect(() => {
@@ -118,6 +123,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Initialize connector visual feedback
     connectorFeedbackRef.current = new ConnectorVisualFeedback(canvas);
     
+    // Initialize alignment guide renderer
+    alignmentRendererRef.current = new AlignmentGuideRenderer(canvas);
+    
     setCanvas(canvas);
 
     // Track selected objects
@@ -131,6 +139,55 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     canvas.on('selection:cleared', () => {
       setSelectedObject(null);
+    });
+    
+    // Smart snapping alignment guides
+    canvas.on('object:moving', (e) => {
+      if (!smartSnapEnabled || !alignmentRendererRef.current) return;
+      
+      const movingObject = e.target;
+      if (!movingObject) return;
+      
+      // Skip snapping for alignment guide objects themselves
+      if ((movingObject as any).isAlignmentGuide) return;
+      
+      // Calculate alignment guides
+      const guides = calculateAlignmentGuides(movingObject, canvas, snapThreshold);
+      
+      // Find snap position
+      const snapPos = findSnapPosition(movingObject, guides, snapThreshold);
+      
+      // Apply snap if found
+      if (snapPos) {
+        if (snapPos.snappedX) {
+          movingObject.set({ left: snapPos.x });
+        }
+        if (snapPos.snappedY) {
+          movingObject.set({ top: snapPos.y });
+        }
+        movingObject.setCoords();
+      }
+      
+      // Measure distances for visual feedback
+      const distances = measureDistances(movingObject, canvas);
+      
+      // Update visual guides
+      alignmentRendererRef.current.updateGuides(guides, distances);
+      canvas.renderAll();
+    });
+    
+    canvas.on('object:modified', () => {
+      if (alignmentRendererRef.current) {
+        alignmentRendererRef.current.clearAllGuides();
+        canvas.renderAll();
+      }
+    });
+    
+    canvas.on('mouse:up', () => {
+      if (alignmentRendererRef.current) {
+        alignmentRendererRef.current.clearAllGuides();
+        canvas.renderAll();
+      }
     });
 
 
@@ -291,6 +348,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       return () => {
         window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
         window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
+        if (alignmentRendererRef.current) {
+          alignmentRendererRef.current.dispose();
+        }
         setCanvas(null);
         canvas.dispose();
       };
