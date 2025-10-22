@@ -915,6 +915,120 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
   }, [canvas, activeTool, onShapeCreated, onToolChange]);
 
+  // Connector Tool Handler (click-click style for connectors and line arrows)
+  useEffect(() => {
+    if (!canvas || (!activeTool.startsWith('connector-') && !activeTool.startsWith('line-'))) {
+      // Clear connector state when switching away
+      if (connectorState.isDrawing) {
+        setConnectorState({
+          isDrawing: false,
+          startX: null,
+          startY: null,
+        });
+        connectorFeedbackRef.current?.clearAll();
+      }
+      return;
+    }
+
+    const getConnectorProps = () => {
+      let startMarker: ArrowMarkerType = 'none';
+      let endMarker: ArrowMarkerType = 'arrow';
+      let routingStyle: RoutingStyle = 'straight';
+
+      if (activeTool === 'connector-curved') routingStyle = 'curved';
+      else if (activeTool === 'connector-orthogonal') routingStyle = 'orthogonal';
+      else if (activeTool === 'connector-straight') routingStyle = 'straight';
+      else if (activeTool === 'line-double-arrow') startMarker = 'arrow';
+      else if (activeTool === 'line-plain') endMarker = 'none';
+      else if (activeTool === 'line-circle-arrow') startMarker = 'circle';
+      else if (activeTool === 'line-diamond') {
+        startMarker = 'diamond';
+        endMarker = 'none';
+      }
+
+      return { startMarker, endMarker, routingStyle };
+    };
+
+    const handleMouseDown = (e: any) => {
+      e.e?.stopImmediatePropagation?.();
+      const pointer = canvas.getPointer(e.e);
+      
+      if (!connectorState.isDrawing) {
+        // Start drawing - first click
+        setConnectorState({
+          isDrawing: true,
+          startX: pointer.x,
+          startY: pointer.y,
+        });
+        connectorFeedbackRef.current?.showStartMarker(pointer.x, pointer.y);
+        toast.info("Click to set end point");
+      } else {
+        // Finish drawing - second click
+        const props = getConnectorProps();
+        createConnector(canvas, {
+          startX: connectorState.startX!,
+          startY: connectorState.startY!,
+          endX: pointer.x,
+          endY: pointer.y,
+          ...props,
+          strokeColor: '#000000',
+          strokeWidth: 2,
+        });
+
+        // Reset state
+        setConnectorState({
+          isDrawing: false,
+          startX: null,
+          startY: null,
+        });
+        connectorFeedbackRef.current?.clearAll();
+
+        canvas.renderAll();
+        toast.success("Connector created!");
+        if (onShapeCreated) onShapeCreated();
+      }
+    };
+
+    const handleMouseMove = (e: any) => {
+      if (!connectorState.isDrawing || !connectorState.startX || !connectorState.startY) return;
+      
+      const pointer = canvas.getPointer(e.e);
+      connectorFeedbackRef.current?.updatePreviewLine(
+        connectorState.startX,
+        connectorState.startY,
+        pointer.x,
+        pointer.y,
+        true // dashed preview
+      );
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setConnectorState({
+          isDrawing: false,
+          startX: null,
+          startY: null,
+        });
+        connectorFeedbackRef.current?.clearAll();
+        onToolChange?.("select");
+        toast.info("Connector drawing cancelled");
+      }
+    };
+
+    canvas.on("mouse:down", handleMouseDown);
+    canvas.on("mouse:move", handleMouseMove);
+    window.addEventListener("keydown", handleKeyDown);
+
+    toast.info("Click to start connector, click again to finish. Press Escape to cancel.");
+
+    return () => {
+      canvas.off("mouse:down", handleMouseDown);
+      canvas.off("mouse:move", handleMouseMove);
+      window.removeEventListener("keydown", handleKeyDown);
+      connectorFeedbackRef.current?.clearAll();
+    };
+  }, [canvas, activeTool, connectorState.isDrawing, connectorState.startX, connectorState.startY, onShapeCreated, onToolChange]);
+
   // Handle tool changes
   useEffect(() => {
     if (!canvas) return;
@@ -935,64 +1049,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     }
 
     const handleCanvasClick = (e: any) => {
-      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image" || activeTool.startsWith('straight-line')) return;
+      if (activeTool === "select" || 
+          activeTool === "freeform-line" || 
+          activeTool === "pen" || 
+          activeTool === "eraser" || 
+          activeTool === "image" || 
+          activeTool.startsWith('straight-line') ||
+          activeTool.startsWith('connector-') ||
+          activeTool.startsWith('line-')) return;
 
       const pointer = canvas.getPointer(e.e);
-      
-      // Handle connector tools
-      if (activeTool.startsWith('connector-') || activeTool.startsWith('line-')) {
-        if (!connectorState.isDrawing) {
-          // Start drawing
-          setConnectorState({
-            isDrawing: true,
-            startX: pointer.x,
-            startY: pointer.y,
-          });
-          toast.info("Click to set end point");
-          return;
-        } else {
-          // Finish drawing
-          const getConnectorProps = () => {
-            let startMarker: ArrowMarkerType = 'none';
-            let endMarker: ArrowMarkerType = 'arrow';
-            let routingStyle: RoutingStyle = 'straight';
-
-            if (activeTool === 'connector-curved') routingStyle = 'curved';
-            else if (activeTool === 'connector-orthogonal') routingStyle = 'orthogonal';
-            else if (activeTool === 'line-double-arrow') startMarker = 'arrow';
-            else if (activeTool === 'line-plain') endMarker = 'none';
-            else if (activeTool === 'line-circle-arrow') startMarker = 'circle';
-            else if (activeTool === 'line-diamond') {
-              startMarker = 'diamond';
-              endMarker = 'none';
-            }
-
-            return { startMarker, endMarker, routingStyle };
-          };
-
-          const props = getConnectorProps();
-          createConnector(canvas, {
-            startX: connectorState.startX!,
-            startY: connectorState.startY!,
-            endX: pointer.x,
-            endY: pointer.y,
-            ...props,
-            strokeColor: '#000000',
-            strokeWidth: 2,
-          });
-
-          setConnectorState({
-            isDrawing: false,
-            startX: null,
-            startY: null,
-          });
-
-          canvas.renderAll();
-          if (onShapeCreated) onShapeCreated();
-          toast.success("Connector created!");
-          return;
-        }
-      }
       
       if (activeTool === "text") {
         const textDecoration = [];
@@ -2310,9 +2376,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Detach previous handler
     canvas.off("mouse:down", handleCanvasClick);
     
-    // Attach handler if not in select mode, freeform mode, or pen mode
+    // Attach handler if not in select mode, freeform mode, pen mode, or connector/line tools
     // (those tools have their own mouse event handlers)
-    if (activeTool !== "select" && activeTool !== "freeform-line" && activeTool !== "pen") {
+    if (activeTool !== "select" && 
+        activeTool !== "freeform-line" && 
+        activeTool !== "pen" && 
+        !activeTool.startsWith('connector-') && 
+        !activeTool.startsWith('line-')) {
       canvas.on("mouse:down", handleCanvasClick);
     }
 
