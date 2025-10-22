@@ -42,6 +42,7 @@ export function findNearbyObjects(
     if (obj === movingObject) return false;
     if (!obj.visible) return false;
     if ((obj as any).isAlignmentGuide) return false; // Don't snap to guides
+    if ((obj as any).isConnector) return false; // Don't include connectors
     
     const bounds = obj.getBoundingRect();
     const center = {

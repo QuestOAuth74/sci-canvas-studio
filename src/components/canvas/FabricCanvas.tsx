@@ -151,6 +151,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       // Skip snapping for alignment guide objects themselves
       if ((movingObject as any).isAlignmentGuide) return;
       
+      // Skip snapping for connectors/lines
+      if ((movingObject as any).isConnector) return;
+      
       // Calculate alignment guides
       const guides = calculateAlignmentGuides(movingObject, canvas, snapThreshold);
       
