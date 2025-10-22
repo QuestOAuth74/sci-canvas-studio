@@ -484,16 +484,25 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                             <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                               <div className="flex items-center justify-between w-full pr-2">
                                 <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      togglePin(category.id);
-                                    }}
-                                    className="hover:text-yellow-600 transition-colors"
-                                    title="Unpin category"
-                                  >
-                                    <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                                  </button>
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  togglePin(category.id);
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    togglePin(category.id);
+                                  }
+                                }}
+                                className="hover:text-yellow-600 transition-colors cursor-pointer"
+                                title="Unpin category"
+                              >
+                                <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                              </div>
                                   <span>{category.name}</span>
                                 </div>
                   <span className="text-xs text-muted-foreground font-normal">
@@ -594,16 +603,25 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                         <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                           <div className="flex items-center justify-between w-full pr-2">
                             <div className="flex items-center gap-2">
-                              <button
-                                onClick={(e) => {
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePin(category.id);
+                              }}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
                                   e.stopPropagation();
                                   togglePin(category.id);
-                                }}
-                                className="hover:text-yellow-500 transition-colors"
-                                title="Pin category"
-                              >
-                                <Star className="h-4 w-4" />
-                              </button>
+                                }
+                              }}
+                              className="hover:text-yellow-500 transition-colors cursor-pointer"
+                              title="Pin category"
+                            >
+                              <Star className="h-4 w-4" />
+                            </div>
                               <span>{category.name}</span>
                             </div>
                   <span className="text-xs text-muted-foreground font-normal">
