@@ -14,6 +14,9 @@ import {
   Type,
   Bold,
   Italic,
+  Subscript,
+  Superscript,
+  WrapText,
 } from "lucide-react";
 import {
   Tooltip,
@@ -59,6 +62,17 @@ export const TextFormattingPanel = () => {
     canvas,
     selectedObject,
   } = useCanvas();
+
+  const getTextScript = () => {
+    if (selectedObject && selectedObject.type === 'textbox') {
+      const deltaY = (selectedObject as any).deltaY || 0;
+      if (deltaY > 0) return 'sub';
+      if (deltaY < 0) return 'super';
+    }
+    return 'normal';
+  };
+
+  const textScript = getTextScript();
 
   // Update toolbar to reflect selected text object's properties
   useEffect(() => {
@@ -134,6 +148,65 @@ export const TextFormattingPanel = () => {
     // Update selected text object if exists
     if (canvas && selectedObject && selectedObject.type === 'textbox') {
       selectedObject.set({ overline: newOverline });
+      canvas.renderAll();
+    }
+  };
+
+  const handleSubscriptChange = () => {
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      const textbox = selectedObject as Textbox;
+      const currentScript = getTextScript();
+      if (currentScript === 'sub') {
+        // Remove subscript
+        (textbox as any).deltaY = 0;
+        textbox.set({ fontSize: (textbox.fontSize || 20) / 0.6 });
+      } else {
+        // Apply subscript
+        (textbox as any).deltaY = 5;
+        textbox.set({ fontSize: (textbox.fontSize || 20) * 0.6 });
+      }
+      canvas.renderAll();
+    }
+  };
+
+  const handleSuperscriptChange = () => {
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      const textbox = selectedObject as Textbox;
+      const currentScript = getTextScript();
+      if (currentScript === 'super') {
+        // Remove superscript
+        (textbox as any).deltaY = 0;
+        textbox.set({ fontSize: (textbox.fontSize || 20) / 0.6 });
+      } else {
+        // Apply superscript
+        (textbox as any).deltaY = -5;
+        textbox.set({ fontSize: (textbox.fontSize || 20) * 0.6 });
+      }
+      canvas.renderAll();
+    }
+  };
+
+  const handleAutoResizeToggle = () => {
+    if (canvas && selectedObject && selectedObject.type === 'textbox') {
+      const textbox = selectedObject as Textbox;
+      const isAutoResize = textbox.width === undefined || (textbox as any).dynamicMinWidth;
+      
+      if (isAutoResize) {
+        // Disable auto-resize, set fixed width
+        textbox.set({ 
+          width: textbox.getScaledWidth(),
+          splitByGrapheme: false 
+        });
+        toast.success("Fixed width enabled");
+      } else {
+        // Enable auto-resize
+        (textbox as any).dynamicMinWidth = true;
+        textbox.set({ 
+          width: undefined,
+          splitByGrapheme: true 
+        });
+        toast.success("Auto-resize enabled");
+      }
       canvas.renderAll();
     }
   };
@@ -260,6 +333,57 @@ export const TextFormattingPanel = () => {
           </Button>
         </TooltipTrigger>
         <TooltipContent>Overline</TooltipContent>
+      </Tooltip>
+
+      <div className="w-px h-6 bg-border mx-1" />
+
+      {/* Subscript/Superscript */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={textScript === 'sub' ? "default" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleSubscriptChange}
+            disabled={!selectedObject || selectedObject.type !== 'textbox'}
+          >
+            <Subscript className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Subscript (H₂O)</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={textScript === 'super' ? "default" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleSuperscriptChange}
+            disabled={!selectedObject || selectedObject.type !== 'textbox'}
+          >
+            <Superscript className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Superscript (E=mc²)</TooltipContent>
+      </Tooltip>
+
+      <div className="w-px h-6 bg-border mx-1" />
+
+      {/* Auto-resize */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleAutoResizeToggle}
+            disabled={!selectedObject || selectedObject.type !== 'textbox'}
+          >
+            <WrapText className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Toggle Auto-resize</TooltipContent>
       </Tooltip>
     </div>
   );

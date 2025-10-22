@@ -1169,7 +1169,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         const text = new Textbox("Type here", {
           left: pointer.x,
           top: pointer.y,
-          width: 200,
           fontSize: 24,
           fontFamily: textFont,
           textAlign: textAlign as any,
@@ -1178,7 +1177,12 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           fontWeight: textBold ? 'bold' : 'normal',
           fontStyle: textItalic ? 'italic' : 'normal',
           fill: "#000000",
+          splitByGrapheme: true, // Enable auto-resize with content
         });
+        
+        // Mark as auto-resize enabled
+        (text as any).dynamicMinWidth = true;
+        
         canvas.add(text);
         canvas.setActiveObject(text);
         // Immediately enter editing so user can type

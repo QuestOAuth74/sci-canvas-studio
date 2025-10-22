@@ -29,6 +29,7 @@ import {
 import { useCanvas } from "@/contexts/CanvasContext";
 import { TextFormattingPanel } from "./TextFormattingPanel";
 import { ShapesDropdown } from "./ShapesDropdown";
+import { TextOnPathDialog } from "./TextOnPathDialog";
 import { useState } from "react";
 
 interface TopToolbarProps {
@@ -226,6 +227,8 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <>
           <Separator orientation="vertical" className="h-6 mx-1" />
           <TextFormattingPanel />
+          <Separator orientation="vertical" className="h-6 mx-1" />
+          <TextOnPathDialog />
         </>
       )}
 
