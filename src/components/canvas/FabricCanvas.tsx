@@ -12,7 +12,6 @@ import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { AlignmentGuideRenderer } from "@/lib/alignmentGuides";
 import { calculateAlignmentGuides, findSnapPosition, measureDistances } from "@/lib/smartAlignment";
-import { applyCustomRotationControl } from "@/lib/customRotationControl";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -127,9 +126,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     // Initialize alignment guide renderer
     alignmentRendererRef.current = new AlignmentGuideRenderer(canvas);
-    
-    // Apply custom rotation control icon
-    applyCustomRotationControl();
     
     setCanvas(canvas);
 
