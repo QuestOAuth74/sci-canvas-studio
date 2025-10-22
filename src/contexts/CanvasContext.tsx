@@ -146,7 +146,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   });
   const [snapThreshold, setSnapThreshold] = useState(() => {
     const saved = localStorage.getItem('snapThreshold');
-    return saved !== null ? JSON.parse(saved) : 8;
+    return saved !== null ? JSON.parse(saved) : 5;
   });
   
   // Persist smart snap preferences

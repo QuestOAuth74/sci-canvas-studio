@@ -60,12 +60,39 @@ export function findNearbyObjects(
 }
 
 /**
+ * Prioritize alignment guides to show only the most relevant ones
+ */
+function prioritizeGuides(guides: AlignmentGuide[]): AlignmentGuide[] {
+  if (guides.length === 0) return [];
+  
+  // Separate vertical and horizontal
+  const vertical = guides.filter(g => g.type === 'vertical');
+  const horizontal = guides.filter(g => g.type === 'horizontal');
+  
+  // Priority order: center/middle > canvas-center > edges
+  const priorityOrder = ['center', 'middle', 'left', 'right', 'top', 'bottom'];
+  
+  // Pick best vertical guide (highest priority)
+  const bestVertical = vertical.sort((a, b) => {
+    return priorityOrder.indexOf(a.alignmentType) - priorityOrder.indexOf(b.alignmentType);
+  })[0];
+  
+  // Pick best horizontal guide (highest priority)
+  const bestHorizontal = horizontal.sort((a, b) => {
+    return priorityOrder.indexOf(a.alignmentType) - priorityOrder.indexOf(b.alignmentType);
+  })[0];
+  
+  // Return only the best guides (max 2: 1 vertical + 1 horizontal)
+  return [bestVertical, bestHorizontal].filter(Boolean);
+}
+
+/**
  * Calculate all potential alignment guides based on nearby objects
  */
 export function calculateAlignmentGuides(
   movingObject: FabricObject,
   canvas: FabricCanvas,
-  threshold: number = 8
+  threshold: number = 5
 ): AlignmentGuide[] {
   const guides: AlignmentGuide[] = [];
   const nearbyObjects = findNearbyObjects(movingObject, canvas);
@@ -197,7 +224,8 @@ export function calculateAlignmentGuides(
     }
   });
 
-  return guides;
+  // Prioritize and limit guides to prevent clutter
+  return prioritizeGuides(guides);
 }
 
 /**
@@ -206,7 +234,7 @@ export function calculateAlignmentGuides(
 export function findSnapPosition(
   movingObject: FabricObject,
   guides: AlignmentGuide[],
-  threshold: number = 8
+  threshold: number = 5
 ): SnapPosition | null {
   if (guides.length === 0) return null;
 
@@ -293,61 +321,75 @@ export function measureDistances(
   canvas: FabricCanvas
 ): DistanceInfo[] {
   const distances: DistanceInfo[] = [];
-  const nearbyObjects = findNearbyObjects(movingObject, canvas, 500);
+  const nearbyObjects = findNearbyObjects(movingObject, canvas, 200);
   
   const movingBounds = movingObject.getBoundingRect();
+  const movingCenter = {
+    x: movingBounds.left + movingBounds.width / 2,
+    y: movingBounds.top + movingBounds.height / 2,
+  };
   
   nearbyObjects.forEach(obj => {
     const bounds = obj.getBoundingRect();
+    const center = {
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+    };
     
-    // Horizontal distance
-    if (Math.abs(movingBounds.top - bounds.top) < 50) {
-      const distance = movingBounds.left < bounds.left
+    // Horizontal distance (objects in same row - stricter tolerance)
+    if (Math.abs(movingCenter.y - center.y) < 20) {
+      const horizontalGap = movingBounds.left < bounds.left
         ? bounds.left - (movingBounds.left + movingBounds.width)
         : movingBounds.left - (bounds.left + bounds.width);
       
-      if (distance > 0 && distance < 200) {
+      // Only show meaningful distances (10-100px range)
+      if (horizontalGap > 10 && horizontalGap < 100) {
+        const fromX = movingBounds.left < bounds.left
+          ? movingBounds.left + movingBounds.width
+          : bounds.left + bounds.width;
+        const toX = movingBounds.left < bounds.left
+          ? bounds.left
+          : movingBounds.left;
+        
         distances.push({
           from: movingObject,
           to: obj,
-          distance,
+          distance: Math.abs(horizontalGap),
           direction: 'horizontal',
-          fromPoint: {
-            x: movingBounds.left < bounds.left ? movingBounds.left + movingBounds.width : movingBounds.left,
-            y: movingBounds.top + movingBounds.height / 2
-          },
-          toPoint: {
-            x: movingBounds.left < bounds.left ? bounds.left : bounds.left + bounds.width,
-            y: bounds.top + bounds.height / 2
-          }
+          fromPoint: { x: fromX, y: movingCenter.y },
+          toPoint: { x: toX, y: movingCenter.y }
         });
       }
     }
     
-    // Vertical distance
-    if (Math.abs(movingBounds.left - bounds.left) < 50) {
-      const distance = movingBounds.top < bounds.top
+    // Vertical distance (objects in same column - stricter tolerance)
+    if (Math.abs(movingCenter.x - center.x) < 20) {
+      const verticalGap = movingBounds.top < bounds.top
         ? bounds.top - (movingBounds.top + movingBounds.height)
         : movingBounds.top - (bounds.top + bounds.height);
       
-      if (distance > 0 && distance < 200) {
+      // Only show meaningful distances (10-100px range)
+      if (verticalGap > 10 && verticalGap < 100) {
+        const fromY = movingBounds.top < bounds.top
+          ? movingBounds.top + movingBounds.height
+          : bounds.top + bounds.height;
+        const toY = movingBounds.top < bounds.top
+          ? bounds.top
+          : movingBounds.top;
+        
         distances.push({
           from: movingObject,
           to: obj,
-          distance,
+          distance: Math.abs(verticalGap),
           direction: 'vertical',
-          fromPoint: {
-            x: movingBounds.left + movingBounds.width / 2,
-            y: movingBounds.top < bounds.top ? movingBounds.top + movingBounds.height : movingBounds.top
-          },
-          toPoint: {
-            x: bounds.left + bounds.width / 2,
-            y: movingBounds.top < bounds.top ? bounds.top : bounds.top + bounds.height
-          }
+          fromPoint: { x: movingCenter.x, y: fromY },
+          toPoint: { x: movingCenter.x, y: toY }
         });
       }
     }
   });
   
-  return distances;
+  // Return only closest 2 distances to avoid clutter
+  distances.sort((a, b) => a.distance - b.distance);
+  return distances.slice(0, 2);
 }

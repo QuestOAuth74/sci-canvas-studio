@@ -68,6 +68,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
   const alignmentRendererRef = useRef<AlignmentGuideRenderer | null>(null);
+  const lastUpdateTimeRef = useRef<number>(0);
   
   const { 
     canvas,
@@ -141,9 +142,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       setSelectedObject(null);
     });
     
-    // Smart snapping alignment guides
+    // Smart snapping alignment guides with throttling
     canvas.on('object:moving', (e) => {
       if (!smartSnapEnabled || !alignmentRendererRef.current) return;
+      
+      // Throttle updates to prevent flickering (50ms)
+      const now = Date.now();
+      if (now - lastUpdateTimeRef.current < 50) return;
+      lastUpdateTimeRef.current = now;
       
       const movingObject = e.target;
       if (!movingObject) return;
@@ -171,8 +177,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         movingObject.setCoords();
       }
       
-      // Measure distances for visual feedback
-      const distances = measureDistances(movingObject, canvas);
+      // Disable distance indicators by default (too cluttered)
+      const distances: any[] = []; // Can be enabled later if needed
       
       // Update visual guides
       alignmentRendererRef.current.updateGuides(guides, distances);

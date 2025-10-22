@@ -23,7 +23,7 @@ export class AlignmentGuideRenderer {
       strokeDashArray: [5, 5],
       selectable: false,
       evented: false,
-      opacity: 0.7,
+      opacity: 0.5,
       excludeFromExport: true
     });
     
@@ -42,7 +42,7 @@ export class AlignmentGuideRenderer {
       strokeDashArray: [5, 5],
       selectable: false,
       evented: false,
-      opacity: 0.7,
+      opacity: 0.5,
       excludeFromExport: true
     });
     
@@ -74,10 +74,10 @@ export class AlignmentGuideRenderer {
     const text = new Text(`${Math.round(distance)}px`, {
       left: midX,
       top: midY,
-      fontSize: 11,
+      fontSize: 10,
       fill: '#FFFFFF',
       backgroundColor: this.distanceColor,
-      padding: 3,
+      padding: 2,
       selectable: false,
       evented: false,
       originX: 'center',
