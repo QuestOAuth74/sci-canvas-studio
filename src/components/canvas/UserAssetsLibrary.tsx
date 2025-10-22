@@ -200,7 +200,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0 overscroll-contain">
         <div className="p-4 space-y-2">
           {loading ? (
             Array.from({ length: 5 }).map((_, i) => (

@@ -490,7 +490,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
-        <ScrollArea type="always" className="flex-1 min-h-0">
+        <ScrollArea type="always" className="flex-1 min-h-0 overscroll-contain">
           {/* Pin Object Section - shown when object is selected */}
           {selectedObject && (
             <div className="p-3 border-b border-border/40">
