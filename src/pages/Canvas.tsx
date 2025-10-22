@@ -23,6 +23,7 @@ import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDi
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { useAuth } from "@/contexts/AuthContext";
+import { loadAllFonts } from "@/lib/fontLoader";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -66,6 +67,11 @@ const CanvasContent = () => {
       loadProject(projectId);
     }
   }, [searchParams, loadProject]);
+
+  // Load fonts when Canvas component mounts
+  useEffect(() => {
+    loadAllFonts();
+  }, []);
 
   const handleExport = () => {
     toast("Export functionality will save your SVG file");
