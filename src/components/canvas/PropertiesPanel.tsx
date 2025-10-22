@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Pin, PinOff, RotateCw, Wand2 } from "lucide-react";
 import { TextOnPathDialog } from "./TextOnPathDialog";
+import { ImageEditingPanel } from "./ImageEditingPanel";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -985,6 +986,13 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                     </Button>
                     <TextOnPathDialog />
                   </div>
+                </div>
+              )}
+
+              {/* Image Editing - only show when image is selected */}
+              {selectedObject && selectedObject.type === 'image' && (
+                <div className="pt-3 border-t">
+                  <ImageEditingPanel />
                 </div>
               )}
 
