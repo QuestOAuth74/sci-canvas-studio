@@ -8,34 +8,30 @@ All colors MUST be HSL.
 
 @layer utilities {
   .glass-effect {
-    @apply bg-white/80 backdrop-blur-md border border-white/20;
+    @apply bg-white/90 backdrop-blur-lg border border-border/20;
   }
   
   .dark .glass-effect {
-    @apply bg-card/80 backdrop-blur-md border border-white/10;
+    @apply bg-card/90 backdrop-blur-lg border border-border/20;
   }
 
-  .neo-brutalist-shadow {
-    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
+  .lab-shadow {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   }
 
-  .neo-brutalist-shadow-sm {
-    box-shadow: 2px 2px 0px 0px hsl(var(--foreground));
+  .lab-shadow-md {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   }
 
-  .neo-brutalist-shadow-lg {
-    box-shadow: 6px 6px 0px 0px hsl(var(--foreground));
-  }
-
-  .neo-border {
-    @apply border-2 border-border;
+  .lab-shadow-lg {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
   }
   
-  .medical-card {
-    @apply bg-card rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow;
+  .lab-card {
+    @apply bg-card rounded-lg border border-border lab-shadow hover:lab-shadow-md transition-all duration-300;
   }
   
-  .medical-gradient {
+  .scientific-gradient {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
   }
 
@@ -59,94 +55,94 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Neo-Brutalism Theme - Bold & Vibrant */
-    --background: 48 100% 95%;
-    --foreground: 0 0% 5%;
+    /* Scientific Laboratory Theme - Professional & Clean */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 5%;
+    --card-foreground: 215 25% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 5%;
+    --popover-foreground: 215 25% 15%;
     
-    /* Primary - Vibrant Yellow */
-    --primary: 48 100% 50%;
-    --primary-foreground: 0 0% 5%;
+    /* Primary - Deep Scientific Blue */
+    --primary: 210 85% 45%;
+    --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Hot Pink */
-    --secondary: 320 100% 60%;
+    /* Secondary - Laboratory Teal */
+    --secondary: 180 60% 40%;
     --secondary-foreground: 0 0% 100%;
     
-    /* Muted - Light Cream */
-    --muted: 48 30% 90%;
-    --muted-foreground: 0 0% 30%;
+    /* Muted - Soft Gray */
+    --muted: 210 15% 94%;
+    --muted-foreground: 215 15% 40%;
     
-    /* Accent - Electric Blue */
-    --accent: 195 100% 55%;
-    --accent-foreground: 0 0% 5%;
+    /* Accent - Precision Cyan */
+    --accent: 190 75% 50%;
+    --accent-foreground: 0 0% 100%;
     
-    /* Destructive - Bright Red */
-    --destructive: 0 90% 55%;
+    /* Destructive - Clinical Red */
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 0 0% 5%;
+    --border: 215 20% 85%;
     --input: 0 0% 100%;
-    --ring: 48 100% 50%;
-    --radius: 0rem;
+    --ring: 210 85% 45%;
+    --radius: 0.5rem;
     
     /* Sidebar */
-    --sidebar-background: 48 50% 92%;
-    --sidebar-foreground: 0 0% 5%;
-    --sidebar-primary: 48 100% 50%;
-    --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 320 100% 60%;
+    --sidebar-background: 210 25% 96%;
+    --sidebar-foreground: 215 25% 15%;
+    --sidebar-primary: 210 85% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 180 60% 40%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 5%;
-    --sidebar-ring: 48 100% 50%;
+    --sidebar-border: 215 20% 85%;
+    --sidebar-ring: 210 85% 45%;
   }
 
   .dark {
-    /* Dark Mode - Neo-Brutalism */
-    --background: 240 8% 10%;
-    --foreground: 48 100% 88%;
-    --card: 240 8% 15%;
-    --card-foreground: 48 100% 88%;
-    --popover: 240 8% 15%;
-    --popover-foreground: 48 100% 88%;
+    /* Dark Mode - Scientific Laboratory */
+    --background: 215 30% 8%;
+    --foreground: 210 20% 92%;
+    --card: 215 28% 12%;
+    --card-foreground: 210 20% 92%;
+    --popover: 215 28% 12%;
+    --popover-foreground: 210 20% 92%;
     
-    /* Primary - Vibrant Yellow (adjusted) */
-    --primary: 48 100% 55%;
-    --primary-foreground: 0 0% 5%;
+    /* Primary - Bright Scientific Blue */
+    --primary: 210 90% 55%;
+    --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Hot Pink (adjusted) */
-    --secondary: 320 100% 65%;
+    /* Secondary - Luminous Teal */
+    --secondary: 180 65% 50%;
     --secondary-foreground: 0 0% 100%;
     
     /* Muted */
-    --muted: 240 5% 20%;
-    --muted-foreground: 48 30% 70%;
+    --muted: 215 25% 18%;
+    --muted-foreground: 210 15% 65%;
     
-    /* Accent - Electric Blue (adjusted) */
-    --accent: 195 100% 60%;
-    --accent-foreground: 0 0% 5%;
+    /* Accent - Bright Cyan */
+    --accent: 190 80% 55%;
+    --accent-foreground: 0 0% 100%;
     
     /* Destructive */
-    --destructive: 0 90% 60%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 48 100% 88%;
-    --input: 240 8% 18%;
-    --ring: 48 100% 55%;
+    --border: 215 25% 22%;
+    --input: 215 28% 15%;
+    --ring: 210 90% 55%;
     
     /* Sidebar */
-    --sidebar-background: 240 8% 12%;
-    --sidebar-foreground: 48 100% 88%;
-    --sidebar-primary: 48 100% 55%;
-    --sidebar-primary-foreground: 0 0% 5%;
-    --sidebar-accent: 320 100% 65%;
+    --sidebar-background: 215 32% 10%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 210 90% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 180 65% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 48 100% 88%;
-    --sidebar-ring: 48 100% 55%;
+    --sidebar-border: 215 25% 22%;
+    --sidebar-ring: 210 90% 55%;
   }
 }
 
