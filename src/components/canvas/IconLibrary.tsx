@@ -364,7 +364,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full max-h-full min-h-0 overflow-hidden">
       {/* Toggle button - always visible */}
       <div className="p-2 border-b border-border/40 flex items-center justify-between">
         <Button
@@ -433,7 +433,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           )}
           
           {!loading && searchQuery && (
-            <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1">
+            <ScrollArea type="always" className="flex-1 min-h-0 h-0 px-3 pr-1">
               <div className="py-3">
                 <div className="mb-2 text-sm text-muted-foreground">
                   {isSearching ? "Searching..." : `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''}`}
@@ -446,7 +446,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           )}
           
           {!loading && !searchQuery && (
-            <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1">
+            <ScrollArea type="always" className="flex-1 min-h-0 h-0 px-3 pr-1">
               <div className="space-y-2 py-3">
                 {/* Pinned Categories Section */}
                 {pinnedCategories.length > 0 && (
