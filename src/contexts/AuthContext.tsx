@@ -52,22 +52,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          // Ensure complete cleanup on sign out
-          setSession(null);
-          setUser(null);
-          setIsAdmin(false);
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          setTimeout(() => {
+            checkAdminRole(session.user.id);
+          }, 0);
         } else {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            setTimeout(() => {
-              checkAdminRole(session.user.id);
-            }, 0);
-          } else {
-            setIsAdmin(false);
-          }
+          setIsAdmin(false);
         }
         
         setLoading(false);
@@ -106,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success('Account created! Check your email to verify, but you can start creating now.');
+      toast.success('Account created! Please check your email to verify.');
     }
     
     return { error };
@@ -129,14 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    
-    // Always clear local state, even if the API call failed
-    setSession(null);
-    setUser(null);
-    setIsAdmin(false);
-    
-    // Only show error if it's not a "session not found" error
-    if (error && error.message !== 'Session from session_id claim in JWT does not exist') {
+    if (error) {
       toast.error(error.message);
     } else {
       toast.success('Signed out successfully');

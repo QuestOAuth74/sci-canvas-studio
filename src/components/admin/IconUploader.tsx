@@ -453,90 +453,52 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
       const zip = new JSZip();
       const zipContent = await zip.loadAsync(zipFile);
       let uploadedCount = 0;
-      let skippedCount = 0;
-      let failedCount = 0;
+      let needThumbnails = 0;
 
       const svgFiles = Object.keys(zipContent.files).filter(
         (filename) => filename.toLowerCase().endsWith('.svg') && !filename.startsWith('__MACOSX')
       );
 
-      toast.info(`Processing ${svgFiles.length} SVG files...`);
-
       for (const filename of svgFiles) {
         const file = zipContent.files[filename];
         if (!file.dir) {
-          try {
-            // Read as ArrayBuffer to handle encoding properly
-            const arrayBuffer = await file.async('arraybuffer');
-            const decoder = new TextDecoder('utf-8');
-            let content = decoder.decode(arrayBuffer);
-            
-            // Remove BOM if present
-            content = content.replace(/^\uFEFF/, '');
-            
-            // Create a pseudo-File object for validation
-            const blob = new Blob([content], { type: 'image/svg+xml' });
-            const pseudoFile = new File([blob], filename, { type: 'image/svg+xml' });
-            
-            // Validate using the same robust validation as single upload
-            const validation = validateSVGContent(content, pseudoFile);
-            
-            if (!validation.isValid) {
-              console.warn(`Skipping invalid SVG: ${filename}`, validation.error);
-              skippedCount++;
-              continue;
-            }
-            
-            // Apply fixes and normalization
-            const fixedContent = validateAndFixSVG(validation.content || content);
-            const normalizedContent = normalizeSvgForHtml(fixedContent);
-            
-            // Generate thumbnail from normalized content
-            const thumbnail = generateThumbnail(normalizedContent);
-            
-            // Sanitize filename
-            const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
-            const iconName = sanitizeFileName(rawName);
-            
-            // Upload to database
-            const { error } = await supabase
-              .from('icons')
-              .insert([{
-                name: iconName,
-                category: selectedCategory,
-                svg_content: fixedContent, // Store fixed version
-                thumbnail: thumbnail || normalizedContent
-              }]);
+          const content = await file.async('text');
+          
+          // Sanitize and validate SVG (case-insensitive)
+          const sanitized = content.replace(/<!DOCTYPE[\s\S]*?>/gi, '');
+          const lower = sanitized.toLowerCase();
+          if (!lower.includes('<svg')) {
+            console.warn('Skipping invalid SVG:', filename);
+            continue;
+          }
+          
+          const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
+          const iconName = sanitizeFileName(rawName);
+          const thumbnail = generateThumbnail(sanitized);
+          
+          const { error } = await supabase
+            .from('icons')
+            .insert([{
+              name: iconName,
+              category: selectedCategory,
+              svg_content: sanitized,
+              thumbnail: thumbnail || sanitized // Use original if optimization fails
+            }]);
 
-            if (!error) {
-              uploadedCount++;
-            } else {
-              console.error('Failed to upload:', iconName, error);
-              failedCount++;
-            }
-          } catch (error) {
-            console.error(`Error processing ${filename}:`, error);
-            failedCount++;
+          if (!error) {
+            uploadedCount++;
+          } else {
+            console.error('Failed to upload:', iconName, error);
           }
         }
       }
 
-      // Detailed success message
-      let message = `Successfully uploaded ${uploadedCount} icons!`;
-      if (skippedCount > 0) message += ` ${skippedCount} files skipped (invalid).`;
-      if (failedCount > 0) message += ` ${failedCount} files failed.`;
-      
-      if (uploadedCount > 0) {
-        toast.success(message);
-      } else {
-        toast.error("No icons were uploaded. Check console for details.");
-      }
-      
+      toast.success(`Successfully uploaded ${uploadedCount} icons!`);
       setZipFile(null);
       setSelectedCategory("");
     } catch (error) {
       console.error('Error processing ZIP file:', error);
-      toast.error("Failed to process ZIP file: " + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error("Failed to process ZIP file");
     } finally {
       setIsUploading(false);
     }

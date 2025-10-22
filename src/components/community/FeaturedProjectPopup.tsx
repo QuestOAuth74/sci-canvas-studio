@@ -3,10 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Copy, Sparkles, Zap } from "lucide-react";
+import { Eye, Copy, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 interface CommunityProject {
   id: string;
@@ -35,7 +33,6 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
   const [project, setProject] = useState<CommunityProject | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   useEffect(() => {
     const loadFeaturedProject = async () => {
@@ -95,13 +92,6 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
   };
 
   const handleViewProject = () => {
-    if (!user) {
-      handleClose();
-      toast.info("Please sign in to view community projects");
-      navigate("/auth");
-      return;
-    }
-    
     if (project) {
       handleClose();
       onViewProject(project);
@@ -112,25 +102,22 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-3xl rounded-none border-[4px] border-foreground bg-card neo-brutalist-shadow-lg animate-in slide-in-from-bottom-4 duration-300">
-        {/* Accent strip at top */}
-        <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-primary via-secondary to-accent" />
-        
-        <DialogHeader className="space-y-4 pb-2 pt-2">
+      <DialogContent className="sm:max-w-3xl border border-border/40 bg-background/98 backdrop-blur-xl shadow-2xl">
+        <DialogHeader className="space-y-3 pb-2">
           <div className="flex items-center gap-3">
-            <div className="h-3 w-3 rounded-full bg-secondary animate-pulse neo-brutalist-shadow" />
+            <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
             <Badge 
-              className="rounded-none border-[3px] border-foreground bg-primary text-foreground hover:bg-primary/90 font-bold tracking-wider uppercase text-xs px-3 py-1 neo-brutalist-shadow transition-transform hover:-translate-y-0.5"
+              variant="secondary" 
+              className="text-xs font-medium tracking-wide uppercase bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
             >
-              <Zap className="h-3 w-3 mr-1" />
               Featured Illustration
             </Badge>
           </div>
-          <DialogTitle className="text-4xl font-black tracking-tight text-foreground leading-tight uppercase">
+          <DialogTitle className="text-3xl font-semibold tracking-tight text-foreground leading-tight">
             {project.title || 'Untitled Project'}
           </DialogTitle>
           {project.description && (
-            <DialogDescription className="text-base leading-relaxed text-foreground/80 font-medium">
+            <DialogDescription className="text-base leading-relaxed text-muted-foreground/80">
               {project.description}
             </DialogDescription>
           )}
@@ -138,41 +125,41 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
 
         <div className="space-y-6 py-2">
           {/* Thumbnail */}
-          <div className="relative aspect-video w-full rounded-none overflow-hidden border-[4px] border-foreground neo-brutalist-shadow bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 transition-all hover:-translate-y-1 hover:neo-brutalist-shadow-lg cursor-pointer group">
+          <div className="relative aspect-video w-full rounded-md overflow-hidden shadow-lg border border-border/30 bg-muted/30">
             {project.thumbnail_url ? (
               <img
                 src={project.thumbnail_url}
                 alt={project.title || 'Project thumbnail'}
-                className="w-full h-full object-contain transition-transform group-hover:scale-[1.02]"
+                className="w-full h-full object-contain"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-foreground/60 font-bold text-xl">
-                NO PREVIEW AVAILABLE
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground/60">
+                No preview available
               </div>
             )}
           </div>
 
           {/* Creator & Stats */}
-          <div className="flex items-center justify-between pt-2 pb-1 border-t-[3px] border-foreground">
+          <div className="flex items-center justify-between pt-2 pb-1 border-t border-border/30">
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-foreground font-black text-lg border-[3px] border-foreground neo-brutalist-shadow">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-medium text-sm border border-primary/20">
                 {project.profiles?.full_name?.[0]?.toUpperCase() || '?'}
               </div>
               <div className="flex flex-col">
-                <span className="text-xs text-foreground/70 uppercase tracking-wider font-bold">Created by</span>
-                <span className="font-bold text-foreground text-base">
+                <span className="text-xs text-muted-foreground/60 uppercase tracking-wider">Created by</span>
+                <span className="font-medium text-foreground text-sm">
                   {project.profiles?.full_name || 'Anonymous'}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-sm">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-none border-[2px] border-foreground bg-primary/20 neo-brutalist-shadow">
-                <Eye className="h-5 w-5" />
-                <span className="font-black">{project.view_count}</span>
+            <div className="flex items-center gap-5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <Eye className="h-4 w-4 opacity-60" />
+                <span className="font-medium">{project.view_count}</span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-none border-[2px] border-foreground bg-secondary/20 neo-brutalist-shadow">
-                <Copy className="h-5 w-5" />
-                <span className="font-black">{project.cloned_count}</span>
+              <div className="flex items-center gap-1.5">
+                <Copy className="h-4 w-4 opacity-60" />
+                <span className="font-medium">{project.cloned_count}</span>
               </div>
             </div>
           </div>
@@ -180,40 +167,35 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
           {/* Keywords */}
           {project.keywords && project.keywords.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-1">
-              {project.keywords.slice(0, 5).map((keyword, index) => {
-                const colors = ['bg-primary/30', 'bg-secondary/30', 'bg-accent/30'];
-                const colorClass = colors[index % colors.length];
-                return (
-                  <Badge 
-                    key={index} 
-                    className={`rounded-none border-[2px] border-foreground ${colorClass} text-foreground hover:bg-opacity-50 neo-brutalist-shadow text-xs font-bold uppercase tracking-wide px-3 py-1 transition-transform hover:-translate-y-0.5`}
-                  >
-                    {keyword}
-                  </Badge>
-                );
-              })}
+              {project.keywords.slice(0, 5).map((keyword, index) => (
+                <Badge 
+                  key={index} 
+                  variant="outline" 
+                  className="text-xs font-normal bg-muted/40 hover:bg-muted/60 border-border/30 transition-colors"
+                >
+                  {keyword}
+                </Badge>
+              ))}
             </div>
           )}
         </div>
 
-        <DialogFooter className="flex-col sm:flex-row gap-3 pt-4 border-t-[3px] border-foreground">
+        <DialogFooter className="flex-col sm:flex-row gap-3 pt-2 border-t border-border/30">
           <Button
+            variant="outline"
             onClick={handleClose}
-            className="rounded-none border-[3px] border-foreground bg-background hover:bg-muted neo-brutalist-shadow text-foreground font-bold uppercase tracking-wide transition-all hover:-translate-y-1 hover:neo-brutalist-shadow-lg"
+            className="border-border/40 hover:bg-muted/50 transition-colors"
           >
             Maybe Later
           </Button>
           <Button
             onClick={handleViewProject}
-            className="rounded-none border-[3px] border-foreground bg-primary text-foreground hover:bg-primary/90 neo-brutalist-shadow font-black uppercase tracking-wide transition-all hover:-translate-y-1 hover:neo-brutalist-shadow-lg"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all"
           >
-            <Sparkles className="h-5 w-5 mr-2" />
+            <Sparkles className="h-4 w-4 mr-2" />
             View Full Project
           </Button>
         </DialogFooter>
-        
-        {/* Accent strip at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-accent via-secondary to-primary" />
       </DialogContent>
     </Dialog>
   );

@@ -19,7 +19,6 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsDown,
-  Magnet,
 } from "lucide-react";
 import {
   Tooltip,
@@ -29,6 +28,7 @@ import {
 import { useCanvas } from "@/contexts/CanvasContext";
 import { TextFormattingPanel } from "./TextFormattingPanel";
 import { ShapesDropdown } from "./ShapesDropdown";
+import { useState } from "react";
 
 interface TopToolbarProps {
   onExport: () => void;
@@ -58,8 +58,6 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
     setGridEnabled,
     rulersEnabled,
     setRulersEnabled,
-    smartSnapEnabled,
-    setSmartSnapEnabled,
   } = useCanvas();
 
   const handleTextToolClick = () => {
@@ -257,20 +255,6 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
             </Button>
           </TooltipTrigger>
           <TooltipContent>Toggle Rulers</TooltipContent>
-        </Tooltip>
-        
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              variant={smartSnapEnabled ? "default" : "ghost"} 
-              size="icon" 
-              className="h-8 w-8" 
-              onClick={() => setSmartSnapEnabled(!smartSnapEnabled)}
-            >
-              <Magnet className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Smart Snap & Alignment Guides (Ctrl+Shift+;)</TooltipContent>
         </Tooltip>
       </div>
 

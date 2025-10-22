@@ -19,10 +19,10 @@ export interface Port {
 
 export interface ConnectorData {
   id: string;
-  sourceShapeId?: string | null;
-  sourcePort?: string | null;
-  targetShapeId?: string | null;
-  targetPort?: string | null;
+  sourceShapeId?: string;
+  sourcePort?: string;
+  targetShapeId?: string;
+  targetPort?: string;
   startMarker: ArrowMarkerType;
   endMarker: ArrowMarkerType;
   lineStyle: LineStyle;
@@ -30,9 +30,6 @@ export interface ConnectorData {
   strokeWidth: number;
   strokeColor: string;
   waypoints?: Array<{ x: number; y: number }>;
-  avoidObstacles?: boolean;
-  cornerRadius?: number;
-  locked?: boolean;
 }
 
 export interface ShapeWithPorts extends FabricObject {

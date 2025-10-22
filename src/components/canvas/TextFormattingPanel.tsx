@@ -14,9 +14,6 @@ import {
   Type,
   Bold,
   Italic,
-  Subscript,
-  Superscript,
-  WrapText,
 } from "lucide-react";
 import {
   Tooltip,
@@ -62,28 +59,6 @@ export const TextFormattingPanel = () => {
     canvas,
     selectedObject,
   } = useCanvas();
-
-  const getTextScript = () => {
-    if (selectedObject && selectedObject.type === 'textbox') {
-      const textbox = selectedObject as any;
-      
-      // Check if there's a selection
-      if (textbox.selectionStart !== undefined && textbox.selectionStart !== textbox.selectionEnd) {
-        const styles = textbox.getSelectionStyles(textbox.selectionStart, textbox.selectionEnd);
-        
-        // Check if all selected characters have subscript
-        const allSub = styles.every((style: any) => style.deltaY > 0);
-        if (allSub) return 'sub';
-        
-        // Check if all selected characters have superscript
-        const allSuper = styles.every((style: any) => style.deltaY < 0);
-        if (allSuper) return 'super';
-      }
-    }
-    return 'normal';
-  };
-
-  const textScript = getTextScript();
 
   // Update toolbar to reflect selected text object's properties
   useEffect(() => {
@@ -159,101 +134,6 @@ export const TextFormattingPanel = () => {
     // Update selected text object if exists
     if (canvas && selectedObject && selectedObject.type === 'textbox') {
       selectedObject.set({ overline: newOverline });
-      canvas.renderAll();
-    }
-  };
-
-  const handleSubscriptChange = () => {
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      const textbox = selectedObject as any;
-      
-      // Check if user has text selected
-      if (textbox.selectionStart !== undefined && textbox.selectionStart !== textbox.selectionEnd) {
-        // Apply subscript to selected characters only
-        const currentStyles = textbox.getSelectionStyles(textbox.selectionStart, textbox.selectionEnd);
-        const hasSubscript = currentStyles.some((style: any) => style.deltaY > 0);
-        
-        if (hasSubscript) {
-          // Remove subscript
-          textbox.setSelectionStyles({
-            deltaY: 0,
-            fontSize: undefined,
-          }, textbox.selectionStart, textbox.selectionEnd);
-          toast.success("Subscript removed");
-        } else {
-          // Apply subscript
-          const baseFontSize = textbox.fontSize || 20;
-          textbox.setSelectionStyles({
-            deltaY: baseFontSize * 0.3,
-            fontSize: baseFontSize * 0.6,
-          }, textbox.selectionStart, textbox.selectionEnd);
-          toast.success("Subscript applied");
-        }
-        
-        canvas.renderAll();
-      } else {
-        // No selection - inform user to select text first
-        toast.info("Select text first to apply subscript");
-      }
-    }
-  };
-
-  const handleSuperscriptChange = () => {
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      const textbox = selectedObject as any;
-      
-      // Check if user has text selected
-      if (textbox.selectionStart !== undefined && textbox.selectionStart !== textbox.selectionEnd) {
-        // Apply superscript to selected characters only
-        const currentStyles = textbox.getSelectionStyles(textbox.selectionStart, textbox.selectionEnd);
-        const hasSuperscript = currentStyles.some((style: any) => style.deltaY < 0);
-        
-        if (hasSuperscript) {
-          // Remove superscript
-          textbox.setSelectionStyles({
-            deltaY: 0,
-            fontSize: undefined,
-          }, textbox.selectionStart, textbox.selectionEnd);
-          toast.success("Superscript removed");
-        } else {
-          // Apply superscript
-          const baseFontSize = textbox.fontSize || 20;
-          textbox.setSelectionStyles({
-            deltaY: -baseFontSize * 0.3,
-            fontSize: baseFontSize * 0.6,
-          }, textbox.selectionStart, textbox.selectionEnd);
-          toast.success("Superscript applied");
-        }
-        
-        canvas.renderAll();
-      } else {
-        // No selection - inform user to select text first
-        toast.info("Select text first to apply superscript");
-      }
-    }
-  };
-
-  const handleAutoResizeToggle = () => {
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      const textbox = selectedObject as Textbox;
-      const isAutoResize = textbox.width === undefined || (textbox as any).dynamicMinWidth;
-      
-      if (isAutoResize) {
-        // Disable auto-resize, set fixed width
-        textbox.set({ 
-          width: textbox.getScaledWidth(),
-          splitByGrapheme: false 
-        });
-        toast.success("Fixed width enabled");
-      } else {
-        // Enable auto-resize
-        (textbox as any).dynamicMinWidth = true;
-        textbox.set({ 
-          width: undefined,
-          splitByGrapheme: true 
-        });
-        toast.success("Auto-resize enabled");
-      }
       canvas.renderAll();
     }
   };
@@ -380,57 +260,6 @@ export const TextFormattingPanel = () => {
           </Button>
         </TooltipTrigger>
         <TooltipContent>Overline</TooltipContent>
-      </Tooltip>
-
-      <div className="w-px h-6 bg-border mx-1" />
-
-      {/* Subscript/Superscript */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={textScript === 'sub' ? "default" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleSubscriptChange}
-            disabled={!selectedObject || selectedObject.type !== 'textbox'}
-          >
-            <Subscript className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Subscript (H₂O)</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={textScript === 'super' ? "default" : "ghost"}
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleSuperscriptChange}
-            disabled={!selectedObject || selectedObject.type !== 'textbox'}
-          >
-            <Superscript className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Superscript (E=mc²)</TooltipContent>
-      </Tooltip>
-
-      <div className="w-px h-6 bg-border mx-1" />
-
-      {/* Auto-resize */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={handleAutoResizeToggle}
-            disabled={!selectedObject || selectedObject.type !== 'textbox'}
-          >
-            <WrapText className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Toggle Auto-resize</TooltipContent>
       </Tooltip>
     </div>
   );

@@ -22,7 +22,6 @@ import NotFound from "./pages/NotFound";
 import Share from "./pages/Share";
 import Analytics from "./pages/Analytics";
 import EmailNotifications from "./pages/EmailNotifications";
-import AdminUserProjects from "./pages/AdminUserProjects";
 
 const queryClient = new QueryClient();
 
@@ -48,7 +47,6 @@ const App = () => (
             <Route path="/share" element={<Share />} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="/admin/analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
-            <Route path="/admin/user-projects" element={<AdminRoute><AdminUserProjects /></AdminRoute>} />
             <Route path="/admin/email-notifications" element={<AdminRoute><EmailNotifications /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

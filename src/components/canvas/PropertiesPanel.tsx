@@ -13,9 +13,7 @@ import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as FabricCircle, Polygon } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ChevronLeft, ChevronRight, Pin, PinOff, RotateCw, Wand2 } from "lucide-react";
-import { TextOnPathDialog } from "./TextOnPathDialog";
-import { ImageEditingPanel } from "./ImageEditingPanel";
+import { ChevronLeft, ChevronRight, Pin, PinOff } from "lucide-react";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -492,7 +490,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
-        <ScrollArea type="always" className="flex-1 min-h-0 overscroll-contain">
+        <ScrollArea type="always" className="flex-1 min-h-0">
           {/* Pin Object Section - shown when object is selected */}
           {selectedObject && (
             <div className="p-3 border-b border-border/40">
@@ -962,39 +960,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                   </div>
                 </div>
               </div>
-
-              {/* Advanced Text Features - only show when text is selected */}
-              {selectedObject && selectedObject.type === 'textbox' && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Advanced Text</h3>
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start text-xs"
-                      onClick={() => {
-                        if (canvas && selectedObject) {
-                          const textObj = selectedObject as Textbox;
-                          const currentAngle = textObj.angle || 0;
-                          textObj.set({ angle: currentAngle + 90 });
-                          canvas.renderAll();
-                        }
-                      }}
-                    >
-                      <RotateCw className="h-3.5 w-3.5 mr-2" />
-                      Rotate to Vertical
-                    </Button>
-                    <TextOnPathDialog />
-                  </div>
-                </div>
-              )}
-
-              {/* Image Editing - only show when image is selected */}
-              {selectedObject && selectedObject.type === 'image' && (
-                <div className="pt-3 border-t">
-                  <ImageEditingPanel />
-                </div>
-              )}
 
               <div className="pt-3 border-t">
                 <h3 className="font-semibold text-sm mb-3">Arrange</h3>

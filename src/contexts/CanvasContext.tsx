@@ -89,12 +89,6 @@ interface CanvasContextType {
   getCanvasObjects: () => FabricObject[];
   selectObjectById: (id: string) => void;
   toggleObjectVisibility: (id: string) => void;
-  
-  // Smart snapping
-  smartSnapEnabled: boolean;
-  setSmartSnapEnabled: (enabled: boolean) => void;
-  snapThreshold: number;
-  setSnapThreshold: (threshold: number) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -138,25 +132,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   
   // Pin state
   const [isPinned, setIsPinned] = useState(false);
-  
-  // Smart snapping state
-  const [smartSnapEnabled, setSmartSnapEnabled] = useState(() => {
-    const saved = localStorage.getItem('smartSnapEnabled');
-    return saved !== null ? JSON.parse(saved) : true;
-  });
-  const [snapThreshold, setSnapThreshold] = useState(() => {
-    const saved = localStorage.getItem('snapThreshold');
-    return saved !== null ? JSON.parse(saved) : 5;
-  });
-  
-  // Persist smart snap preferences
-  useEffect(() => {
-    localStorage.setItem('smartSnapEnabled', JSON.stringify(smartSnapEnabled));
-  }, [smartSnapEnabled]);
-  
-  useEffect(() => {
-    localStorage.setItem('snapThreshold', JSON.stringify(snapThreshold));
-  }, [snapThreshold]);
 
   // History management
   const saveState = useCallback(() => {
@@ -870,10 +845,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     getCanvasObjects,
     selectObjectById,
     toggleObjectVisibility,
-    smartSnapEnabled,
-    setSmartSnapEnabled,
-    snapThreshold,
-    setSnapThreshold,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

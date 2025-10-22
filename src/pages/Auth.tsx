@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Microscope } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { HCaptchaWrapper, HCaptchaHandle } from '@/components/ui/hcaptcha-wrapper';
 import { useToast } from '@/hooks/use-toast';
@@ -119,7 +119,7 @@ export default function Auth() {
     setIsLoading(false);
 
     if (!error) {
-      navigate('/canvas');
+      setActiveTab('signin');
       setSignUpCaptchaToken('');
       signUpCaptchaRef.current?.resetCaptcha();
     } else {
@@ -144,12 +144,7 @@ export default function Auth() {
         noindex={true}
       />
       <Card className="w-full max-w-md backdrop-blur-sm bg-card/80 border-border shadow-xl">
-        <CardHeader className="space-y-2">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary border-[3px] border-foreground neo-brutalist-shadow rotate-3 hover:rotate-6 transition-transform duration-300 inline-block">
-              <Microscope className="h-10 w-10 text-foreground" />
-            </div>
-          </div>
+        <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             BioSketch
           </CardTitle>

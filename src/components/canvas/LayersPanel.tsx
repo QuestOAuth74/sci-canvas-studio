@@ -88,7 +88,7 @@ export const LayersPanel = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1 min-h-0 overscroll-contain">
+      <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {layers.length === 0 ? (
             <div className="text-center text-sm text-muted-foreground py-8">

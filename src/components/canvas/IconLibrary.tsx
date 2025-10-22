@@ -364,7 +364,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   return (
-    <div className="flex flex-col h-full max-h-full min-h-0 overflow-hidden">
+    <div className="flex flex-col h-full min-h-0">
       {/* Toggle button - always visible */}
       <div className="p-2 border-b border-border/40 flex items-center justify-between">
         <Button
@@ -433,7 +433,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           )}
           
           {!loading && searchQuery && (
-            <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1 overscroll-contain">
+            <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1">
               <div className="py-3">
                 <div className="mb-2 text-sm text-muted-foreground">
                   {isSearching ? "Searching..." : `${searchResults.length} result${searchResults.length !== 1 ? 's' : ''}`}
@@ -446,7 +446,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           )}
           
           {!loading && !searchQuery && (
-            <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1 overscroll-contain">
+            <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1">
               <div className="space-y-2 py-3">
                 {/* Pinned Categories Section */}
                 {pinnedCategories.length > 0 && (
@@ -484,25 +484,16 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                             <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                               <div className="flex items-center justify-between w-full pr-2">
                                 <div className="flex items-center gap-2">
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  togglePin(category.id);
-                                }}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    togglePin(category.id);
-                                  }
-                                }}
-                                className="hover:text-yellow-600 transition-colors cursor-pointer"
-                                title="Unpin category"
-                              >
-                                <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                              </div>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      togglePin(category.id);
+                                    }}
+                                    className="hover:text-yellow-600 transition-colors"
+                                    title="Unpin category"
+                                  >
+                                    <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                                  </button>
                                   <span>{category.name}</span>
                                 </div>
                   <span className="text-xs text-muted-foreground font-normal">
@@ -603,25 +594,16 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                         <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                           <div className="flex items-center justify-between w-full pr-2">
                             <div className="flex items-center gap-2">
-                            <div
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                togglePin(category.id);
-                              }}
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
+                              <button
+                                onClick={(e) => {
                                   e.stopPropagation();
                                   togglePin(category.id);
-                                }
-                              }}
-                              className="hover:text-yellow-500 transition-colors cursor-pointer"
-                              title="Pin category"
-                            >
-                              <Star className="h-4 w-4" />
-                            </div>
+                                }}
+                                className="hover:text-yellow-500 transition-colors"
+                                title="Pin category"
+                              >
+                                <Star className="h-4 w-4" />
+                              </button>
                               <span>{category.name}</span>
                             </div>
                   <span className="text-xs text-muted-foreground font-normal">
