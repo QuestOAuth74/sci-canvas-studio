@@ -46,27 +46,41 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
           .not('thumbnail_url', 'is', null)
           .limit(100);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching projects:', error);
+          throw error;
+        }
         
         if (projects && projects.length > 0) {
           // Select random project from results
           const randomProjectData = projects[Math.floor(Math.random() * projects.length)];
           
-          // Fetch creator profile separately
-          const { data: profile } = await supabase
+          // Fetch creator profile separately with error handling
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('full_name, avatar_url')
             .eq('id', randomProjectData.user_id)
             .single();
 
-          setProject({
+          if (profileError) {
+            console.warn('Could not fetch profile:', profileError);
+            // Continue anyway with null profile
+          }
+
+          const projectData = {
             ...randomProjectData,
             profiles: profile || null,
-          });
+          };
+          
+          console.log('Featured project loaded:', projectData);
+          setProject(projectData);
           setIsOpen(true);
+        } else {
+          console.log('No approved public projects found');
         }
       } catch (error) {
         console.error('Error loading featured project:', error);
+        // Don't show popup if there's an error
       } finally {
         setLoading(false);
       }

@@ -240,7 +240,7 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
-          search_vector: unknown | null
+          search_vector: unknown
           svg_content: string
           thumbnail: string | null
           uploaded_by: string | null
@@ -250,7 +250,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           name: string
-          search_vector?: unknown | null
+          search_vector?: unknown
           svg_content: string
           thumbnail?: string | null
           uploaded_by?: string | null
@@ -260,7 +260,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           name?: string
-          search_vector?: unknown | null
+          search_vector?: unknown
           svg_content?: string
           thumbnail?: string | null
           uploaded_by?: string | null
