@@ -218,64 +218,79 @@ const Index = () => {
           </div>
 
           {/* Feature Cards */}
-          <div className="grid md:grid-cols-3 gap-8 pt-8">
-            <div className="glossy-feature-card animate-fade-in group">
-              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
-                <Palette className="h-10 w-10 text-primary" />
+          <div className="grid md:grid-cols-3 gap-6 pt-8">
+            <div className="relative bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-yellow-950/30 border-[3px] border-foreground rounded-2xl p-8 neo-shadow hover:neo-shadow-xl transition-all duration-300 animate-fade-in group overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-200/40 to-transparent dark:from-amber-800/40 rounded-full blur-3xl" />
+              <div className="relative">
+                <div className="inline-flex p-4 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl border-[3px] border-foreground neo-shadow mb-6 group-hover:scale-110 transition-transform">
+                  <Palette className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-black mb-3 tracking-tight">Drag & Drop</h3>
+                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                  Intuitive interface lets you arrange vector icons effortlessly on your canvas
+                </p>
               </div>
-              <h3 className="text-3xl font-black mb-4 tracking-tight">Drag & Drop</h3>
-              <p className="text-lg font-bold leading-relaxed text-foreground/70">
-                Intuitive interface lets you arrange vector icons effortlessly on your canvas
-              </p>
             </div>
             
-            <div className="glossy-feature-card animate-fade-in [animation-delay:100ms] group">
-              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
-                <Microscope className="h-10 w-10 text-secondary" />
+            <div className="relative bg-gradient-to-br from-rose-50 via-pink-50 to-red-50 dark:from-rose-950/30 dark:via-pink-950/20 dark:to-red-950/30 border-[3px] border-foreground rounded-2xl p-8 neo-shadow hover:neo-shadow-xl transition-all duration-300 animate-fade-in [animation-delay:100ms] group overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-200/40 to-transparent dark:from-pink-800/40 rounded-full blur-3xl" />
+              <div className="relative">
+                <div className="inline-flex p-4 bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl border-[3px] border-foreground neo-shadow mb-6 group-hover:scale-110 transition-transform">
+                  <Microscope className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-black mb-3 tracking-tight">Organized Library</h3>
+                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                  Scientific icons categorized for quick access and seamless workflow
+                </p>
               </div>
-              <h3 className="text-3xl font-black mb-4 tracking-tight">Organized Library</h3>
-              <p className="text-lg font-bold leading-relaxed text-foreground/70">
-                Scientific icons categorized for quick access and seamless workflow
-              </p>
             </div>
             
-            <div className="glossy-feature-card animate-fade-in [animation-delay:200ms] group">
-              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
-                <Zap className="h-10 w-10 text-accent" />
+            <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/20 dark:to-orange-950/30 border-[3px] border-foreground rounded-2xl p-8 neo-shadow hover:neo-shadow-xl transition-all duration-300 animate-fade-in [animation-delay:200ms] group overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-200/40 to-transparent dark:from-yellow-800/40 rounded-full blur-3xl" />
+              <div className="relative">
+                <div className="inline-flex p-4 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-2xl border-[3px] border-foreground neo-shadow mb-6 group-hover:scale-110 transition-transform">
+                  <Zap className="h-10 w-10 text-white" />
+                </div>
+                <h3 className="text-2xl font-black mb-3 tracking-tight">Export Ready</h3>
+                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                  High-quality exports optimized for publications and presentations
+                </p>
               </div>
-              <h3 className="text-3xl font-black mb-4 tracking-tight">Export Ready</h3>
-              <p className="text-lg font-bold leading-relaxed text-foreground/70">
-                High-quality exports optimized for publications and presentations
-              </p>
             </div>
           </div>
 
           {/* Additional Features */}
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-muted to-background border border-border/60 rounded-2xl shadow-lg p-10 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-gradient-to-br from-accent to-accent/80 rounded-xl shadow-md group-hover:scale-110 transition-transform">
-                  <Shield className="h-8 w-8 text-white" />
+          <div className="grid md:grid-cols-2 gap-6 animate-fade-in [animation-delay:300ms]">
+            <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50/50 to-background dark:from-amber-950/20 dark:via-yellow-950/10 dark:to-background border-[3px] border-foreground rounded-2xl p-10 neo-shadow hover:neo-shadow-xl transition-all duration-300 group overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-yellow-200/30 to-transparent dark:from-yellow-800/20 rounded-full blur-3xl" />
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="inline-flex p-3 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl border-[3px] border-foreground neo-shadow group-hover:scale-110 transition-transform">
+                    <Shield className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-black">Open Source & Free</h3>
                 </div>
-                <h3 className="text-3xl font-semibold">Open Source & Free</h3>
+                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                  Built for the scientific community. No paywalls, no subscriptions. 
+                  Just powerful tools for creating beautiful illustrations.
+                </p>
               </div>
-              <p className="text-lg font-medium leading-relaxed text-foreground/70">
-                Built for the scientific community. No paywalls, no subscriptions. 
-                Just powerful tools for creating beautiful illustrations.
-              </p>
             </div>
 
-            <div className="bg-gradient-to-br from-card to-background border border-border/60 rounded-2xl shadow-lg p-10 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-md group-hover:scale-110 transition-transform">
-                  <Sparkles className="h-8 w-8 text-white" />
+            <div className="relative bg-gradient-to-br from-orange-50 via-red-50/50 to-background dark:from-orange-950/20 dark:via-red-950/10 dark:to-background border-[3px] border-foreground rounded-2xl p-10 neo-shadow hover:neo-shadow-xl transition-all duration-300 group overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-orange-200/30 to-transparent dark:from-orange-800/20 rounded-full blur-3xl" />
+              <div className="relative">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="inline-flex p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl border-[3px] border-foreground neo-shadow group-hover:scale-110 transition-transform">
+                    <Sparkles className="h-7 w-7 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-black">Professional Quality</h3>
                 </div>
-                <h3 className="text-3xl font-semibold">Professional Quality</h3>
+                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                  Export publication-ready graphics in multiple formats. 
+                  Perfect for journals, posters, and presentations.
+                </p>
               </div>
-              <p className="text-lg font-medium leading-relaxed text-foreground/70">
-                Export publication-ready graphics in multiple formats. 
-                Perfect for journals, posters, and presentations.
-              </p>
             </div>
           </div>
         </div>
