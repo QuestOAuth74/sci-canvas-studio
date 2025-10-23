@@ -21,14 +21,14 @@ export const useFavoriteIcons = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_favorite_icons')
         .select('icon_id')
         .eq('user_id', user.id);
 
       if (error) throw error;
       
-      const ids = new Set(data.map(fav => fav.icon_id));
+      const ids = new Set<string>(data.map((fav: any) => fav.icon_id as string));
       setFavoriteIconIds(ids);
     } catch (error) {
       console.error('Error loading favorites:', error);
@@ -47,7 +47,7 @@ export const useFavoriteIcons = () => {
 
     try {
       if (isFavorited) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('user_favorite_icons')
           .delete()
           .eq('user_id', user.id)
@@ -63,7 +63,7 @@ export const useFavoriteIcons = () => {
         
         toast.success('Removed from favorites');
       } else {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('user_favorite_icons')
           .insert({
             user_id: user.id,
