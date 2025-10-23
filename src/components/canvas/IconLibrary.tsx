@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ChevronLeft, ChevronRight, Search, X, Star } from "lucide-react";
 import { usePinnedCategories } from "@/hooks/usePinnedCategories";
 import { toast } from "sonner";
+import noPreview from "@/assets/no_preview.png";
 
 interface Icon {
   id: string;
@@ -84,6 +85,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   const [authState, setAuthState] = useState<string>("checking");
   const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
   const [loadedMap, setLoadedMap] = useState<Record<string, boolean>>({});
+  const [brokenMap, setBrokenMap] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Icon[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -307,6 +309,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
 
   const onImgError = (id: string) => {
     setLoadedMap(prev => ({ ...prev, [id]: true }));
+    setBrokenMap(prev => ({ ...prev, [id]: true }));
   };
 
   const getCurrentPage = (categoryId: string) => categoryPages[categoryId] || 0;
@@ -326,8 +329,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
 
   const renderIconButton = (icon: Icon) => {
     const hasThumbnail = !!icon.thumbnail;
-    const safeSvg = hasThumbnail ? sanitizeSvg(icon.thumbnail!) : '';
-    const thumbSrc = hasThumbnail ? svgToDataUrl(safeSvg) : '';
+    const isBroken = !!brokenMap[icon.id];
+    const safeSvg = hasThumbnail && !isBroken ? sanitizeSvg(icon.thumbnail!) : '';
+    const thumbSrc = hasThumbnail && !isBroken ? svgToDataUrl(safeSvg) : '';
     const isLoaded = !!loadedMap[icon.id];
     
     return (
@@ -337,10 +341,13 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
         className="aspect-square border border-border/40 rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/40 hover:border-primary transition-transform hover:scale-105 relative"
         title={icon.name}
       >
-        {!hasThumbnail ? (
-          <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground">
-            No preview
-          </div>
+        {!hasThumbnail || isBroken ? (
+          <img
+            src={noPreview}
+            alt={`${icon.name} preview unavailable`}
+            loading="lazy"
+            className="w-full h-full object-contain"
+          />
         ) : (
           <>
             {!isLoaded && (
