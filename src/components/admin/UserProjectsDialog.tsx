@@ -117,7 +117,7 @@ export const UserProjectsDialog = ({
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          navigate(`/canvas?projectId=${project.id}`);
+                          navigate(`/canvas?project=${project.id}`);
                           onClose();
                         }}
                       >
