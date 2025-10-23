@@ -44,7 +44,6 @@ const Admin = () => {
             <Button
               variant="outline"
               onClick={() => navigate("/admin/analytics")}
-              className="neo-brutalist-shadow-sm"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
@@ -52,7 +51,6 @@ const Admin = () => {
             <Button
               variant="outline"
               onClick={() => navigate("/admin/email-notifications")}
-              className="neo-brutalist-shadow-sm"
             >
               <Mail className="h-4 w-4 mr-2" />
               Send Email

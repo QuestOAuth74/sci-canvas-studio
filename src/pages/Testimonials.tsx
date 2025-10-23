@@ -57,7 +57,6 @@ const Testimonials = () => {
   }, [currentPage]);
 
   const fetchTestimonials = async (page: number) => {
-    // Get total count
     const { count } = await supabase
       .from("testimonials")
       .select("*", { count: "exact", head: true })
@@ -67,7 +66,6 @@ const Testimonials = () => {
       setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
     }
 
-    // Get paginated data
     const from = (page - 1) * ITEMS_PER_PAGE;
     const to = from + ITEMS_PER_PAGE - 1;
 
@@ -96,7 +94,6 @@ const Testimonials = () => {
       return;
     }
 
-    // Validate form data
     const validation = testimonialSchema.safeParse(formData);
     if (!validation.success) {
       const fieldErrors: Record<string, string> = {};
@@ -132,7 +129,6 @@ const Testimonials = () => {
         description: "Your kind words mean a lot! We'll review and publish your testimonial soon.",
       });
 
-      // Scroll to testimonials section after a brief delay
       setTimeout(() => {
         setCurrentPage(1);
         document.getElementById("testimonials-section")?.scrollIntoView({ 
@@ -154,72 +150,58 @@ const Testimonials = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 relative">
       <SEOHead
         title="Testimonials - BioSketch"
         description="What scientists and researchers say about BioSketch. Read reviews from our community of users who create scientific illustrations with BioSketch."
         canonical="https://biosketch.art/testimonials"
       />
-      {/* Header */}
       <header className="absolute top-0 right-0 p-4 z-20">
         <UserMenu />
       </header>
 
-      {/* Neo-brutalist grid pattern */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{
-        backgroundImage: `
-          linear-gradient(hsl(var(--foreground)) 1px, transparent 1px),
-          linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)
-        `,
-        backgroundSize: '40px 40px'
-      }}></div>
-
       <div className="container mx-auto px-4 py-12 md:py-20 relative z-10">
         <div className="max-w-6xl mx-auto space-y-12">
-          {/* Header Section */}
           <div className="text-center space-y-6 animate-fade-in">
             <Button
               variant="ghost"
               onClick={() => navigate("/")}
-              className="mb-4 font-bold uppercase"
+              className="mb-4"
             >
               ← Back to Home
             </Button>
             
-            <div className="inline-flex items-center gap-2 px-5 py-2 bg-accent border-[3px] border-foreground neo-brutalist-shadow-sm font-bold text-sm uppercase">
-              <MessageCircleHeart className="h-4 w-4" />
-              <span>Community Love</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/30 scientific-shadow-sm">
+              <MessageCircleHeart className="h-4 w-4 text-accent" />
+              <span className="font-semibold text-sm">Community Love</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-black tracking-tight">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Leave a Kind Word
             </h1>
             
-            <p className="text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed opacity-90">
+            <p className="text-lg md:text-xl max-w-2xl mx-auto leading-relaxed text-muted-foreground">
               Your feedback helps us grow and motivates us to keep BioSketch free for the scientific community.
             </p>
           </div>
 
-          {/* Form Section */}
           {showForm && !submitted && (
-            <div className="bg-card border-[4px] border-foreground neo-brutalist-shadow p-8 md:p-10 max-w-3xl mx-auto">
+            <div className="scientific-card p-8 md:p-10 max-w-3xl mx-auto">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-base font-bold uppercase">
-                    Your Name *
-                  </Label>
+                  <Label htmlFor="name" className="text-base font-semibold">Your Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="h-12 border-[3px] border-foreground focus:ring-0 focus:border-primary font-medium"
+                    className="h-12"
                     placeholder="Dr. Jane Smith"
                   />
-                  {errors.name && <p className="text-destructive text-sm font-medium">{errors.name}</p>}
+                  {errors.name && <p className="text-destructive text-sm">{errors.name}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="country" className="text-base font-bold uppercase flex items-center gap-2">
+                  <Label htmlFor="country" className="text-base font-semibold flex items-center gap-2">
                     <Globe className="h-4 w-4" />
                     Country *
                   </Label>
@@ -227,14 +209,14 @@ const Testimonials = () => {
                     id="country"
                     value={formData.country}
                     onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="h-12 border-[3px] border-foreground focus:ring-0 focus:border-primary font-medium"
+                    className="h-12"
                     placeholder="United States"
                   />
-                  {errors.country && <p className="text-destructive text-sm font-medium">{errors.country}</p>}
+                  {errors.country && <p className="text-destructive text-sm">{errors.country}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="discipline" className="text-base font-bold uppercase flex items-center gap-2">
+                  <Label htmlFor="discipline" className="text-base font-semibold flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
                     Scientific Discipline *
                   </Label>
@@ -242,14 +224,14 @@ const Testimonials = () => {
                     id="discipline"
                     value={formData.scientific_discipline}
                     onChange={(e) => setFormData({ ...formData, scientific_discipline: e.target.value })}
-                    className="h-12 border-[3px] border-foreground focus:ring-0 focus:border-primary font-medium"
+                    className="h-12"
                     placeholder="Molecular Biology"
                   />
-                  {errors.scientific_discipline && <p className="text-destructive text-sm font-medium">{errors.scientific_discipline}</p>}
+                  {errors.scientific_discipline && <p className="text-destructive text-sm">{errors.scientific_discipline}</p>}
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-base font-bold uppercase flex items-center gap-2">
+                  <Label className="text-base font-semibold flex items-center gap-2">
                     <Star className="h-4 w-4 fill-primary" />
                     Your Rating *
                   </Label>
@@ -274,7 +256,7 @@ const Testimonials = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="message" className="text-base font-bold uppercase flex items-center gap-2">
+                  <Label htmlFor="message" className="text-base font-semibold flex items-center gap-2">
                     <Heart className="h-4 w-4" />
                     Your Message * <span className="text-xs font-normal opacity-70">(10-500 characters)</span>
                   </Label>
@@ -282,12 +264,12 @@ const Testimonials = () => {
                     id="message"
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="min-h-[150px] border-[3px] border-foreground focus:ring-0 focus:border-primary font-medium resize-none"
+                    className="min-h-[150px] resize-none"
                     placeholder="Share what you love about BioSketch..."
                   />
                   <div className="flex justify-between items-center">
-                    {errors.message && <p className="text-destructive text-sm font-medium">{errors.message}</p>}
-                    <p className="text-xs font-medium opacity-70 ml-auto">
+                    {errors.message && <p className="text-destructive text-sm">{errors.message}</p>}
+                    <p className="text-xs opacity-70 ml-auto">
                       {formData.message.length}/500
                     </p>
                   </div>
@@ -303,23 +285,22 @@ const Testimonials = () => {
                   type="submit"
                   size="lg"
                   disabled={isSubmitting}
-                  className="w-full h-14 text-base font-bold uppercase bg-primary hover:bg-primary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none"
+                  className="w-full h-14 text-base"
                 >
-                  {isSubmitting ? "Submitting..." : "Submit Your Kind Words"}
+                  {isSubmitting ? "Submitting..." : "Share Your Experience"}
                   <MessageCircleHeart className="ml-2 h-5 w-5" />
                 </Button>
               </form>
             </div>
           )}
 
-          {/* Success Message */}
           {submitted && !showForm && (
-            <div className="bg-accent border-[4px] border-foreground neo-brutalist-shadow p-8 md:p-10 max-w-3xl mx-auto text-center space-y-6 animate-scale-in">
-              <div className="w-20 h-20 bg-primary border-[4px] border-foreground rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="h-10 w-10 text-foreground" />
+            <div className="scientific-card p-8 md:p-10 max-w-3xl mx-auto text-center space-y-6 animate-scale-in bg-gradient-to-br from-accent/10 to-primary/10">
+              <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto scientific-shadow">
+                <CheckCircle className="h-10 w-10 text-primary-foreground" />
               </div>
-              <h2 className="text-3xl font-black uppercase">Thank You!</h2>
-              <p className="text-lg font-medium">
+              <h2 className="text-3xl font-bold">Thank You!</h2>
+              <p className="text-lg text-muted-foreground">
                 Your testimonial has been submitted and will appear below after review. We appreciate your support! ❤️
               </p>
               <Button
@@ -329,21 +310,20 @@ const Testimonials = () => {
                   setShowForm(true);
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="h-12 px-8 font-bold uppercase bg-secondary hover:bg-secondary/80 border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none"
+                variant="secondary"
               >
                 Submit Another
               </Button>
             </div>
           )}
 
-          {/* Testimonials Display */}
           {testimonials.length > 0 && (
             <div id="testimonials-section" className="space-y-8 scroll-mt-20">
               <div className="text-center">
-                <h2 className="text-4xl md:text-5xl font-black uppercase mb-4">
+                <h2 className="text-4xl md:text-5xl font-bold mb-4">
                   What Scientists Say
                 </h2>
-                <p className="text-lg font-medium opacity-80">
+                <p className="text-lg text-muted-foreground">
                   Real feedback from our amazing community
                 </p>
               </div>
@@ -352,21 +332,19 @@ const Testimonials = () => {
                 {testimonials.map((testimonial, index) => (
                   <div
                     key={testimonial.id}
-                    className={`bg-card border-[3px] border-foreground neo-brutalist-shadow p-6 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all duration-300 ${
-                      index % 3 === 0 ? 'rotate-0' : index % 3 === 1 ? 'rotate-0' : 'rotate-0'
-                    } animate-fade-in`}
+                    className="scientific-card p-6 hover:scale-[1.02] transition-all animate-fade-in"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="flex items-start gap-4 mb-4">
-                      <div className="p-3 bg-muted border-[2px] border-foreground rounded-full flex-shrink-0">
-                        <User className="h-6 w-6 text-foreground" />
+                      <div className="p-3 bg-primary/10 rounded-full flex-shrink-0">
+                        <User className="h-6 w-6 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base">{testimonial.name}</h3>
-                        <p className="text-xs font-medium opacity-70 truncate">
+                        <h3 className="font-semibold text-base">{testimonial.name}</h3>
+                        <p className="text-xs text-muted-foreground truncate">
                           {testimonial.scientific_discipline}
                         </p>
-                        <p className="text-xs font-medium opacity-60 flex items-center gap-1">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Globe className="h-3 w-3" />
                           {testimonial.country}
                         </p>
@@ -386,14 +364,13 @@ const Testimonials = () => {
                       ))}
                     </div>
                     
-                    <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+                    <p className="text-sm leading-relaxed text-muted-foreground">
                       "{testimonial.message}"
                     </p>
                   </div>
                 ))}
               </div>
 
-              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-4 mt-8">
                   <Button
@@ -401,7 +378,6 @@ const Testimonials = () => {
                     size="lg"
                     onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                     disabled={currentPage === 1}
-                    className="h-12 px-6 font-bold uppercase border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft className="h-5 w-5 mr-2" />
                     Previous
@@ -414,9 +390,7 @@ const Testimonials = () => {
                         variant={currentPage === page ? "default" : "outline"}
                         size="lg"
                         onClick={() => setCurrentPage(page)}
-                        className={`h-12 w-12 font-bold border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all ${
-                          currentPage === page ? "bg-primary" : ""
-                        }`}
+                        className="h-12 w-12"
                       >
                         {page}
                       </Button>
@@ -428,7 +402,6 @@ const Testimonials = () => {
                     size="lg"
                     onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                     disabled={currentPage === totalPages}
-                    className="h-12 px-6 font-bold uppercase border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next
                     <ChevronRight className="h-5 w-5 ml-2" />

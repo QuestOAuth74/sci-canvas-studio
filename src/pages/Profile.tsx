@@ -282,7 +282,7 @@ export default function Profile() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/10 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <Button
           variant="ghost"

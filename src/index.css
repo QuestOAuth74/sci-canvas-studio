@@ -8,11 +8,11 @@ All colors MUST be HSL.
 
 @layer utilities {
   .glass-effect {
-    @apply bg-white/90 backdrop-blur-lg border border-border/20;
+    @apply bg-white/95 backdrop-blur-xl border border-border/30;
   }
   
   .dark .glass-effect {
-    @apply bg-card/90 backdrop-blur-lg border border-border/20;
+    @apply bg-card/95 backdrop-blur-xl border border-border/30;
   }
 
   .scientific-shadow-sm {
@@ -153,10 +153,13 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground font-inter;
+    font-feature-settings: "cv11", "ss01";
+    letter-spacing: -0.011em;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-sans font-semibold;
+    letter-spacing: -0.02em;
   }
   
   h1 {

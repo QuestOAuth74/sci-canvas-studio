@@ -182,17 +182,16 @@ const EmailNotifications = () => {
           <Button
             variant="outline"
             onClick={() => navigate('/admin')}
-            className="neo-brutalist-shadow-sm"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Admin
           </Button>
-          <h1 className="text-4xl font-black uppercase">Email Notifications</h1>
+          <h1 className="text-4xl font-bold">Email Notifications</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recipients Selection */}
-          <Card className="neo-brutalist-shadow lg:col-span-1">
+          <Card className="lg:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -336,7 +335,7 @@ const EmailNotifications = () => {
           </Card>
 
           {/* Email Composition */}
-          <Card className="neo-brutalist-shadow lg:col-span-2">
+          <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mail className="h-5 w-5" />
@@ -400,7 +399,7 @@ const EmailNotifications = () => {
                 <Button
                   onClick={handleSend}
                   disabled={sendEmailMutation.isPending}
-                  className="w-full neo-brutalist-shadow-sm"
+                  className="w-full"
                   size="lg"
                 >
                   {sendEmailMutation.isPending ? (

@@ -90,22 +90,22 @@ export default function Share() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/10 py-12 px-4">
       <div className="max-w-3xl mx-auto">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
-          className="mb-6 font-bold"
+          className="mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
         </Button>
 
-        <Card className="border-4 border-border neo-brutalist-shadow-lg">
-          <CardHeader className="space-y-4 bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/20">
+        <Card className="scientific-card">
+          <CardHeader className="space-y-4 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/10">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary border-4 border-border neo-brutalist-shadow">
-                <Heart className="h-8 w-8 text-foreground" />
+              <div className="p-3 bg-primary/10 rounded-xl scientific-shadow">
+                <Heart className="h-8 w-8 text-primary" />
               </div>
               <div>
                 <CardTitle className="text-4xl flex items-center gap-2">
@@ -117,14 +117,14 @@ export default function Share() {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <div className="bg-accent border-4 border-border neo-brutalist-shadow p-5">
-              <h3 className="font-black text-xl mb-2 flex items-center gap-2 uppercase">
-                <div className="p-2 bg-background border-2 border-border">
-                  <Mail className="h-5 w-5" />
+            <div className="scientific-card p-5 bg-accent/10">
+              <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                <div className="p-2 bg-background rounded-lg">
+                  <Mail className="h-5 w-5 text-primary" />
                 </div>
                 Share via Email
               </h3>
-              <p className="text-sm font-semibold text-foreground/80">
+              <p className="text-sm text-muted-foreground">
                 Enter the details below and we'll send an email introducing BioSketch 
                 to your designated person with information about its features.
               </p>
@@ -208,47 +208,47 @@ export default function Share() {
               </Button>
             </form>
 
-            <div className="bg-secondary border-4 border-border neo-brutalist-shadow p-6">
-              <h4 className="font-black text-xl mb-4 uppercase flex items-center gap-2 text-secondary-foreground">
-                <CheckCircle2 className="h-6 w-6" />
+            <div className="scientific-card p-6 bg-gradient-to-br from-secondary/10 to-accent/10">
+              <h4 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <CheckCircle2 className="h-6 w-6 text-secondary" />
                 What will they receive?
               </h4>
-              <ul className="space-y-3 text-secondary-foreground">
-                <li className="flex items-start gap-3 font-semibold">
-                  <div className="p-1.5 bg-primary border-2 border-border flex-shrink-0 mt-0.5">
-                    <Mail className="h-4 w-4 text-foreground" />
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+                    <Mail className="h-4 w-4 text-primary" />
                   </div>
-                  <span>Your personal message introducing BioSketch</span>
+                  <span className="text-muted-foreground">Your personal message introducing BioSketch</span>
                 </li>
-                <li className="flex items-start gap-3 font-semibold">
-                  <div className="p-1.5 bg-primary border-2 border-border flex-shrink-0 mt-0.5">
-                    <MousePointer2 className="h-4 w-4 text-foreground" />
+                <li className="flex items-start gap-3">
+                  <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+                    <MousePointer2 className="h-4 w-4 text-primary" />
                   </div>
-                  <span>Overview of the intuitive drag-and-drop canvas</span>
+                  <span className="text-muted-foreground">Overview of the intuitive drag-and-drop canvas</span>
                 </li>
-                <li className="flex items-start gap-3 font-semibold">
-                  <div className="p-1.5 bg-primary border-2 border-border flex-shrink-0 mt-0.5">
-                    <Palette className="h-4 w-4 text-foreground" />
+                <li className="flex items-start gap-3">
+                  <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+                    <Palette className="h-4 w-4 text-primary" />
                   </div>
-                  <span>Hundreds of scientific icons across biology, chemistry, and more</span>
+                  <span className="text-muted-foreground">Hundreds of scientific icons across biology, chemistry, and more</span>
                 </li>
-                <li className="flex items-start gap-3 font-semibold">
-                  <div className="p-1.5 bg-primary border-2 border-border flex-shrink-0 mt-0.5">
-                    <Download className="h-4 w-4 text-foreground" />
+                <li className="flex items-start gap-3">
+                  <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+                    <Download className="h-4 w-4 text-primary" />
                   </div>
-                  <span>Export options for high-quality PNG and SVG files</span>
+                  <span className="text-muted-foreground">Export options for high-quality PNG and SVG files</span>
                 </li>
-                <li className="flex items-start gap-3 font-semibold">
-                  <div className="p-1.5 bg-primary border-2 border-border flex-shrink-0 mt-0.5">
-                    <Cloud className="h-4 w-4 text-foreground" />
+                <li className="flex items-start gap-3">
+                  <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+                    <Cloud className="h-4 w-4 text-primary" />
                   </div>
-                  <span>Cloud save feature to access projects from anywhere</span>
+                  <span className="text-muted-foreground">Cloud save feature to access projects from anywhere</span>
                 </li>
-                <li className="flex items-start gap-3 font-semibold">
-                  <div className="p-1.5 bg-primary border-2 border-border flex-shrink-0 mt-0.5">
-                    <Sparkles className="h-4 w-4 text-foreground" />
+                <li className="flex items-start gap-3">
+                  <div className="p-1.5 bg-primary/10 rounded-lg flex-shrink-0 mt-0.5">
+                    <Sparkles className="h-4 w-4 text-primary" />
                   </div>
-                  <span>Direct link to start creating immediately—100% free, no signup required</span>
+                  <span className="text-muted-foreground">Direct link to start creating immediately—100% free, no signup required</span>
                 </li>
               </ul>
             </div>
