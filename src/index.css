@@ -19,25 +19,39 @@ All colors MUST be HSL.
   }
 
   .neo-shadow {
-    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
+    box-shadow: 5px 5px 0px 0px hsl(var(--foreground));
   }
 
   .neo-shadow-sm {
-    box-shadow: 2px 2px 0px 0px hsl(var(--foreground));
+    box-shadow: 3px 3px 0px 0px hsl(var(--foreground));
   }
 
   .neo-shadow-lg {
-    box-shadow: 6px 6px 0px 0px hsl(var(--foreground));
+    box-shadow: 8px 8px 0px 0px hsl(var(--foreground));
   }
 
   .neo-shadow-xl {
-    box-shadow: 8px 8px 0px 0px hsl(var(--foreground));
+    box-shadow: 12px 12px 0px 0px hsl(var(--foreground));
+  }
+  
+  .neo-shadow-brutal {
+    box-shadow: 8px 8px 0px 0px hsl(var(--accent)), 12px 12px 0px 0px hsl(var(--foreground));
+  }
+  
+  .neo-shadow-primary {
+    box-shadow: 5px 5px 0px 0px hsl(var(--primary));
   }
   
   .glossy-card {
-    @apply bg-gradient-to-br from-white to-muted/30 rounded-2xl border-3 border-foreground neo-shadow;
+    @apply bg-gradient-to-br from-white to-muted/40 rounded-2xl border-3 border-foreground neo-shadow-lg;
     position: relative;
     overflow: hidden;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .glossy-card:hover {
+    transform: translate(4px, 4px);
+    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
   }
   
   .glossy-card::before {
@@ -46,25 +60,42 @@ All colors MUST be HSL.
     top: 0;
     left: 0;
     right: 0;
-    height: 50%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
+    height: 60%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+  }
+  
+  .glossy-card::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, hsl(var(--accent)/0.3) 0%, transparent 70%);
+    border-radius: 50%;
     pointer-events: none;
   }
   
   .dark .glossy-card {
-    @apply bg-gradient-to-br from-card to-card/50;
+    @apply bg-gradient-to-br from-card via-card/80 to-card/60;
   }
   
   .dark .glossy-card::before {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 100%);
   }
   
   .glossy-button {
-    @apply bg-gradient-to-b from-primary to-primary/80 border-3 border-foreground neo-shadow-sm;
-    @apply hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none;
-    @apply transition-all duration-150;
+    @apply bg-gradient-to-b from-primary via-primary to-primary/90 border-3 border-foreground neo-shadow;
+    @apply hover:translate-x-[3px] hover:translate-y-[3px];
+    @apply active:translate-x-[5px] active:translate-y-[5px] active:shadow-none;
+    @apply transition-all duration-100;
     position: relative;
     overflow: hidden;
+  }
+  
+  .glossy-button:hover {
+    box-shadow: 2px 2px 0px 0px hsl(var(--foreground));
   }
   
   .glossy-button::before {
@@ -74,8 +105,22 @@ All colors MUST be HSL.
     left: 0;
     right: 0;
     height: 50%;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
     pointer-events: none;
+  }
+  
+  .glossy-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+    pointer-events: none;
+  }
+  
+  .glossy-button:hover::after {
+    transform: translateX(100%);
   }
   
   .scientific-gradient {
@@ -110,20 +155,20 @@ All colors MUST be HSL.
     --popover: 0 0% 99%;
     --popover-foreground: 220 20% 18%;
     
-    /* Primary - Bold Teal */
-    --primary: 186 75% 45%;
+    /* Primary - Bold Cyan */
+    --primary: 190 85% 48%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Vibrant Coral */
-    --secondary: 12 90% 58%;
+    /* Secondary - Hot Magenta */
+    --secondary: 330 95% 58%;
     --secondary-foreground: 0 0% 100%;
     
     /* Muted - Light Modern Grey */
     --muted: 210 20% 92%;
     --muted-foreground: 220 15% 45%;
     
-    /* Accent - Electric Lime */
-    --accent: 75 85% 55%;
+    /* Accent - Electric Yellow */
+    --accent: 48 98% 58%;
     --accent-foreground: 220 20% 18%;
     
     /* Destructive - Bold Red */
@@ -156,20 +201,20 @@ All colors MUST be HSL.
     --popover: 220 22% 14%;
     --popover-foreground: 210 20% 92%;
     
-    /* Primary - Bright Teal */
-    --primary: 186 80% 50%;
+    /* Primary - Bright Cyan */
+    --primary: 190 90% 52%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Hot Coral */
-    --secondary: 12 92% 62%;
+    /* Secondary - Neon Magenta */
+    --secondary: 330 98% 62%;
     --secondary-foreground: 0 0% 100%;
     
     /* Muted */
     --muted: 220 20% 18%;
     --muted-foreground: 210 15% 60%;
     
-    /* Accent - Neon Lime */
-    --accent: 75 90% 60%;
+    /* Accent - Bright Yellow */
+    --accent: 48 100% 62%;
     --accent-foreground: 220 25% 10%;
     
     /* Destructive */

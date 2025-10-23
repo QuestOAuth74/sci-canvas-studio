@@ -5,16 +5,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-bold transition-all duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 relative overflow-hidden",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-b from-primary to-primary/90 text-primary-foreground border-2 border-foreground neo-shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/20 before:to-transparent before:pointer-events-none",
-        destructive: "bg-gradient-to-b from-destructive to-destructive/90 text-destructive-foreground border-2 border-foreground neo-shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none",
-        outline: "border-2 border-foreground bg-background hover:bg-muted neo-shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none",
-        secondary: "bg-gradient-to-b from-secondary to-secondary/90 text-secondary-foreground border-2 border-foreground neo-shadow-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none",
-        ghost: "hover:bg-muted/50 hover:border-2 hover:border-foreground/20",
-        link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
+        default: "bg-gradient-to-br from-primary via-primary to-primary/90 text-primary-foreground border-3 border-foreground neo-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] active:translate-x-[5px] active:translate-y-[5px] active:shadow-none before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/30 before:to-transparent before:pointer-events-none after:absolute after:inset-0 after:bg-gradient-to-br after:from-accent/20 after:via-transparent after:to-transparent after:pointer-events-none",
+        destructive: "bg-gradient-to-br from-destructive via-destructive to-destructive/90 text-destructive-foreground border-3 border-foreground neo-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] active:translate-x-[5px] active:translate-y-[5px] active:shadow-none",
+        outline: "border-3 border-foreground bg-background hover:bg-accent/10 neo-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))]",
+        secondary: "bg-gradient-to-br from-secondary via-secondary to-secondary/90 text-secondary-foreground border-3 border-foreground neo-shadow hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] active:translate-x-[5px] active:translate-y-[5px] active:shadow-none before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/30 before:to-transparent before:pointer-events-none",
+        ghost: "hover:bg-accent/20 hover:border-2 hover:border-foreground/30 hover:neo-shadow-sm hover:translate-x-[2px] hover:translate-y-[2px]",
+        link: "text-primary underline-offset-4 hover:underline hover:text-secondary transition-colors",
       },
       size: {
         default: "h-10 px-5 py-2",
