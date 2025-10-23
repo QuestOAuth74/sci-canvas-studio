@@ -55,94 +55,94 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Scientific Laboratory Theme - Professional & Clean */
-    --background: 0 0% 99%;
-    --foreground: 220 15% 20%;
+    /* Laboratory Precision Theme - Distinctive & Professional */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 20%;
+    --card-foreground: 215 25% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 20%;
+    --popover-foreground: 215 25% 15%;
     
-    /* Primary - Professional Blue (BioRender-inspired) */
-    --primary: 217 91% 60%;
+    /* Primary - Deep Scientific Teal (Precision Instruments) */
+    --primary: 186 65% 42%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Elegant Purple */
-    --secondary: 262 52% 47%;
+    /* Secondary - Warm Coral (Life Sciences) */
+    --secondary: 12 85% 60%;
     --secondary-foreground: 0 0% 100%;
     
-    /* Muted - Subtle Gray */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    /* Muted - Sophisticated Gray */
+    --muted: 215 20% 95%;
+    --muted-foreground: 215 15% 42%;
     
-    /* Accent - Soft Teal */
-    --accent: 184 77% 60%;
-    --accent-foreground: 220 15% 20%;
+    /* Accent - Discovery Amber (Insights & Highlights) */
+    --accent: 38 92% 52%;
+    --accent-foreground: 215 25% 15%;
     
-    /* Destructive - Softer Red */
-    --destructive: 0 72% 51%;
+    /* Destructive - Clinical Red */
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 220 13% 91%;
+    --border: 215 18% 88%;
     --input: 0 0% 100%;
-    --ring: 217 91% 60%;
+    --ring: 186 65% 42%;
     --radius: 0.75rem;
     
     /* Sidebar */
-    --sidebar-background: 220 14% 96%;
-    --sidebar-foreground: 220 15% 20%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-background: 215 20% 95%;
+    --sidebar-foreground: 215 25% 15%;
+    --sidebar-primary: 186 65% 42%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 184 77% 60%;
-    --sidebar-accent-foreground: 220 15% 20%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 38 92% 52%;
+    --sidebar-accent-foreground: 215 25% 15%;
+    --sidebar-border: 215 18% 88%;
+    --sidebar-ring: 186 65% 42%;
   }
 
   .dark {
-    /* Dark Mode - Scientific Laboratory */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 15%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 15%;
-    --popover-foreground: 210 40% 98%;
+    /* Dark Mode - Laboratory Precision */
+    --background: 215 30% 8%;
+    --foreground: 210 20% 95%;
+    --card: 215 28% 12%;
+    --card-foreground: 210 20% 95%;
+    --popover: 215 28% 12%;
+    --popover-foreground: 210 20% 95%;
     
-    /* Primary - Bright Scientific Blue */
-    --primary: 217 91% 65%;
+    /* Primary - Bright Precision Teal */
+    --primary: 186 70% 55%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Luminous Purple */
-    --secondary: 262 52% 60%;
+    /* Secondary - Vibrant Coral */
+    --secondary: 12 88% 65%;
     --secondary-foreground: 0 0% 100%;
     
     /* Muted */
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 215 25% 16%;
+    --muted-foreground: 215 15% 62%;
     
-    /* Accent - Bright Teal */
-    --accent: 184 77% 55%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent - Golden Amber */
+    --accent: 38 95% 58%;
+    --accent-foreground: 215 30% 8%;
     
     /* Destructive */
-    --destructive: 0 72% 55%;
+    --destructive: 0 75% 58%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 217 33% 23%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 65%;
+    --border: 215 25% 20%;
+    --input: 215 25% 16%;
+    --ring: 186 70% 55%;
     
     /* Sidebar */
-    --sidebar-background: 222 47% 13%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 65%;
+    --sidebar-background: 215 30% 10%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 186 70% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 184 77% 55%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 23%;
-    --sidebar-ring: 217 91% 65%;
+    --sidebar-accent: 38 95% 58%;
+    --sidebar-accent-foreground: 215 30% 8%;
+    --sidebar-border: 215 25% 20%;
+    --sidebar-ring: 186 70% 55%;
   }
 }
 
