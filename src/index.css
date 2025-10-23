@@ -276,6 +276,228 @@ All colors MUST be HSL.
     animation: fadeIn 0.4s ease-out forwards;
     opacity: 0;
   }
+  
+  /* Ripple Effect Animation */
+  @keyframes ripple {
+    0% {
+      width: 0;
+      height: 0;
+      opacity: 0.5;
+      transform: translate(-50%, -50%);
+    }
+    100% {
+      width: 300px;
+      height: 300px;
+      opacity: 0;
+      transform: translate(-50%, -50%);
+    }
+  }
+  
+  .animate-ripple {
+    animation: ripple 0.6s ease-out;
+  }
+  
+  /* Shimmer Loading Effect */
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+  
+  .shimmer-effect {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--accent)/0.3) 20%,
+      hsl(var(--muted)) 40%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+  }
+  
+  /* Magnetic Hover Effect - Applied via JavaScript/React */
+  .magnetic-hover {
+    @apply transition-transform duration-300 ease-out;
+  }
+  
+  /* Peel Effect Card */
+  .peel-card {
+    @apply relative;
+    transform-style: preserve-3d;
+  }
+  
+  .peel-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--accent)) 100%);
+    border-radius: inherit;
+    transform: rotateY(180deg) translateZ(-1px);
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+  
+  .peel-card:hover::after {
+    opacity: 0.1;
+    transform: rotateY(0deg) translateZ(-1px);
+  }
+  
+  /* Gradient Border Animation */
+  @keyframes rotateBorder {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  .animated-border {
+    position: relative;
+    overflow: visible;
+  }
+  
+  .animated-border::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    background: conic-gradient(
+      from 0deg,
+      hsl(var(--primary)),
+      hsl(var(--accent)),
+      hsl(var(--secondary)),
+      hsl(var(--primary))
+    );
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s;
+    animation: rotateBorder 3s linear infinite;
+    z-index: -1;
+  }
+  
+  .animated-border:hover::before {
+    opacity: 1;
+  }
+  
+  /* Spring Bounce Animation */
+  @keyframes springBounce {
+    0%, 100% {
+      transform: scale(1);
+    }
+    25% {
+      transform: scale(0.95);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    75% {
+      transform: scale(0.98);
+    }
+  }
+  
+  .spring-bounce {
+    animation: springBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  
+  /* Glitch Text Effect */
+  @keyframes glitch {
+    0% {
+      transform: translate(0);
+    }
+    20% {
+      transform: translate(-2px, 2px);
+    }
+    40% {
+      transform: translate(-2px, -2px);
+    }
+    60% {
+      transform: translate(2px, 2px);
+    }
+    80% {
+      transform: translate(2px, -2px);
+    }
+    100% {
+      transform: translate(0);
+    }
+  }
+  
+  .glitch-text {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .glitch-text:hover {
+    animation: glitch 0.3s infinite;
+  }
+  
+  /* Text Gradient Animation */
+  @keyframes gradientText {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .animated-text-gradient {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)),
+      hsl(var(--accent)),
+      hsl(var(--secondary)),
+      hsl(var(--primary))
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientText 3s ease infinite;
+  }
+  
+  /* Pulse Glow Effect */
+  @keyframes pulseGlow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--primary)/0.3), 0 0 40px hsl(var(--primary)/0.1);
+    }
+    50% {
+      box-shadow: 0 0 30px hsl(var(--primary)/0.5), 0 0 60px hsl(var(--primary)/0.2);
+    }
+  }
+  
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+  
+  /* Smooth Page Transitions */
+  .page-transition {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  /* Enhanced Hover Scale */
+  .hover-scale-intense {
+    @apply transition-transform duration-300 ease-out;
+  }
+  
+  .hover-scale-intense:hover {
+    transform: scale(1.08) translateY(-4px);
+  }
+  
+  /* Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @layer base {

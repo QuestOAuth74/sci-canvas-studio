@@ -10,6 +10,8 @@ import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2 } from 'lu
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
+import { ScrollProgress } from '@/components/ui/scroll-progress';
+import { useTilt } from '@/hooks/useTilt';
 
 interface Project {
   id: string;
@@ -85,14 +87,15 @@ export default function Projects() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 page-transition">
+      <ScrollProgress />
       <header className="border-b glass-effect sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">My Projects</h1>
+            <h1 className="text-2xl font-bold animated-text-gradient">My Projects</h1>
           </div>
           <UserMenu />
         </div>
@@ -141,46 +144,56 @@ export default function Projects() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
-              <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="truncate">{project.name}</CardTitle>
-                  <CardDescription>
-                    {format(new Date(project.updated_at), 'MMM d, yyyy h:mm a')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-muted-foreground">
-                    <p>Size: {project.canvas_width} × {project.canvas_height}px</p>
-                    <p>Paper: {project.paper_size}</p>
+            {filteredProjects.map((project) => {
+              const ProjectCardWithTilt = () => {
+                const { ref, style } = useTilt({ max: 8, scale: 1.03 });
+                
+                return (
+                  <div ref={ref} style={style}>
+                    <Card className="hover:shadow-2xl transition-all duration-300 peel-card animated-border h-full">
+                      <CardHeader>
+                        <CardTitle className="truncate">{project.name}</CardTitle>
+                        <CardDescription>
+                          {format(new Date(project.updated_at), 'MMM d, yyyy h:mm a')}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-sm text-muted-foreground">
+                          <p>Size: {project.canvas_width} × {project.canvas_height}px</p>
+                          <p>Paper: {project.paper_size}</p>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="flex gap-2">
+                        <Button
+                          onClick={() => openProject(project.id)}
+                          className="flex-1"
+                        >
+                          <FolderOpen className="mr-2 h-4 w-4" />
+                          Open
+                        </Button>
+                        <Button
+                          onClick={() => setShareDialogProject(project)}
+                          variant="outline"
+                          size="icon"
+                          title={project.is_public ? 'Shared to community' : 'Share to community'}
+                        >
+                          <Share2 className={`h-4 w-4 ${project.is_public ? 'text-primary' : ''}`} />
+                        </Button>
+                        <Button
+                          onClick={() => deleteProject(project.id, project.name)}
+                          variant="destructive"
+                          size="icon"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </CardFooter>
+                    </Card>
                   </div>
-                </CardContent>
-                <CardFooter className="flex gap-2">
-                  <Button
-                    onClick={() => openProject(project.id)}
-                    className="flex-1"
-                  >
-                    <FolderOpen className="mr-2 h-4 w-4" />
-                    Open
-                  </Button>
-                  <Button
-                    onClick={() => setShareDialogProject(project)}
-                    variant="outline"
-                    size="icon"
-                    title={project.is_public ? 'Shared to community' : 'Share to community'}
-                  >
-                    <Share2 className={`h-4 w-4 ${project.is_public ? 'text-primary' : ''}`} />
-                  </Button>
-                  <Button
-                    onClick={() => deleteProject(project.id, project.name)}
-                    variant="destructive"
-                    size="icon"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                );
+              };
+              
+              return <ProjectCardWithTilt key={project.id} />;
+            })}
           </div>
         )}
       </main>

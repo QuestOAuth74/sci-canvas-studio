@@ -13,6 +13,8 @@ import carousel1 from "@/assets/carousel-1.png";
 import carousel2 from "@/assets/carousel-2.png";
 import { SEOHead } from "@/components/SEO/SEOHead";
 import { getWebApplicationSchema, getOrganizationSchema } from "@/components/SEO/StructuredData";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { useParallax } from "@/hooks/useParallax";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,6 +23,10 @@ const Index = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  
+  const parallax1 = useParallax(0.3);
+  const parallax2 = useParallax(0.5);
+  const parallax3 = useParallax(0.4);
 
   useEffect(() => {
     supabase
@@ -40,11 +46,22 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
-      {/* Animated Background Elements */}
+      <ScrollProgress />
+      
+      {/* Animated Background Elements with Parallax */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl float-animation" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-secondary/10 rounded-full blur-3xl float-animation [animation-delay:2s]" />
-        <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-accent/10 rounded-full blur-3xl float-animation [animation-delay:4s]" />
+        <div 
+          className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl float-animation"
+          style={{ transform: `translateY(${parallax1}px)` }}
+        />
+        <div 
+          className="absolute bottom-20 right-10 w-80 h-80 bg-secondary/10 rounded-full blur-3xl float-animation [animation-delay:2s]"
+          style={{ transform: `translateY(${-parallax2}px)` }}
+        />
+        <div 
+          className="absolute top-1/2 left-1/3 w-72 h-72 bg-accent/10 rounded-full blur-3xl float-animation [animation-delay:4s]"
+          style={{ transform: `translateY(${parallax3}px)` }}
+        />
       </div>
       
       <SEOHead
@@ -105,7 +122,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 onClick={() => navigate(user ? "/projects" : "/auth")} 
-                className="min-w-[240px] h-14 text-base font-semibold group"
+                className="min-w-[240px] h-14 text-base font-semibold group pulse-glow"
               >
                 <Palette className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
                 Start Creating
@@ -180,44 +197,44 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Feature Cards */}
+          {/* Feature Cards with Enhanced Hover */}
           <div className="grid md:grid-cols-3 gap-8 pt-8">
-            <div className="glossy-feature-card animate-fade-in group">
-              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
+            <div className="glossy-feature-card animate-fade-in group hover-scale-intense peel-card">
+              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 group-hover:rotate-6 inline-flex items-center justify-center transition-all duration-300">
                 <Palette className="h-10 w-10 text-primary" />
               </div>
-              <h3 className="text-3xl font-black mb-4 tracking-tight">Drag & Drop</h3>
+              <h3 className="text-3xl font-black mb-4 tracking-tight animated-text-gradient">Drag & Drop</h3>
               <p className="text-lg font-bold leading-relaxed text-foreground/70">
                 Intuitive interface lets you arrange vector icons effortlessly on your canvas
               </p>
             </div>
             
-            <div className="glossy-feature-card animate-fade-in [animation-delay:100ms] group">
-              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
+            <div className="glossy-feature-card animate-fade-in [animation-delay:100ms] group hover-scale-intense peel-card">
+              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 group-hover:rotate-6 inline-flex items-center justify-center transition-all duration-300">
                 <Microscope className="h-10 w-10 text-secondary" />
               </div>
-              <h3 className="text-3xl font-black mb-4 tracking-tight">Organized Library</h3>
+              <h3 className="text-3xl font-black mb-4 tracking-tight animated-text-gradient">Organized Library</h3>
               <p className="text-lg font-bold leading-relaxed text-foreground/70">
                 Scientific icons categorized for quick access and seamless workflow
               </p>
             </div>
             
-            <div className="glossy-feature-card animate-fade-in [animation-delay:200ms] group">
-              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
+            <div className="glossy-feature-card animate-fade-in [animation-delay:200ms] group hover-scale-intense peel-card">
+              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 group-hover:rotate-6 inline-flex items-center justify-center transition-all duration-300">
                 <Zap className="h-10 w-10 text-accent" />
               </div>
-              <h3 className="text-3xl font-black mb-4 tracking-tight">Export Ready</h3>
+              <h3 className="text-3xl font-black mb-4 tracking-tight animated-text-gradient">Export Ready</h3>
               <p className="text-lg font-bold leading-relaxed text-foreground/70">
                 High-quality exports optimized for publications and presentations
               </p>
             </div>
           </div>
 
-          {/* Additional Features */}
+          {/* Additional Features with Animated Borders */}
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-gradient-to-br from-muted to-background border border-border/60 rounded-2xl shadow-lg p-10 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+            <div className="animated-border bg-gradient-to-br from-muted to-background border-[3px] border-foreground rounded-2xl neo-shadow-lg p-10 hover:translate-x-[4px] hover:translate-y-[4px] transition-all duration-300 group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-gradient-to-br from-accent to-accent/80 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                <div className="p-3 bg-gradient-to-br from-accent to-accent/80 rounded-xl shadow-md group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                   <Shield className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-3xl font-semibold">Open Source & Free</h3>
@@ -228,9 +245,9 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-card to-background border border-border/60 rounded-2xl shadow-lg p-10 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group">
+            <div className="animated-border bg-gradient-to-br from-card to-background border-[3px] border-foreground rounded-2xl neo-shadow-lg p-10 hover:translate-x-[4px] hover:translate-y-[4px] transition-all duration-300 group">
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-md group-hover:scale-110 transition-transform">
+                <div className="p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-md group-hover:scale-110 group-hover:rotate-12 transition-all duration-300">
                   <Sparkles className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-3xl font-semibold">Professional Quality</h3>
