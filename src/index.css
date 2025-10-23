@@ -7,28 +7,75 @@ All colors MUST be HSL.
 */
 
 @layer utilities {
+  /* Glossy Neo-Brutalism Utilities */
   .glass-effect {
-    @apply bg-white/95 backdrop-blur-xl border border-border/30;
+    @apply bg-white/80 backdrop-blur-2xl border-2 border-foreground/10;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
   }
   
   .dark .glass-effect {
-    @apply bg-card/95 backdrop-blur-xl border border-border/30;
+    @apply bg-card/70 backdrop-blur-2xl border-2 border-white/10;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
 
-  .scientific-shadow-sm {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  .neo-shadow {
+    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
   }
 
-  .scientific-shadow {
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+  .neo-shadow-sm {
+    box-shadow: 2px 2px 0px 0px hsl(var(--foreground));
   }
 
-  .scientific-shadow-lg {
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10), 0 4px 10px rgba(0, 0, 0, 0.06);
+  .neo-shadow-lg {
+    box-shadow: 6px 6px 0px 0px hsl(var(--foreground));
+  }
+
+  .neo-shadow-xl {
+    box-shadow: 8px 8px 0px 0px hsl(var(--foreground));
   }
   
-  .scientific-card {
-    @apply bg-card rounded-xl border border-border/60 scientific-shadow hover:scientific-shadow-lg transition-all duration-300;
+  .glossy-card {
+    @apply bg-gradient-to-br from-white to-muted/30 rounded-2xl border-3 border-foreground neo-shadow;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glossy-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+  }
+  
+  .dark .glossy-card {
+    @apply bg-gradient-to-br from-card to-card/50;
+  }
+  
+  .dark .glossy-card::before {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%);
+  }
+  
+  .glossy-button {
+    @apply bg-gradient-to-b from-primary to-primary/80 border-3 border-foreground neo-shadow-sm;
+    @apply hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none;
+    @apply transition-all duration-150;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glossy-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
   }
   
   .scientific-gradient {
@@ -55,94 +102,94 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Laboratory Precision Theme - Distinctive & Professional */
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    /* Glossy Neo-Brutalism Theme - Professional & Bold */
+    --background: 210 18% 96%;
+    --foreground: 220 20% 18%;
+    --card: 0 0% 99%;
+    --card-foreground: 220 20% 18%;
+    --popover: 0 0% 99%;
+    --popover-foreground: 220 20% 18%;
     
-    /* Primary - Deep Scientific Teal (Precision Instruments) */
-    --primary: 186 65% 42%;
-    --primary-foreground: 0 0% 100%;
-    
-    /* Secondary - Warm Coral (Life Sciences) */
-    --secondary: 12 85% 60%;
-    --secondary-foreground: 0 0% 100%;
-    
-    /* Muted - Sophisticated Gray */
-    --muted: 215 20% 95%;
-    --muted-foreground: 215 15% 42%;
-    
-    /* Accent - Discovery Amber (Insights & Highlights) */
-    --accent: 38 92% 52%;
-    --accent-foreground: 215 25% 15%;
-    
-    /* Destructive - Clinical Red */
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 100%;
-    
-    /* UI Elements */
-    --border: 215 18% 88%;
-    --input: 0 0% 100%;
-    --ring: 186 65% 42%;
-    --radius: 0.75rem;
-    
-    /* Sidebar */
-    --sidebar-background: 215 20% 95%;
-    --sidebar-foreground: 215 25% 15%;
-    --sidebar-primary: 186 65% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 38 92% 52%;
-    --sidebar-accent-foreground: 215 25% 15%;
-    --sidebar-border: 215 18% 88%;
-    --sidebar-ring: 186 65% 42%;
-  }
-
-  .dark {
-    /* Dark Mode - Laboratory Precision */
-    --background: 215 30% 8%;
-    --foreground: 210 20% 95%;
-    --card: 215 28% 12%;
-    --card-foreground: 210 20% 95%;
-    --popover: 215 28% 12%;
-    --popover-foreground: 210 20% 95%;
-    
-    /* Primary - Bright Precision Teal */
-    --primary: 186 70% 55%;
+    /* Primary - Bold Teal */
+    --primary: 186 75% 45%;
     --primary-foreground: 0 0% 100%;
     
     /* Secondary - Vibrant Coral */
-    --secondary: 12 88% 65%;
+    --secondary: 12 90% 58%;
     --secondary-foreground: 0 0% 100%;
     
-    /* Muted */
-    --muted: 215 25% 16%;
-    --muted-foreground: 215 15% 62%;
+    /* Muted - Light Modern Grey */
+    --muted: 210 20% 92%;
+    --muted-foreground: 220 15% 45%;
     
-    /* Accent - Golden Amber */
-    --accent: 38 95% 58%;
-    --accent-foreground: 215 30% 8%;
+    /* Accent - Electric Lime */
+    --accent: 75 85% 55%;
+    --accent-foreground: 220 20% 18%;
     
-    /* Destructive */
-    --destructive: 0 75% 58%;
+    /* Destructive - Bold Red */
+    --destructive: 0 85% 55%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 215 25% 20%;
-    --input: 215 25% 16%;
-    --ring: 186 70% 55%;
+    --border: 220 15% 85%;
+    --input: 0 0% 99%;
+    --ring: 186 75% 45%;
+    --radius: 1rem;
     
     /* Sidebar */
-    --sidebar-background: 215 30% 10%;
-    --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 186 70% 55%;
+    --sidebar-background: 210 20% 92%;
+    --sidebar-foreground: 220 20% 18%;
+    --sidebar-primary: 186 75% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 38 95% 58%;
-    --sidebar-accent-foreground: 215 30% 8%;
-    --sidebar-border: 215 25% 20%;
-    --sidebar-ring: 186 70% 55%;
+    --sidebar-accent: 75 85% 55%;
+    --sidebar-accent-foreground: 220 20% 18%;
+    --sidebar-border: 220 15% 85%;
+    --sidebar-ring: 186 75% 45%;
+  }
+
+  .dark {
+    /* Dark Mode - Glossy Neo-Brutalism */
+    --background: 220 25% 10%;
+    --foreground: 210 20% 92%;
+    --card: 220 22% 14%;
+    --card-foreground: 210 20% 92%;
+    --popover: 220 22% 14%;
+    --popover-foreground: 210 20% 92%;
+    
+    /* Primary - Bright Teal */
+    --primary: 186 80% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Hot Coral */
+    --secondary: 12 92% 62%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Muted */
+    --muted: 220 20% 18%;
+    --muted-foreground: 210 15% 60%;
+    
+    /* Accent - Neon Lime */
+    --accent: 75 90% 60%;
+    --accent-foreground: 220 25% 10%;
+    
+    /* Destructive */
+    --destructive: 0 88% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* UI Elements */
+    --border: 220 20% 22%;
+    --input: 220 20% 18%;
+    --ring: 186 80% 50%;
+    
+    /* Sidebar */
+    --sidebar-background: 220 25% 12%;
+    --sidebar-foreground: 210 20% 92%;
+    --sidebar-primary: 186 80% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 75 90% 60%;
+    --sidebar-accent-foreground: 220 25% 10%;
+    --sidebar-border: 220 20% 22%;
+    --sidebar-ring: 186 80% 50%;
   }
 }
 
