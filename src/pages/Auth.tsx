@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Microscope, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom } from 'lucide-react';
+import { Loader2, Microscope, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 import { HCaptchaWrapper, HCaptchaHandle } from '@/components/ui/hcaptcha-wrapper';
 import { useToast } from '@/hooks/use-toast';
 import { SEOHead } from '@/components/SEO/SEOHead';
+import { supabase } from '@/integrations/supabase/client';
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -21,12 +22,19 @@ const signUpSchema = signInSchema.extend({
   fullName: z.string().min(2, 'Name must be at least 2 characters').optional()
 });
 
+const resetPasswordSchema = z.object({
+  email: z.string().email('Invalid email address')
+});
+
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetEmailError, setResetEmailError] = useState('');
 
   // Floating lab icons configuration
   const floatingIcons = [
@@ -142,6 +150,39 @@ export default function Auth() {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetEmailError('');
+
+    const result = resetPasswordSchema.safeParse({ email: resetEmail });
+    if (!result.success) {
+      setResetEmailError(result.error.errors[0].message);
+      return;
+    }
+
+    setIsLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link. Please check your inbox.",
+      });
+      setResetEmail('');
+      setShowResetPassword(false);
+      setActiveTab('signin');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden grid-background">
@@ -192,56 +233,107 @@ export default function Auth() {
             BioSketch
           </CardTitle>
           <CardDescription className="text-center">
-            Create and manage your diagrams
+            {showResetPassword ? 'Reset your password' : 'Create and manage your diagrams'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
+          {showResetPassword ? (
+            <div className="space-y-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowResetPassword(false);
+                  setResetEmail('');
+                  setResetEmailError('');
+                }}
+                className="mb-2"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Sign In
+              </Button>
+              <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
+                  <Label htmlFor="reset-email">Email Address</Label>
                   <Input
-                    id="signin-email"
+                    id="reset-email"
                     type="email"
                     placeholder="you@example.com"
-                    value={signInEmail}
-                    onChange={(e) => setSignInEmail(e.target.value)}
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
                     disabled={isLoading}
                   />
-                  {signInErrors.email && (
-                    <p className="text-sm text-destructive">{signInErrors.email}</p>
+                  {resetEmailError && (
+                    <p className="text-sm text-destructive">{resetEmailError}</p>
                   )}
+                  <p className="text-sm text-muted-foreground">
+                    Enter your email address and we'll send you a link to reset your password.
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    value={signInPassword}
-                    onChange={(e) => setSignInPassword(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  {signInErrors.password && (
-                    <p className="text-sm text-destructive">{signInErrors.password}</p>
-                  )}
-                </div>
-                <HCaptchaWrapper
-                  ref={signInCaptchaRef}
-                  onVerify={(token) => setSignInCaptchaToken(token)}
-                  onExpire={() => setSignInCaptchaToken('')}
-                />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Sign In
+                  Send Reset Link
                 </Button>
               </form>
-            </TabsContent>
+            </div>
+          ) : (
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="signin">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="signin">
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-email">Email</Label>
+                    <Input
+                      id="signin-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={signInEmail}
+                      onChange={(e) => setSignInEmail(e.target.value)}
+                      disabled={isLoading}
+                    />
+                    {signInErrors.email && (
+                      <p className="text-sm text-destructive">{signInErrors.email}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        onClick={() => setShowResetPassword(true)}
+                        className="h-auto p-0 text-xs"
+                      >
+                        Forgot password?
+                      </Button>
+                    </div>
+                    <Input
+                      id="signin-password"
+                      type="password"
+                      value={signInPassword}
+                      onChange={(e) => setSignInPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                    {signInErrors.password && (
+                      <p className="text-sm text-destructive">{signInErrors.password}</p>
+                    )}
+                  </div>
+                  <HCaptchaWrapper
+                    ref={signInCaptchaRef}
+                    onVerify={(token) => setSignInCaptchaToken(token)}
+                    onExpire={() => setSignInCaptchaToken('')}
+                  />
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Sign In
+                  </Button>
+                </form>
+              </TabsContent>
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
@@ -297,7 +389,8 @@ export default function Auth() {
                 </Button>
               </form>
             </TabsContent>
-          </Tabs>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>
