@@ -15,20 +15,20 @@ All colors MUST be HSL.
     @apply bg-card/90 backdrop-blur-lg border border-border/20;
   }
 
-  .lab-shadow {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  .scientific-shadow-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   }
 
-  .lab-shadow-md {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  .scientific-shadow {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
-  .lab-shadow-lg {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  .scientific-shadow-lg {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.10), 0 4px 10px rgba(0, 0, 0, 0.06);
   }
   
-  .lab-card {
-    @apply bg-card rounded-lg border border-border lab-shadow hover:lab-shadow-md transition-all duration-300;
+  .scientific-card {
+    @apply bg-card rounded-xl border border-border/60 scientific-shadow hover:scientific-shadow-lg transition-all duration-300;
   }
   
   .scientific-gradient {
@@ -56,93 +56,93 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Scientific Laboratory Theme - Professional & Clean */
-    --background: 210 20% 98%;
-    --foreground: 215 25% 15%;
+    --background: 0 0% 99%;
+    --foreground: 220 15% 20%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
+    --card-foreground: 220 15% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
+    --popover-foreground: 220 15% 20%;
     
-    /* Primary - Deep Scientific Blue */
-    --primary: 210 85% 45%;
+    /* Primary - Professional Blue (BioRender-inspired) */
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Laboratory Teal */
-    --secondary: 180 60% 40%;
+    /* Secondary - Elegant Purple */
+    --secondary: 262 52% 47%;
     --secondary-foreground: 0 0% 100%;
     
-    /* Muted - Soft Gray */
-    --muted: 210 15% 94%;
-    --muted-foreground: 215 15% 40%;
+    /* Muted - Subtle Gray */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
     
-    /* Accent - Precision Cyan */
-    --accent: 190 75% 50%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Soft Teal */
+    --accent: 184 77% 60%;
+    --accent-foreground: 220 15% 20%;
     
-    /* Destructive - Clinical Red */
-    --destructive: 0 70% 50%;
+    /* Destructive - Softer Red */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 215 20% 85%;
+    --border: 220 13% 91%;
     --input: 0 0% 100%;
-    --ring: 210 85% 45%;
-    --radius: 0.5rem;
+    --ring: 217 91% 60%;
+    --radius: 0.75rem;
     
     /* Sidebar */
-    --sidebar-background: 210 25% 96%;
-    --sidebar-foreground: 215 25% 15%;
-    --sidebar-primary: 210 85% 45%;
+    --sidebar-background: 220 14% 96%;
+    --sidebar-foreground: 220 15% 20%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 60% 40%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 215 20% 85%;
-    --sidebar-ring: 210 85% 45%;
+    --sidebar-accent: 184 77% 60%;
+    --sidebar-accent-foreground: 220 15% 20%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   .dark {
     /* Dark Mode - Scientific Laboratory */
-    --background: 215 30% 8%;
-    --foreground: 210 20% 92%;
-    --card: 215 28% 12%;
-    --card-foreground: 210 20% 92%;
-    --popover: 215 28% 12%;
-    --popover-foreground: 210 20% 92%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 15%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 15%;
+    --popover-foreground: 210 40% 98%;
     
     /* Primary - Bright Scientific Blue */
-    --primary: 210 90% 55%;
+    --primary: 217 91% 65%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Luminous Teal */
-    --secondary: 180 65% 50%;
+    /* Secondary - Luminous Purple */
+    --secondary: 262 52% 60%;
     --secondary-foreground: 0 0% 100%;
     
     /* Muted */
-    --muted: 215 25% 18%;
-    --muted-foreground: 210 15% 65%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
     
-    /* Accent - Bright Cyan */
-    --accent: 190 80% 55%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Bright Teal */
+    --accent: 184 77% 55%;
+    --accent-foreground: 210 40% 98%;
     
     /* Destructive */
-    --destructive: 0 75% 55%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 215 25% 22%;
-    --input: 215 28% 15%;
-    --ring: 210 90% 55%;
+    --border: 217 33% 23%;
+    --input: 217 33% 17%;
+    --ring: 217 91% 65%;
     
     /* Sidebar */
-    --sidebar-background: 215 32% 10%;
-    --sidebar-foreground: 210 20% 92%;
-    --sidebar-primary: 210 90% 55%;
+    --sidebar-background: 222 47% 13%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 65% 50%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 215 25% 22%;
-    --sidebar-ring: 210 90% 55%;
+    --sidebar-accent: 184 77% 55%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 23%;
+    --sidebar-ring: 217 91% 65%;
   }
 }
 
@@ -156,6 +156,18 @@ All colors MUST be HSL.
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif font-bold;
+    @apply font-sans font-semibold;
+  }
+  
+  h1 {
+    @apply text-4xl md:text-5xl tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
   }
 }

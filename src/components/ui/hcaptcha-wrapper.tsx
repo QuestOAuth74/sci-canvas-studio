@@ -24,7 +24,7 @@ export const HCaptchaWrapper = forwardRef<HCaptchaHandle, HCaptchaWrapperProps>(
     }));
 
     return (
-      <div className="flex justify-center my-4 p-4 border-[3px] border-foreground bg-background neo-brutalist-shadow-sm">
+      <div className="flex justify-center my-4 p-4 border border-border/60 bg-muted/30 rounded-lg shadow-sm">
         <HCaptcha
           ref={captchaRef}
           sitekey={HCAPTCHA_SITE_KEY}

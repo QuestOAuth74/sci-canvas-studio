@@ -105,70 +105,69 @@ const Analytics = () => {
           <Button
             variant="outline"
             onClick={() => navigate('/admin')}
-            className="neo-brutalist-shadow-sm"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Admin
           </Button>
-          <h1 className="text-4xl font-black uppercase">User Analytics</h1>
+          <h1 className="text-4xl font-semibold">User Analytics</h1>
         </div>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="neo-brutalist-shadow">
+          <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                <CardTitle className="text-sm font-bold uppercase">Total Users</CardTitle>
+                <CardTitle className="text-sm font-semibold">Total Users</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black">{totalUsers}</div>
+              <div className="text-3xl font-bold">{totalUsers}</div>
             </CardContent>
           </Card>
 
-          <Card className="neo-brutalist-shadow">
+          <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <FolderOpen className="h-5 w-5 text-primary" />
-                <CardTitle className="text-sm font-bold uppercase">Total Projects</CardTitle>
+                <CardTitle className="text-sm font-semibold">Total Projects</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black">{totalProjects}</div>
+              <div className="text-3xl font-bold">{totalProjects}</div>
             </CardContent>
           </Card>
 
-          <Card className="neo-brutalist-shadow">
+          <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                <CardTitle className="text-sm font-bold uppercase">Avg Projects</CardTitle>
+                <CardTitle className="text-sm font-semibold">Avg Projects</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-black">{avgProjects}</div>
+              <div className="text-3xl font-bold">{avgProjects}</div>
             </CardContent>
           </Card>
 
-          <Card className="neo-brutalist-shadow">
+          <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-primary" />
-                <CardTitle className="text-sm font-bold uppercase">Most Active</CardTitle>
+                <CardTitle className="text-sm font-semibold">Most Active</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-black truncate">{mostActiveUser?.full_name}</div>
+              <div className="text-lg font-bold truncate">{mostActiveUser?.full_name}</div>
               <div className="text-sm text-muted-foreground">{mostActiveUser?.project_count} projects</div>
             </CardContent>
           </Card>
         </div>
 
         {/* Data Table */}
-        <Card className="neo-brutalist-shadow">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-xl font-black uppercase">User Details</CardTitle>
+            <CardTitle className="text-xl font-semibold">User Details</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -176,31 +175,31 @@ const Analytics = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead 
-                      className="cursor-pointer hover:text-primary font-bold uppercase"
+                      className="cursor-pointer hover:text-primary font-semibold"
                       onClick={() => handleSort('full_name')}
                     >
                       Name {sortColumn === 'full_name' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:text-primary font-bold uppercase"
+                      className="cursor-pointer hover:text-primary font-semibold"
                       onClick={() => handleSort('email')}
                     >
                       Email {sortColumn === 'email' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:text-primary font-bold uppercase"
+                      className="cursor-pointer hover:text-primary font-semibold"
                       onClick={() => handleSort('country')}
                     >
                       Location {sortColumn === 'country' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:text-primary font-bold uppercase text-center"
+                      className="cursor-pointer hover:text-primary font-semibold text-center"
                       onClick={() => handleSort('project_count')}
                     >
                       Projects {sortColumn === 'project_count' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:text-primary font-bold uppercase"
+                      className="cursor-pointer hover:text-primary font-semibold"
                       onClick={() => handleSort('created_at')}
                     >
                       Joined {sortColumn === 'created_at' && (sortDirection === 'asc' ? '↑' : '↓')}

@@ -43,12 +43,11 @@ const ReleaseNotes = () => {
         canonical="https://biosketch.art/release-notes"
       />
       {/* Header */}
-      <header className="border-b-[4px] border-foreground bg-card sticky top-0 z-50">
+      <header className="border-b border-border/60 bg-card/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Button
             variant="outline"
             onClick={() => navigate("/")}
-            className="font-bold uppercase border-[3px] border-foreground neo-brutalist-shadow hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
@@ -61,16 +60,16 @@ const ReleaseNotes = () => {
         <div className="max-w-4xl mx-auto space-y-12">
           {/* Version Header */}
           <div className="text-center space-y-6 animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-5 py-2 bg-primary border-[3px] border-foreground neo-brutalist-shadow font-bold text-lg uppercase">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-semibold text-lg shadow-sm">
               <Sparkles className="h-5 w-5" />
               <span>Version 1.1.0</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-black uppercase">
+            <h1 className="text-5xl md:text-7xl font-bold">
               What's New
             </h1>
             
-            <p className="text-xl md:text-2xl font-medium max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl font-medium max-w-2xl mx-auto text-foreground/80">
               The latest features and improvements in BioSketch
             </p>
           </div>
@@ -80,21 +79,21 @@ const ReleaseNotes = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="bg-card border-[4px] border-foreground neo-brutalist-shadow p-8 hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all duration-300 animate-fade-in group"
+                className="bg-card border border-border/60 rounded-2xl shadow-lg p-8 hover:shadow-xl hover:scale-[1.01] transition-all duration-300 animate-fade-in group"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0">
-                    <div className="w-14 h-14 bg-accent border-[3px] border-foreground flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
+                    <div className="w-14 h-14 bg-gradient-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center text-2xl shadow-md group-hover:scale-110 transition-transform">
                       {feature.icon}
                     </div>
                   </div>
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-3">
                       <CheckCircle2 className="h-6 w-6 text-primary flex-shrink-0" />
-                      <h3 className="text-2xl font-black uppercase">{feature.title}</h3>
+                      <h3 className="text-2xl font-semibold">{feature.title}</h3>
                     </div>
-                    <p className="text-base md:text-lg font-medium leading-relaxed pl-9">
+                    <p className="text-base md:text-lg font-medium leading-relaxed pl-9 text-foreground/70">
                       {feature.description}
                     </p>
                   </div>
@@ -104,17 +103,18 @@ const ReleaseNotes = () => {
           </div>
 
           {/* CTA Section */}
-          <div className="bg-primary border-[4px] border-foreground neo-brutalist-shadow p-10 text-center space-y-6">
-            <h2 className="text-3xl md:text-4xl font-black uppercase">
+          <div className="bg-gradient-to-br from-primary to-primary/80 border border-primary/20 rounded-2xl shadow-xl p-10 text-center space-y-6">
+            <h2 className="text-3xl md:text-4xl font-semibold text-white">
               Ready to Create?
             </h2>
-            <p className="text-lg font-medium max-w-xl mx-auto">
+            <p className="text-lg font-medium max-w-xl mx-auto text-white/90">
               Start using these powerful features to create stunning scientific illustrations today.
             </p>
             <Button
               size="lg"
               onClick={() => navigate("/projects")}
-              className="h-16 px-10 text-lg font-bold uppercase bg-secondary hover:bg-secondary border-[4px] border-foreground neo-brutalist-shadow hover:translate-x-[4px] hover:translate-y-[4px] hover:shadow-none transition-all rounded-none"
+              variant="secondary"
+              className="h-14 px-10 text-lg"
             >
               Start Creating
             </Button>

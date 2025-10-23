@@ -131,11 +131,11 @@ const Contact = () => {
         canonical="https://biosketch.art/contact"
       />
       {/* Header */}
-      <div className="border-b-[4px] border-foreground bg-card">
+      <div className="border-b border-border/60 bg-card shadow-sm">
         <div className="container mx-auto px-4 py-6">
           <Button
             onClick={() => navigate(-1)}
-            className="bg-background border-[3px] border-foreground neo-brutalist-shadow font-bold uppercase hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+            variant="outline"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -147,22 +147,22 @@ const Contact = () => {
         {/* Title Section */}
         <div className="mb-12 text-center">
           <div className="inline-flex items-center gap-4 mb-6">
-            <div className="p-4 bg-primary border-[4px] border-foreground -rotate-3">
-              <MessageSquare className="h-12 w-12 text-foreground" />
+            <div className="p-4 bg-gradient-to-br from-primary to-primary/80 rounded-2xl shadow-lg">
+              <MessageSquare className="h-12 w-12 text-white" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-black uppercase">Contact Us</h1>
+            <h1 className="text-5xl md:text-6xl font-semibold">Contact Us</h1>
           </div>
-          <p className="text-xl font-bold text-muted-foreground">
+          <p className="text-xl font-medium text-muted-foreground">
             Have a question or feedback? We'd love to hear from you!
           </p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-card border-[4px] border-foreground neo-brutalist-shadow p-6 md:p-10">
+        <div className="bg-card border border-border/60 rounded-2xl shadow-lg p-6 md:p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-lg font-bold flex items-center gap-2">
+              <Label htmlFor="email" className="text-lg font-semibold flex items-center gap-2">
                 <Mail className="h-5 w-5" />
                 Email Address *
               </Label>
@@ -172,17 +172,16 @@ const Contact = () => {
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="your.email@example.com"
-                className="border-[3px] border-foreground focus:ring-2 focus:ring-primary font-medium"
                 required
               />
               {errors.email && (
-                <p className="text-sm font-bold text-destructive">{errors.email}</p>
+                <p className="text-sm font-semibold text-destructive">{errors.email}</p>
               )}
             </div>
 
             {/* Full Name Field */}
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-lg font-bold flex items-center gap-2">
+              <Label htmlFor="fullName" className="text-lg font-semibold flex items-center gap-2">
                 <User className="h-5 w-5" />
                 Full Name *
               </Label>
@@ -192,17 +191,16 @@ const Contact = () => {
                 value={formData.fullName}
                 onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                 placeholder="John Doe"
-                className="border-[3px] border-foreground focus:ring-2 focus:ring-primary font-medium"
                 required
               />
               {errors.fullName && (
-                <p className="text-sm font-bold text-destructive">{errors.fullName}</p>
+                <p className="text-sm font-semibold text-destructive">{errors.fullName}</p>
               )}
             </div>
 
             {/* Country Field */}
             <div className="space-y-2">
-              <Label htmlFor="country" className="text-lg font-bold flex items-center gap-2">
+              <Label htmlFor="country" className="text-lg font-semibold flex items-center gap-2">
                 <Globe className="h-5 w-5" />
                 Country *
               </Label>
@@ -212,17 +210,16 @@ const Contact = () => {
                 value={formData.country}
                 onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
                 placeholder="United States"
-                className="border-[3px] border-foreground focus:ring-2 focus:ring-primary font-medium"
                 required
               />
               {errors.country && (
-                <p className="text-sm font-bold text-destructive">{errors.country}</p>
+                <p className="text-sm font-semibold text-destructive">{errors.country}</p>
               )}
             </div>
 
             {/* Message Field */}
             <div className="space-y-2">
-              <Label htmlFor="message" className="text-lg font-bold flex items-center gap-2 justify-between">
+              <Label htmlFor="message" className="text-lg font-semibold flex items-center gap-2 justify-between">
                 <span className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
                   Message *
@@ -237,11 +234,11 @@ const Contact = () => {
                 onChange={(e) => handleMessageChange(e.target.value)}
                 placeholder="Tell us what's on your mind..."
                 rows={8}
-                className="border-[3px] border-foreground focus:ring-2 focus:ring-primary font-medium resize-none"
+                className="resize-none"
                 required
               />
               {errors.message && (
-                <p className="text-sm font-bold text-destructive">{errors.message}</p>
+                <p className="text-sm font-semibold text-destructive">{errors.message}</p>
               )}
             </div>
 
@@ -256,7 +253,8 @@ const Contact = () => {
             <Button
               type="submit"
               disabled={isSubmitting || wordCount > 500}
-              className="w-full bg-primary border-[3px] border-foreground neo-brutalist-shadow font-black text-lg uppercase py-6 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              size="lg"
+              className="w-full text-lg py-6"
             >
               {isSubmitting ? "Sending..." : "Send Message"}
             </Button>
@@ -264,8 +262,8 @@ const Contact = () => {
         </div>
 
         {/* Info Section */}
-        <div className="mt-8 bg-accent/20 border-[4px] border-foreground neo-brutalist-shadow p-6 text-center">
-          <p className="text-base md:text-lg font-bold">
+        <div className="mt-8 bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 rounded-2xl shadow-lg p-6 text-center">
+          <p className="text-base md:text-lg font-medium text-foreground/80">
             We typically respond within 24-48 hours. For urgent matters, please include "URGENT" in your message.
           </p>
         </div>
