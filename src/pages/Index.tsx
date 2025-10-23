@@ -39,7 +39,14 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl float-animation" />
+        <div className="absolute bottom-20 right-10 w-80 h-80 bg-secondary/10 rounded-full blur-3xl float-animation [animation-delay:2s]" />
+        <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-accent/10 rounded-full blur-3xl float-animation [animation-delay:4s]" />
+      </div>
+      
       <SEOHead
         title="BioSketch - Free Scientific Illustration Tool for Researchers"
         description="Create stunning scientific illustrations with BioSketch - a free drag-and-drop tool for scientists and researchers. Build publication-ready figures with our extensive biomedical icon library."
@@ -57,26 +64,40 @@ const Index = () => {
           {/* Hero Section */}
           <div className="space-y-8 text-center animate-fade-in">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-semibold text-sm animate-scale-in hover:scale-105 transition-transform shadow-sm">
-              <Sparkles className="h-4 w-4 animate-pulse" />
+            <div className="neo-badge inline-flex items-center gap-2 animate-scale-in">
+              <Sparkles className="h-4 w-4" />
               <span>Free for Scientists</span>
             </div>
             
             {/* Logo and Title */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-center gap-4 flex-wrap">
-                <div className="p-4 bg-primary/10 border-2 border-primary/20 rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300">
-                  <Microscope className="h-12 w-12 md:h-16 md:w-16 text-primary" />
+            <div className="space-y-8">
+              <div className="flex items-center justify-center gap-6 flex-wrap">
+                <div className="glossy-icon-box">
+                  <Microscope className="h-16 w-16 md:h-20 md:w-20 text-primary" />
                 </div>
-                <h1 className="text-6xl md:text-8xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  BioSketch
-                </h1>
+                <div className="relative">
+                  <h1 className="text-7xl md:text-9xl font-black tracking-tighter relative">
+                    <span className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-secondary blur-2xl opacity-50" />
+                    <span className="relative bg-gradient-to-br from-primary via-accent to-secondary bg-clip-text text-transparent">
+                      BioSketch
+                    </span>
+                  </h1>
+                  {/* Neo-brutalist underline accent */}
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-48 h-3 bg-accent border-[3px] border-foreground neo-shadow-sm" />
+                </div>
               </div>
               
-              <p className="text-xl md:text-2xl font-medium max-w-3xl mx-auto leading-relaxed text-foreground/80">
-                Create stunning scientific illustrations with an intuitive drag-and-drop interface. 
-                Perfect for publications, presentations, and educational materials.
-              </p>
+              <div className="max-w-4xl mx-auto space-y-6">
+                <p className="text-2xl md:text-3xl font-bold leading-tight text-foreground">
+                  Create stunning scientific illustrations with an intuitive drag-and-drop interface
+                </p>
+                <div className="inline-block p-6 rounded-2xl border-[3px] border-foreground neo-shadow bg-gradient-to-br from-card via-card/90 to-muted/40 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none" />
+                  <p className="text-lg md:text-xl font-semibold text-foreground/80 relative">
+                    Perfect for publications, presentations, and educational materials 🔬
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* CTA Buttons */}
@@ -161,32 +182,32 @@ const Index = () => {
 
           {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-8 pt-8">
-            <div className="bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 rounded-2xl shadow-lg p-8 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 animate-fade-in group">
-              <div className="w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-md">
-                <Palette className="h-8 w-8 text-white" />
+            <div className="glossy-feature-card animate-fade-in group">
+              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
+                <Palette className="h-10 w-10 text-primary" />
               </div>
-              <h3 className="text-2xl font-semibold mb-3">Drag & Drop</h3>
-              <p className="text-base font-medium leading-relaxed text-foreground/70">
+              <h3 className="text-3xl font-black mb-4 tracking-tight">Drag & Drop</h3>
+              <p className="text-lg font-bold leading-relaxed text-foreground/70">
                 Intuitive interface lets you arrange vector icons effortlessly on your canvas
               </p>
             </div>
             
-            <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 rounded-2xl shadow-lg p-8 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 animate-fade-in [animation-delay:100ms] group">
-              <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent/80 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-md">
-                <Microscope className="h-8 w-8 text-white" />
+            <div className="glossy-feature-card animate-fade-in [animation-delay:100ms] group">
+              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
+                <Microscope className="h-10 w-10 text-secondary" />
               </div>
-              <h3 className="text-2xl font-semibold mb-3">Organized Library</h3>
-              <p className="text-base font-medium leading-relaxed text-foreground/70">
+              <h3 className="text-3xl font-black mb-4 tracking-tight">Organized Library</h3>
+              <p className="text-lg font-bold leading-relaxed text-foreground/70">
                 Scientific icons categorized for quick access and seamless workflow
               </p>
             </div>
             
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl shadow-lg p-8 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 animate-fade-in [animation-delay:200ms] group">
-              <div className="w-16 h-16 bg-gradient-to-br from-secondary to-secondary/80 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-md">
-                <Zap className="h-8 w-8 text-white" />
+            <div className="glossy-feature-card animate-fade-in [animation-delay:200ms] group">
+              <div className="glossy-icon-box w-20 h-20 mb-6 group-hover:scale-110 inline-flex items-center justify-center">
+                <Zap className="h-10 w-10 text-accent" />
               </div>
-              <h3 className="text-2xl font-semibold mb-3">Export Ready</h3>
-              <p className="text-base font-medium leading-relaxed text-foreground/70">
+              <h3 className="text-3xl font-black mb-4 tracking-tight">Export Ready</h3>
+              <p className="text-lg font-bold leading-relaxed text-foreground/70">
                 High-quality exports optimized for publications and presentations
               </p>
             </div>

@@ -43,7 +43,7 @@ All colors MUST be HSL.
   }
   
   .glossy-card {
-    @apply bg-gradient-to-br from-white to-muted/40 rounded-2xl border-3 border-foreground neo-shadow-lg;
+    @apply bg-gradient-to-br from-white to-muted/40 rounded-2xl border-[3px] border-foreground neo-shadow-lg;
     position: relative;
     overflow: hidden;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -86,7 +86,7 @@ All colors MUST be HSL.
   }
   
   .glossy-button {
-    @apply bg-gradient-to-b from-primary via-primary to-primary/90 border-3 border-foreground neo-shadow;
+    @apply bg-gradient-to-b from-primary via-primary to-primary/90 border-[3px] border-foreground neo-shadow;
     @apply hover:translate-x-[3px] hover:translate-y-[3px];
     @apply active:translate-x-[5px] active:translate-y-[5px] active:shadow-none;
     @apply transition-all duration-100;
@@ -125,6 +125,139 @@ All colors MUST be HSL.
   
   .scientific-gradient {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  }
+  
+  /* Neo-Brutalism Badge */
+  .neo-badge {
+    @apply px-5 py-2.5 rounded-full border-[3px] border-foreground neo-shadow-sm;
+    @apply bg-gradient-to-r from-primary to-secondary text-white font-bold;
+    @apply hover:translate-x-[2px] hover:translate-y-[2px];
+    @apply transition-all duration-150;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .neo-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+    pointer-events: none;
+  }
+  
+  .neo-badge:hover {
+    box-shadow: 1px 1px 0px 0px hsl(var(--foreground));
+  }
+  
+  /* Glossy Icon Container */
+  .glossy-icon-box {
+    @apply p-4 rounded-2xl border-[3px] border-foreground neo-shadow;
+    @apply bg-gradient-to-br from-accent/30 via-accent/10 to-transparent;
+    @apply hover:translate-x-[3px] hover:translate-y-[3px];
+    @apply transition-all duration-200;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .glossy-icon-box:hover {
+    box-shadow: 2px 2px 0px 0px hsl(var(--foreground));
+  }
+  
+  .glossy-icon-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.4), transparent 60%);
+    pointer-events: none;
+  }
+  
+  .glossy-icon-box::after {
+    content: '';
+    position: absolute;
+    bottom: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, hsl(var(--accent)/0.3), transparent 70%);
+    pointer-events: none;
+  }
+  
+  /* Animated Gradient Background */
+  @keyframes gradientShift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .animated-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--accent)) 25%,
+      hsl(var(--secondary)) 50%,
+      hsl(var(--primary)) 75%,
+      hsl(var(--accent)) 100%
+    );
+    background-size: 300% 300%;
+    animation: gradientShift 8s ease infinite;
+  }
+  
+  /* Floating Animation */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    33% {
+      transform: translateY(-20px) rotate(2deg);
+    }
+    66% {
+      transform: translateY(-10px) rotate(-2deg);
+    }
+  }
+  
+  .float-animation {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  /* Glossy Feature Card */
+  .glossy-feature-card {
+    @apply rounded-2xl border-[3px] border-foreground neo-shadow-lg p-8;
+    @apply hover:translate-x-[4px] hover:translate-y-[4px];
+    @apply transition-all duration-200;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+  }
+  
+  .glossy-feature-card:hover {
+    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
+  }
+  
+  .glossy-feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 100%);
+    pointer-events: none;
+  }
+  
+  .glossy-feature-card::after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, hsl(var(--accent)/0.4), transparent 60%);
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(20px);
   }
 
   /* Fade-in animation for progressive loading */
