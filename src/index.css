@@ -277,13 +277,13 @@ All colors MUST be HSL.
     opacity: 0;
   }
 
-  /* Grid Background - Subtle Dot Pattern */
+  /* Grid Background - Prominent Dot Pattern */
   .grid-background {
     background-image: 
-      radial-gradient(circle, hsl(var(--foreground) / 0.05) 1px, transparent 1px),
-      radial-gradient(circle, hsl(var(--foreground) / 0.03) 1px, transparent 1px);
-    background-size: 40px 40px, 80px 80px;
-    background-position: 0 0, 20px 20px;
+      radial-gradient(circle, hsl(var(--foreground) / 0.25) 1.5px, transparent 1.5px),
+      radial-gradient(circle, hsl(var(--foreground) / 0.12) 1px, transparent 1px);
+    background-size: 50px 50px, 25px 25px;
+    background-position: 0 0, 12.5px 12.5px;
   }
 
   /* Floating Icon Animations */
