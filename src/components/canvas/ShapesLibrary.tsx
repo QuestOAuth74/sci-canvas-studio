@@ -9,7 +9,7 @@ import { IconCategory, IconItem, IconDbRow } from "@/types/icon";
 import { toast } from "sonner";
 import { useFavoriteIcons } from "@/hooks/useFavoriteIcons";
 import { useAuth } from "@/contexts/AuthContext";
-
+import noPreview from "@/assets/no_preview.png";
 interface ShapesLibraryProps {
   onShapeSelect: (shape: string) => void;
 }
@@ -21,11 +21,11 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   const [categories, setCategories] = useState<IconCategory[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, IconItem[]>>({});
   const [loading, setLoading] = useState(true);
-  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+  const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
   const { favoriteIconIds, toggleFavorite, isFavorite } = useFavoriteIcons();
 
   const handleImageError = (iconId: string) => {
-    setBrokenImages(prev => new Set(prev).add(iconId));
+    setBrokenImages(prev => ({ ...prev, [iconId]: true }));
   };
 
   useEffect(() => {
@@ -177,7 +177,7 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                 className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105 w-full"
                 title={icon.name}
               >
-                {icon.thumbnail && !brokenImages.has(icon.id) ? (
+                  {icon.thumbnail && !brokenImages[icon.id] ? (
                   <img 
                     src={icon.thumbnail} 
                     alt={icon.name} 
@@ -186,9 +186,12 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                     onError={() => handleImageError(icon.id)}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground text-center px-1">
-                    No preview
-                  </div>
+                  <img 
+                    src={noPreview}
+                    alt={`${icon.name} preview unavailable`}
+                    className="w-full h-full object-contain"
+                    loading="lazy"
+                  />
                 )}
               </button>
               <button
@@ -307,7 +310,7 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                                   className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105 w-full"
                                   title={icon.name}
                                 >
-                                  {icon.thumbnail && !brokenImages.has(icon.id) ? (
+                                  {icon.thumbnail && !brokenImages[icon.id] ? (
                                     <img 
                                       src={icon.thumbnail} 
                                       alt={icon.name} 
@@ -316,9 +319,12 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                                       onError={() => handleImageError(icon.id)}
                                     />
                                   ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground text-center px-1">
-                                      No preview
-                                    </div>
+                                    <img 
+                                      src={noPreview}
+                                      alt={`${icon.name} preview unavailable`}
+                                      className="w-full h-full object-contain"
+                                      loading="lazy"
+                                    />
                                   )}
                                 </button>
                                 <button
