@@ -2,11 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2 } from "lucide-react";
+import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useState } from "react";
+import { UserProjectsDialog } from "@/components/admin/UserProjectsDialog";
 
 interface UserAnalytics {
   id: string;
@@ -21,6 +22,8 @@ const Analytics = () => {
   const navigate = useNavigate();
   const [sortColumn, setSortColumn] = useState<keyof UserAnalytics>("project_count");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isProjectsDialogOpen, setIsProjectsDialogOpen] = useState(false);
 
   const { data: analyticsData, isLoading } = useQuery({
     queryKey: ['user-analytics'],
@@ -51,6 +54,22 @@ const Analytics = () => {
         project_count: projectCountMap[user.id] || 0
       })) as UserAnalytics[];
     }
+  });
+
+  const { data: userProjects, isLoading: isLoadingProjects } = useQuery({
+    queryKey: ['user-projects', selectedUserId],
+    queryFn: async () => {
+      if (!selectedUserId) return [];
+      const { data, error } = await supabase
+        .from('canvas_projects')
+        .select('id, name, title, created_at, updated_at, is_public, approval_status, view_count, cloned_count')
+        .eq('user_id', selectedUserId)
+        .order('updated_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedUserId && isProjectsDialogOpen
   });
 
   const sortedData = analyticsData ? [...analyticsData].sort((a, b) => {
@@ -204,6 +223,9 @@ const Analytics = () => {
                     >
                       Joined {sortColumn === 'created_at' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </TableHead>
+                    <TableHead className="text-center font-semibold">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -235,6 +257,20 @@ const Analytics = () => {
                       <TableCell className="text-muted-foreground">
                         {format(new Date(user.created_at), 'MMM d, yyyy')}
                       </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedUserId(user.id);
+                            setIsProjectsDialogOpen(true);
+                          }}
+                          disabled={user.project_count === 0}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Projects ({user.project_count})
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -242,6 +278,19 @@ const Analytics = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* User Projects Dialog */}
+        <UserProjectsDialog
+          isOpen={isProjectsDialogOpen}
+          onClose={() => {
+            setIsProjectsDialogOpen(false);
+            setSelectedUserId(null);
+          }}
+          userId={selectedUserId}
+          userProjects={userProjects || []}
+          userName={sortedData.find(u => u.id === selectedUserId)?.full_name || 'User'}
+          isLoading={isLoadingProjects}
+        />
       </div>
     </div>
   );
