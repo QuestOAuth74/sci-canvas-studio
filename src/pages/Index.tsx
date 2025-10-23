@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, Upload } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, Upload, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -38,13 +38,50 @@ const Index = () => {
     ]
   };
 
+  // Floating lab icons configuration
+  const floatingIcons = [
+    { Icon: Microscope, top: '10%', left: '5%', size: 48, speed: 'slow', delay: '0s' },
+    { Icon: Beaker, top: '15%', right: '8%', size: 56, speed: 'medium', delay: '2s' },
+    { Icon: FlaskConical, top: '45%', left: '3%', size: 44, speed: 'fast', delay: '1s' },
+    { Icon: Dna, top: '65%', right: '5%', size: 52, speed: 'slow', delay: '3s' },
+    { Icon: TestTube, top: '30%', right: '15%', size: 40, speed: 'medium', delay: '1.5s' },
+    { Icon: Pill, top: '75%', left: '10%', size: 36, speed: 'fast', delay: '2.5s' },
+    { Icon: Syringe, top: '20%', left: '20%', size: 42, speed: 'slow', delay: '4s' },
+    { Icon: Brain, top: '55%', right: '20%', size: 50, speed: 'medium', delay: '0.5s' },
+    { Icon: Heart, top: '85%', right: '12%', size: 46, speed: 'fast', delay: '3.5s' },
+    { Icon: Atom, top: '40%', left: '15%', size: 38, speed: 'slow', delay: '1s' },
+    { Icon: Microscope, top: '70%', left: '25%', size: 44, speed: 'medium', delay: '2s' },
+    { Icon: Beaker, top: '25%', right: '25%', size: 40, speed: 'fast', delay: '0s' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden grid-background">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl float-animation" />
         <div className="absolute bottom-20 right-10 w-80 h-80 bg-secondary/10 rounded-full blur-3xl float-animation [animation-delay:2s]" />
         <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-accent/10 rounded-full blur-3xl float-animation [animation-delay:4s]" />
+        
+        {/* Floating Lab Icons */}
+        {floatingIcons.map((config, index) => {
+          const IconComponent = config.Icon;
+          const style: React.CSSProperties = {
+            top: config.top,
+            left: config.left,
+            right: config.right,
+            animationDelay: config.delay,
+          };
+          
+          return (
+            <IconComponent
+              key={index}
+              size={config.size}
+              className={`floating-icon ${config.speed}`}
+              style={style}
+              aria-hidden="true"
+            />
+          );
+        })}
       </div>
       
       <SEOHead

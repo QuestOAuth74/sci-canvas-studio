@@ -276,6 +276,90 @@ All colors MUST be HSL.
     animation: fadeIn 0.4s ease-out forwards;
     opacity: 0;
   }
+
+  /* Grid Background - Subtle Dot Pattern */
+  .grid-background {
+    background-image: 
+      radial-gradient(circle, hsl(var(--foreground) / 0.05) 1px, transparent 1px),
+      radial-gradient(circle, hsl(var(--foreground) / 0.03) 1px, transparent 1px);
+    background-size: 40px 40px, 80px 80px;
+    background-position: 0 0, 20px 20px;
+  }
+
+  /* Floating Icon Animations */
+  @keyframes floatSlow {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    25% {
+      transform: translate(10px, -15px) rotate(3deg);
+    }
+    50% {
+      transform: translate(-5px, -25px) rotate(-2deg);
+    }
+    75% {
+      transform: translate(-15px, -10px) rotate(2deg);
+    }
+  }
+
+  @keyframes floatMedium {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    33% {
+      transform: translate(-12px, -20px) rotate(-4deg);
+    }
+    66% {
+      transform: translate(8px, -15px) rotate(3deg);
+    }
+  }
+
+  @keyframes floatFast {
+    0%, 100% {
+      transform: translate(0, 0) rotate(0deg);
+    }
+    50% {
+      transform: translate(15px, -30px) rotate(5deg);
+    }
+  }
+
+  @keyframes rotateSlow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .floating-icon {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0.08;
+    will-change: transform;
+  }
+
+  .floating-icon.slow {
+    animation: floatSlow 20s ease-in-out infinite;
+  }
+
+  .floating-icon.medium {
+    animation: floatMedium 15s ease-in-out infinite;
+  }
+
+  .floating-icon.fast {
+    animation: floatFast 12s ease-in-out infinite;
+  }
+
+  /* Accessibility: Disable animations for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .float-animation,
+    .floating-icon,
+    .animated-gradient,
+    .animate-fade-in {
+      animation: none !important;
+    }
+  }
 }
 
 @layer base {
