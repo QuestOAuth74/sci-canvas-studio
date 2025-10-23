@@ -21,7 +21,12 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
   const [categories, setCategories] = useState<IconCategory[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, IconItem[]>>({});
   const [loading, setLoading] = useState(true);
+  const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
   const { favoriteIconIds, toggleFavorite, isFavorite } = useFavoriteIcons();
+
+  const handleImageError = (iconId: string) => {
+    setBrokenImages(prev => new Set(prev).add(iconId));
+  };
 
   useEffect(() => {
     loadCategories();
@@ -172,12 +177,19 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                 className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105 w-full"
                 title={icon.name}
               >
-                <img 
-                  src={icon.thumbnail} 
-                  alt={icon.name} 
-                  className="w-full h-full object-contain" 
-                  loading="lazy"
-                />
+                {icon.thumbnail && !brokenImages.has(icon.id) ? (
+                  <img 
+                    src={icon.thumbnail} 
+                    alt={icon.name} 
+                    className="w-full h-full object-contain" 
+                    loading="lazy"
+                    onError={() => handleImageError(icon.id)}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground text-center px-1">
+                    No preview
+                  </div>
+                )}
               </button>
               <button
                 onClick={(e) => {
@@ -295,12 +307,19 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                                   className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105 w-full"
                                   title={icon.name}
                                 >
-                                  <img 
-                                    src={icon.thumbnail} 
-                                    alt={icon.name} 
-                                    className="w-full h-full object-contain" 
-                                    loading="lazy"
-                                  />
+                                  {icon.thumbnail && !brokenImages.has(icon.id) ? (
+                                    <img 
+                                      src={icon.thumbnail} 
+                                      alt={icon.name} 
+                                      className="w-full h-full object-contain" 
+                                      loading="lazy"
+                                      onError={() => handleImageError(icon.id)}
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-[10px] text-muted-foreground text-center px-1">
+                                      No preview
+                                    </div>
+                                  )}
                                 </button>
                                 <button
                                   onClick={(e) => {
