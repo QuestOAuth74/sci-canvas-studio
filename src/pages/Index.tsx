@@ -21,7 +21,6 @@ const Index = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [featuredIcons, setFeaturedIcons] = useState<any[]>([]);
 
   useEffect(() => {
     supabase
@@ -29,38 +28,6 @@ const Index = () => {
       .select('id, name')
       .order('name')
       .then(({ data }) => setCategories(data || []));
-  }, []);
-
-  useEffect(() => {
-    const fetchFeaturedIcons = async () => {
-      // Curated list of consistently displayed high-quality physiology icons
-      const curatedIconIds = [
-        'f0eb1921-932c-4cf5-9f0f-4adb52fadbba', // pill_red
-        'a767fbc7-5ce2-403f-9cde-38d5537c6d61', // adipocyte-1
-      ];
-      
-      // Fetch curated icons first
-      const { data: curatedData } = await supabase
-        .from('icons')
-        .select('id, name, category, thumbnail, svg_content')
-        .eq('category', 'human-physiology')
-        .in('id', curatedIconIds);
-      
-      // Fetch additional diverse icons to fill remaining slots
-      const { data: additionalData } = await supabase
-        .from('icons')
-        .select('id, name, category, thumbnail, svg_content')
-        .eq('category', 'human-physiology')
-        .not('id', 'in', `(${curatedIconIds.join(',')})`)
-        .not('thumbnail', 'is', null)
-        .limit(8);
-      
-      if (curatedData && additionalData) {
-        setFeaturedIcons([...curatedData, ...additionalData]);
-      }
-    };
-    
-    fetchFeaturedIcons();
   }, []);
 
   const structuredData = {
@@ -250,68 +217,6 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Featured Icons Gallery */}
-          <div className="animate-fade-in [animation-delay:350ms]">
-            <div className="relative bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-yellow-950/30 border-[3px] border-foreground rounded-3xl p-8 md:p-12 neo-shadow-xl overflow-hidden">
-              {/* Decorative gradient blobs */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-200/40 to-transparent dark:from-amber-800/40 rounded-full blur-3xl" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-orange-200/40 to-transparent dark:from-orange-800/40 rounded-full blur-3xl" />
-              
-              <div className="relative">
-                {/* Header */}
-                <div className="text-center mb-10">
-                  <div className="inline-block px-6 py-2 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full border-[3px] border-foreground neo-shadow mb-4">
-                    <span className="text-white font-bold text-sm">Human Physiology • 1,154+ Icons Available</span>
-                  </div>
-                  <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-3">Featured Icon Collection</h2>
-                  <p className="text-base font-semibold text-foreground/70 max-w-2xl mx-auto">
-                    Explore our curated selection of high-quality physiology icons. Perfect for creating detailed scientific illustrations.
-                  </p>
-                </div>
-
-                {/* Icon Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 md:gap-6 mb-8">
-                  {featuredIcons.map((icon, index) => (
-                    <div
-                      key={icon.id}
-                      className="group relative bg-background/80 backdrop-blur-sm border-[3px] border-foreground rounded-2xl p-6 neo-shadow hover:neo-shadow-xl hover:scale-110 transition-all duration-300 cursor-pointer animate-fade-in"
-                      style={{ animationDelay: `${400 + index * 50}ms` }}
-                      title={icon.name}
-                    >
-                      {/* Icon Display */}
-                      <div className="aspect-square flex items-center justify-center">
-                      <div 
-                        dangerouslySetInnerHTML={{ __html: icon.thumbnail || icon.svg_content }}
-                        className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full group-hover:scale-110 transition-transform duration-300"
-                      />
-                      </div>
-                      
-                      {/* Icon Name Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center p-3">
-                        <span className="text-background text-xs font-bold text-center line-clamp-2">{icon.name}</span>
-                      </div>
-                      
-                      {/* Glossy effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                    </div>
-                  ))}
-                </div>
-
-                {/* CTA Button */}
-                <div className="text-center">
-                  <Button
-                    size="lg"
-                    onClick={() => navigate(user ? "/projects" : "/auth")}
-                    className="min-w-[280px] h-14 text-base font-semibold group"
-                  >
-                    <Palette className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                    Explore Full Library
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-6 pt-8">
             <div className="relative bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-yellow-950/30 border-[3px] border-foreground rounded-2xl p-8 neo-shadow hover:neo-shadow-xl transition-all duration-300 animate-fade-in group overflow-hidden">
@@ -395,29 +300,6 @@ const Index = () => {
       <footer className="relative z-10 border-t border-border/60 bg-gradient-to-b from-muted/30 to-background mt-16">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-6xl mx-auto space-y-12">
-            {/* About Section */}
-            <div className="bg-card border border-border/60 rounded-2xl shadow-lg p-8 md:p-10">
-              <h2 className="text-3xl md:text-4xl font-semibold mb-6 flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-primary to-primary/80 rounded-xl shadow-md">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-                About BioSketch
-              </h2>
-              <div className="space-y-4 text-base md:text-lg font-medium leading-relaxed">
-                <p>
-                  BioSketch is an <strong>open-source project</strong> created by a community of scientists 
-                  dedicated to providing <strong>free access to medical and scientific illustrations</strong> for everyone.
-                </p>
-                <p>
-                  All resources are sourced from the open web and made available at <strong>no cost</strong>. 
-                  Use our illustrations freely for publications, presentations, educational materials, and more.
-                </p>
-                <p className="text-primary font-bold">
-                  No paywall. No subscriptions. Not for profit.
-                </p>
-              </div>
-            </div>
-
             {/* Share Section */}
             <div className="bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 rounded-2xl shadow-lg p-8 md:p-10">
               <h3 className="text-2xl md:text-3xl font-semibold mb-4 flex items-center gap-3">
