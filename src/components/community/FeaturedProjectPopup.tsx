@@ -102,7 +102,7 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-3xl border border-border/40 bg-background/98 backdrop-blur-xl shadow-2xl">
+      <DialogContent className="sm:max-w-3xl border-[3px] border-foreground bg-background grid-background neo-shadow-xl relative overflow-hidden">
         <DialogHeader className="space-y-3 pb-2">
           <div className="flex items-center gap-3">
             <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
