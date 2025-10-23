@@ -33,13 +33,31 @@ const Index = () => {
 
   useEffect(() => {
     const fetchFeaturedIcons = async () => {
-      const { data } = await supabase
+      // Curated list of consistently displayed high-quality physiology icons
+      const curatedIconIds = [
+        'f0eb1921-932c-4cf5-9f0f-4adb52fadbba', // pill_red
+        'a767fbc7-5ce2-403f-9cde-38d5537c6d61', // adipocyte-1
+      ];
+      
+      // Fetch curated icons first
+      const { data: curatedData } = await supabase
         .from('icons')
         .select('id, name, category, thumbnail, svg_content')
         .eq('category', 'human-physiology')
-        .limit(10);
+        .in('id', curatedIconIds);
       
-      if (data) setFeaturedIcons(data);
+      // Fetch additional diverse icons to fill remaining slots
+      const { data: additionalData } = await supabase
+        .from('icons')
+        .select('id, name, category, thumbnail, svg_content')
+        .eq('category', 'human-physiology')
+        .not('id', 'in', `(${curatedIconIds.join(',')})`)
+        .not('thumbnail', 'is', null)
+        .limit(8);
+      
+      if (curatedData && additionalData) {
+        setFeaturedIcons([...curatedData, ...additionalData]);
+      }
     };
     
     fetchFeaturedIcons();
@@ -262,18 +280,10 @@ const Index = () => {
                     >
                       {/* Icon Display */}
                       <div className="aspect-square flex items-center justify-center">
-                        {icon.thumbnail ? (
-                          <img 
-                            src={icon.thumbnail} 
-                            alt={icon.name}
-                            className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
-                          />
-                        ) : (
-                          <div 
-                            dangerouslySetInnerHTML={{ __html: icon.svg_content }}
-                            className="w-full h-full [&>svg]:w-full [&>svg]:h-full group-hover:scale-110 transition-transform duration-300"
-                          />
-                        )}
+                      <div 
+                        dangerouslySetInnerHTML={{ __html: icon.thumbnail || icon.svg_content }}
+                        className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:max-w-full [&>svg]:max-h-full group-hover:scale-110 transition-transform duration-300"
+                      />
                       </div>
                       
                       {/* Icon Name Overlay */}
