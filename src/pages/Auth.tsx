@@ -12,6 +12,7 @@ import { HCaptchaWrapper, HCaptchaHandle } from '@/components/ui/hcaptcha-wrappe
 import { useToast } from '@/hooks/use-toast';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
+import { FeaturedProjectShowcase } from '@/components/auth/FeaturedProjectShowcase';
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -192,7 +193,7 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden grid-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden grid-background p-4 lg:p-8">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl float-animation" />
@@ -227,7 +228,14 @@ export default function Auth() {
         noindex={true}
       />
       
-      <Card className="w-full max-w-md backdrop-blur-sm bg-card/80 border-border shadow-xl relative z-10">
+      <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-6 lg:gap-8 items-center lg:items-stretch relative z-10">
+        {/* Featured Project - Hidden on mobile */}
+        <div className="hidden lg:block lg:flex-1">
+          <FeaturedProjectShowcase />
+        </div>
+
+        {/* Auth Card */}
+        <Card className="w-full lg:flex-1 lg:max-w-md backdrop-blur-sm bg-card/80 border-border shadow-xl">
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             BioSketch
@@ -393,6 +401,7 @@ export default function Auth() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
