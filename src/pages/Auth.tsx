@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
 import { FeaturedProjectShowcase } from '@/components/auth/FeaturedProjectShowcase';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -20,7 +22,9 @@ const signInSchema = z.object({
 });
 
 const signUpSchema = signInSchema.extend({
-  fullName: z.string().min(2, 'Name must be at least 2 characters').optional()
+  fullName: z.string().min(2, 'Name must be at least 2 characters').optional(),
+  country: z.string().min(1, 'Country is required'),
+  fieldOfStudy: z.string().min(1, 'Field of study is required')
 });
 
 const resetPasswordSchema = z.object({
@@ -57,6 +61,8 @@ export default function Auth() {
   const [signUpEmail, setSignUpEmail] = useState('');
   const [signUpPassword, setSignUpPassword] = useState('');
   const [signUpFullName, setSignUpFullName] = useState('');
+  const [signUpCountry, setSignUpCountry] = useState('');
+  const [signUpFieldOfStudy, setSignUpFieldOfStudy] = useState('');
 
   // Error states
   const [signInErrors, setSignInErrors] = useState<any>({});
@@ -125,7 +131,9 @@ export default function Auth() {
     const result = signUpSchema.safeParse({ 
       email: signUpEmail, 
       password: signUpPassword,
-      fullName: signUpFullName 
+      fullName: signUpFullName,
+      country: signUpCountry,
+      fieldOfStudy: signUpFieldOfStudy
     });
     
     if (!result.success) {
@@ -138,7 +146,7 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName);
+    const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName, signUpCountry, signUpFieldOfStudy);
     setIsLoading(false);
 
     if (!error) {
@@ -384,6 +392,50 @@ export default function Auth() {
                   />
                   {signUpErrors.password && (
                     <p className="text-sm text-destructive">{signUpErrors.password}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-country">Country *</Label>
+                  <Select
+                    value={signUpCountry}
+                    onValueChange={setSignUpCountry}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger id="signup-country" className="bg-background">
+                      <SelectValue placeholder="Select your country" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover max-h-[300px]">
+                      {COUNTRIES.map((country) => (
+                        <SelectItem key={country} value={country}>
+                          {country}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {signUpErrors.country && (
+                    <p className="text-sm text-destructive">{signUpErrors.country}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-field">Field of Study *</Label>
+                  <Select
+                    value={signUpFieldOfStudy}
+                    onValueChange={setSignUpFieldOfStudy}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger id="signup-field" className="bg-background">
+                      <SelectValue placeholder="Select your field of study" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {FIELDS_OF_STUDY.map((field) => (
+                        <SelectItem key={field} value={field}>
+                          {field}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {signUpErrors.fieldOfStudy && (
+                    <p className="text-sm text-destructive">{signUpErrors.fieldOfStudy}</p>
                   )}
                 </div>
                 <HCaptchaWrapper

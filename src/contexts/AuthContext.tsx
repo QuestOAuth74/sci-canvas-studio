@@ -8,7 +8,7 @@ interface AuthContextType {
   session: Session | null;
   isAdmin: boolean;
   loading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName?: string, country?: string, fieldOfStudy?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
@@ -82,18 +82,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  const signUp = async (email: string, password: string, fullName?: string, country?: string, fieldOfStudy?: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
-    // Fetch geolocation data
-    let country = null;
-    try {
-      const geoResponse = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
-      const geoData = await geoResponse.json();
-      country = geoData.country_name;
-    } catch (error) {
-      console.log('Geolocation fetch failed, continuing without country');
-    }
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -102,7 +92,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName || '',
-          country: country
+          country: country || '',
+          field_of_study: fieldOfStudy || ''
         }
       }
     });

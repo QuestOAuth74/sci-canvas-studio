@@ -12,11 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Loader2, Upload, User as UserIcon, ArrowLeft, Bell, BellOff, Trash2, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -30,6 +32,8 @@ export default function Profile() {
   const [email, setEmail] = useState('');
   const [quote, setQuote] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [country, setCountry] = useState('');
+  const [fieldOfStudy, setFieldOfStudy] = useState('');
   
   // Password change state
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
@@ -188,6 +192,8 @@ export default function Profile() {
         setEmail(data.email || user?.email || '');
         setQuote(data.quote || '');
         setAvatarUrl(data.avatar_url || '');
+        setCountry(data.country || '');
+        setFieldOfStudy(data.field_of_study || '');
       }
     } catch (error: any) {
       console.error('Error loading profile:', error);
@@ -252,6 +258,8 @@ export default function Profile() {
           email: email,
           quote: quote,
           avatar_url: avatarUrl,
+          country: country,
+          field_of_study: fieldOfStudy,
         })
         .eq('id', user.id);
 
@@ -380,6 +388,46 @@ export default function Profile() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
                   />
+                </div>
+
+                {/* Country */}
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Select
+                    value={country}
+                    onValueChange={setCountry}
+                  >
+                    <SelectTrigger id="country" className="bg-background">
+                      <SelectValue placeholder="Select your country" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover max-h-[300px]">
+                      {COUNTRIES.map((countryOption) => (
+                        <SelectItem key={countryOption} value={countryOption}>
+                          {countryOption}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Field of Study */}
+                <div className="space-y-2">
+                  <Label htmlFor="fieldOfStudy">Field of Study</Label>
+                  <Select
+                    value={fieldOfStudy}
+                    onValueChange={setFieldOfStudy}
+                  >
+                    <SelectTrigger id="fieldOfStudy" className="bg-background">
+                      <SelectValue placeholder="Select your field of study" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {FIELDS_OF_STUDY.map((field) => (
+                        <SelectItem key={field} value={field}>
+                          {field}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Quote */}
