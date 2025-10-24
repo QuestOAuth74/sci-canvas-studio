@@ -23,7 +23,7 @@ const Index = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const { data: signupCount } = useRecentSignups();
+  const { data: signupData } = useRecentSignups();
 
   useEffect(() => {
     supabase
@@ -409,7 +409,13 @@ const Index = () => {
       )}
 
       {/* Recent Signups Toast */}
-      {signupCount && <SignupToast count={signupCount} />}
+      {signupData && signupData.count > 0 && (
+        <SignupToast 
+          count={signupData.count} 
+          topCountries={signupData.topCountries}
+          totalWithLocation={signupData.totalWithLocation}
+        />
+      )}
     </div>
   );
 };

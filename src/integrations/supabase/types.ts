@@ -431,6 +431,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_favorite_icons: {
+        Row: {
+          created_at: string | null
+          icon_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          icon_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          icon_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_icons_icon_id_fkey"
+            columns: ["icon_id"]
+            isOneToOne: false
+            referencedRelation: "icons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_notifications: {
         Row: {
           created_at: string | null

@@ -4,13 +4,33 @@ import { toast } from "sonner";
 
 interface SignupToastProps {
   count: number;
+  topCountries?: Array<{ country: string; count: number }>;
+  totalWithLocation?: number;
 }
 
 const STORAGE_KEY = "biosketch_signup_toast_last_shown";
 const SHOW_INTERVAL = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
-export const SignupToast = ({ count }: SignupToastProps) => {
+export const SignupToast = ({ count, topCountries = [], totalWithLocation = 0 }: SignupToastProps) => {
   const [hasShown, setHasShown] = useState(false);
+
+  const getLocationMessage = () => {
+    if (topCountries.length === 0) {
+      return `<strong>${count} people</strong> joined BioSketch in the last 24 hours!`;
+    }
+
+    const displayCountries = topCountries.slice(0, 2);
+    const displayedCount = displayCountries.reduce((sum, c) => sum + c.count, 0);
+    const remainingCount = totalWithLocation - displayedCount;
+    
+    const countryNames = displayCountries.map(c => c.country).join(', ');
+    
+    if (remainingCount > 0) {
+      return `<strong>${count} people</strong> joined from ${countryNames} and ${remainingCount} other ${remainingCount === 1 ? 'country' : 'countries'}!`;
+    } else {
+      return `<strong>${count} people</strong> from ${countryNames} joined BioSketch!`;
+    }
+  };
 
   useEffect(() => {
     if (count <= 2 || hasShown) return;
@@ -36,9 +56,7 @@ export const SignupToast = ({ count }: SignupToastProps) => {
           toast.success(
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5" />
-              <span>
-                <strong>{count} people</strong> joined BioSketch in the last 24 hours!
-              </span>
+              <span dangerouslySetInnerHTML={{ __html: getLocationMessage() }} />
             </div>,
             {
               duration: 6000,
@@ -56,7 +74,7 @@ export const SignupToast = ({ count }: SignupToastProps) => {
     };
 
     showToastWithDelay();
-  }, [count, hasShown]);
+  }, [count, hasShown, topCountries, totalWithLocation]);
 
   return null;
 };

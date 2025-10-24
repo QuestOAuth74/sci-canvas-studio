@@ -85,13 +85,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signUp = async (email: string, password: string, fullName?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
+    // Fetch geolocation data
+    let country = null;
+    try {
+      const geoResponse = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(3000) });
+      const geoData = await geoResponse.json();
+      country = geoData.country_name;
+    } catch (error) {
+      console.log('Geolocation fetch failed, continuing without country');
+    }
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          full_name: fullName || ''
+          full_name: fullName || '',
+          country: country
         }
       }
     });
