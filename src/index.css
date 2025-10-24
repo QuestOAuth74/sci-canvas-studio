@@ -323,14 +323,61 @@ All colors MUST be HSL.
     }
   }
 
-  @keyframes rotateSlow {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+@keyframes rotateSlow {
+  from {
+    transform: rotate(0deg);
   }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes markerSweep {
+  0% {
+    transform: translateX(-110%) skewX(-10deg);
+  }
+  40% {
+    transform: translateX(110%) skewX(-10deg);
+  }
+  100% {
+    transform: translateX(110%) skewX(-10deg);
+  }
+}
+
+.marker-highlight {
+  position: relative;
+  display: inline-block;
+}
+
+.marker-highlight::before {
+  content: '';
+  position: absolute;
+  top: 20%;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    hsl(var(--accent) / 0.5) 10%,
+    hsl(var(--accent) / 0.7) 50%,
+    hsl(var(--accent) / 0.5) 90%,
+    transparent 100%
+  );
+  z-index: -1;
+  transform: translateX(-110%) skewX(-10deg);
+  animation: markerSweep 5s ease-in-out infinite;
+  border-radius: 4px;
+  filter: blur(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marker-highlight::before {
+    animation: none !important;
+    transform: translateX(0) skewX(-10deg);
+    opacity: 0.4;
+  }
+}
 
   .floating-icon {
     position: absolute;

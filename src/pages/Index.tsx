@@ -116,8 +116,7 @@ const Index = () => {
                 </div>
                 <div className="relative">
                   <h1 className="text-7xl md:text-9xl font-black tracking-tighter relative">
-                    <span className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-secondary blur-2xl opacity-50" />
-                    <span className="relative bg-gradient-to-br from-primary via-accent to-secondary bg-clip-text text-transparent">
+                    <span className="marker-highlight text-foreground">
                       BioSketch
                     </span>
                   </h1>
