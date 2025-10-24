@@ -8,6 +8,7 @@ import { createSVGArrowMarker } from "@/lib/advancedLineSystem";
 import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
 import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
 import { StraightLineTool } from "@/lib/straightLineTool";
+import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
 import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 
@@ -64,6 +65,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
   const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
+  const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
   
   const { 
@@ -915,6 +917,105 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
   }, [canvas, activeTool, onShapeCreated, onToolChange]);
 
+  // Orthogonal Line Tool with 90-degree bends
+  useEffect(() => {
+    if (!canvas || !activeTool.startsWith("orthogonal-line")) {
+      if (orthogonalLineToolRef.current) {
+        orthogonalLineToolRef.current.cancel();
+        orthogonalLineToolRef.current = null;
+      }
+      return;
+    }
+
+    // Parse tool options from activeTool string
+    const options: any = {
+      startMarker: 'none',
+      endMarker: 'none',
+      lineStyle: 'solid',
+      strokeWidth: 2,
+      strokeColor: '#000000',
+      snap: true,
+      gridSize: 20,
+      smoothCorners: false,
+      cornerRadius: 10,
+    };
+
+    // Parse activeTool to set markers and styles
+    if (activeTool.includes('double-arrow')) {
+      options.startMarker = 'arrow';
+      options.endMarker = 'arrow';
+    } else if (activeTool.includes('arrow')) {
+      options.endMarker = 'arrow';
+    }
+    
+    if (activeTool.includes('dot')) {
+      options.startMarker = 'dot';
+      options.endMarker = 'dot';
+    }
+    
+    if (activeTool.includes('diamond')) {
+      options.startMarker = 'diamond';
+      options.endMarker = 'diamond';
+    }
+    
+    if (activeTool.includes('circle')) {
+      options.startMarker = 'circle';
+      options.endMarker = 'circle';
+    }
+    
+    if (activeTool.includes('dashed')) {
+      options.lineStyle = 'dashed';
+    } else if (activeTool.includes('dotted')) {
+      options.lineStyle = 'dotted';
+    }
+
+    // Initialize orthogonal line tool
+    orthogonalLineToolRef.current = new OrthogonalLineTool(canvas, options);
+    orthogonalLineToolRef.current.start();
+
+    // Click to add waypoints
+    const handleMouseDown = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      orthogonalLineToolRef.current?.addPoint(pointer.x, pointer.y);
+    };
+
+    // Update preview as mouse moves
+    const handleMouseMove = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      orthogonalLineToolRef.current?.updatePreview(pointer.x, pointer.y);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        const line = orthogonalLineToolRef.current?.finish();
+        if (line) {
+          toast.success("Orthogonal line created!");
+          if (onShapeCreated) onShapeCreated();
+        }
+        onToolChange?.("select");
+      } else if (e.key === "Escape") {
+        orthogonalLineToolRef.current?.cancel();
+        onToolChange?.("select");
+        toast.info("Orthogonal line tool cancelled");
+      }
+    };
+
+    canvas.on("mouse:down", handleMouseDown);
+    canvas.on("mouse:move", handleMouseMove);
+    window.addEventListener("keydown", handleKeyDown);
+
+    toast.info("Click to add waypoints. Press Enter to finish, Escape to cancel.");
+
+    return () => {
+      canvas.off("mouse:down", handleMouseDown);
+      canvas.off("mouse:move", handleMouseMove);
+      window.removeEventListener("keydown", handleKeyDown);
+      if (orthogonalLineToolRef.current) {
+        orthogonalLineToolRef.current.cancel();
+      }
+    };
+  }, [canvas, activeTool, onShapeCreated, onToolChange]);
+
   // Handle tool changes
   useEffect(() => {
     if (!canvas) return;
@@ -928,14 +1029,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       canvas.defaultCursor = "crosshair";
     } else if (activeTool === "eraser") {
       canvas.defaultCursor = "crosshair";
-    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-') || activeTool.startsWith('straight-line')) {
+    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-') || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line')) {
       canvas.defaultCursor = "crosshair";
     } else {
       canvas.defaultCursor = "default";
     }
 
     const handleCanvasClick = (e: any) => {
-      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image" || activeTool.startsWith('straight-line')) return;
+      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image" || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line')) return;
 
       const pointer = canvas.getPointer(e.e);
       
