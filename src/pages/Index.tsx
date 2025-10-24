@@ -13,6 +13,8 @@ import carousel1 from "@/assets/carousel-1.png";
 import carousel2 from "@/assets/carousel-2.png";
 import { SEOHead } from "@/components/SEO/SEOHead";
 import { getWebApplicationSchema, getOrganizationSchema } from "@/components/SEO/StructuredData";
+import { useRecentSignups } from "@/hooks/useRecentSignups";
+import { SignupToast } from "@/components/SignupToast";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,6 +23,7 @@ const Index = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const { data: signupCount } = useRecentSignups();
 
   useEffect(() => {
     supabase
@@ -404,6 +407,9 @@ const Index = () => {
           }}
         />
       )}
+
+      {/* Recent Signups Toast */}
+      {signupCount && <SignupToast count={signupCount} />}
     </div>
   );
 };
