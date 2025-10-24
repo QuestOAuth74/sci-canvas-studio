@@ -6,7 +6,6 @@ import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
-import { FeaturedProjectPopup } from "@/components/community/FeaturedProjectPopup";
 import { ProjectPreviewModal } from "@/components/community/ProjectPreviewModal";
 import { supabase } from "@/integrations/supabase/client";
 import carousel1 from "@/assets/carousel-1.png";
@@ -386,14 +385,6 @@ const Index = () => {
         open={showSubmitDialog}
         onOpenChange={setShowSubmitDialog}
         categories={categories}
-      />
-
-      {/* Featured Project Popup */}
-      <FeaturedProjectPopup
-        onViewProject={(project) => {
-          setSelectedProject(project);
-          setShowPreviewModal(true);
-        }}
       />
 
       {/* Project Preview Modal */}
