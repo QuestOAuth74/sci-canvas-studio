@@ -45,5 +45,6 @@ export const FIELDS_OF_STUDY = [
   "Genetics",
   "Anatomy",
   "Physiology",
-  "Biochemistry"
+  "Biochemistry",
+  "Medicine"
 ];
