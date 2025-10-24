@@ -366,9 +366,10 @@ All colors MUST be HSL.
   );
   z-index: -1;
   transform: translateX(-110%) skewX(-10deg);
-  animation: markerSweep 5s ease-in-out infinite;
+  animation: markerSweep 5s ease-in-out 0.5s infinite;
   border-radius: 4px;
   filter: blur(1px);
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
