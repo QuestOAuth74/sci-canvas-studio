@@ -314,9 +314,8 @@ const Index = () => {
                 Share BioSketch
               </h3>
               <p className="text-base md:text-lg font-medium leading-relaxed mb-6 text-foreground/70">
-                We're not soliciting donations at this time. The best way to support BioSketch 
-                is by sharing it with colleagues, students, and others who might benefit from 
-                free scientific illustration tools.
+                The best way to support BioSketch is by sharing it with colleagues, students, 
+                and others who might benefit from free scientific illustration tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
