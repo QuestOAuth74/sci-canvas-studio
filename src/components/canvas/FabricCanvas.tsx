@@ -2118,6 +2118,114 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           break;
         }
 
+        case "elbow-connector-right": {
+          const elbowPathRight = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x + 50} ${pointer.y} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 100} ${pointer.y + 50}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const elbowArrowRight = new Polygon([
+            { x: pointer.x + 100, y: pointer.y + 50 },
+            { x: pointer.x + 90, y: pointer.y + 44 },
+            { x: pointer.x + 90, y: pointer.y + 56 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const elbowGroupRight = new Group([elbowPathRight, elbowArrowRight], {
+            selectable: true,
+          });
+          canvas.add(elbowGroupRight);
+          canvas.setActiveObject(elbowGroupRight);
+          break;
+        }
+
+        case "elbow-connector-left": {
+          const elbowPathLeft = new Path(
+            `M ${pointer.x + 100} ${pointer.y} L ${pointer.x + 50} ${pointer.y} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x} ${pointer.y + 50}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const elbowArrowLeft = new Polygon([
+            { x: pointer.x, y: pointer.y + 50 },
+            { x: pointer.x + 10, y: pointer.y + 44 },
+            { x: pointer.x + 10, y: pointer.y + 56 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const elbowGroupLeft = new Group([elbowPathLeft, elbowArrowLeft], {
+            selectable: true,
+          });
+          canvas.add(elbowGroupLeft);
+          canvas.setActiveObject(elbowGroupLeft);
+          break;
+        }
+
+        case "elbow-connector-up": {
+          const elbowPathUp = new Path(
+            `M ${pointer.x} ${pointer.y + 100} L ${pointer.x} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const elbowArrowUp = new Polygon([
+            { x: pointer.x + 50, y: pointer.y },
+            { x: pointer.x + 44, y: pointer.y + 10 },
+            { x: pointer.x + 56, y: pointer.y + 10 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const elbowGroupUp = new Group([elbowPathUp, elbowArrowUp], {
+            selectable: true,
+          });
+          canvas.add(elbowGroupUp);
+          canvas.setActiveObject(elbowGroupUp);
+          break;
+        }
+
+        case "elbow-connector-down": {
+          const elbowPathDown = new Path(
+            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 100}`,
+            {
+              stroke: "#000000",
+              strokeWidth: 2,
+              fill: null,
+              strokeUniform: true,
+            }
+          );
+          const elbowArrowDown = new Polygon([
+            { x: pointer.x + 50, y: pointer.y + 100 },
+            { x: pointer.x + 44, y: pointer.y + 90 },
+            { x: pointer.x + 56, y: pointer.y + 90 },
+          ], {
+            fill: "#000000",
+            stroke: "#000000",
+            strokeWidth: 0,
+          });
+          const elbowGroupDown = new Group([elbowPathDown, elbowArrowDown], {
+            selectable: true,
+          });
+          canvas.add(elbowGroupDown);
+          canvas.setActiveObject(elbowGroupDown);
+          break;
+        }
+
         case "y-split-right-curved": {
           const ySplitPath = new Path(
             `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + 40} M ${pointer.x} ${pointer.y + 40} Q ${pointer.x + 20} ${pointer.y + 50} ${pointer.x + 60} ${pointer.y + 30} M ${pointer.x} ${pointer.y + 40} Q ${pointer.x + 20} ${pointer.y + 50} ${pointer.x + 60} ${pointer.y + 70}`,

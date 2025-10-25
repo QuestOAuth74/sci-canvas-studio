@@ -337,71 +337,25 @@ export class OrthogonalLineTool {
 
   private attachMarkerScaleLock(group: Group): void {
     const objects = (group as any).getObjects ? (group as any).getObjects() : (group as any)._objects || [];
-    const path = objects.find((o: any) => o.type === 'path') as Path;
+    const path = objects.find((o: any) => o.type === 'path');
     const markers = objects.filter((o: any) => o !== path);
 
-    const updateMarkers = () => {
-      if (!path || markers.length === 0) return;
-
+    const lock = () => {
       const sx = group.scaleX || 1;
       const sy = group.scaleY || 1;
-
-      // Extract path endpoints from path data
-      const pathData = path.path;
-      if (!pathData || pathData.length < 2) return;
-
-      // First point (M command)
-      const firstCmd = pathData[0];
-      const firstX = (firstCmd[1] as number) * sx;
-      const firstY = (firstCmd[2] as number) * sy;
-
-      // Last point - find the last command with coordinates
-      let lastX = firstX;
-      let lastY = firstY;
-      for (let i = pathData.length - 1; i >= 0; i--) {
-        const cmd = pathData[i];
-        if (cmd[0] === 'L' || cmd[0] === 'M') {
-          lastX = (cmd[1] as number) * sx;
-          lastY = (cmd[2] as number) * sy;
-          break;
-        } else if (cmd[0] === 'Q') {
-          // For quadratic bezier, end point is at index 3, 4
-          lastX = (cmd[3] as number) * sx;
-          lastY = (cmd[4] as number) * sy;
-          break;
-        }
-      }
-
-      // Identify and update markers
-      markers.forEach((marker: any, index: number) => {
-        const isStartMarker = index === 0;
-        
-        if (isStartMarker) {
-          marker.set({
-            left: firstX,
-            top: firstY,
-            scaleX: 1 / sx,
-            scaleY: 1 / sy,
-            strokeUniform: true,
-          });
-        } else {
-          marker.set({
-            left: lastX,
-            top: lastY,
-            scaleX: 1 / sx,
-            scaleY: 1 / sy,
-            strokeUniform: true,
-          });
-        }
+      markers.forEach((m: any) => {
+        m.set({
+          scaleX: 1 / sx,
+          scaleY: 1 / sy,
+          strokeUniform: true,
+        });
       });
-
-      group.setCoords();
     };
 
     // Initialize and keep locked during transforms
-    updateMarkers();
-    group.on('scaling', updateMarkers);
-    group.on('modified', updateMarkers);
+    lock();
+    group.on('scaling', lock);
+    group.on('modified', lock);
   }
 
   finish(): Group | Path | null {

@@ -23,13 +23,13 @@ interface OrthogonalLineToolProps {
 }
 
 export const OrthogonalLineTool = ({ onLineSelect, activeTool }: OrthogonalLineToolProps) => {
-  const isElbowLineActive = activeTool?.startsWith('elbow-');
+  const isOrthogonalLineActive = activeTool?.startsWith('orthogonal-line');
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
-          variant={isElbowLineActive ? "default" : "ghost"} 
+          variant={isOrthogonalLineActive ? "default" : "ghost"} 
           size="icon" 
           className="h-8 w-8"
         >
@@ -37,19 +37,48 @@ export const OrthogonalLineTool = ({ onLineSelect, activeTool }: OrthogonalLineT
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-card z-50">
-        <DropdownMenuLabel>Elbow Connectors (Simple)</DropdownMenuLabel>
+        <DropdownMenuLabel>Orthogonal Line Tools (90°)</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => onLineSelect('elbow-arrow')}>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line')}>
+            <GitBranch className="mr-2 h-4 w-4" />
+            <span>Orthogonal Line</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-arrow')}>
             <ArrowRight className="mr-2 h-4 w-4" />
-            <span>Elbow Arrow →</span>
+            <span>Orthogonal with Arrow →</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onLineSelect('elbow-diamond')}>
-            <Diamond className="mr-2 h-4 w-4" />
-            <span>Elbow Diamond ◆</span>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-double-arrow')}>
+            <ArrowLeftRight className="mr-2 h-4 w-4" />
+            <span>Orthogonal Double Arrow ↔</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onLineSelect('elbow-dot')}>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-dot')}>
             <Dot className="mr-2 h-4 w-4" />
-            <span>Elbow Dot •</span>
+            <span>Orthogonal with Dots •—•</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-diamond')}>
+            <Diamond className="mr-2 h-4 w-4" />
+            <span>Orthogonal with Diamonds ◆—◆</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-circle')}>
+            <Circle className="mr-2 h-4 w-4" />
+            <span>Orthogonal with Circles ○—○</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Dashed Variants</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-dashed')}>
+            <GitBranch className="mr-2 h-4 w-4" />
+            <span>Dashed Orthogonal</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-dashed-arrow')}>
+            <ArrowRight className="mr-2 h-4 w-4" />
+            <span>Dashed with Arrow</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-dotted-arrow')}>
+            <ArrowRight className="mr-2 h-4 w-4" />
+            <span>Dotted with Arrow</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
