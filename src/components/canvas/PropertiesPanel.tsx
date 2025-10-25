@@ -97,6 +97,23 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     return null;
   };
 
+  // Helper to detect if object is a shape-with-text group
+  const isShapeWithTextGroup = (obj: any): boolean => {
+    if (obj.type !== 'group') return false;
+    const objects = obj.getObjects();
+    return objects.length === 2 && 
+           (objects[0].type === 'circle' || objects[0].type === 'rect') &&
+           objects[1].type === 'textbox';
+  };
+
+  // Helper to get the shape from a group
+  const getShapeFromGroup = (obj: any) => {
+    if (isShapeWithTextGroup(obj)) {
+      return obj.getObjects()[0]; // First object is the shape
+    }
+    return obj; // Return the object itself if not a group
+  };
+
   // Update text properties when selected object changes
   useEffect(() => {
     const textObj = getTextObject(selectedObject);
@@ -109,6 +126,10 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     if (selectedObject && selectedObject.type !== 'textbox' && selectedObject.type !== 'group') {
       setShapeFillColor((selectedObject.fill as string) || "#3b82f6");
       setShapeStrokeColor((selectedObject.stroke as string) || "#000000");
+    } else if (selectedObject && isShapeWithTextGroup(selectedObject)) {
+      const targetShape = getShapeFromGroup(selectedObject);
+      setShapeFillColor((targetShape.fill as string) || "#3b82f6");
+      setShapeStrokeColor((targetShape.stroke as string) || "#000000");
     }
     // Update icon color for group objects (icons)
     if (selectedObject && selectedObject.type === 'group') {
@@ -162,7 +183,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const handleShapeFillColorChange = (color: string) => {
     setShapeFillColor(color);
     if (canvas && selectedObject && selectedObject.type !== 'textbox') {
-      selectedObject.set({ fill: color });
+      const targetShape = getShapeFromGroup(selectedObject);
+      targetShape.set({ fill: color });
       canvas.renderAll();
     }
   };
@@ -170,7 +192,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const handleShapeStrokeColorChange = (color: string) => {
     setShapeStrokeColor(color);
     if (canvas && selectedObject && selectedObject.type !== 'textbox') {
-      selectedObject.set({ stroke: color });
+      const targetShape = getShapeFromGroup(selectedObject);
+      targetShape.set({ stroke: color });
       canvas.renderAll();
     }
   };
@@ -629,7 +652,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
               <StylePanel />
 
               {/* Icon Color - Only show for SVG groups (icons) */}
-              {selectedObject && selectedObject.type === 'group' && (
+              {selectedObject && selectedObject.type === 'group' && !isShapeWithTextGroup(selectedObject) && (
                 <div className="pt-3 border-t">
                   <h3 className="font-semibold text-sm mb-3">Icon Color</h3>
                   <div className="space-y-3">
@@ -736,7 +759,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
               )}
 
               {/* Shape Colors - Only show for non-text, non-image objects */}
-              {selectedObject && selectedObject.type !== 'textbox' && selectedObject.type !== 'image' && !(selectedObject instanceof FabricImage) && !(selectedObject as any).isFreeformLine && (
+              {selectedObject && selectedObject.type !== 'textbox' && selectedObject.type !== 'image' && !(selectedObject instanceof FabricImage) && !(selectedObject as any).isFreeformLine && (selectedObject.type !== 'group' || isShapeWithTextGroup(selectedObject)) && (
                 <div className="pt-3 border-t">
                   <h3 className="font-semibold text-sm mb-3">Shape Colors</h3>
                   <div className="space-y-3">
