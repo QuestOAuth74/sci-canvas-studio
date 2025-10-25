@@ -1494,11 +1494,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           break;
           
         case "zoom-callout-dotted": {
-          // Create circle (source/highlight area)
+          // Create small circle (source/highlight area)
           const circle = new Circle({
-            left: pointer.x - 40,
-            top: pointer.y - 40,
-            radius: 40,
+            left: pointer.x - 20,
+            top: pointer.y - 20,
+            radius: 20,
             fill: 'transparent',
             stroke: '#000000',
             strokeWidth: 2,
@@ -1517,16 +1517,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             strokeUniform: true,
           });
 
-          // Calculate connection points
-          const circleRight = pointer.x + 40;
-          const circleTopY = pointer.y - 20;
-          const circleBottomY = pointer.y + 20;
+          // Calculate connection points - simple straight lines
+          const circleRight = pointer.x + 20;
+          const circleTopY = pointer.y - 14;
+          const circleBottomY = pointer.y + 14;
 
           const rectLeft = pointer.x + 80;
           const rectTopY = pointer.y - 60;
           const rectBottomY = pointer.y + 60;
 
-          // Create dotted connector lines
+          // Create simple dotted connector lines (straight from circle to rectangle)
           const line1 = new Line(
             [circleRight, circleTopY, rectLeft, rectTopY],
             {
@@ -1553,7 +1553,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
           // Group all elements together
           const calloutGroup = new Group([circle, line1, line2, rect], {
-            left: pointer.x - 40,
+            left: pointer.x - 20,
             top: pointer.y - 60,
             selectable: true,
           });
@@ -1564,14 +1564,30 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
 
         case "zoom-callout-trapezoid": {
-          // Create circle (source/highlight area)
+          // Create small circle (source/highlight area)
           const circle = new Circle({
-            left: pointer.x - 40,
-            top: pointer.y - 40,
-            radius: 40,
+            left: pointer.x - 20,
+            top: pointer.y - 20,
+            radius: 20,
             fill: 'transparent',
             stroke: '#000000',
             strokeWidth: 2,
+            strokeUniform: true,
+          });
+
+          // Create convergence square (the funnel point)
+          const convergenceX = pointer.x + 50;
+          const convergenceY = pointer.y;
+          const convergenceSize = 8;
+          
+          const convergenceSquare = new Rect({
+            left: convergenceX - convergenceSize / 2,
+            top: convergenceY - convergenceSize / 2,
+            width: convergenceSize,
+            height: convergenceSize,
+            fill: 'transparent',
+            stroke: '#000000',
+            strokeWidth: 1,
             strokeUniform: true,
           });
 
@@ -1587,18 +1603,22 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             strokeUniform: true,
           });
 
-          // Calculate trapezoid connector points
-          const circleRight = pointer.x + 40;
-          const circleTopY = pointer.y - 28;
-          const circleBottomY = pointer.y + 28;
+          // Calculate connection points for funnel effect
+          const circleRight = pointer.x + 20;
+          const circleTopY = pointer.y - 14;
+          const circleBottomY = pointer.y + 14;
+
+          const convergenceTop = convergenceY - convergenceSize / 2;
+          const convergenceBottom = convergenceY + convergenceSize / 2;
 
           const rectLeft = pointer.x + 100;
           const rectTopY = pointer.y - 80;
           const rectBottomY = pointer.y + 80;
 
-          // Create trapezoid lines (dotted)
-          const topLine = new Line(
-            [circleRight, circleTopY, rectLeft, rectTopY],
+          // Create 4 dotted lines for trapezoid funnel effect
+          // Lines from circle to convergence square (narrowing)
+          const line1 = new Line(
+            [circleRight, circleTopY, convergenceX - convergenceSize / 2, convergenceTop],
             {
               stroke: '#000000',
               strokeWidth: 1.5,
@@ -1609,8 +1629,33 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             }
           );
 
-          const bottomLine = new Line(
-            [circleRight, circleBottomY, rectLeft, rectBottomY],
+          const line2 = new Line(
+            [circleRight, circleBottomY, convergenceX - convergenceSize / 2, convergenceBottom],
+            {
+              stroke: '#000000',
+              strokeWidth: 1.5,
+              strokeDashArray: [6, 6],
+              strokeUniform: true,
+              selectable: false,
+              evented: false,
+            }
+          );
+
+          // Lines from convergence square to rectangle (widening)
+          const line3 = new Line(
+            [convergenceX + convergenceSize / 2, convergenceTop, rectLeft, rectTopY],
+            {
+              stroke: '#000000',
+              strokeWidth: 1.5,
+              strokeDashArray: [6, 6],
+              strokeUniform: true,
+              selectable: false,
+              evented: false,
+            }
+          );
+
+          const line4 = new Line(
+            [convergenceX + convergenceSize / 2, convergenceBottom, rectLeft, rectBottomY],
             {
               stroke: '#000000',
               strokeWidth: 1.5,
@@ -1622,8 +1667,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           );
 
           // Group all elements together
-          const calloutGroup = new Group([circle, topLine, bottomLine, rect], {
-            left: pointer.x - 40,
+          const calloutGroup = new Group([circle, line1, line2, convergenceSquare, line3, line4, rect], {
+            left: pointer.x - 20,
             top: pointer.y - 80,
             selectable: true,
           });
