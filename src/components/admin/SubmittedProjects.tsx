@@ -9,6 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@/components/ui/pagination';
 
 interface Project {
   id: string;
@@ -35,16 +44,37 @@ export function SubmittedProjects() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [totalProjects, setTotalProjects] = useState(0);
 
   const loadProjects = async () => {
     setLoading(true);
     try {
+      // Get total count for pagination
+      const { count, error: countError } = await supabase
+        .from('canvas_projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_public', true)
+        .eq('approval_status', activeTab);
+
+      if (countError) throw countError;
+      setTotalProjects(count || 0);
+
+      // Calculate pagination range
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+
+      // Fetch paginated data
       const { data, error } = await supabase
         .from('canvas_projects')
         .select('*')
         .eq('is_public', true)
         .eq('approval_status', activeTab)
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
       setProjects(data || []);
@@ -57,8 +87,13 @@ export function SubmittedProjects() {
   };
 
   useEffect(() => {
+    setCurrentPage(1);
     loadProjects();
   }, [activeTab]);
+
+  useEffect(() => {
+    loadProjects();
+  }, [currentPage]);
 
   const handleApprove = async (projectId: string) => {
     setActionLoading(true);
@@ -96,6 +131,7 @@ export function SubmittedProjects() {
       
       console.log('After approval:', data);
       toast.success('Project approved and now visible in community');
+      setCurrentPage(1);
       loadProjects();
     } catch (error: any) {
       console.error('Error approving project:', error);
@@ -127,6 +163,7 @@ export function SubmittedProjects() {
       setShowRejectDialog(false);
       setSelectedProject(null);
       setRejectionReason('');
+      setCurrentPage(1);
       loadProjects();
     } catch (error: any) {
       console.error('Error rejecting project:', error);
@@ -309,6 +346,69 @@ export function SubmittedProjects() {
                       </CardContent>
                     </Card>
                   ))}
+
+                  {/* Pagination */}
+                  {!loading && projects.length > 0 && (
+                    <div className="mt-6 space-y-4">
+                      {/* Results summary */}
+                      <div className="text-sm text-muted-foreground text-center">
+                        Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalProjects)}-{Math.min(currentPage * itemsPerPage, totalProjects)} of {totalProjects} projects
+                      </div>
+
+                      {/* Pagination controls */}
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+
+                          {/* Page numbers */}
+                          {Array.from({ length: Math.ceil(totalProjects / itemsPerPage) }, (_, i) => i + 1).map((page) => {
+                            const totalPages = Math.ceil(totalProjects / itemsPerPage);
+                            // Show first page, last page, current page, and pages around current
+                            const showPage = 
+                              page === 1 || 
+                              page === totalPages || 
+                              (page >= currentPage - 1 && page <= currentPage + 1);
+
+                            if (!showPage) {
+                              // Show ellipsis for gaps
+                              if (page === currentPage - 2 || page === currentPage + 2) {
+                                return (
+                                  <PaginationItem key={page}>
+                                    <PaginationEllipsis />
+                                  </PaginationItem>
+                                );
+                              }
+                              return null;
+                            }
+
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(page)}
+                                  isActive={currentPage === page}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          })}
+
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() => setCurrentPage(p => Math.min(Math.ceil(totalProjects / itemsPerPage), p + 1))}
+                              className={currentPage === Math.ceil(totalProjects / itemsPerPage) ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>
