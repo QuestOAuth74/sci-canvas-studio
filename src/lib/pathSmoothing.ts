@@ -257,54 +257,171 @@ export function pointsToPathData(points: Point[], tension: number = 1.0): any[] 
   return pathData;
 }
 
+// Segment classification for beautification
+interface Segment {
+  type: 'line' | 'curve';
+  startIndex: number;
+  endIndex: number;
+  points: Point[];
+}
+
+/**
+ * Calculate straightness of a segment using perpendicular distance from best-fit line
+ */
+function calculateStraightness(points: Point[]): number {
+  if (points.length < 3) return 1.0; // Too few points - assume straight
+  
+  const start = points[0];
+  const end = points[points.length - 1];
+  
+  // Calculate line of best fit (from start to end)
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lineLength = Math.sqrt(dx * dx + dy * dy);
+  
+  if (lineLength < 0.1) return 1.0; // Degenerate line
+  
+  // Calculate maximum perpendicular distance
+  let maxDistance = 0;
+  for (let i = 1; i < points.length - 1; i++) {
+    const point = points[i];
+    // Calculate perpendicular distance from point to line
+    const distance = Math.abs((dy * point.x - dx * point.y + end.x * start.y - end.y * start.x) / lineLength);
+    maxDistance = Math.max(maxDistance, distance);
+  }
+  
+  return maxDistance;
+}
+
+/**
+ * Detect straight segments in the path
+ */
+function detectStraightSegments(points: Point[], threshold: number): Segment[] {
+  if (points.length < 3) {
+    return [{ type: 'line', startIndex: 0, endIndex: points.length - 1, points }];
+  }
+  
+  const segments: Segment[] = [];
+  const windowSize = Math.min(15, Math.floor(points.length / 3)); // Adaptive window size
+  let currentSegmentStart = 0;
+  let currentType: 'line' | 'curve' = 'line';
+  
+  for (let i = 0; i < points.length; i++) {
+    const end = Math.min(i + windowSize, points.length);
+    const window = points.slice(i, end);
+    const straightness = calculateStraightness(window);
+    const isStraight = straightness < threshold;
+    
+    // Detect type change
+    if ((isStraight && currentType === 'curve') || (!isStraight && currentType === 'line')) {
+      // Save current segment
+      if (i > currentSegmentStart) {
+        segments.push({
+          type: currentType,
+          startIndex: currentSegmentStart,
+          endIndex: i,
+          points: points.slice(currentSegmentStart, i + 1)
+        });
+      }
+      currentSegmentStart = i;
+      currentType = isStraight ? 'line' : 'curve';
+    }
+  }
+  
+  // Add final segment
+  segments.push({
+    type: currentType,
+    startIndex: currentSegmentStart,
+    endIndex: points.length - 1,
+    points: points.slice(currentSegmentStart)
+  });
+  
+  return segments;
+}
+
+/**
+ * Beautify path: straighten near-straight segments, smooth curves
+ */
+export function beautifyPath(points: Point[], strength: number): any[] {
+  if (points.length < 2) {
+    return [['M', points[0]?.x || 0, points[0]?.y || 0]];
+  }
+  
+  // Map strength (0-100) to parameters
+  let straightnessThreshold = 10;
+  let curveTension = 1.0;
+  
+  if (strength < 33) {
+    // Light beautification
+    straightnessThreshold = 5;
+    curveTension = 0.8;
+  } else if (strength < 67) {
+    // Medium beautification
+    straightnessThreshold = 10;
+    curveTension = 1.0;
+  } else {
+    // Heavy beautification
+    straightnessThreshold = 15;
+    curveTension = 1.2;
+  }
+  
+  // Simplify first to remove noise
+  const simplified = simplifyPath(points, Math.max(1, straightnessThreshold / 5));
+  
+  // Detect segments
+  const segments = detectStraightSegments(simplified, straightnessThreshold);
+  
+  // Reconstruct path
+  const pathData: any[] = [];
+  
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i];
+    
+    if (i === 0) {
+      // Start with M command
+      pathData.push(['M', segment.points[0].x, segment.points[0].y]);
+    }
+    
+    if (segment.type === 'line') {
+      // Draw straight line to end
+      const end = segment.points[segment.points.length - 1];
+      pathData.push(['L', end.x, end.y]);
+    } else {
+      // Draw smooth curve
+      const curvePoints = segment.points;
+      
+      // Apply light Chaikin smoothing for curve regularization
+      const smoothed = chaikinSmooth(curvePoints, 1);
+      
+      // Convert to Catmull-Rom curves
+      const curveData = pointsToPathData(smoothed, curveTension);
+      
+      // Skip the 'M' command and add the rest
+      for (let j = 1; j < curveData.length; j++) {
+        pathData.push(curveData[j]);
+      }
+    }
+  }
+  
+  return pathData;
+}
+
 /**
  * Main smoothing function for Fabric.js Path objects
  */
 export function smoothFabricPath(path: Path, strength: number): void {
-  // Extract current path points with curve sampling
+  // Extract points from the path
   const points = extractPathPoints(path);
   
-  if (points.length < 3) {
-    // Too few points to smooth
+  if (points.length < 2) {
+    console.warn('Not enough points to beautify');
     return;
   }
-  
-  // Map strength (0-100) to smoothing parameters
-  let simplifyTolerance = 0;
-  let chaikinIterations = 0;
-  let catmullTension = 1.0;
-  
-  if (strength <= 33) {
-    // Light smoothing
-    simplifyTolerance = 0; // No simplification
-    chaikinIterations = 0;
-    catmullTension = 0.8; // Tighter curves
-  } else if (strength <= 66) {
-    // Medium smoothing
-    simplifyTolerance = 1.5;
-    chaikinIterations = 1;
-    catmullTension = 1.0; // Medium curves
-  } else {
-    // Heavy smoothing
-    simplifyTolerance = 2.5;
-    chaikinIterations = 2;
-    catmullTension = 1.2; // Looser curves
-  }
-  
-  // Simplify path if tolerance > 0
-  let smoothedPoints = simplifyTolerance > 0 
-    ? simplifyPath(points, simplifyTolerance)
-    : points;
-  
-  // Apply Chaikin smoothing if iterations > 0
-  if (chaikinIterations > 0) {
-    smoothedPoints = chaikinSmooth(smoothedPoints, chaikinIterations);
-  }
-  
-  // Convert to smooth Catmull-Rom path
-  const newPathData = pointsToPathData(smoothedPoints, catmullTension);
-  
+
+  // Use beautification algorithm
+  const newPathData = beautifyPath(points, strength);
+
   // Update the path
-  path.path = newPathData;
+  path.path = newPathData as any;
   path.setCoords();
 }

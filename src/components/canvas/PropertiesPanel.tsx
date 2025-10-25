@@ -893,10 +893,10 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                         onClick={() => smoothenPath(smoothingStrength)}
                         className="w-full text-xs h-8"
                       >
-                        Smoothen Path
+                        Beautify Path
                       </Button>
                       <p className="text-xs text-muted-foreground">
-                        Apply smoothing to reduce jagged edges and create natural curves
+                        Straighten lines and smooth curves for professional results
                       </p>
                     </div>
 
