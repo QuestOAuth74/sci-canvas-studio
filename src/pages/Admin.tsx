@@ -66,6 +66,9 @@ const Admin = () => {
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('submitted-projects')?.scrollIntoView({ behavior: 'smooth' })}>
               Submitted Projects
             </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/blog')}>
+              Blog Management
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('testimonials')?.scrollIntoView({ behavior: 'smooth' })}>
               Testimonials
             </Button>

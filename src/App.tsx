@@ -22,6 +22,9 @@ import NotFound from "./pages/NotFound";
 import Share from "./pages/Share";
 import Analytics from "./pages/Analytics";
 import EmailNotifications from "./pages/EmailNotifications";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import BlogManagement from "./pages/admin/BlogManagement";
 
 const queryClient = new QueryClient();
 
@@ -45,9 +48,12 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/share" element={<Share />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="/admin/analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
             <Route path="/admin/email-notifications" element={<AdminRoute><EmailNotifications /></AdminRoute>} />
+            <Route path="/admin/blog" element={<AdminRoute><BlogManagement /></AdminRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
