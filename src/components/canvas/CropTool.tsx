@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Canvas as FabricCanvas, FabricImage, Rect } from "fabric";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, X, Square, Circle } from "lucide-react";
+import { Toggle } from "@/components/ui/toggle";
 
 interface CropToolProps {
   canvas: FabricCanvas;
   selectedImage: FabricImage;
-  onApply: (cropRect: { left: number; top: number; width: number; height: number }) => void;
+  onApply: (cropRect: { left: number; top: number; width: number; height: number }, isCircular: boolean) => void;
   onCancel: () => void;
 }
 
@@ -17,6 +18,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageBounds, setImageBounds] = useState({ left: 0, top: 0, width: 0, height: 0 });
+  const [isCircular, setIsCircular] = useState(false);
 
   // Initialize crop rectangle to match image bounds
   useEffect(() => {
@@ -168,7 +170,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
       height: cropRect.height / zoom
     };
 
-    onApply(canvasCropRect);
+    onApply(canvasCropRect, isCircular);
   };
 
   const dimensions = `${Math.round(cropRect.width / canvas.getZoom())} × ${Math.round(cropRect.height / canvas.getZoom())} px`;
@@ -186,6 +188,24 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
       <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-50">
         <div className="glass-effect px-4 py-2 rounded-lg text-sm font-medium">
           Crop Image: {dimensions}
+        </div>
+        <div className="glass-effect p-1 rounded-lg flex gap-1">
+          <Toggle
+            pressed={!isCircular}
+            onPressedChange={() => setIsCircular(false)}
+            size="sm"
+            aria-label="Rectangle crop"
+          >
+            <Square className="h-4 w-4" />
+          </Toggle>
+          <Toggle
+            pressed={isCircular}
+            onPressedChange={() => setIsCircular(true)}
+            size="sm"
+            aria-label="Circle crop"
+          >
+            <Circle className="h-4 w-4" />
+          </Toggle>
         </div>
         <Button
           onClick={handleApply}
@@ -215,7 +235,8 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
           width: cropRect.width,
           height: cropRect.height,
           boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
-          cursor: 'move'
+          cursor: 'move',
+          borderRadius: isCircular ? '50%' : '0'
         }}
         onMouseDown={(e) => handleMouseDown(e)}
       >

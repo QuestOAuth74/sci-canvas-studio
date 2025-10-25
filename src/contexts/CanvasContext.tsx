@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -93,7 +93,7 @@ interface CanvasContextType {
   // Crop operations
   cropMode: boolean;
   setCropMode: (mode: boolean) => void;
-  cropImage: (cropRect: { left: number; top: number; width: number; height: number }) => void;
+  cropImage: (cropRect: { left: number; top: number; width: number; height: number }, isCircular?: boolean) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -654,17 +654,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   }, [canvas]);
 
   // Crop operation
-  const cropImage = useCallback((cropRect: { left: number; top: number; width: number; height: number }) => {
+  const cropImage = useCallback((cropRect: { left: number; top: number; width: number; height: number }, isCircular: boolean = false) => {
     if (!canvas || !selectedObject || selectedObject.type !== 'image') return;
 
     const image = selectedObject as any;
     
-    // Calculate crop coordinates relative to the original image
+    // Get the image's current properties
     const imgLeft = image.left || 0;
     const imgTop = image.top || 0;
     const scaleX = image.scaleX || 1;
     const scaleY = image.scaleY || 1;
+    const angle = image.angle || 0;
 
+    // Calculate crop area relative to the image's coordinate system
+    // We need to convert from canvas coordinates to image-local coordinates
     const cropInImageCoords = {
       left: (cropRect.left - imgLeft) / scaleX,
       top: (cropRect.top - imgTop) / scaleY,
@@ -673,26 +676,38 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     };
 
     // Create clipPath for non-destructive cropping
-    const clipPath = new Rect({
-      left: cropInImageCoords.left,
-      top: cropInImageCoords.top,
-      width: cropInImageCoords.width,
-      height: cropInImageCoords.height,
-      absolutePositioned: true
-    });
+    let clipPath;
+    if (isCircular) {
+      // For circular crop, use the center and radius
+      const radius = Math.min(cropInImageCoords.width, cropInImageCoords.height) / 2;
+      clipPath = new Circle({
+        left: cropInImageCoords.left + cropInImageCoords.width / 2,
+        top: cropInImageCoords.top + cropInImageCoords.height / 2,
+        radius: radius,
+        originX: 'center',
+        originY: 'center'
+      });
+    } else {
+      // For rectangular crop
+      clipPath = new Rect({
+        left: cropInImageCoords.left,
+        top: cropInImageCoords.top,
+        width: cropInImageCoords.width,
+        height: cropInImageCoords.height,
+        originX: 'left',
+        originY: 'top'
+      });
+    }
 
-    image.clipPath = clipPath;
-    
-    // Update image position to match crop area
+    // Apply the clipPath to the image
     image.set({
-      left: cropRect.left,
-      top: cropRect.top
+      clipPath: clipPath
     });
 
     canvas.renderAll();
     saveState();
     setCropMode(false);
-    toast.success("Image cropped");
+    toast.success(isCircular ? "Image cropped (circular)" : "Image cropped (rectangular)");
   }, [canvas, selectedObject, saveState]);
 
   // Project save/load operations
