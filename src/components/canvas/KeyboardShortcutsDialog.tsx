@@ -53,6 +53,15 @@ export const KeyboardShortcutsDialog = ({
       ],
     },
     {
+      category: "Object Movement",
+      items: [
+        { keys: ["Shift", "↑"], description: "Nudge object up" },
+        { keys: ["Shift", "↓"], description: "Nudge object down" },
+        { keys: ["Shift", "←"], description: "Nudge object left" },
+        { keys: ["Shift", "→"], description: "Nudge object right" },
+      ],
+    },
+    {
       category: "Tools (Single Key)",
       items: [
         { keys: ["S"], description: "Select tool" },

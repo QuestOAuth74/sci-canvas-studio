@@ -65,6 +65,7 @@ const CanvasContent = () => {
     cropMode,
     setCropMode,
     cropImage,
+    nudgeObject,
   } = useCanvas();
 
   // Load project if projectId is in URL
@@ -216,12 +217,27 @@ const CanvasContent = () => {
       } else if (e.key === 'Enter' && cropMode && !isEditingText) {
         e.preventDefault();
         // Crop will be applied via CropTool's Apply button
+      } else if (e.shiftKey && !modifier && !isEditingText) {
+        // Shift+Arrow nudging for precise object movement
+        if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          nudgeObject('up');
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          nudgeObject('down');
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          nudgeObject('left');
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          nudgeObject('right');
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode]);
+  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject]);
 
   return (
       <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">

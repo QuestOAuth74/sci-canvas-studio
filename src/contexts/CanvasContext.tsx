@@ -102,6 +102,9 @@ interface CanvasContextType {
   
   // Path smoothing
   smoothenPath: (strength: number) => void;
+  
+  // Nudge operations
+  nudgeObject: (direction: 'up' | 'down' | 'left' | 'right', amount?: number) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -822,6 +825,48 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas, selectedObject, saveState]);
 
+  // Nudge operation for precise object movement
+  const nudgeObject = useCallback((direction: 'up' | 'down' | 'left' | 'right', amount: number = 1) => {
+    if (!canvas) return;
+    
+    const activeObject = canvas.getActiveObject();
+    if (!activeObject) return;
+
+    // Get current position
+    const currentLeft = activeObject.left || 0;
+    const currentTop = activeObject.top || 0;
+
+    // Calculate new position based on direction
+    let newLeft = currentLeft;
+    let newTop = currentTop;
+
+    switch (direction) {
+      case 'up':
+        newTop = currentTop - amount;
+        break;
+      case 'down':
+        newTop = currentTop + amount;
+        break;
+      case 'left':
+        newLeft = currentLeft - amount;
+        break;
+      case 'right':
+        newLeft = currentLeft + amount;
+        break;
+    }
+
+    // Update object position
+    activeObject.set({
+      left: newLeft,
+      top: newTop
+    });
+
+    // Update coordinates and render
+    activeObject.setCoords();
+    canvas.renderAll();
+    saveState();
+  }, [canvas, saveState]);
+
   // Project save/load operations
   const saveProject = useCallback(async () => {
     if (!canvas || !user) {
@@ -1028,6 +1073,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setCropMode,
     cropImage,
     smoothenPath,
+    nudgeObject,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;
