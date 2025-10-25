@@ -1149,6 +1149,102 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
       const pointer = canvas.getPointer(e.e);
       
+      // Handle shapes with text
+      if (activeTool.endsWith('-with-text')) {
+        let bgShape;
+        let textWidth = 100;
+        
+        switch (activeTool) {
+          case "circle-with-text": {
+            bgShape = new Circle({
+              radius: 60,
+              fill: "#3b82f6",
+              stroke: "#000000",
+              strokeWidth: 2,
+              strokeUniform: true,
+              originX: 'center',
+              originY: 'center',
+            });
+            textWidth = 100;
+            break;
+          }
+          
+          case "rectangle-with-text": {
+            bgShape = new Rect({
+              width: 120,
+              height: 80,
+              fill: "#3b82f6",
+              stroke: "#000000",
+              strokeWidth: 2,
+              strokeUniform: true,
+              originX: 'center',
+              originY: 'center',
+            });
+            textWidth = 100;
+            break;
+          }
+          
+          case "rounded-rect-with-text": {
+            bgShape = new Rect({
+              width: 120,
+              height: 80,
+              rx: 10,
+              ry: 10,
+              fill: "#3b82f6",
+              stroke: "#000000",
+              strokeWidth: 2,
+              strokeUniform: true,
+              originX: 'center',
+              originY: 'center',
+            });
+            textWidth = 100;
+            break;
+          }
+          
+          case "square-with-text": {
+            bgShape = new Rect({
+              width: 100,
+              height: 100,
+              fill: "#3b82f6",
+              stroke: "#000000",
+              strokeWidth: 2,
+              strokeUniform: true,
+              originX: 'center',
+              originY: 'center',
+            });
+            textWidth = 80;
+            break;
+          }
+        }
+        
+        if (bgShape) {
+          const shapeText = new Textbox("Text", {
+            fontSize: 18,
+            fill: "#ffffff",
+            textAlign: "center",
+            originX: 'center',
+            originY: 'center',
+            width: textWidth,
+            fontFamily: textFont,
+          });
+          
+          const group = new Group([bgShape, shapeText], {
+            left: pointer.x,
+            top: pointer.y,
+            originX: 'center',
+            originY: 'center',
+            subTargetCheck: true,
+          });
+          
+          canvas.add(group);
+          canvas.setActiveObject(group);
+          canvas.requestRenderAll();
+          if (onShapeCreated) onShapeCreated();
+          toast.success("Shape with text created! Double-click to edit text.");
+        }
+        return;
+      }
+      
       // Handle connector tools
       if (activeTool.startsWith('connector-') || activeTool.startsWith('line-')) {
         if (!connectorState.isDrawing) {

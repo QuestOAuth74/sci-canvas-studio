@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ShapesDropdown } from "./ShapesDropdown";
+import { ShapesWithTextDropdown } from "./ShapesWithTextDropdown";
 import { ConnectorTool } from "./ConnectorTool";
 import { StraightLineTool } from "./StraightLineTool";
 import { OrthogonalLineTool } from "./OrthogonalLineTool";
@@ -74,6 +75,17 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Shapes</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <ShapesWithTextDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Labeled Shapes</p>
         </TooltipContent>
       </Tooltip>
       
