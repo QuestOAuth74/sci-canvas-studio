@@ -22,6 +22,8 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  Quote,
+  Table2,
 } from "lucide-react";
 import { MediaUploader } from "./MediaUploader";
 import { useState } from "react";
@@ -35,6 +37,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface EditorToolbarProps {
   editor: Editor;
@@ -151,6 +160,17 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
 
         <Separator orientation="vertical" className="h-6" />
 
+        {/* Quote */}
+        <Button
+          variant={editor.isActive("blockquote") ? "secondary" : "ghost"}
+          size="sm"
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+        >
+          <Quote className="h-4 w-4" />
+        </Button>
+
+        <Separator orientation="vertical" className="h-6" />
+
         {/* Alignment */}
         <Button
           variant={editor.isActive({ textAlign: "left" }) ? "secondary" : "ghost"}
@@ -255,6 +275,78 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
         >
           <Minus className="h-4 w-4" />
         </Button>
+
+        <Separator orientation="vertical" className="h-6" />
+
+        {/* Table */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+            >
+              <Table2 className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            <DropdownMenuItem
+              onClick={() =>
+                editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+              }
+            >
+              Insert Table (3x3)
+            </DropdownMenuItem>
+            {editor.isActive("table") && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().addColumnBefore().run()}
+                >
+                  Add Column Before
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().addColumnAfter().run()}
+                >
+                  Add Column After
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().deleteColumn().run()}
+                >
+                  Delete Column
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().addRowBefore().run()}
+                >
+                  Add Row Before
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().addRowAfter().run()}
+                >
+                  Add Row After
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().deleteRow().run()}
+                >
+                  Delete Row
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+                >
+                  Toggle Header Row
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => editor.chain().focus().deleteTable().run()}
+                  className="text-destructive"
+                >
+                  Delete Table
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <Separator orientation="vertical" className="h-6" />
 

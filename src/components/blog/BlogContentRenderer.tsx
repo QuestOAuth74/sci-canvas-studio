@@ -107,6 +107,48 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
       case 'horizontalRule':
         return <hr key={index} className="my-8 border-border" />;
 
+      case 'table':
+        return (
+          <div key={index} className="overflow-x-auto my-6">
+            <table className="border-collapse table-auto w-full">
+              <tbody>
+                {node.content?.map((child: any, i: number) => renderNode(child, i))}
+              </tbody>
+            </table>
+          </div>
+        );
+
+      case 'tableRow':
+        const isEvenRow = index % 2 === 0;
+        return (
+          <tr 
+            key={index} 
+            className={isEvenRow ? "bg-muted/50" : "bg-background"}
+          >
+            {node.content?.map((child: any, i: number) => renderNode(child, i))}
+          </tr>
+        );
+
+      case 'tableHeader':
+        return (
+          <th 
+            key={index} 
+            className="border border-border px-4 py-2 text-left font-bold bg-muted"
+          >
+            {node.content?.map((child: any, i: number) => renderNode(child, i))}
+          </th>
+        );
+
+      case 'tableCell':
+        return (
+          <td 
+            key={index} 
+            className="border border-border px-4 py-2"
+          >
+            {node.content?.map((child: any, i: number) => renderNode(child, i))}
+          </td>
+        );
+
       default:
         return null;
     }

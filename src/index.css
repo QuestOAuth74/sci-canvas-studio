@@ -531,3 +531,54 @@ All colors MUST be HSL.
     @apply text-2xl md:text-3xl;
   }
 }
+
+/* Tiptap Table Styles */
+.ProseMirror table {
+  border-collapse: collapse;
+  table-layout: auto;
+  width: 100%;
+  margin: 1.5rem 0;
+  overflow: hidden;
+}
+
+.ProseMirror table td,
+.ProseMirror table th {
+  min-width: 1em;
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem 1rem;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.ProseMirror table th {
+  font-weight: bold;
+  text-align: left;
+  background-color: hsl(var(--muted));
+}
+
+/* Striped rows */
+.ProseMirror table tbody tr:nth-child(even) td {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+/* Selected cell highlight */
+.ProseMirror .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: hsl(var(--primary) / 0.1);
+  pointer-events: none;
+}
+
+/* Column resize handle */
+.ProseMirror .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: hsl(var(--primary));
+  pointer-events: none;
+}

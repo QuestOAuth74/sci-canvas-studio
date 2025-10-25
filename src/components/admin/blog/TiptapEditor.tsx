@@ -9,6 +9,10 @@ import TextStyle from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import Heading from "@tiptap/extension-heading";
 import Youtube from "@tiptap/extension-youtube";
+import Table from "@tiptap/extension-table";
+import TableRow from "@tiptap/extension-table-row";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
 import { EditorToolbar } from "./EditorToolbar";
 import { BlogContentRenderer } from "@/components/blog/BlogContentRenderer";
 import { Input } from "@/components/ui/input";
@@ -60,6 +64,27 @@ export const TiptapEditor = ({
       Youtube.configure({
         controls: true,
         nocookie: true,
+      }),
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: "border-collapse table-auto w-full my-6",
+        },
+      }),
+      TableRow.configure({
+        HTMLAttributes: {
+          class: "border-b",
+        },
+      }),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: "border border-border px-4 py-2 text-left font-bold bg-muted",
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: "border border-border px-4 py-2",
+        },
       }),
     ],
     content: content || "",
