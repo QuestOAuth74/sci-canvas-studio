@@ -194,47 +194,88 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas, saveState]);
 
-  const copy = useCallback(() => {
+  // Helper function to properly deep clone Fabric objects
+  const deepCloneObject = async (obj: FabricObject): Promise<FabricObject> => {
+    const cloned = await obj.clone();
+    
+    // For Images, ensure the src is preserved
+    if (obj.type === 'image' && (obj as any)._element) {
+      const imgElement = (obj as any)._element;
+      if (imgElement && imgElement.src) {
+        (cloned as any)._element = imgElement;
+        (cloned as any).setSrc = (obj as any).setSrc;
+      }
+    }
+    
+    // For Groups, verify nested objects are cloned
+    if (obj.type === 'group' && (obj as any)._objects) {
+      const groupCloned = cloned as Group;
+      
+      if (groupCloned._objects && groupCloned._objects.length === 0) {
+        throw new Error('Group cloning failed - no objects in cloned group');
+      }
+    }
+    
+    return cloned;
+  };
+
+  const copy = useCallback(async () => {
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
-    if (activeObject) {
+    if (!activeObject) return;
+    
+    try {
       // Handle ActiveSelection (multiple objects selected)
       if (activeObject.type === 'activeSelection') {
         const selection = activeObject as ActiveSelection;
         const objects = selection.getObjects();
         
-        // Clone all objects in the selection
-        Promise.all(objects.map(obj => obj.clone())).then((clonedObjects) => {
-          // Store as a simple array wrapped in an object for identification
-          setClipboard({ 
-            type: 'multiple', 
-            objects: clonedObjects 
-          } as any);
-        });
+        // Clone all objects in the selection using deep clone
+        const clonedObjects = await Promise.all(
+          objects.map(obj => deepCloneObject(obj))
+        );
+        
+        // Store as multiple objects
+        setClipboard({ 
+          type: 'multiple', 
+          objects: clonedObjects 
+        } as any);
+        
+        console.log('Copied multiple objects:', clonedObjects.length);
       } else {
-        // Handle single object
-        activeObject.clone().then((cloned: FabricObject) => {
-          setClipboard(cloned);
-        });
+        // Handle single object with deep clone
+        const cloned = await deepCloneObject(activeObject);
+        setClipboard(cloned);
+        console.log('Copied single object:', cloned.type);
       }
+    } catch (error) {
+      console.error('Error copying object:', error);
+      toast.error('Failed to copy object');
     }
   }, [canvas]);
 
-  const paste = useCallback(() => {
+  const paste = useCallback(async () => {
     if (!canvas || !clipboard) return;
     
-    // Check if clipboard contains multiple objects
-    if ((clipboard as any).type === 'multiple') {
-      const objects = (clipboard as any).objects;
-      const pastedObjects: FabricObject[] = [];
-      
-      // Clone and add each object with offset
-      Promise.all(objects.map((obj: FabricObject) => obj.clone())).then((clonedObjects) => {
+    try {
+      // Check if clipboard contains multiple objects
+      if ((clipboard as any).type === 'multiple') {
+        const objects = (clipboard as any).objects;
+        
+        // Clone each object again for pasting (so multiple pastes work)
+        const clonedObjects = await Promise.all(
+          objects.map((obj: FabricObject) => deepCloneObject(obj))
+        );
+        
+        const pastedObjects: FabricObject[] = [];
+        
+        // Add each cloned object with offset
         clonedObjects.forEach((cloned: FabricObject) => {
           cloned.set({
             left: (cloned.left || 0) + 10,
             top: (cloned.top || 0) + 10,
           });
+          cloned.setCoords();
           canvas.add(cloned);
           pastedObjects.push(cloned);
         });
@@ -249,19 +290,27 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         
         canvas.requestRenderAll();
         saveState();
-      });
-    } else {
-      // Handle single object paste (existing logic)
-      (clipboard as FabricObject).clone().then((cloned: FabricObject) => {
+        
+        console.log('Pasted multiple objects:', pastedObjects.length);
+      } else {
+        // Handle single object paste
+        const cloned = await deepCloneObject(clipboard as FabricObject);
+        
         cloned.set({
           left: (cloned.left || 0) + 10,
           top: (cloned.top || 0) + 10,
         });
+        cloned.setCoords();
         canvas.add(cloned);
         canvas.setActiveObject(cloned);
         canvas.requestRenderAll();
         saveState();
-      });
+        
+        console.log('Pasted single object:', cloned.type);
+      }
+    } catch (error) {
+      console.error('Error pasting object:', error);
+      toast.error('Failed to paste object');
     }
   }, [canvas, clipboard, saveState]);
 
