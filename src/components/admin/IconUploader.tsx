@@ -10,6 +10,7 @@ import { Upload, FileArchive, AlertTriangle, CheckCircle, Info } from "lucide-re
 import JSZip from "jszip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Progress } from "@/components/ui/progress";
 
 interface Category {
   id: string;
@@ -43,6 +44,9 @@ export const IconUploader = () => {
   const [validationWarning, setValidationWarning] = useState<string>("");
   const [debugInfo, setDebugInfo] = useState<string>("");
   const [showDebug, setShowDebug] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [totalToUpload, setTotalToUpload] = useState(0);
+  const [failedUploads, setFailedUploads] = useState<string[]>([]);
 
   useEffect(() => {
     loadCategories();
@@ -448,52 +452,86 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
+    setFailedUploads([]);
     
     try {
       const zip = new JSZip();
       const zipContent = await zip.loadAsync(zipFile);
       let uploadedCount = 0;
-      let needThumbnails = 0;
+      const failedIcons: string[] = [];
 
       const svgFiles = Object.keys(zipContent.files).filter(
         (filename) => filename.toLowerCase().endsWith('.svg') && !filename.startsWith('__MACOSX')
       );
 
-      for (const filename of svgFiles) {
-        const file = zipContent.files[filename];
-        if (!file.dir) {
-          const content = await file.async('text');
-          
-          // Sanitize and validate SVG (case-insensitive)
-          const sanitized = content.replace(/<!DOCTYPE[\s\S]*?>/gi, '');
-          const lower = sanitized.toLowerCase();
-          if (!lower.includes('<svg')) {
-            console.warn('Skipping invalid SVG:', filename);
-            continue;
-          }
-          
-          const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
-          const iconName = sanitizeFileName(rawName);
-          const thumbnail = generateThumbnail(sanitized);
-          
-          const { error } = await supabase
-            .from('icons')
-            .insert([{
-              name: iconName,
-              category: selectedCategory,
-              svg_content: sanitized,
-              thumbnail: thumbnail || sanitized // Use original if optimization fails
-            }]);
+      setTotalToUpload(svgFiles.length);
 
-          if (!error) {
-            uploadedCount++;
-          } else {
-            console.error('Failed to upload:', iconName, error);
-          }
-        }
+      // Process icons in batches for better performance
+      const BATCH_SIZE = 10;
+      const batches: string[][] = [];
+      
+      for (let i = 0; i < svgFiles.length; i += BATCH_SIZE) {
+        batches.push(svgFiles.slice(i, i + BATCH_SIZE));
       }
 
-      toast.success(`Successfully uploaded ${uploadedCount} icons!`);
+      // Process each batch sequentially, but items within batch in parallel
+      for (const batch of batches) {
+        await Promise.all(
+          batch.map(async (filename) => {
+            const file = zipContent.files[filename];
+            if (file.dir) return;
+
+            try {
+              const content = await file.async('text');
+              
+              // Sanitize and validate SVG (case-insensitive)
+              const sanitized = content.replace(/<!DOCTYPE[\s\S]*?>/gi, '');
+              const lower = sanitized.toLowerCase();
+              if (!lower.includes('<svg')) {
+                console.warn('Skipping invalid SVG:', filename);
+                failedIcons.push(filename);
+                return;
+              }
+              
+              const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
+              const iconName = sanitizeFileName(rawName);
+              const thumbnail = generateThumbnail(sanitized);
+              
+              const { error } = await supabase
+                .from('icons')
+                .insert([{
+                  name: iconName,
+                  category: selectedCategory,
+                  svg_content: sanitized,
+                  thumbnail: thumbnail || sanitized
+                }]);
+
+              if (!error) {
+                uploadedCount++;
+              } else {
+                console.error('Failed to upload:', iconName, error);
+                failedIcons.push(iconName);
+              }
+            } catch (error) {
+              console.error('Error processing:', filename, error);
+              failedIcons.push(filename);
+            }
+          })
+        );
+
+        // Update progress after each batch
+        setUploadProgress((prev) => prev + batch.length);
+      }
+
+      // Show results
+      if (failedIcons.length > 0) {
+        toast.warning(`Uploaded ${uploadedCount} icons. Failed: ${failedIcons.length}`);
+        setFailedUploads(failedIcons);
+      } else {
+        toast.success(`Successfully uploaded ${uploadedCount} icons!`);
+      }
+
       setZipFile(null);
       setSelectedCategory("");
     } catch (error) {
@@ -665,6 +703,30 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
               onChange={handleZipFileChange}
             />
           </div>
+
+          {isUploading && totalToUpload > 0 && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Uploading icons...</span>
+                <span>{uploadProgress} / {totalToUpload}</span>
+              </div>
+              <Progress value={(uploadProgress / totalToUpload) * 100} />
+            </div>
+          )}
+
+          {failedUploads.length > 0 && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                <p className="font-semibold">Some icons failed to upload:</p>
+                <ul className="text-xs mt-2 max-h-20 overflow-y-auto">
+                  {failedUploads.map((name, i) => (
+                    <li key={i}>• {name}</li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <Button 
             onClick={handleZipUpload} 
