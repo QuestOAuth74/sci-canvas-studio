@@ -33,19 +33,24 @@ export class ElbowLineTool {
     this.isDrawing = true;
     this.startPoint = null;
     
-    // Store original selectable/evented state of all objects
+    // Store original states and disable interaction
     this.canvas.getObjects().forEach((obj: any) => {
       if (obj._originalSelectable === undefined) {
         obj._originalSelectable = obj.selectable;
         obj._originalEvented = obj.evented;
+        obj._originalHoverCursor = obj.hoverCursor;
       }
       obj.selectable = false;
       obj.evented = false;
+      obj.hoverCursor = 'crosshair';
     });
     
-    // Disable canvas selection
+    // Disable canvas selection and make selection box invisible
     this.canvas.selection = false;
+    this.canvas.selectionColor = 'transparent';
+    this.canvas.selectionBorderColor = 'transparent';
     this.canvas.defaultCursor = 'crosshair';
+    this.canvas.hoverCursor = 'crosshair';
     this.canvas.discardActiveObject();
     this.canvas.requestRenderAll();
   }
@@ -246,10 +251,19 @@ export class ElbowLineTool {
       if (obj._originalSelectable !== undefined) {
         obj.selectable = obj._originalSelectable;
         obj.evented = obj._originalEvented;
+        obj.hoverCursor = obj._originalHoverCursor || 'move';
         delete obj._originalSelectable;
         delete obj._originalEvented;
+        delete obj._originalHoverCursor;
       }
     });
+
+    // Restore canvas selection properties
+    this.canvas.selection = true;
+    this.canvas.selectionColor = 'rgba(100, 100, 255, 0.3)';
+    this.canvas.selectionBorderColor = 'rgba(255, 255, 255, 0.3)';
+    this.canvas.defaultCursor = 'default';
+    this.canvas.hoverCursor = 'move';
 
     const elbowPoints = this.calculateElbow(start, end);
     const pathData = this.buildPathData(elbowPoints);
@@ -307,13 +321,19 @@ export class ElbowLineTool {
       if (obj._originalSelectable !== undefined) {
         obj.selectable = obj._originalSelectable;
         obj.evented = obj._originalEvented;
+        obj.hoverCursor = obj._originalHoverCursor || 'move';
         delete obj._originalSelectable;
         delete obj._originalEvented;
+        delete obj._originalHoverCursor;
       }
     });
     
+    // Restore canvas selection properties
     this.canvas.selection = true;
+    this.canvas.selectionColor = 'rgba(100, 100, 255, 0.3)';
+    this.canvas.selectionBorderColor = 'rgba(255, 255, 255, 0.3)';
     this.canvas.defaultCursor = 'default';
+    this.canvas.hoverCursor = 'move';
     this.isDrawing = false;
     this.startPoint = null;
     this.canvas.requestRenderAll();

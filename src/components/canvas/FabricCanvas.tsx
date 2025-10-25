@@ -1030,6 +1030,12 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       return;
     }
 
+    // Disable selection BEFORE creating the tool
+    canvas.selection = false;
+    canvas.defaultCursor = 'crosshair';
+    canvas.discardActiveObject();
+    canvas.renderAll();
+
     // Parse marker type from tool name
     let endMarker: 'none' | 'arrow' | 'diamond' | 'dot' = 'none';
     if (activeTool.includes('arrow')) endMarker = 'arrow';
@@ -1049,6 +1055,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     // Handle clicks
     const handleMouseDown = (e: any) => {
+      // Skip if clicking on an existing object
+      if (e.target) {
+        e.e.preventDefault();
+        e.e.stopPropagation();
+        return;
+      }
+      
       e.e.preventDefault();
       e.e.stopPropagation();
       
