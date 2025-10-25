@@ -399,6 +399,16 @@ All colors MUST be HSL.
     animation: floatFast 12s ease-in-out infinite;
   }
 
+  /* Continuous Scroll Animation */
+  @keyframes scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
   /* Accessibility: Disable animations for reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .float-animation,
