@@ -9,7 +9,6 @@ import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
 import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
 import { StraightLineTool } from "@/lib/straightLineTool";
 import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
-import { ElbowLineTool } from "@/lib/elbowLineTool";
 import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
@@ -68,7 +67,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
-  const elbowLineToolRef = useRef<ElbowLineTool | null>(null);
   const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
   
@@ -1016,92 +1014,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       window.removeEventListener("keydown", handleKeyDown);
       if (orthogonalLineToolRef.current) {
         orthogonalLineToolRef.current.cancel();
-      }
-    };
-  }, [canvas, activeTool, onShapeCreated, onToolChange]);
-
-  // Elbow Line Tool - Simple 2-click right-angle connectors
-  useEffect(() => {
-    if (!canvas || !activeTool.startsWith("elbow-")) {
-      if (elbowLineToolRef.current) {
-        elbowLineToolRef.current.cancel();
-        elbowLineToolRef.current = null;
-      }
-      return;
-    }
-
-    // Disable selection BEFORE creating the tool
-    canvas.selection = false;
-    canvas.defaultCursor = 'crosshair';
-    canvas.discardActiveObject();
-    canvas.renderAll();
-
-    // Parse marker type from tool name
-    let endMarker: 'none' | 'arrow' | 'diamond' | 'dot' = 'none';
-    if (activeTool.includes('arrow')) endMarker = 'arrow';
-    if (activeTool.includes('diamond')) endMarker = 'diamond';
-    if (activeTool.includes('dot')) endMarker = 'dot';
-
-    const options = {
-      endMarker,
-      strokeWidth: 2,
-      strokeColor: '#000000',
-      snap: true,
-      gridSize: 20,
-    };
-
-    elbowLineToolRef.current = new ElbowLineTool(canvas, options);
-    elbowLineToolRef.current.start();
-
-    // Handle clicks
-    const handleMouseDown = (e: any) => {
-      // Skip if clicking on an existing object
-      if (e.target) {
-        e.e.preventDefault();
-        e.e.stopPropagation();
-        return;
-      }
-      
-      e.e.preventDefault();
-      e.e.stopPropagation();
-      
-      const pointer = canvas.getPointer(e.e);
-      const finished = elbowLineToolRef.current?.addPoint(pointer.x, pointer.y);
-      
-      if (finished) {
-        toast.success("Elbow connector created!");
-        if (onShapeCreated) onShapeCreated();
-        onToolChange?.("select");
-      }
-    };
-
-    // Preview
-    const handleMouseMove = (e: any) => {
-      const pointer = canvas.getPointer(e.e);
-      elbowLineToolRef.current?.updatePreview(pointer.x, pointer.y);
-    };
-
-    // Cancel
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        elbowLineToolRef.current?.cancel();
-        onToolChange?.("select");
-        toast.info("Elbow connector cancelled");
-      }
-    };
-
-    canvas.on("mouse:down", handleMouseDown);
-    canvas.on("mouse:move", handleMouseMove);
-    window.addEventListener("keydown", handleKeyDown);
-
-    toast.info("Click start point, then end point to create elbow connector");
-
-    return () => {
-      canvas.off("mouse:down", handleMouseDown);
-      canvas.off("mouse:move", handleMouseMove);
-      window.removeEventListener("keydown", handleKeyDown);
-      if (elbowLineToolRef.current) {
-        elbowLineToolRef.current.cancel();
       }
     };
   }, [canvas, activeTool, onShapeCreated, onToolChange]);
@@ -2206,8 +2118,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           break;
         }
 
-        case "elbow-connector-right": {
-          const elbowPathRight = new Path(
+        case "right-angle-arrow": {
+          const rightAnglePath = new Path(
             `M ${pointer.x} ${pointer.y} L ${pointer.x + 50} ${pointer.y} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 100} ${pointer.y + 50}`,
             {
               stroke: "#000000",
@@ -2216,7 +2128,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeUniform: true,
             }
           );
-          const elbowArrowRight = new Polygon([
+          const rightAngleArrow = new Polygon([
             { x: pointer.x + 100, y: pointer.y + 50 },
             { x: pointer.x + 90, y: pointer.y + 44 },
             { x: pointer.x + 90, y: pointer.y + 56 },
@@ -2225,92 +2137,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             stroke: "#000000",
             strokeWidth: 0,
           });
-          const elbowGroupRight = new Group([elbowPathRight, elbowArrowRight], {
+          const rightAngleGroup = new Group([rightAnglePath, rightAngleArrow], {
             selectable: true,
           });
-          canvas.add(elbowGroupRight);
-          canvas.setActiveObject(elbowGroupRight);
-          break;
-        }
-
-        case "elbow-connector-left": {
-          const elbowPathLeft = new Path(
-            `M ${pointer.x + 100} ${pointer.y} L ${pointer.x + 50} ${pointer.y} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x} ${pointer.y + 50}`,
-            {
-              stroke: "#000000",
-              strokeWidth: 2,
-              fill: null,
-              strokeUniform: true,
-            }
-          );
-          const elbowArrowLeft = new Polygon([
-            { x: pointer.x, y: pointer.y + 50 },
-            { x: pointer.x + 10, y: pointer.y + 44 },
-            { x: pointer.x + 10, y: pointer.y + 56 },
-          ], {
-            fill: "#000000",
-            stroke: "#000000",
-            strokeWidth: 0,
-          });
-          const elbowGroupLeft = new Group([elbowPathLeft, elbowArrowLeft], {
-            selectable: true,
-          });
-          canvas.add(elbowGroupLeft);
-          canvas.setActiveObject(elbowGroupLeft);
-          break;
-        }
-
-        case "elbow-connector-up": {
-          const elbowPathUp = new Path(
-            `M ${pointer.x} ${pointer.y + 100} L ${pointer.x} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y}`,
-            {
-              stroke: "#000000",
-              strokeWidth: 2,
-              fill: null,
-              strokeUniform: true,
-            }
-          );
-          const elbowArrowUp = new Polygon([
-            { x: pointer.x + 50, y: pointer.y },
-            { x: pointer.x + 44, y: pointer.y + 10 },
-            { x: pointer.x + 56, y: pointer.y + 10 },
-          ], {
-            fill: "#000000",
-            stroke: "#000000",
-            strokeWidth: 0,
-          });
-          const elbowGroupUp = new Group([elbowPathUp, elbowArrowUp], {
-            selectable: true,
-          });
-          canvas.add(elbowGroupUp);
-          canvas.setActiveObject(elbowGroupUp);
-          break;
-        }
-
-        case "elbow-connector-down": {
-          const elbowPathDown = new Path(
-            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 50} ${pointer.y + 100}`,
-            {
-              stroke: "#000000",
-              strokeWidth: 2,
-              fill: null,
-              strokeUniform: true,
-            }
-          );
-          const elbowArrowDown = new Polygon([
-            { x: pointer.x + 50, y: pointer.y + 100 },
-            { x: pointer.x + 44, y: pointer.y + 90 },
-            { x: pointer.x + 56, y: pointer.y + 90 },
-          ], {
-            fill: "#000000",
-            stroke: "#000000",
-            strokeWidth: 0,
-          });
-          const elbowGroupDown = new Group([elbowPathDown, elbowArrowDown], {
-            selectable: true,
-          });
-          canvas.add(elbowGroupDown);
-          canvas.setActiveObject(elbowGroupDown);
+          canvas.add(rightAngleGroup);
+          canvas.setActiveObject(rightAngleGroup);
+          if (onShapeCreated) onShapeCreated();
+          onToolChange?.("select");
           break;
         }
 
