@@ -196,7 +196,30 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   // Helper function to properly deep clone Fabric objects
   const deepCloneObject = async (obj: FabricObject): Promise<FabricObject> => {
+    // Define properties to preserve during cloning
+    const propertiesToInclude = [
+      'id', 'name', 'data', 
+      // Shape properties
+      'fill', 'stroke', 'strokeWidth', 'strokeUniform', 'strokeDashArray',
+      'rx', 'ry', 'radius', 
+      // Text properties
+      'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 
+      'textAlign', 'underline', 'overline', 'linethrough',
+      // Transform properties
+      'scaleX', 'scaleY', 'angle', 'left', 'top', 'width', 'height',
+      'flipX', 'flipY', 'skewX', 'skewY',
+      // Other properties
+      'opacity', 'visible', 'shadow'
+    ];
+
     const cloned = await obj.clone();
+    
+    // Explicitly copy properties that might not be preserved by default clone
+    propertiesToInclude.forEach(prop => {
+      if ((obj as any)[prop] !== undefined) {
+        (cloned as any)[prop] = (obj as any)[prop];
+      }
+    });
     
     // For Images, ensure the src is preserved
     if (obj.type === 'image' && (obj as any)._element) {
@@ -205,6 +228,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         (cloned as any)._element = imgElement;
         (cloned as any).setSrc = (obj as any).setSrc;
       }
+    }
+    
+    // For Text objects, ensure text content is preserved
+    if ((obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text') && (obj as any).text) {
+      (cloned as any).text = (obj as any).text;
     }
     
     // For Groups, verify nested objects are cloned
