@@ -1138,6 +1138,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(rect);
           canvas.setActiveObject(rect);
@@ -1154,6 +1155,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(roundedRect);
           canvas.setActiveObject(roundedRect);
@@ -1170,6 +1172,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(circle);
           canvas.setActiveObject(circle);
@@ -1185,6 +1188,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(rhombus);
           canvas.setActiveObject(rhombus);
@@ -1200,6 +1204,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(parallelogram);
           canvas.setActiveObject(parallelogram);
@@ -1215,6 +1220,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(trapezoid);
           canvas.setActiveObject(trapezoid);
@@ -1233,6 +1239,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(pentagon);
           canvas.setActiveObject(pentagon);
@@ -1251,6 +1258,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(hexagon);
           canvas.setActiveObject(hexagon);
@@ -1269,6 +1277,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(octagon);
           canvas.setActiveObject(octagon);
@@ -1290,6 +1299,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(star);
           canvas.setActiveObject(star);
@@ -1312,6 +1322,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(triangle);
           canvas.setActiveObject(triangle);
@@ -1330,6 +1341,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(arrow);
           canvas.setActiveObject(arrow);
@@ -1348,6 +1360,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(arrowLeft);
           canvas.setActiveObject(arrowLeft);
@@ -1366,6 +1379,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(arrowUp);
           canvas.setActiveObject(arrowUp);
@@ -1384,6 +1398,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(arrowDown);
           canvas.setActiveObject(arrowDown);
@@ -1405,6 +1420,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(doubleArrowH);
           canvas.setActiveObject(doubleArrowH);
@@ -1423,6 +1439,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(thickArrow);
           canvas.setActiveObject(thickArrow);
@@ -1437,6 +1454,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(process);
           canvas.setActiveObject(process);
@@ -1452,6 +1470,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(decision);
           canvas.setActiveObject(decision);
@@ -1467,6 +1486,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(data);
           canvas.setActiveObject(data);
@@ -1483,6 +1503,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(terminator);
           canvas.setActiveObject(terminator);
@@ -1499,6 +1520,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(documentShape);
           canvas.setActiveObject(documentShape);
@@ -1514,6 +1536,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           const dbBody = new Rect({
             left: pointer.x - 40,
@@ -1523,6 +1546,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(dbBody, dbTop);
           canvas.setActiveObject(dbTop);
@@ -1541,6 +1565,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             fill: "#3b82f6",
             stroke: "#000000",
             strokeWidth: 2,
+            strokeUniform: true,
           });
           canvas.add(simpleShape);
           canvas.setActiveObject(simpleShape);
