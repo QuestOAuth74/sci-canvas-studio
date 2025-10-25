@@ -131,7 +131,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 1200, height: 800 });
   const [paperSize, setPaperSize] = useState("custom");
-  const [clipboard, setClipboard] = useState<FabricObject | null>(null);
+  const [clipboard, setClipboard] = useState<FabricObject | { type: 'multiple', objects: FabricObject[] } | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
@@ -198,24 +198,71 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
-      activeObject.clone().then((cloned: FabricObject) => {
-        setClipboard(cloned);
-      });
+      // Handle ActiveSelection (multiple objects selected)
+      if (activeObject.type === 'activeSelection') {
+        const selection = activeObject as ActiveSelection;
+        const objects = selection.getObjects();
+        
+        // Clone all objects in the selection
+        Promise.all(objects.map(obj => obj.clone())).then((clonedObjects) => {
+          // Store as a simple array wrapped in an object for identification
+          setClipboard({ 
+            type: 'multiple', 
+            objects: clonedObjects 
+          } as any);
+        });
+      } else {
+        // Handle single object
+        activeObject.clone().then((cloned: FabricObject) => {
+          setClipboard(cloned);
+        });
+      }
     }
   }, [canvas]);
 
   const paste = useCallback(() => {
     if (!canvas || !clipboard) return;
-    clipboard.clone().then((cloned: FabricObject) => {
-      cloned.set({
-        left: (cloned.left || 0) + 10,
-        top: (cloned.top || 0) + 10,
+    
+    // Check if clipboard contains multiple objects
+    if ((clipboard as any).type === 'multiple') {
+      const objects = (clipboard as any).objects;
+      const pastedObjects: FabricObject[] = [];
+      
+      // Clone and add each object with offset
+      Promise.all(objects.map((obj: FabricObject) => obj.clone())).then((clonedObjects) => {
+        clonedObjects.forEach((cloned: FabricObject) => {
+          cloned.set({
+            left: (cloned.left || 0) + 10,
+            top: (cloned.top || 0) + 10,
+          });
+          canvas.add(cloned);
+          pastedObjects.push(cloned);
+        });
+        
+        // Create an active selection with all pasted objects
+        if (pastedObjects.length > 1) {
+          const selection = new ActiveSelection(pastedObjects, { canvas });
+          canvas.setActiveObject(selection);
+        } else if (pastedObjects.length === 1) {
+          canvas.setActiveObject(pastedObjects[0]);
+        }
+        
+        canvas.requestRenderAll();
+        saveState();
       });
-      canvas.add(cloned);
-      canvas.setActiveObject(cloned);
-      canvas.renderAll();
-      saveState();
-    });
+    } else {
+      // Handle single object paste (existing logic)
+      (clipboard as FabricObject).clone().then((cloned: FabricObject) => {
+        cloned.set({
+          left: (cloned.left || 0) + 10,
+          top: (cloned.top || 0) + 10,
+        });
+        canvas.add(cloned);
+        canvas.setActiveObject(cloned);
+        canvas.requestRenderAll();
+        saveState();
+      });
+    }
   }, [canvas, clipboard, saveState]);
 
   const deleteSelected = useCallback(() => {
