@@ -17,7 +17,7 @@ export function SaveUploadHandler() {
         });
 
         if (result) {
-          toast.success('File saved to your library!');
+          toast.success('Image added to canvas and saved to your assets');
         }
       } catch (error) {
         console.error('Error saving upload to library:', error);

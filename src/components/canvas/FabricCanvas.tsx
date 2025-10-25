@@ -630,18 +630,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
                 canvas.renderAll();
                 toast.success("SVG image added to canvas");
                 
-                // Prompt to save to library
-                toast("Save to your library?", {
-                  action: {
-                    label: "Save",
-                    onClick: () => {
-                      window.dispatchEvent(new CustomEvent('saveUploadToLibrary', {
-                        detail: { file, content: imgUrl }
-                      }));
-                    }
-                  },
-                  duration: 5000
-                });
+                // Auto-save to library
+                window.dispatchEvent(new CustomEvent('saveUploadToLibrary', {
+                  detail: { file, content: imgUrl }
+                }));
                 
                 if (onShapeCreated) onShapeCreated();
               }).catch((error) => {
@@ -670,18 +662,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
                 canvas.renderAll();
                 toast.success("Image added to canvas");
                 
-                // Prompt to save to library
-                toast("Save to your library?", {
-                  action: {
-                    label: "Save",
-                    onClick: () => {
-                      window.dispatchEvent(new CustomEvent('saveUploadToLibrary', {
-                        detail: { file, content: imgUrl }
-                      }));
-                    }
-                  },
-                  duration: 5000
-                });
+                // Auto-save to library
+                window.dispatchEvent(new CustomEvent('saveUploadToLibrary', {
+                  detail: { file, content: imgUrl }
+                }));
                 
                 if (onShapeCreated) onShapeCreated();
               };
