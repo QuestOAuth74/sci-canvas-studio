@@ -128,18 +128,26 @@ export class CurvedLineTool {
 
     const elements: any[] = [curvePath];
 
-    // Create start marker
+    // Create start marker and store reference
+    let startMarkerRef: Group | null = null;
     if (this.options.startMarker !== 'none') {
       const angle = this.calculateStartAngle(this.startPoint, this.controlPoint, endPoint);
       const marker = this.createMarker(this.startPoint.x, this.startPoint.y, angle, this.options.startMarker);
-      if (marker) elements.push(marker);
+      if (marker) {
+        elements.push(marker);
+        startMarkerRef = marker;
+      }
     }
 
-    // Create end marker
+    // Create end marker and store reference
+    let endMarkerRef: Group | null = null;
     if (this.options.endMarker !== 'none') {
       const angle = this.calculateEndAngle(this.startPoint, this.controlPoint, endPoint);
       const marker = this.createMarker(endPoint.x, endPoint.y, angle, this.options.endMarker);
-      if (marker) elements.push(marker);
+      if (marker) {
+        elements.push(marker);
+        endMarkerRef = marker;
+      }
     }
 
     // Create control handle
@@ -160,6 +168,8 @@ export class CurvedLineTool {
     (group as any).controlHandle = controlHandle;
     (group as any).handleLines = [line1, line2];
     (group as any).mainPath = curvePath;
+    (group as any).startMarker = startMarkerRef;
+    (group as any).endMarker = endMarkerRef;
     (group as any).markerOptions = {
       startMarker: this.options.startMarker,
       endMarker: this.options.endMarker,
@@ -409,6 +419,18 @@ export class CurvedLineTool {
         group.remove(mainPath);
         group.insertAt(pathIndex, newPath);
         curveData.mainPath = newPath;
+      }
+
+      // Update marker angles based on new curve tangent
+      const newStartAngle = this.calculateStartAngle(start, newControl, end);
+      const newEndAngle = this.calculateEndAngle(start, newControl, end);
+
+      if (curveData.startMarker) {
+        curveData.startMarker.set({ angle: newStartAngle });
+      }
+
+      if (curveData.endMarker) {
+        curveData.endMarker.set({ angle: newEndAngle });
       }
 
       this.canvas.renderAll();
