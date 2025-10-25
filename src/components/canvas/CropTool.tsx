@@ -1,14 +1,19 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Canvas as FabricCanvas, FabricImage, Rect } from "fabric";
 import { Button } from "@/components/ui/button";
-import { Check, X, Square, Circle } from "lucide-react";
+import { Check, X, Square, Circle, Crop, ZoomIn } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Slider } from "@/components/ui/slider";
 
 interface CropToolProps {
   canvas: FabricCanvas;
   selectedImage: FabricImage;
-  onApply: (cropRect: { left: number; top: number; width: number; height: number }, isCircular: boolean) => void;
+  onApply: (
+    cropRect: { left: number; top: number; width: number; height: number }, 
+    isCircular: boolean,
+    mode: 'standard' | 'highlight',
+    magnification: number
+  ) => void;
   onCancel: () => void;
 }
 
@@ -21,6 +26,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageBounds, setImageBounds] = useState({ left: 0, top: 0, width: 0, height: 0 });
   const [isCircular, setIsCircular] = useState(false);
+  const [cropMode, setCropMode] = useState<'standard' | 'highlight'>('standard');
   const [magnification, setMagnification] = useState(2);
 
   // Initialize crop rectangle to match image bounds
@@ -243,7 +249,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
       height: cropRect.height / zoom
     };
 
-    onApply(canvasCropRect, isCircular);
+    onApply(canvasCropRect, isCircular, cropMode, magnification);
   };
 
   const dimensions = `${Math.round(cropRect.width / canvas.getZoom())} × ${Math.round(cropRect.height / canvas.getZoom())} px`;
@@ -257,13 +263,36 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
       {/* Dark overlay */}
       <div className="absolute inset-0 bg-black/60" />
 
-      {/* Action buttons - moved to top left */}
-      <div className="absolute top-4 left-4 flex flex-col gap-2 z-50">
-        <div className="glass-effect px-4 py-2 rounded-lg text-sm font-medium">
-          Crop Image: {dimensions}
-        </div>
-        
-        {/* Zoom slider */}
+    {/* Action buttons - moved to top left */}
+    <div className="absolute top-4 left-4 flex flex-col gap-2 z-50">
+      <div className="glass-effect px-4 py-2 rounded-lg text-sm font-medium">
+        Crop Image: {dimensions}
+      </div>
+      
+      {/* Crop mode selector */}
+      <div className="glass-effect p-1 rounded-lg flex gap-1">
+        <Toggle
+          pressed={cropMode === 'standard'}
+          onPressedChange={() => setCropMode('standard')}
+          size="sm"
+          aria-label="Standard crop"
+        >
+          <Crop className="h-4 w-4" />
+          <span className="ml-1 text-xs">Crop</span>
+        </Toggle>
+        <Toggle
+          pressed={cropMode === 'highlight'}
+          onPressedChange={() => setCropMode('highlight')}
+          size="sm"
+          aria-label="Highlight crop"
+        >
+          <ZoomIn className="h-4 w-4" />
+          <span className="ml-1 text-xs">Highlight</span>
+        </Toggle>
+      </div>
+      
+      {/* Zoom slider - only for highlight mode */}
+      {cropMode === 'highlight' && (
         <div className="glass-effect p-4 rounded-lg">
           <label className="text-xs text-muted-foreground mb-2 block">
             Magnification: {magnification.toFixed(1)}x
@@ -277,7 +306,10 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
             className="w-48"
           />
         </div>
-        
+      )}
+      
+      {/* Shape selector - only for standard crop mode */}
+      {cropMode === 'standard' && (
         <div className="glass-effect p-1 rounded-lg flex gap-1">
           <Toggle
             pressed={!isCircular}
@@ -296,6 +328,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
             <Circle className="h-4 w-4" />
           </Toggle>
         </div>
+      )}
         
         <div className="flex gap-2">
           <Button
@@ -318,51 +351,55 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
         </div>
       </div>
 
-      {/* Magnified preview - positioned at top right */}
-      <div className="absolute top-4 right-4 z-50">
-        <canvas 
-          ref={magnifyCanvasRef}
-          className="rounded-full shadow-2xl border-4 border-primary"
-          style={{ 
-            width: '300px', 
-            height: '300px',
-            background: 'white'
-          }}
-        />
-        <div className="text-center text-xs text-white mt-2 font-medium">
-          Magnified Preview
-        </div>
-      </div>
+      {/* Magnified preview - only for highlight mode */}
+      {cropMode === 'highlight' && (
+        <>
+          <div className="absolute top-4 right-4 z-50">
+            <canvas 
+              ref={magnifyCanvasRef}
+              className="rounded-full shadow-2xl border-4 border-primary"
+              style={{ 
+                width: '300px', 
+                height: '300px',
+                background: 'white'
+              }}
+            />
+            <div className="text-center text-xs text-white mt-2 font-medium">
+              Magnified Preview
+            </div>
+          </div>
 
-      {/* Dotted connector line - SVG */}
-      <svg 
-        className="absolute inset-0 pointer-events-none z-40"
-        style={{ width: '100%', height: '100%' }}
-      >
-        <line
-          x1={cropRect.left + cropRect.width / 2}
-          y1={cropRect.top + cropRect.height / 2}
-          x2={typeof window !== 'undefined' ? window.innerWidth - 154 : 0}
-          y2={154}
-          stroke="hsl(var(--primary))"
-          strokeOpacity="0.6"
-          strokeWidth="2"
-          strokeDasharray="8,8"
-        />
-      </svg>
+          {/* Dotted connector line - SVG */}
+          <svg 
+            className="absolute inset-0 pointer-events-none z-40"
+            style={{ width: '100%', height: '100%' }}
+          >
+            <line
+              x1={cropRect.left + cropRect.width / 2}
+              y1={cropRect.top + cropRect.height / 2}
+              x2={typeof window !== 'undefined' ? window.innerWidth - 154 : 0}
+              y2={154}
+              stroke="hsl(var(--primary))"
+              strokeOpacity="0.6"
+              strokeWidth="2"
+              strokeDasharray="8,8"
+            />
+          </svg>
+        </>
+      )}
 
       {/* Crop rectangle */}
       <div
         className="absolute border-2 border-primary"
-        style={{
-          left: cropRect.left,
-          top: cropRect.top,
-          width: cropRect.width,
-          height: cropRect.height,
-          boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
-          cursor: 'move',
-          borderRadius: isCircular ? '50%' : '0'
-        }}
+      style={{
+        left: cropRect.left,
+        top: cropRect.top,
+        width: cropRect.width,
+        height: cropRect.height,
+        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+        cursor: 'move',
+        borderRadius: (cropMode === 'highlight' || isCircular) ? '50%' : '0'
+      }}
         onMouseDown={(e) => handleMouseDown(e)}
       >
         {/* Corner handles */}

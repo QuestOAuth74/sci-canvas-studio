@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, FabricImage, Line } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -102,7 +102,12 @@ interface CanvasContextType {
   // Crop operations
   cropMode: boolean;
   setCropMode: (mode: boolean) => void;
-  cropImage: (cropRect: { left: number; top: number; width: number; height: number }, isCircular?: boolean) => void;
+  cropImage: (
+    cropRect: { left: number; top: number; width: number; height: number }, 
+    isCircular?: boolean,
+    mode?: 'standard' | 'highlight',
+    magnification?: number
+  ) => void;
   
   // Path smoothing
   smoothenPath: (strength: number) => void;
@@ -898,10 +903,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   }, [canvas]);
 
   // Crop operation
-  const cropImage = useCallback((cropRect: { left: number; top: number; width: number; height: number }, isCircular: boolean = false) => {
+  const cropImage = useCallback((
+    cropRect: { left: number; top: number; width: number; height: number }, 
+    isCircular: boolean = false,
+    mode: 'standard' | 'highlight' = 'standard',
+    magnification: number = 2
+  ) => {
     if (!canvas || !selectedObject || selectedObject.type !== 'image') return;
 
     const image = selectedObject as any;
+    
+    if (mode === 'highlight') {
+      createHighlightCallout(image, cropRect, magnification);
+      return;
+    }
     
     // Get the image's current properties
     const imgLeft = image.left || 0;
@@ -953,6 +968,132 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setCropMode(false);
     toast.success(isCircular ? "Image cropped (circular)" : "Image cropped (rectangular)");
   }, [canvas, selectedObject, saveState]);
+
+  // Create highlight callout
+  const createHighlightCallout = useCallback((
+    sourceImage: any,
+    cropRect: { left: number; top: number; width: number; height: number },
+    magnification: number
+  ) => {
+    if (!canvas) return;
+
+    const imgLeft = sourceImage.left || 0;
+    const imgTop = sourceImage.top || 0;
+    const scaleX = sourceImage.scaleX || 1;
+    const scaleY = sourceImage.scaleY || 1;
+
+    // Calculate crop area in image coordinates
+    const cropInImageCoords = {
+      left: (cropRect.left - imgLeft) / scaleX,
+      top: (cropRect.top - imgTop) / scaleY,
+      width: cropRect.width / scaleX,
+      height: cropRect.height / scaleY
+    };
+
+    // Get the image element
+    const imgElement = sourceImage.getElement();
+    
+    // Create a temporary canvas to extract and magnify the cropped portion
+    const tempCanvas = document.createElement('canvas');
+    const size = 300; // Fixed size for magnified circle
+    tempCanvas.width = size;
+    tempCanvas.height = size;
+    const ctx = tempCanvas.getContext('2d');
+    
+    if (!ctx) return;
+
+    // Draw magnified portion onto temp canvas with circular clip
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+    ctx.clip();
+    
+    // Calculate source area considering magnification
+    const sourceW = cropInImageCoords.width / magnification;
+    const sourceH = cropInImageCoords.height / magnification;
+    const sourceX = cropInImageCoords.left + (cropInImageCoords.width - sourceW) / 2;
+    const sourceY = cropInImageCoords.top + (cropInImageCoords.height - sourceH) / 2;
+    
+    ctx.drawImage(
+      imgElement,
+      sourceX, sourceY, sourceW, sourceH,
+      0, 0, size, size
+    );
+    ctx.restore();
+
+    // Add circular border
+    ctx.strokeStyle = '#8b5cf6'; // primary color
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Convert canvas to image and add to fabric canvas
+    FabricImage.fromURL(tempCanvas.toDataURL()).then((fabricImg) => {
+      if (!canvas) return;
+      
+      // Position the magnified circle to the right of the original selection
+      fabricImg.set({
+        left: cropRect.left + cropRect.width + 100,
+        top: cropRect.top,
+        selectable: true,
+        name: 'Magnified Highlight'
+      });
+
+      // Create circle indicator on original image
+      const centerX = cropRect.left + cropRect.width / 2;
+      const centerY = cropRect.top + cropRect.height / 2;
+      const magnifiedCenterX = fabricImg.left! + size / 2;
+      const magnifiedCenterY = fabricImg.top! + size / 2;
+
+      const circleIndicator = new Circle({
+        left: centerX,
+        top: centerY,
+        radius: Math.min(cropRect.width, cropRect.height) / 2,
+        fill: 'transparent',
+        stroke: '#8b5cf6',
+        strokeWidth: 3,
+        selectable: false,
+        evented: false,
+        name: 'Highlight Indicator',
+        originX: 'center',
+        originY: 'center'
+      });
+
+      // Create dotted connector line
+      const line = new Line(
+        [centerX, centerY, magnifiedCenterX, magnifiedCenterY],
+        {
+          stroke: '#8b5cf6',
+          strokeWidth: 2,
+          strokeDashArray: [8, 8],
+          selectable: false,
+          evented: false,
+          name: 'Highlight Connector'
+        }
+      );
+
+      // Add all elements to canvas
+      canvas.add(circleIndicator);
+      canvas.add(line);
+      canvas.add(fabricImg);
+
+      // Group all elements together
+      const group = new Group([circleIndicator, line, fabricImg], {
+        selectable: true
+      });
+
+      canvas.remove(circleIndicator);
+      canvas.remove(line);
+      canvas.remove(fabricImg);
+      canvas.add(group);
+      
+      canvas.renderAll();
+      saveState();
+      setCropMode(false);
+      toast.success("Highlight callout created!");
+    });
+  }, [canvas, saveState, setCropMode]);
 
   // Path smoothing operation
   const smoothenPath = useCallback((strength: number) => {
