@@ -128,6 +128,7 @@ export class EnhancedBezierTool {
       fill: '',
       selectable: false,
       evented: false,
+      strokeUniform: true,
     } as any);
 
     this.canvas.add(this.tempPath);
@@ -260,6 +261,7 @@ export class EnhancedBezierTool {
       fill: '',
       selectable: true,
       evented: true,
+      strokeUniform: true,
     } as any);
 
     // Store bezier data for future editing

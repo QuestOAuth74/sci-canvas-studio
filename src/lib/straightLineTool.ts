@@ -155,6 +155,7 @@ export class StraightLineTool {
       selectable: false,
       evented: false,
       strokeDashArray: this.getStrokeDashArray(),
+      strokeUniform: true,
     });
     this.canvas.add(this.tempPath);
 
@@ -315,6 +316,7 @@ export class StraightLineTool {
       fill: null,
       selectable: true,
       strokeDashArray: this.getStrokeDashArray(),
+      strokeUniform: true,
     });
 
     const objects: FabricObject[] = [finalPath];

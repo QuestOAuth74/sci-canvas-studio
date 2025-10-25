@@ -48,6 +48,7 @@ export function createSVGArrowMarker(
     originY: 'center',
     selectable: false,
     evented: false,
+    strokeUniform: true,
   } as any);
 
   return marker;

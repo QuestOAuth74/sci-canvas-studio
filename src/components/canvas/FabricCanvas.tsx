@@ -1699,6 +1699,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           canvas.add(parenLeft);
@@ -1716,6 +1717,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           canvas.add(parenRight);
@@ -1733,6 +1735,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           canvas.add(parenTop);
@@ -1750,6 +1753,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           canvas.add(parenBottom);
@@ -1767,6 +1771,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           canvas.add(bracketLeft);
@@ -1784,6 +1789,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           canvas.add(bracketRight);
@@ -1801,6 +1807,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           canvas.add(bracketTop);
@@ -1818,6 +1825,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           canvas.add(bracketBottom);
@@ -1835,6 +1843,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           
@@ -1868,6 +1877,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               strokeWidth: 2,
               fill: null,
               selectable: true,
+              strokeUniform: true,
             }
           );
           

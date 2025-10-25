@@ -149,6 +149,7 @@ export function createConnector(
     strokeDashArray: getStrokeDashArray(lineStyle),
     selectable: true,
     evented: true,
+    strokeUniform: true,
   } as any);
 
   // Calculate angle for end marker
