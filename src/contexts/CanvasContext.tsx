@@ -242,6 +242,21 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // Helper to serialize object to JSON
   const serializeObject = (obj: FabricObject) => obj.toObject(CLIPBOARD_PROPS);
 
+  // Robust wrapper around util.enlivenObjects to support both Promise and callback forms
+  const enliven = (jsons: any[]): Promise<FabricObject[]> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const maybe = (util as any).enlivenObjects(jsons, (objects: FabricObject[]) => {
+          resolve(objects);
+        });
+        if (maybe && typeof (maybe as any).then === 'function') {
+          (maybe as Promise<FabricObject[]>).then(resolve).catch(reject);
+        }
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
   const copy = useCallback(() => {
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
@@ -269,58 +284,53 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas]);
 
-  const paste = useCallback(() => {
+  const paste = useCallback(async () => {
     if (!canvas || !clipboard) return;
 
     try {
       if (clipboard.type === 'multiple') {
-        util.enlivenObjects(clipboard.objects).then((objects: FabricObject[]) => {
-          const pasted: FabricObject[] = [];
-          console.log('Enlivened multiple objects:', objects.length, objects.map(o => o.type));
-          
-          objects.forEach(obj => {
-            obj.set({
-              left: (obj.left || 0) + 10,
-              top: (obj.top || 0) + 10,
-            });
-            obj.setCoords();
-            canvas.add(obj);
-            pasted.push(obj);
-          });
-          
-          if (pasted.length > 1) {
-            const selection = new ActiveSelection(pasted, { canvas });
-            canvas.setActiveObject(selection);
-          } else if (pasted.length === 1) {
-            canvas.setActiveObject(pasted[0]);
-          }
-          
-          canvas.requestRenderAll();
-          saveState();
-          toast.success(`${pasted.length} objects pasted`);
-        }).catch((error: any) => {
-          console.error('Paste enliven failed:', error);
-          toast.error('Failed to paste objects');
-        });
-      } else if (clipboard.type === 'single') {
-        util.enlivenObjects([clipboard.object]).then((objects: FabricObject[]) => {
-          const obj = objects[0];
-          console.log('Enlivened single object:', obj.type);
-          
+        const objects = await enliven(clipboard.objects);
+        const pasted: FabricObject[] = [];
+        console.log('Enlivened multiple objects:', objects.length, objects.map(o => o.type));
+
+        objects.forEach(obj => {
           obj.set({
             left: (obj.left || 0) + 10,
             top: (obj.top || 0) + 10,
           });
           obj.setCoords();
           canvas.add(obj);
-          canvas.setActiveObject(obj);
-          canvas.requestRenderAll();
-          saveState();
-          toast.success('Object pasted');
-        }).catch((error: any) => {
-          console.error('Paste enliven failed:', error);
-          toast.error('Failed to paste object');
+          pasted.push(obj);
         });
+
+        if (pasted.length > 1) {
+          const selection = new ActiveSelection(pasted, { canvas });
+          canvas.setActiveObject(selection);
+        } else if (pasted.length === 1) {
+          canvas.setActiveObject(pasted[0]);
+        }
+
+        canvas.requestRenderAll();
+        saveState();
+        toast.success(`${pasted.length} objects pasted`);
+      } else if (clipboard.type === 'single') {
+        const [obj] = await enliven([clipboard.object]);
+        if (!obj) {
+          toast.error('Failed to paste object');
+          return;
+        }
+        console.log('Enlivened single object:', obj.type);
+
+        obj.set({
+          left: (obj.left || 0) + 10,
+          top: (obj.top || 0) + 10,
+        });
+        obj.setCoords();
+        canvas.add(obj);
+        canvas.setActiveObject(obj);
+        canvas.requestRenderAll();
+        saveState();
+        toast.success('Object pasted');
       }
     } catch (error) {
       console.error('Paste failed:', error);
