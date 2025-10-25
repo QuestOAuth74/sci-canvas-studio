@@ -9,6 +9,7 @@ import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
 import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
 import { StraightLineTool } from "@/lib/straightLineTool";
 import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
+import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 
@@ -66,6 +67,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
+  const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
   
   const { 
@@ -1016,6 +1018,113 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
   }, [canvas, activeTool, onShapeCreated, onToolChange]);
 
+  // Curved Line Tool with adjustable control points
+  useEffect(() => {
+    if (!canvas || !activeTool.startsWith("curved-line")) {
+      if (curvedLineToolRef.current) {
+        curvedLineToolRef.current.cancel();
+        curvedLineToolRef.current = null;
+      }
+      return;
+    }
+
+    // Parse tool options from activeTool string
+    const options: any = {
+      startMarker: 'none',
+      endMarker: 'none',
+      lineStyle: 'solid',
+      strokeWidth: 2,
+      strokeColor: '#000000',
+      snap: true,
+      gridSize: 20,
+    };
+
+    // Parse activeTool to set markers and styles
+    if (activeTool.includes('double-arrow')) {
+      options.startMarker = 'arrow';
+      options.endMarker = 'arrow';
+    } else if (activeTool.includes('arrow')) {
+      options.endMarker = 'arrow';
+    }
+    
+    if (activeTool.includes('dots')) {
+      options.startMarker = 'dot';
+      options.endMarker = 'dot';
+    }
+    
+    if (activeTool.includes('diamonds')) {
+      options.startMarker = 'diamond';
+      options.endMarker = 'diamond';
+    }
+    
+    if (activeTool.includes('circles')) {
+      options.startMarker = 'circle';
+      options.endMarker = 'circle';
+    }
+    
+    if (activeTool.includes('dashed')) {
+      options.lineStyle = 'dashed';
+    } else if (activeTool.includes('dotted')) {
+      options.lineStyle = 'dotted';
+    }
+
+    // Initialize curved line tool
+    curvedLineToolRef.current = new CurvedLineTool(canvas, options);
+    curvedLineToolRef.current.start();
+
+    // Two-click drawing handlers
+    let hasStartPoint = false;
+
+    const handleMouseDown = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      if (!hasStartPoint) {
+        curvedLineToolRef.current?.setStartPoint(pointer.x, pointer.y);
+        hasStartPoint = true;
+      } else {
+        const curve = curvedLineToolRef.current?.setEndPoint(pointer.x, pointer.y);
+        if (curve) {
+          toast.success("Curved line created! Drag the control point to adjust.");
+          if (onShapeCreated) onShapeCreated();
+          // Re-initialize for next line
+          curvedLineToolRef.current = new CurvedLineTool(canvas, options);
+          curvedLineToolRef.current.start();
+          hasStartPoint = false;
+        }
+      }
+    };
+
+    const handleMouseMove = (e: any) => {
+      if (hasStartPoint) {
+        const pointer = canvas.getPointer(e.e);
+        curvedLineToolRef.current?.updatePreview(pointer.x, pointer.y);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        curvedLineToolRef.current?.cancel();
+        onToolChange?.("select");
+        hasStartPoint = false;
+        toast.info("Curved line tool cancelled");
+      }
+    };
+
+    canvas.on("mouse:down", handleMouseDown);
+    canvas.on("mouse:move", handleMouseMove);
+    window.addEventListener("keydown", handleKeyDown);
+
+    toast.info("Click start point, then end point. Drag control point to adjust curve.");
+
+    return () => {
+      canvas.off("mouse:down", handleMouseDown);
+      canvas.off("mouse:move", handleMouseMove);
+      window.removeEventListener("keydown", handleKeyDown);
+      if (curvedLineToolRef.current) {
+        curvedLineToolRef.current.cancel();
+      }
+    };
+  }, [canvas, activeTool, onShapeCreated, onToolChange]);
+
   // Handle tool changes
   useEffect(() => {
     if (!canvas) return;
@@ -1029,14 +1138,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       canvas.defaultCursor = "crosshair";
     } else if (activeTool === "eraser") {
       canvas.defaultCursor = "crosshair";
-    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-') || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line')) {
+    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-') || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line') || activeTool.startsWith('curved-line')) {
       canvas.defaultCursor = "crosshair";
     } else {
       canvas.defaultCursor = "default";
     }
 
     const handleCanvasClick = (e: any) => {
-      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image" || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line')) return;
+      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image" || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line') || activeTool.startsWith('curved-line')) return;
 
       const pointer = canvas.getPointer(e.e);
       

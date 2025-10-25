@@ -931,6 +931,39 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                 </div>
               )}
               
+              {/* Curved Line Properties - Only show for curved lines */}
+              {selectedObject && (selectedObject as any).isCurvedLine && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Curved Line Control</h3>
+                  <div className="space-y-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        const curveData = selectedObject as any;
+                        const controlHandle = curveData.controlHandle;
+                        const handleLines = curveData.handleLines;
+                        if (controlHandle) {
+                          controlHandle.visible = !controlHandle.visible;
+                          if (handleLines) {
+                            handleLines.forEach((line: any) => {
+                              line.visible = controlHandle.visible;
+                            });
+                          }
+                          canvas?.renderAll();
+                        }
+                      }}
+                    >
+                      {((selectedObject as any).controlHandle?.visible) ? 'Hide' : 'Show'} Control Point
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Drag the green control point to adjust the curve shape.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               <div className="pt-3 border-t">
                 <h3 className="font-semibold text-sm mb-3">Text</h3>
                 <div className="space-y-2">

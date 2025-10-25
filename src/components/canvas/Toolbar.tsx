@@ -25,6 +25,7 @@ import { ShapesDropdown } from "./ShapesDropdown";
 import { ConnectorTool } from "./ConnectorTool";
 import { StraightLineTool } from "./StraightLineTool";
 import { OrthogonalLineTool } from "./OrthogonalLineTool";
+import { CurvedLineTool } from "./CurvedLineTool";
 
 interface ToolbarProps {
   activeTool: string;
@@ -94,6 +95,17 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Orthogonal Lines (90° Bends)</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <CurvedLineTool onLineSelect={onToolChange} activeTool={activeTool} />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Curved Lines (Adjustable)</p>
         </TooltipContent>
       </Tooltip>
       
