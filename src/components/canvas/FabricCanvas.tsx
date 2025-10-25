@@ -1049,6 +1049,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     // Handle clicks
     const handleMouseDown = (e: any) => {
+      e.e.preventDefault();
+      e.e.stopPropagation();
+      
       const pointer = canvas.getPointer(e.e);
       const finished = elbowLineToolRef.current?.addPoint(pointer.x, pointer.y);
       

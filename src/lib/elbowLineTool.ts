@@ -32,8 +32,22 @@ export class ElbowLineTool {
   start(): void {
     this.isDrawing = true;
     this.startPoint = null;
+    
+    // Store original selectable/evented state of all objects
+    this.canvas.getObjects().forEach((obj: any) => {
+      if (obj._originalSelectable === undefined) {
+        obj._originalSelectable = obj.selectable;
+        obj._originalEvented = obj.evented;
+      }
+      obj.selectable = false;
+      obj.evented = false;
+    });
+    
+    // Disable canvas selection
     this.canvas.selection = false;
     this.canvas.defaultCursor = 'crosshair';
+    this.canvas.discardActiveObject();
+    this.canvas.requestRenderAll();
   }
 
   // Returns true if line is complete (2 points added)
@@ -227,6 +241,16 @@ export class ElbowLineTool {
   private finish(start: Point, end: Point): void {
     this.cleanup();
 
+    // Restore original selectable/evented state
+    this.canvas.getObjects().forEach((obj: any) => {
+      if (obj._originalSelectable !== undefined) {
+        obj.selectable = obj._originalSelectable;
+        obj.evented = obj._originalEvented;
+        delete obj._originalSelectable;
+        delete obj._originalEvented;
+      }
+    });
+
     const elbowPoints = this.calculateElbow(start, end);
     const pathData = this.buildPathData(elbowPoints);
 
@@ -277,10 +301,22 @@ export class ElbowLineTool {
 
   cancel(): void {
     this.cleanup();
+    
+    // Restore original selectable/evented state
+    this.canvas.getObjects().forEach((obj: any) => {
+      if (obj._originalSelectable !== undefined) {
+        obj.selectable = obj._originalSelectable;
+        obj.evented = obj._originalEvented;
+        delete obj._originalSelectable;
+        delete obj._originalEvented;
+      }
+    });
+    
     this.canvas.selection = true;
     this.canvas.defaultCursor = 'default';
     this.isDrawing = false;
     this.startPoint = null;
+    this.canvas.requestRenderAll();
   }
 
   private cleanup(): void {
