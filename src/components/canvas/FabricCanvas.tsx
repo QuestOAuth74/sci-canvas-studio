@@ -146,7 +146,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         const startTime = performance.now();
         
         // Sanitize SVG before parsing to fix namespace issues
+        console.log('Original SVG size:', svgData.length, 'Has color info:', /fill=|style=/.test(svgData));
         const sanitizedSVG = sanitizeSVGNamespaces(svgData);
+        console.log('Sanitized SVG size:', sanitizedSVG.length, 'Preserved colors:', /fill=|style=/.test(sanitizedSVG));
         
         // Create a timeout promise for large SVG parsing
         const timeoutPromise = new Promise((_, reject) => {

@@ -325,9 +325,13 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
         }
       }
       
-      // Normalize namespaced SVG (convert svg:svg to svg)
+      // Only normalize if there are actual namespace issues
       let normalized = sanitized;
-      if (/<(\w+:)?svg/.test(normalized)) {
+      const hasNamespaceIssues = /<(\w+:)svg/.test(sanitized);
+      
+      if (hasNamespaceIssues) {
+        // Only apply normalization if we detect namespace prefixes
+        console.log('Normalizing SVG with namespace issues');
         normalized = normalized
           .replace(/<(\w+:)svg/g, '<svg')
           .replace(/<\/(\w+:)svg>/g, '</svg>')
@@ -412,12 +416,11 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
         }
       }
 
-      // Step 3: Remove unnecessary attributes (but keep xmlns:xlink for complex SVGs)
+      // Step 3: Remove only non-essential attributes (KEEP style and class for colors!)
       optimized = optimized
         .replace(/\s+id=["'][^"']*["']/g, '')
-        .replace(/\s+class=["'][^"']*["']/g, '')
-        .replace(/\s+style=["'][^"']*["']/g, '')
         .replace(/\s+data-[^=]*=["'][^"']*["']/g, '');
+      // DO NOT remove style="" or class="" - they contain critical color/styling info!
 
       // Step 4: Reduce decimal precision aggressively
       optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
@@ -557,8 +560,8 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
                 .insert([{
                   name: iconName,
                   category: selectedCategory,
-                  svg_content: sanitized,
-                  thumbnail: thumbnail || sanitized
+                  svg_content: content, // Use ORIGINAL content for canvas rendering
+                  thumbnail: thumbnail || validation.normalized // Use optimized for thumbnails
                 }]);
 
               if (!error) {

@@ -285,11 +285,11 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       const svgSizeKB = new Blob([data.svg_content]).size / 1024;
       console.log(`Loading icon: ${icon.name}, Size: ${svgSizeKB.toFixed(2)} KB`);
       
-      // Block icons over 200KB
-      if (svgSizeKB > 200) {
+      // Block icons over 300KB (increased for scientific illustrations)
+      if (svgSizeKB > 300) {
         toast.dismiss(loadingToastId);
         toast.error(`Icon too large (${svgSizeKB.toFixed(0)}KB)`, {
-          description: 'Maximum size is 200KB. This icon may cause save failures.'
+          description: 'Maximum size is 300KB for scientific illustrations.'
         });
         return;
       }
