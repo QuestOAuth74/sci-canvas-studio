@@ -291,6 +291,60 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
     }
   };
   
+  // Robust SVG validation using DOMParser
+  const validateSvgContent = (content: string): { isValid: boolean; normalized: string; error?: string } => {
+    try {
+      // Remove DOCTYPE and XML declarations for parsing
+      const sanitized = content
+        .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
+        .replace(/<\?xml[^>]*\?>/g, '')
+        .trim();
+      
+      // Quick pre-check
+      const lowerContent = sanitized.toLowerCase();
+      if (!lowerContent.includes('svg')) {
+        return { isValid: false, normalized: content, error: 'No SVG tag found' };
+      }
+      
+      // Use DOMParser for robust validation
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(sanitized, 'image/svg+xml');
+      
+      // Check for parsing errors
+      const parserError = doc.querySelector('parsererror');
+      if (parserError) {
+        return { isValid: false, normalized: content, error: 'XML parsing error' };
+      }
+      
+      // Check for SVG root element (handle both standard and namespaced)
+      let svgElement: Element | null = doc.querySelector('svg');
+      if (!svgElement) {
+        svgElement = doc.querySelector('[xmlns*="svg"]') || doc.documentElement;
+        if (!svgElement || !svgElement.localName?.toLowerCase().includes('svg')) {
+          return { isValid: false, normalized: content, error: 'No valid SVG root element' };
+        }
+      }
+      
+      // Normalize namespaced SVG (convert svg:svg to svg)
+      let normalized = sanitized;
+      if (/<(\w+:)?svg/.test(normalized)) {
+        normalized = normalized
+          .replace(/<(\w+:)svg/g, '<svg')
+          .replace(/<\/(\w+:)svg>/g, '</svg>')
+          .replace(/(\w+:)(rect|circle|path|polygon|line|polyline|ellipse|g|defs|use|image|text|tspan)/g, '$2');
+      }
+      
+      // Ensure xmlns on root
+      if (!/xmlns=["']http:\/\/www\.w3\.org\/2000\/svg["']/i.test(normalized)) {
+        normalized = normalized.replace(/<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+      
+      return { isValid: true, normalized };
+    } catch (error) {
+      return { isValid: false, normalized: content, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  };
+  
   // Sanitize filename - enhanced to prevent corrupted names
   const sanitizeFileName = (fileName: string): string => {
     let cleaned = fileName;
@@ -485,15 +539,15 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
             try {
               const content = await file.async('text');
               
-              // Sanitize and validate SVG (case-insensitive)
-              const sanitized = content.replace(/<!DOCTYPE[\s\S]*?>/gi, '');
-              const lower = sanitized.toLowerCase();
-              if (!lower.includes('<svg')) {
-                console.warn('Skipping invalid SVG:', filename);
-                failedIcons.push(filename);
+              // Use robust validation
+              const validation = validateSvgContent(content);
+              if (!validation.isValid) {
+                console.warn(`Skipping invalid SVG (${validation.error}):`, filename);
+                failedIcons.push(`${filename} (${validation.error})`);
                 return;
               }
               
+              const sanitized = validation.normalized;
               const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
               const iconName = sanitizeFileName(rawName);
               const thumbnail = generateThumbnail(sanitized);
@@ -526,8 +580,13 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
 
       // Show results
       if (failedIcons.length > 0) {
-        toast.warning(`Uploaded ${uploadedCount} icons. Failed: ${failedIcons.length}`);
+        toast.warning(`Uploaded ${uploadedCount} icons. Failed: ${failedIcons.length}`, {
+          description: 'Check console for details'
+        });
         setFailedUploads(failedIcons);
+        console.group('Failed SVG Uploads');
+        failedIcons.forEach(failure => console.warn(failure));
+        console.groupEnd();
       } else {
         toast.success(`Successfully uploaded ${uploadedCount} icons!`);
       }
