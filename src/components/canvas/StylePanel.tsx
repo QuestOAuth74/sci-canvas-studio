@@ -17,49 +17,72 @@ export const StylePanel = () => {
   const [strokeWidth, setStrokeWidth] = useState(2);
   const [opacity, setOpacity] = useState(100);
 
+  // Helper to detect if object is a shape-with-text group
+  const isShapeWithTextGroup = (obj: any): boolean => {
+    if (obj.type !== 'group') return false;
+    const objects = obj.getObjects();
+    return objects.length === 2 && 
+           (objects[0].type === 'circle' || objects[0].type === 'rect') &&
+           objects[1].type === 'textbox';
+  };
+
+  // Helper to get the shape from a group
+  const getShapeFromGroup = (obj: any) => {
+    if (isShapeWithTextGroup(obj)) {
+      return obj.getObjects()[0]; // First object is the shape
+    }
+    return obj; // Return the object itself if not a group
+  };
+
   useEffect(() => {
     if (selectedObject) {
-      setFill((selectedObject.fill as string) || "#3b82f6");
-      setStroke((selectedObject.stroke as string) || "#000000");
-      setStrokeWidth(selectedObject.strokeWidth || 2);
+      const targetShape = getShapeFromGroup(selectedObject);
+      setFill((targetShape.fill as string) || "#3b82f6");
+      setStroke((targetShape.stroke as string) || "#000000");
+      setStrokeWidth(targetShape.strokeWidth || 2);
       setOpacity((selectedObject.opacity || 1) * 100);
-      setFillEnabled(!!selectedObject.fill);
-      setStrokeEnabled(!!selectedObject.stroke);
+      setFillEnabled(!!targetShape.fill);
+      setStrokeEnabled(!!targetShape.stroke);
     }
   }, [selectedObject]);
 
   const handleFillChange = (color: string) => {
     if (!selectedObject) return;
     setFill(color);
-    selectedObject.set({ fill: fillEnabled ? color : '' });
+    const targetShape = getShapeFromGroup(selectedObject);
+    targetShape.set({ fill: fillEnabled ? color : '' });
     selectedObject.canvas?.renderAll();
   };
 
   const handleFillToggle = (enabled: boolean) => {
     if (!selectedObject) return;
     setFillEnabled(enabled);
-    selectedObject.set({ fill: enabled ? fill : '' });
+    const targetShape = getShapeFromGroup(selectedObject);
+    targetShape.set({ fill: enabled ? fill : '' });
     selectedObject.canvas?.renderAll();
   };
 
   const handleStrokeChange = (color: string) => {
     if (!selectedObject) return;
     setStroke(color);
-    selectedObject.set({ stroke: strokeEnabled ? color : '' });
+    const targetShape = getShapeFromGroup(selectedObject);
+    targetShape.set({ stroke: strokeEnabled ? color : '' });
     selectedObject.canvas?.renderAll();
   };
 
   const handleStrokeToggle = (enabled: boolean) => {
     if (!selectedObject) return;
     setStrokeEnabled(enabled);
-    selectedObject.set({ stroke: enabled ? stroke : '' });
+    const targetShape = getShapeFromGroup(selectedObject);
+    targetShape.set({ stroke: enabled ? stroke : '' });
     selectedObject.canvas?.renderAll();
   };
 
   const handleStrokeWidthChange = (width: number) => {
     if (!selectedObject) return;
     setStrokeWidth(width);
-    selectedObject.set({ strokeWidth: width });
+    const targetShape = getShapeFromGroup(selectedObject);
+    targetShape.set({ strokeWidth: width });
     selectedObject.canvas?.renderAll();
   };
 
