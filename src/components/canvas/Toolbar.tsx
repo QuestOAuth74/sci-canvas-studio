@@ -16,6 +16,7 @@ import {
   Crop,
 } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
+import { toast } from "sonner";
 import {
   Tooltip,
   TooltipContent,
@@ -33,7 +34,7 @@ interface ToolbarProps {
 }
 
 export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
-  const { selectedObject, setCropMode } = useCanvas();
+  const { canvas, selectedObject, setCropMode, setSelectedObject } = useCanvas();
   
   const tools = [
     { id: "select", icon: MousePointer2, label: "Select and Transform (S)" },
@@ -159,7 +160,18 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setCropMode(true)}
+            onClick={() => {
+              // Fallback: check canvas directly if selectedObject is out of sync
+              const activeObject = canvas?.getActiveObject();
+              if (activeObject && activeObject.type === 'image') {
+                setSelectedObject(activeObject);
+                setCropMode(true);
+              } else if (!isImageSelected) {
+                toast.error("Please select an image first");
+              } else {
+                setCropMode(true);
+              }
+            }}
             className="w-10 h-10"
             disabled={!isImageSelected}
           >

@@ -237,14 +237,23 @@ const CanvasContent = () => {
       />
       
       {/* Crop Tool */}
-      {cropMode && canvas && selectedObject && selectedObject.type === 'image' && (
-        <CropTool
-          canvas={canvas}
-          selectedImage={selectedObject as FabricImage}
-          onApply={cropImage}
-          onCancel={() => setCropMode(false)}
-        />
-      )}
+      {cropMode && canvas && (() => {
+        // Check selectedObject first, fallback to canvas active object
+        const imageToEdit = selectedObject?.type === 'image' 
+          ? selectedObject 
+          : canvas.getActiveObject()?.type === 'image' 
+            ? canvas.getActiveObject() 
+            : null;
+        
+        return imageToEdit && (
+          <CropTool
+            canvas={canvas}
+            selectedImage={imageToEdit as FabricImage}
+            onApply={cropImage}
+            onCancel={() => setCropMode(false)}
+          />
+        );
+      })()}
 
       {/* Top Header with Menu - Glass effect */}
       <header className="glass-effect border-b border-border/40">
