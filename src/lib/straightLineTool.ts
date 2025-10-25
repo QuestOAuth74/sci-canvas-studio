@@ -210,12 +210,15 @@ export class StraightLineTool {
     switch (type) {
       case 'dot': {
         return new Circle({
-          left: x - 5,
-          top: y - 5,
+          left: x,
+          top: y,
           radius: 5,
           fill: color,
+          originX: 'center',
+          originY: 'center',
           selectable: false,
           evented: false,
+          strokeUniform: true,
         });
       }
 
@@ -236,6 +239,7 @@ export class StraightLineTool {
           evented: false,
           originX: 'center',
           originY: 'center',
+          strokeUniform: true,
         });
         return arrow;
       }
@@ -258,20 +262,24 @@ export class StraightLineTool {
           evented: false,
           originX: 'center',
           originY: 'center',
+          strokeUniform: true,
         });
         return diamond;
       }
 
       case 'circle': {
         return new Circle({
-          left: x - 6,
-          top: y - 6,
+          left: x,
+          top: y,
           radius: 6,
           fill: 'transparent',
           stroke: color,
           strokeWidth: 2,
+          originX: 'center',
+          originY: 'center',
           selectable: false,
           evented: false,
+          strokeUniform: true,
         });
       }
 
@@ -290,6 +298,29 @@ export class StraightLineTool {
       default:
         return undefined;
     }
+  }
+
+  private attachMarkerScaleLock(group: Group): void {
+    const objects = (group as any).getObjects ? (group as any).getObjects() : (group as any)._objects || [];
+    const path = objects.find((o: any) => o.type === 'path');
+    const markers = objects.filter((o: any) => o !== path);
+
+    const lock = () => {
+      const sx = group.scaleX || 1;
+      const sy = group.scaleY || 1;
+      markers.forEach((m: any) => {
+        m.set({
+          scaleX: 1 / sx,
+          scaleY: 1 / sy,
+          strokeUniform: true,
+        });
+      });
+    };
+
+    // Initialize and keep locked during transforms
+    lock();
+    group.on('scaling', lock);
+    group.on('modified', lock);
   }
 
   finish(): Group | Path | null {
@@ -352,6 +383,10 @@ export class StraightLineTool {
       finalObject = new Group(objects, {
         selectable: true,
       });
+      
+      // Lock marker scale to prevent resizing
+      this.attachMarkerScaleLock(finalObject);
+      
       // Store custom properties
       (finalObject as any).isStraightLine = true;
       (finalObject as any).straightLinePoints = this.points;
