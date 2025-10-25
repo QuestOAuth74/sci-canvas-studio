@@ -1,9 +1,10 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect, Circle } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadAllFonts } from "@/lib/fontLoader";
+import { smoothFabricPath } from "@/lib/pathSmoothing";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -94,6 +95,9 @@ interface CanvasContextType {
   cropMode: boolean;
   setCropMode: (mode: boolean) => void;
   cropImage: (cropRect: { left: number; top: number; width: number; height: number }, isCircular?: boolean) => void;
+  
+  // Path smoothing
+  smoothenPath: (strength: number) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -710,6 +714,29 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     toast.success(isCircular ? "Image cropped (circular)" : "Image cropped (rectangular)");
   }, [canvas, selectedObject, saveState]);
 
+  // Path smoothing operation
+  const smoothenPath = useCallback((strength: number) => {
+    if (!canvas || !selectedObject) return;
+    
+    // Check if selected object is a freeform line (Path)
+    if (selectedObject.type !== 'path' || !(selectedObject as any).isFreeformLine) {
+      toast.error("Please select a freeform line to smooth");
+      return;
+    }
+
+    const pathObj = selectedObject as Path;
+    
+    try {
+      smoothFabricPath(pathObj, strength);
+      canvas.renderAll();
+      saveState();
+      toast.success("Path smoothed");
+    } catch (error) {
+      console.error('Smoothing error:', error);
+      toast.error("Failed to smooth path");
+    }
+  }, [canvas, selectedObject, saveState]);
+
   // Project save/load operations
   const saveProject = useCallback(async () => {
     if (!canvas || !user) {
@@ -913,6 +940,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     cropMode,
     setCropMode,
     cropImage,
+    smoothenPath,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

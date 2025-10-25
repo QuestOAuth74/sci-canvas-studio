@@ -50,7 +50,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     canvas,
     selectedObject,
     togglePin,
-    isPinned
+    isPinned,
+    smoothenPath
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -66,6 +67,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [freeformStartMarker, setFreeformStartMarker] = useState<"none" | "dot" | "arrow">("none");
   const [freeformEndMarker, setFreeformEndMarker] = useState<"none" | "dot" | "arrow">("none");
   const [eraserWidth, setEraserWidth] = useState(20);
+  const [smoothingStrength, setSmoothingStrength] = useState(50);
 
   const COLOR_PALETTE = [
     "#3b82f6", // Blue
@@ -874,11 +876,27 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label className="text-xs">Smoothness</Label>
-                        <span className="text-xs text-muted-foreground">{activeTool === 'freeform-line' ? 'High' : 'Default'}</span>
+                        <Label className="text-xs">Smoothing Strength</Label>
+                        <span className="text-xs text-muted-foreground">{smoothingStrength}%</span>
                       </div>
+                      <Slider
+                        value={[smoothingStrength]}
+                        onValueChange={(value) => setSmoothingStrength(value[0])}
+                        min={0}
+                        max={100}
+                        step={10}
+                        className="w-full"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => smoothenPath(smoothingStrength)}
+                        className="w-full text-xs h-8"
+                      >
+                        Smoothen Path
+                      </Button>
                       <p className="text-xs text-muted-foreground">
-                        Freeform lines are automatically smoothed for natural curves
+                        Apply smoothing to reduce jagged edges and create natural curves
                       </p>
                     </div>
 
