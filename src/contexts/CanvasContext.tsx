@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
-import { Canvas as FabricCanvas, FabricObject } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -89,6 +89,11 @@ interface CanvasContextType {
   getCanvasObjects: () => FabricObject[];
   selectObjectById: (id: string) => void;
   toggleObjectVisibility: (id: string) => void;
+  
+  // Crop operations
+  cropMode: boolean;
+  setCropMode: (mode: boolean) => void;
+  cropImage: (cropRect: { left: number; top: number; width: number; height: number }) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -132,6 +137,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   
   // Pin state
   const [isPinned, setIsPinned] = useState(false);
+  
+  // Crop state
+  const [cropMode, setCropMode] = useState(false);
 
   // History management
   const saveState = useCallback(() => {
@@ -645,6 +653,48 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas]);
 
+  // Crop operation
+  const cropImage = useCallback((cropRect: { left: number; top: number; width: number; height: number }) => {
+    if (!canvas || !selectedObject || selectedObject.type !== 'image') return;
+
+    const image = selectedObject as any;
+    
+    // Calculate crop coordinates relative to the original image
+    const imgLeft = image.left || 0;
+    const imgTop = image.top || 0;
+    const scaleX = image.scaleX || 1;
+    const scaleY = image.scaleY || 1;
+
+    const cropInImageCoords = {
+      left: (cropRect.left - imgLeft) / scaleX,
+      top: (cropRect.top - imgTop) / scaleY,
+      width: cropRect.width / scaleX,
+      height: cropRect.height / scaleY
+    };
+
+    // Create clipPath for non-destructive cropping
+    const clipPath = new Rect({
+      left: cropInImageCoords.left,
+      top: cropInImageCoords.top,
+      width: cropInImageCoords.width,
+      height: cropInImageCoords.height,
+      absolutePositioned: true
+    });
+
+    image.clipPath = clipPath;
+    
+    // Update image position to match crop area
+    image.set({
+      left: cropRect.left,
+      top: cropRect.top
+    });
+
+    canvas.renderAll();
+    saveState();
+    setCropMode(false);
+    toast.success("Image cropped");
+  }, [canvas, selectedObject, saveState]);
+
   // Project save/load operations
   const saveProject = useCallback(async () => {
     if (!canvas || !user) {
@@ -845,6 +895,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     getCanvasObjects,
     selectObjectById,
     toggleObjectVisibility,
+    cropMode,
+    setCropMode,
+    cropImage,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

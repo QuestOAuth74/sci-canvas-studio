@@ -22,7 +22,9 @@ import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
+import { CropTool } from "@/components/canvas/CropTool";
 import { useAuth } from "@/contexts/AuthContext";
+import { FabricImage } from "fabric";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -40,6 +42,7 @@ const CanvasContent = () => {
   const { isAdmin } = useAuth();
   const {
     canvas,
+    selectedObject,
     undo,
     redo,
     cut,
@@ -57,6 +60,9 @@ const CanvasContent = () => {
     saveProject,
     loadProject,
     togglePin,
+    cropMode,
+    setCropMode,
+    cropImage,
   } = useCanvas();
 
   // Load project if projectId is in URL
@@ -188,12 +194,26 @@ const CanvasContent = () => {
         e.preventDefault();
         setActiveTool("straight-line");
         toast.info("Straight line tool activated");
+      } else if (!modifier && e.key.toLowerCase() === 'c' && !isEditingText) {
+        e.preventDefault();
+        const activeObject = canvas?.getActiveObject();
+        if (activeObject && activeObject.type === 'image') {
+          setCropMode(true);
+          toast.info("Crop mode activated");
+        }
+      } else if (e.key === 'Escape' && cropMode) {
+        e.preventDefault();
+        setCropMode(false);
+        toast.info("Crop mode cancelled");
+      } else if (e.key === 'Enter' && cropMode && !isEditingText) {
+        e.preventDefault();
+        // Crop will be applied via CropTool's Apply button
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, togglePin]);
+  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, togglePin, cropMode, setCropMode]);
 
   return (
       <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
@@ -215,6 +235,16 @@ const CanvasContent = () => {
         open={aiGeneratorOpen} 
         onOpenChange={setAiGeneratorOpen} 
       />
+      
+      {/* Crop Tool */}
+      {cropMode && canvas && selectedObject && selectedObject.type === 'image' && (
+        <CropTool
+          canvas={canvas}
+          selectedImage={selectedObject as FabricImage}
+          onApply={cropImage}
+          onCancel={() => setCropMode(false)}
+        />
+      )}
 
       {/* Top Header with Menu - Glass effect */}
       <header className="glass-effect border-b border-border/40">

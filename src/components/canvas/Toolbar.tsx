@@ -13,7 +13,9 @@ import {
   Star,
   Hexagon,
   Spline,
+  Crop,
 } from "lucide-react";
+import { useCanvas } from "@/contexts/CanvasContext";
 import {
   Tooltip,
   TooltipContent,
@@ -30,11 +32,15 @@ interface ToolbarProps {
 }
 
 export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
+  const { selectedObject, setCropMode } = useCanvas();
+  
   const tools = [
     { id: "select", icon: MousePointer2, label: "Select and Transform (S)" },
     { id: "pen", icon: PenTool, label: "Draw Bezier Curves (B)" },
     { id: "freeform-line", icon: Spline, label: "Freeform Curved Line (F)" },
   ];
+  
+  const isImageSelected = selectedObject && selectedObject.type === 'image';
 
   return (
     <div className="flex flex-col gap-1 p-2 border-r bg-card">
@@ -133,6 +139,23 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Insert Image (I)</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCropMode(true)}
+            className="w-10 h-10"
+            disabled={!isImageSelected}
+          >
+            <Crop className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Crop Image (C)</p>
         </TooltipContent>
       </Tooltip>
       
