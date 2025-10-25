@@ -14,6 +14,7 @@ import { SEOHead } from "@/components/SEO/SEOHead";
 import { getWebApplicationSchema, getOrganizationSchema } from "@/components/SEO/StructuredData";
 import { useRecentSignups } from "@/hooks/useRecentSignups";
 import { SignupToast } from "@/components/SignupToast";
+import { InstitutionCarousel } from "@/components/InstitutionCarousel";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -183,6 +184,9 @@ const Index = () => {
               )}
             </div>
           </div>
+
+          {/* Institution Logos Carousel */}
+          <InstitutionCarousel />
 
           {/* Carousel Section */}
           <div className="py-12 animate-fade-in [animation-delay:300ms]">
