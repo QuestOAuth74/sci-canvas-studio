@@ -83,6 +83,7 @@ function createArrowMarker(
     strokeWidth: 2,
     selectable: false,
     evented: false,
+    strokeUniform: true,
   } as any);
 }
 
