@@ -9,6 +9,7 @@ import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
 import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
 import { StraightLineTool } from "@/lib/straightLineTool";
 import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
+import { ElbowLineTool } from "@/lib/elbowLineTool";
 import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
@@ -67,6 +68,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
+  const elbowLineToolRef = useRef<ElbowLineTool | null>(null);
   const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
   
@@ -1014,6 +1016,76 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       window.removeEventListener("keydown", handleKeyDown);
       if (orthogonalLineToolRef.current) {
         orthogonalLineToolRef.current.cancel();
+      }
+    };
+  }, [canvas, activeTool, onShapeCreated, onToolChange]);
+
+  // Elbow Line Tool - Simple 2-click right-angle connectors
+  useEffect(() => {
+    if (!canvas || !activeTool.startsWith("elbow-")) {
+      if (elbowLineToolRef.current) {
+        elbowLineToolRef.current.cancel();
+        elbowLineToolRef.current = null;
+      }
+      return;
+    }
+
+    // Parse marker type from tool name
+    let endMarker: 'none' | 'arrow' | 'diamond' | 'dot' = 'none';
+    if (activeTool.includes('arrow')) endMarker = 'arrow';
+    if (activeTool.includes('diamond')) endMarker = 'diamond';
+    if (activeTool.includes('dot')) endMarker = 'dot';
+
+    const options = {
+      endMarker,
+      strokeWidth: 2,
+      strokeColor: '#000000',
+      snap: true,
+      gridSize: 20,
+    };
+
+    elbowLineToolRef.current = new ElbowLineTool(canvas, options);
+    elbowLineToolRef.current.start();
+
+    // Handle clicks
+    const handleMouseDown = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      const finished = elbowLineToolRef.current?.addPoint(pointer.x, pointer.y);
+      
+      if (finished) {
+        toast.success("Elbow connector created!");
+        if (onShapeCreated) onShapeCreated();
+        onToolChange?.("select");
+      }
+    };
+
+    // Preview
+    const handleMouseMove = (e: any) => {
+      const pointer = canvas.getPointer(e.e);
+      elbowLineToolRef.current?.updatePreview(pointer.x, pointer.y);
+    };
+
+    // Cancel
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        elbowLineToolRef.current?.cancel();
+        onToolChange?.("select");
+        toast.info("Elbow connector cancelled");
+      }
+    };
+
+    canvas.on("mouse:down", handleMouseDown);
+    canvas.on("mouse:move", handleMouseMove);
+    window.addEventListener("keydown", handleKeyDown);
+
+    toast.info("Click start point, then end point to create elbow connector");
+
+    return () => {
+      canvas.off("mouse:down", handleMouseDown);
+      canvas.off("mouse:move", handleMouseMove);
+      window.removeEventListener("keydown", handleKeyDown);
+      if (elbowLineToolRef.current) {
+        elbowLineToolRef.current.cancel();
       }
     };
   }, [canvas, activeTool, onShapeCreated, onToolChange]);
