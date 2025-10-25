@@ -235,6 +235,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     'text','fontFamily','fontSize','fontWeight','fontStyle','textAlign','underline','overline','linethrough','charSpacing','lineHeight','styles',
     // Path/shape specifics
     'rx','ry','radius','path',
+    // Image specifics
+    'src','crossOrigin','filters',
     // Misc
     'globalCompositeOperation','clipPath'
   ];
