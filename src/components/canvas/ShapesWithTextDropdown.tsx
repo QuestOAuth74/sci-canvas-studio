@@ -7,7 +7,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Square, Circle, Type } from "lucide-react";
+import { FileText, Circle, Square } from "lucide-react";
 
 interface ShapesWithTextDropdownProps {
   onShapeSelect: (shape: string) => void;
@@ -30,10 +30,7 @@ export const ShapesWithTextDropdown = ({ onShapeSelect, activeTool }: ShapesWith
           size="icon" 
           className="h-8 w-8"
         >
-          <div className="relative">
-            <Square className="h-4 w-4" />
-            <Type className="h-2 w-2 absolute top-1 left-1" />
-          </div>
+          <FileText className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-card z-50">
