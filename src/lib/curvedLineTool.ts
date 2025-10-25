@@ -454,12 +454,71 @@ export class CurvedLineTool {
   }
 
   private attachMarkerScaleLock(group: Group): void {
-    group.on('scaling', () => {
-      group.set({
-        scaleX: 1,
-        scaleY: 1,
-      });
-    });
+    const objects = group.getObjects();
+    const path = objects.find((o: any) => o.type === 'path') as Path;
+    const startMarker = (group as any).startMarker;
+    const endMarker = (group as any).endMarker;
+
+    const updateMarkers = () => {
+      if (!path) return;
+
+      const sx = group.scaleX || 1;
+      const sy = group.scaleY || 1;
+
+      // Extract curve endpoints from path data
+      const pathData = path.path;
+      if (!pathData || pathData.length < 2) return;
+
+      // First point (M command)
+      const firstCmd = pathData[0];
+      const firstX = (firstCmd[1] as number) * sx;
+      const firstY = (firstCmd[2] as number) * sy;
+
+      // Last point (from Q command - index 3 and 4 are the end point)
+      const lastCmd = pathData[pathData.length - 1];
+      const lastX = (lastCmd[3] as number) * sx;
+      const lastY = (lastCmd[4] as number) * sy;
+
+      // Control point (from Q command - index 1 and 2)
+      const controlX = (lastCmd[1] as number) * sx;
+      const controlY = (lastCmd[2] as number) * sy;
+
+      // Recalculate angles based on scaled curve
+      const start = { x: firstX / sx, y: firstY / sy };
+      const control = { x: controlX / sx, y: controlY / sy };
+      const end = { x: lastX / sx, y: lastY / sy };
+
+      // Update start marker
+      if (startMarker) {
+        const startAngle = this.calculateStartAngle(start, control, end);
+        startMarker.set({
+          left: firstX,
+          top: firstY,
+          angle: startAngle,
+          scaleX: 1 / sx,
+          scaleY: 1 / sy,
+        });
+      }
+
+      // Update end marker
+      if (endMarker) {
+        const endAngle = this.calculateEndAngle(start, control, end);
+        endMarker.set({
+          left: lastX,
+          top: lastY,
+          angle: endAngle,
+          scaleX: 1 / sx,
+          scaleY: 1 / sy,
+        });
+      }
+
+      group.setCoords();
+    };
+
+    // Initialize and keep updated during transforms
+    updateMarkers();
+    group.on('scaling', updateMarkers);
+    group.on('modified', updateMarkers);
   }
 
   private getStrokeDashArray(): number[] | undefined {

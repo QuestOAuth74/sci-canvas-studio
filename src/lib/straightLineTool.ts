@@ -302,25 +302,59 @@ export class StraightLineTool {
 
   private attachMarkerScaleLock(group: Group): void {
     const objects = (group as any).getObjects ? (group as any).getObjects() : (group as any)._objects || [];
-    const path = objects.find((o: any) => o.type === 'path');
+    const path = objects.find((o: any) => o.type === 'path') as Path;
     const markers = objects.filter((o: any) => o !== path);
 
-    const lock = () => {
+    const updateMarkers = () => {
+      if (!path || markers.length === 0) return;
+
       const sx = group.scaleX || 1;
       const sy = group.scaleY || 1;
-      markers.forEach((m: any) => {
-        m.set({
-          scaleX: 1 / sx,
-          scaleY: 1 / sy,
-          strokeUniform: true,
-        });
+
+      // Extract path endpoints from path data
+      const pathData = path.path;
+      if (!pathData || pathData.length < 2) return;
+
+      // First point (M command)
+      const firstCmd = pathData[0];
+      const firstX = (firstCmd[1] as number) * sx;
+      const firstY = (firstCmd[2] as number) * sy;
+
+      // Last point (last L command)
+      const lastCmd = pathData[pathData.length - 1];
+      const lastX = (lastCmd[1] as number) * sx;
+      const lastY = (lastCmd[2] as number) * sy;
+
+      // Identify and update markers
+      markers.forEach((marker: any, index: number) => {
+        const isStartMarker = index === 0;
+        
+        if (isStartMarker) {
+          marker.set({
+            left: firstX,
+            top: firstY,
+            scaleX: 1 / sx,
+            scaleY: 1 / sy,
+            strokeUniform: true,
+          });
+        } else {
+          marker.set({
+            left: lastX,
+            top: lastY,
+            scaleX: 1 / sx,
+            scaleY: 1 / sy,
+            strokeUniform: true,
+          });
+        }
       });
+
+      group.setCoords();
     };
 
     // Initialize and keep locked during transforms
-    lock();
-    group.on('scaling', lock);
-    group.on('modified', lock);
+    updateMarkers();
+    group.on('scaling', updateMarkers);
+    group.on('modified', updateMarkers);
   }
 
   finish(): Group | Path | null {
