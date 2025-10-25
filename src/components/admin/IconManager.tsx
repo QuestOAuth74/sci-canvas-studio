@@ -292,7 +292,7 @@ export const IconManager = () => {
                   htmlFor="select-all" 
                   className="text-sm font-medium cursor-pointer"
                 >
-                  Select All ({icons.length})
+                  Select All on This Page ({icons.length})
                 </label>
               </div>
               {selectedIcons.size > 0 && (
