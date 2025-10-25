@@ -479,47 +479,64 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
     
     const group = activeObject as Group;
-    const items = group.getObjects();
+    const items = group.getObjects().slice(); // Create a copy of the array
     
-    // Calculate absolute positions for each object
-    const groupedObjects: FabricObject[] = [];
-    items.forEach(item => {
-      // Clone the object to avoid modifying the original
-      const clone = item;
-      
-      // Get the object's transform relative to the group
-      const objectTransform = item.calcTransformMatrix();
-      const groupTransform = group.calcTransformMatrix();
-      
-      // Combine transformations
-      const finalTransform = groupTransform;
-      
-      // Apply absolute position
-      const center = item.getCenterPoint();
-      const rotatedPoint = center.transform(groupTransform);
-      
-      clone.set({
-        left: rotatedPoint.x,
-        top: rotatedPoint.y,
-        angle: (item.angle || 0) + (group.angle || 0),
-        scaleX: (item.scaleX || 1) * (group.scaleX || 1),
-        scaleY: (item.scaleY || 1) * (group.scaleY || 1),
-      });
-      
-      clone.setCoords();
-      groupedObjects.push(clone);
-    });
+    // Store group's transformation properties
+    const groupLeft = group.left || 0;
+    const groupTop = group.top || 0;
+    const groupScaleX = group.scaleX || 1;
+    const groupScaleY = group.scaleY || 1;
+    const groupAngle = group.angle || 0;
     
-    // Remove the group
+    // Remove all items from the group (this properly extracts them)
+    group.removeAll();
+    
+    // Remove the now-empty group from canvas
     canvas.remove(group);
     
+    // Process each item to calculate its absolute position
+    const ungroupedObjects: FabricObject[] = [];
+    
+    items.forEach(item => {
+      // Get item's position relative to group center
+      const itemLeft = item.left || 0;
+      const itemTop = item.top || 0;
+      
+      // Calculate absolute position using group's transform
+      const rad = (groupAngle * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      
+      // Rotate and scale the item's position
+      const rotatedX = itemLeft * cos - itemTop * sin;
+      const rotatedY = itemLeft * sin + itemTop * cos;
+      
+      const absoluteLeft = groupLeft + rotatedX * groupScaleX;
+      const absoluteTop = groupTop + rotatedY * groupScaleY;
+      
+      // Set absolute properties on the item
+      item.set({
+        left: absoluteLeft,
+        top: absoluteTop,
+        angle: (item.angle || 0) + groupAngle,
+        scaleX: (item.scaleX || 1) * groupScaleX,
+        scaleY: (item.scaleY || 1) * groupScaleY,
+      });
+      
+      item.setCoords();
+      ungroupedObjects.push(item);
+    });
+    
     // Add all objects back to canvas
-    groupedObjects.forEach(obj => canvas.add(obj));
+    ungroupedObjects.forEach(obj => canvas.add(obj));
     
     // Create an active selection with all ungrouped objects
-    const selection = new ActiveSelection(groupedObjects, { canvas });
-    canvas.setActiveObject(selection);
-    canvas.renderAll();
+    if (ungroupedObjects.length > 0) {
+      const selection = new ActiveSelection(ungroupedObjects, { canvas });
+      canvas.setActiveObject(selection);
+    }
+    
+    canvas.requestRenderAll();
     saveState();
     toast.success("Group ungrouped");
   }, [canvas, saveState]);
