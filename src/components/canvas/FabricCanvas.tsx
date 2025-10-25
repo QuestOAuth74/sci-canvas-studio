@@ -1493,6 +1493,146 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           canvas.setActiveObject(octagon);
           break;
           
+        case "zoom-callout-dotted": {
+          // Create circle (source/highlight area)
+          const circle = new Circle({
+            left: pointer.x - 40,
+            top: pointer.y - 40,
+            radius: 40,
+            fill: 'transparent',
+            stroke: '#000000',
+            strokeWidth: 2,
+            strokeUniform: true,
+          });
+
+          // Create rectangle (detail/magnified area)
+          const rect = new Rect({
+            left: pointer.x + 80,
+            top: pointer.y - 60,
+            width: 160,
+            height: 120,
+            fill: 'transparent',
+            stroke: '#000000',
+            strokeWidth: 2,
+            strokeUniform: true,
+          });
+
+          // Calculate connection points
+          const circleRight = pointer.x + 40;
+          const circleTopY = pointer.y - 20;
+          const circleBottomY = pointer.y + 20;
+
+          const rectLeft = pointer.x + 80;
+          const rectTopY = pointer.y - 60;
+          const rectBottomY = pointer.y + 60;
+
+          // Create dotted connector lines
+          const line1 = new Line(
+            [circleRight, circleTopY, rectLeft, rectTopY],
+            {
+              stroke: '#000000',
+              strokeWidth: 1.5,
+              strokeDashArray: [6, 6],
+              strokeUniform: true,
+              selectable: false,
+              evented: false,
+            }
+          );
+
+          const line2 = new Line(
+            [circleRight, circleBottomY, rectLeft, rectBottomY],
+            {
+              stroke: '#000000',
+              strokeWidth: 1.5,
+              strokeDashArray: [6, 6],
+              strokeUniform: true,
+              selectable: false,
+              evented: false,
+            }
+          );
+
+          // Group all elements together
+          const calloutGroup = new Group([circle, line1, line2, rect], {
+            left: pointer.x - 40,
+            top: pointer.y - 60,
+            selectable: true,
+          });
+
+          canvas.add(calloutGroup);
+          canvas.setActiveObject(calloutGroup);
+          break;
+        }
+
+        case "zoom-callout-trapezoid": {
+          // Create circle (source/highlight area)
+          const circle = new Circle({
+            left: pointer.x - 40,
+            top: pointer.y - 40,
+            radius: 40,
+            fill: 'transparent',
+            stroke: '#000000',
+            strokeWidth: 2,
+            strokeUniform: true,
+          });
+
+          // Create rectangle (detail/magnified area)
+          const rect = new Rect({
+            left: pointer.x + 100,
+            top: pointer.y - 80,
+            width: 180,
+            height: 160,
+            fill: 'transparent',
+            stroke: '#000000',
+            strokeWidth: 2,
+            strokeUniform: true,
+          });
+
+          // Calculate trapezoid connector points
+          const circleRight = pointer.x + 40;
+          const circleTopY = pointer.y - 28;
+          const circleBottomY = pointer.y + 28;
+
+          const rectLeft = pointer.x + 100;
+          const rectTopY = pointer.y - 80;
+          const rectBottomY = pointer.y + 80;
+
+          // Create trapezoid lines (dotted)
+          const topLine = new Line(
+            [circleRight, circleTopY, rectLeft, rectTopY],
+            {
+              stroke: '#000000',
+              strokeWidth: 1.5,
+              strokeDashArray: [6, 6],
+              strokeUniform: true,
+              selectable: false,
+              evented: false,
+            }
+          );
+
+          const bottomLine = new Line(
+            [circleRight, circleBottomY, rectLeft, rectBottomY],
+            {
+              stroke: '#000000',
+              strokeWidth: 1.5,
+              strokeDashArray: [6, 6],
+              strokeUniform: true,
+              selectable: false,
+              evented: false,
+            }
+          );
+
+          // Group all elements together
+          const calloutGroup = new Group([circle, topLine, bottomLine, rect], {
+            left: pointer.x - 40,
+            top: pointer.y - 80,
+            selectable: true,
+          });
+
+          canvas.add(calloutGroup);
+          canvas.setActiveObject(calloutGroup);
+          break;
+        }
+        
         case "star":
           const starPoints = [];
           const outerRadius = 50;

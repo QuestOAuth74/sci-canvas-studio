@@ -28,6 +28,7 @@ import { ConnectorTool } from "./ConnectorTool";
 import { StraightLineTool } from "./StraightLineTool";
 import { OrthogonalLineTool } from "./OrthogonalLineTool";
 import { CurvedLineTool } from "./CurvedLineTool";
+import { ZoomCalloutTool } from "./ZoomCalloutTool";
 
 interface ToolbarProps {
   activeTool: string;
@@ -130,6 +131,17 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Smart Connectors</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div>
+            <ZoomCalloutTool onCalloutSelect={onToolChange} activeTool={activeTool} />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Zoom Callouts (Highlight Tool)</p>
         </TooltipContent>
       </Tooltip>
       
