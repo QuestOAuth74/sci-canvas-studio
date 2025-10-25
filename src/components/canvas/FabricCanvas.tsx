@@ -1226,6 +1226,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             originY: 'center',
             width: textWidth,
             fontFamily: textFont,
+            selectable: true,
+            evented: true,
+            hoverCursor: 'text',
           });
           
           const group = new Group([bgShape, shapeText], {
@@ -2648,17 +2651,43 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (onShapeCreated) onShapeCreated();
     };
 
-    // Detach previous handler
+    // Double-click handler to edit text inside labeled shape groups
+    const handleDblClick = (e: any) => {
+      const target = e.target as any;
+      if (!target) return;
+      if (target.type === 'group') {
+        const textObj = target.getObjects().find((o: any) => o.type === 'textbox');
+        if (textObj) {
+          canvas.setActiveObject(textObj);
+          if ((textObj as any).enterEditing) {
+            (textObj as any).enterEditing();
+            (textObj as any).selectAll?.();
+          }
+          canvas.requestRenderAll();
+        }
+      } else if (target.type === 'textbox') {
+        (target as any).enterEditing?.();
+        canvas.requestRenderAll();
+      }
+    };
+
+    // Improve hit testing for nested objects
+    (canvas as any).targetFindTolerance = 8;
+    (canvas as any).subTargetCheck = true;
+
+    // Detach previous handlers
     canvas.off("mouse:down", handleCanvasClick);
+    canvas.off("mouse:dblclick", handleDblClick);
     
-    // Attach handler if not in select mode, freeform mode, or pen mode
-    // (those tools have their own mouse event handlers)
+    // Attach handlers
     if (activeTool !== "select" && activeTool !== "freeform-line" && activeTool !== "pen") {
       canvas.on("mouse:down", handleCanvasClick);
     }
+    canvas.on("mouse:dblclick", handleDblClick);
 
     return () => {
       canvas.off("mouse:down", handleCanvasClick);
+      canvas.off("mouse:dblclick", handleDblClick);
     };
   }, [canvas, activeTool, textFont, textAlign, textUnderline, textOverline, textBold, textItalic, connectorState.isDrawing, connectorState.startX, connectorState.startY]);
 
