@@ -48,6 +48,8 @@ export const KeyboardShortcutsDialog = ({
         { keys: [`${modKey}`, "["], description: "Send backward" },
         { keys: [`${modKey}`, "Shift", "["], description: "Send to back" },
         { keys: [`${modKey}`, "L"], description: "Pin/Unpin object" },
+        { keys: [`${modKey}`, "G"], description: "Group objects" },
+        { keys: [`${modKey}`, "Shift", "G"], description: "Ungroup objects" },
       ],
     },
     {

@@ -54,6 +54,8 @@ const CanvasContent = () => {
     sendToBack,
     bringForward,
     sendBackward,
+    groupSelected,
+    ungroupSelected,
     projectName,
     setProjectName,
     isSaving,
@@ -190,6 +192,12 @@ const CanvasContent = () => {
       } else if (modifier && e.key === 'l') {
         e.preventDefault();
         togglePin();
+      } else if (modifier && e.key === 'g' && !e.shiftKey) {
+        e.preventDefault();
+        groupSelected();
+      } else if (modifier && e.shiftKey && e.key === 'G') {
+        e.preventDefault();
+        ungroupSelected();
       } else if (!modifier && e.key.toLowerCase() === 'l' && !isEditingText) {
         e.preventDefault();
         setActiveTool("straight-line");
@@ -213,7 +221,7 @@ const CanvasContent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, togglePin, cropMode, setCropMode]);
+  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode]);
 
   return (
       <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">

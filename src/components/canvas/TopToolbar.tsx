@@ -19,6 +19,8 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsDown,
+  Group,
+  Ungroup,
 } from "lucide-react";
 import {
   Tooltip,
@@ -50,6 +52,8 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
     sendToBack,
     bringForward,
     sendBackward,
+    groupSelected,
+    ungroupSelected,
     zoomIn,
     zoomOut,
     zoomToFit,
@@ -186,6 +190,28 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
             </Button>
           </TooltipTrigger>
           <TooltipContent>Send to Back (Ctrl+Shift+[)</TooltipContent>
+        </Tooltip>
+      </div>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+      <div className="flex items-center gap-0.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={groupSelected}>
+              <Group className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Group Objects (Ctrl+G)</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={ungroupSelected}>
+              <Ungroup className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Ungroup (Ctrl+Shift+G)</TooltipContent>
         </Tooltip>
       </div>
 

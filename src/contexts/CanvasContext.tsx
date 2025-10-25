@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -59,6 +59,10 @@ interface CanvasContextType {
   sendToBack: () => void;
   bringForward: () => void;
   sendBackward: () => void;
+  
+  // Group operations
+  groupSelected: () => void;
+  ungroupSelected: () => void;
   
   // Export operations
   exportAsPNG: () => void;
@@ -434,6 +438,87 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       saveState();
       toast.success("Moved backward one layer");
     }
+  }, [canvas, saveState]);
+
+  // Group operations
+  const groupSelected = useCallback(() => {
+    if (!canvas) return;
+    const activeObjects = canvas.getActiveObjects();
+    
+    if (activeObjects.length < 2) {
+      toast.error("Select at least 2 objects to group");
+      return;
+    }
+    
+    // Create a new group from selected objects
+    const group = new Group(activeObjects, {
+      canvas: canvas,
+    });
+    
+    // Remove individual objects
+    activeObjects.forEach(obj => canvas.remove(obj));
+    
+    // Add the group
+    canvas.add(group);
+    canvas.setActiveObject(group);
+    canvas.renderAll();
+    saveState();
+    toast.success("Objects grouped");
+  }, [canvas, saveState]);
+
+  const ungroupSelected = useCallback(() => {
+    if (!canvas) return;
+    const activeObject = canvas.getActiveObject();
+    
+    if (!activeObject || activeObject.type !== 'group') {
+      toast.error("Select a group to ungroup");
+      return;
+    }
+    
+    const group = activeObject as Group;
+    const items = group.getObjects();
+    
+    // Calculate absolute positions for each object
+    const groupedObjects: FabricObject[] = [];
+    items.forEach(item => {
+      // Clone the object to avoid modifying the original
+      const clone = item;
+      
+      // Get the object's transform relative to the group
+      const objectTransform = item.calcTransformMatrix();
+      const groupTransform = group.calcTransformMatrix();
+      
+      // Combine transformations
+      const finalTransform = groupTransform;
+      
+      // Apply absolute position
+      const center = item.getCenterPoint();
+      const rotatedPoint = center.transform(groupTransform);
+      
+      clone.set({
+        left: rotatedPoint.x,
+        top: rotatedPoint.y,
+        angle: (item.angle || 0) + (group.angle || 0),
+        scaleX: (item.scaleX || 1) * (group.scaleX || 1),
+        scaleY: (item.scaleY || 1) * (group.scaleY || 1),
+      });
+      
+      clone.setCoords();
+      groupedObjects.push(clone);
+    });
+    
+    // Remove the group
+    canvas.remove(group);
+    
+    // Add all objects back to canvas
+    groupedObjects.forEach(obj => canvas.add(obj));
+    
+    // Create an active selection with all ungrouped objects
+    const selection = new ActiveSelection(groupedObjects, { canvas });
+    canvas.setActiveObject(selection);
+    canvas.renderAll();
+    saveState();
+    toast.success("Group ungrouped");
   }, [canvas, saveState]);
 
   // Export operations
@@ -914,6 +999,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     sendToBack,
     bringForward,
     sendBackward,
+    groupSelected,
+    ungroupSelected,
     exportAsPNG,
     exportAsPNGTransparent,
     exportAsJPG,
