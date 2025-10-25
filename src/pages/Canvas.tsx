@@ -23,6 +23,7 @@ import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDi
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { CropTool } from "@/components/canvas/CropTool";
+import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage } from "fabric";
 
@@ -66,6 +67,12 @@ const CanvasContent = () => {
     setCropMode,
     cropImage,
     nudgeObject,
+    exportDialogOpen,
+    setExportDialogOpen,
+    exportAsPNG,
+    exportAsPNGTransparent,
+    exportAsJPG,
+    canvasDimensions,
   } = useCanvas();
 
   // Load project if projectId is in URL
@@ -123,6 +130,16 @@ const CanvasContent = () => {
     } else if (e.key === "Escape") {
       e.preventDefault();
       cancelEditing();
+    }
+  };
+
+  const handleExportImage = (format: 'png' | 'png-transparent' | 'jpg', dpi: 150 | 300 | 600) => {
+    if (format === 'png') {
+      exportAsPNG(dpi);
+    } else if (format === 'png-transparent') {
+      exportAsPNGTransparent(dpi);
+    } else if (format === 'jpg') {
+      exportAsJPG(dpi);
     }
   };
 
@@ -258,6 +275,15 @@ const CanvasContent = () => {
         canvas={canvas}
         open={aiGeneratorOpen} 
         onOpenChange={setAiGeneratorOpen} 
+      />
+      
+      {/* Export Dialog */}
+      <ExportDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        onExport={handleExportImage}
+        canvasWidth={canvasDimensions.width}
+        canvasHeight={canvasDimensions.height}
       />
       
       {/* Crop Tool */}

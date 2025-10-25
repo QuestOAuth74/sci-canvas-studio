@@ -36,11 +36,9 @@ export const MenuBar = () => {
     sendToBack,
     bringForward,
     sendBackward,
-    exportAsPNG,
-    exportAsPNGTransparent,
-    exportAsJPG,
     exportAsSVG,
     saveProject,
+    setExportDialogOpen,
   } = useCanvas();
 
   const handleNew = () => {
@@ -61,6 +59,10 @@ export const MenuBar = () => {
     toast.info("Export as PDF coming soon");
   };
 
+  const handleOpenExportDialog = () => {
+    setExportDialogOpen(true);
+  };
+
   return (
     <>
       <Menubar className="border-none bg-transparent shadow-none">
@@ -79,9 +81,7 @@ export const MenuBar = () => {
             </MenubarItem>
             <MenubarItem onClick={handleSave}>Save As...</MenubarItem>
             <MenubarSeparator />
-            <MenubarItem onClick={exportAsPNG}>Export as PNG</MenubarItem>
-            <MenubarItem onClick={exportAsPNGTransparent}>Export as PNG (Transparent)</MenubarItem>
-            <MenubarItem onClick={exportAsJPG}>Export as JPG</MenubarItem>
+            <MenubarItem onClick={handleOpenExportDialog}>Export Image...</MenubarItem>
             <MenubarItem onClick={exportAsSVG}>Export as SVG</MenubarItem>
             <MenubarItem onClick={handleExportPDF}>Export as PDF</MenubarItem>
           </MenubarContent>

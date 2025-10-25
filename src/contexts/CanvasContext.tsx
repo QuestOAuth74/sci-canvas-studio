@@ -65,10 +65,14 @@ interface CanvasContextType {
   ungroupSelected: () => void;
   
   // Export operations
-  exportAsPNG: () => void;
-  exportAsPNGTransparent: () => void;
-  exportAsJPG: () => void;
+  exportAsPNG: (dpi?: 150 | 300 | 600) => void;
+  exportAsPNGTransparent: (dpi?: 150 | 300 | 600) => void;
+  exportAsJPG: (dpi?: 150 | 300 | 600) => void;
   exportAsSVG: () => void;
+  
+  // Export dialog state
+  exportDialogOpen: boolean;
+  setExportDialogOpen: (open: boolean) => void;
   
   // Text formatting properties
   textFont: string;
@@ -154,6 +158,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   
   // Crop state
   const [cropMode, setCropMode] = useState(false);
+  
+  // Export dialog state
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
   // History management
   const saveState = useCallback(() => {
@@ -664,7 +671,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   }, [canvas, saveState]);
 
   // Export operations
-  const exportAsPNG = useCallback(() => {
+  const exportAsPNG = useCallback((dpi: 150 | 300 | 600 = 300) => {
     if (!canvas) return;
 
     // Temporarily hide guides and eraser paths
@@ -679,20 +686,22 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     });
     canvas.renderAll();
 
-    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
+    // Calculate multiplier based on DPI (300 is base)
+    const multiplier = dpi / 300;
+    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier });
 
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     canvas.renderAll();
 
     const link = document.createElement('a');
-    link.download = 'diagram.png';
+    link.download = `diagram-${dpi}dpi.png`;
     link.href = dataURL;
     link.click();
-    toast.success("Exported as PNG");
+    toast.success(`Exported as PNG at ${dpi} DPI`);
   }, [canvas]);
 
-  const exportAsPNGTransparent = useCallback(() => {
+  const exportAsPNGTransparent = useCallback((dpi: 150 | 300 | 600 = 300) => {
     if (!canvas) return;
 
     // Temporarily hide guides and eraser paths
@@ -710,7 +719,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     canvas.backgroundColor = '';
     canvas.renderAll();
 
-    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 2 });
+    // Calculate multiplier based on DPI (300 is base)
+    const multiplier = dpi / 300;
+    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier });
 
     // Restore background and guides
     canvas.backgroundColor = originalBg;
@@ -718,13 +729,13 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     canvas.renderAll();
 
     const link = document.createElement('a');
-    link.download = 'diagram-transparent.png';
+    link.download = `diagram-transparent-${dpi}dpi.png`;
     link.href = dataURL;
     link.click();
-    toast.success("Exported as PNG with transparent background");
+    toast.success(`Exported as PNG (transparent) at ${dpi} DPI`);
   }, [canvas]);
 
-  const exportAsJPG = useCallback(() => {
+  const exportAsJPG = useCallback((dpi: 150 | 300 | 600 = 300) => {
     if (!canvas) return;
 
     // Temporarily hide guides and eraser paths
@@ -739,17 +750,19 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     });
     canvas.renderAll();
 
-    const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier: 2 });
+    // Calculate multiplier based on DPI (300 is base)
+    const multiplier = dpi / 300;
+    const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier });
 
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     canvas.renderAll();
 
     const link = document.createElement('a');
-    link.download = 'diagram.jpg';
+    link.download = `diagram-${dpi}dpi.jpg`;
     link.href = dataURL;
     link.click();
-    toast.success("Exported as JPG");
+    toast.success(`Exported as JPG at ${dpi} DPI`);
   }, [canvas]);
 
   const exportAsSVG = useCallback(() => {
@@ -1189,6 +1202,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     exportAsPNGTransparent,
     exportAsJPG,
     exportAsSVG,
+    exportDialogOpen,
+    setExportDialogOpen,
     textFont,
     setTextFont,
     textAlign,
