@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -125,13 +125,16 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const { user } = useAuth();
   const [canvas, setCanvas] = useState<FabricCanvas | null>(null);
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
+  
+  type ClipboardJSON = { type: 'single', object: any } | { type: 'multiple', objects: any[] };
+  const [clipboard, setClipboard] = useState<ClipboardJSON | null>(null);
+  
   const [zoom, setZoom] = useState(100);
   const [gridEnabled, setGridEnabled] = useState(true);
   const [rulersEnabled, setRulersEnabled] = useState(true);
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 1200, height: 800 });
   const [paperSize, setPaperSize] = useState("custom");
-  const [clipboard, setClipboard] = useState<FabricObject | { type: 'multiple', objects: FabricObject[] } | null>(null);
   const [history, setHistory] = useState<string[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
@@ -186,158 +189,141 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const cut = useCallback(() => {
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
-    if (activeObject) {
-      setClipboard(activeObject);
-      canvas.remove(activeObject);
-      canvas.renderAll();
+    if (!activeObject) return;
+
+    try {
+      if (activeObject.type === 'activeSelection') {
+        const selection = activeObject as ActiveSelection;
+        const objects = selection.getObjects().filter(obj => 
+          !(obj as any).isGridLine && !(obj as any).isRuler
+        );
+        const jsons = objects.map(serializeObject);
+        setClipboard({ type: 'multiple', objects: jsons });
+        
+        // Remove all objects from the selection
+        objects.forEach(obj => {
+          canvas.remove(obj);
+        });
+        
+        canvas.discardActiveObject();
+        toast.success(`${jsons.length} objects cut`);
+      } else {
+        const json = serializeObject(activeObject);
+        setClipboard({ type: 'single', object: json });
+        canvas.remove(activeObject);
+        canvas.discardActiveObject();
+        toast.success('Object cut');
+      }
+      
+      canvas.requestRenderAll();
       saveState();
+    } catch (error) {
+      console.error('Cut failed:', error);
+      toast.error('Failed to cut object');
     }
   }, [canvas, saveState]);
 
-  // Helper function to properly deep clone Fabric objects
-  const deepCloneObject = async (obj: FabricObject): Promise<FabricObject> => {
-    // Define properties to preserve during cloning
-    const propertiesToInclude = [
-      'id', 'name', 'data', 
-      // Shape properties
-      'fill', 'stroke', 'strokeWidth', 'strokeUniform', 'strokeDashArray',
-      'rx', 'ry', 'radius', 
-      // Text properties
-      'text', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 
-      'textAlign', 'underline', 'overline', 'linethrough',
-      // Transform properties
-      'scaleX', 'scaleY', 'angle', 'left', 'top', 'width', 'height',
-      'flipX', 'flipY', 'skewX', 'skewY',
-      // Other properties
-      'opacity', 'visible', 'shadow'
-    ];
+  // Properties to include when serializing objects for copy/paste
+  const CLIPBOARD_PROPS = [
+    // Custom/meta
+    'id','name','data',
+    // Geometry/transform
+    'left','top','width','height','scaleX','scaleY','angle','flipX','flipY','skewX','skewY','originX','originY',
+    // Appearance
+    'fill','stroke','strokeWidth','strokeUniform','strokeDashArray','opacity','visible','shadow',
+    // Text
+    'text','fontFamily','fontSize','fontWeight','fontStyle','textAlign','underline','overline','linethrough','charSpacing','lineHeight','styles',
+    // Path/shape specifics
+    'rx','ry','radius','path',
+    // Misc
+    'globalCompositeOperation','clipPath'
+  ];
 
-    const cloned = await obj.clone();
-    
-    // Explicitly copy properties that might not be preserved by default clone
-    propertiesToInclude.forEach(prop => {
-      if ((obj as any)[prop] !== undefined) {
-        (cloned as any)[prop] = (obj as any)[prop];
-      }
-    });
-    
-    // For Images, ensure the src is preserved
-    if (obj.type === 'image' && (obj as any)._element) {
-      const imgElement = (obj as any)._element;
-      if (imgElement && imgElement.src) {
-        (cloned as any)._element = imgElement;
-        (cloned as any).setSrc = (obj as any).setSrc;
-      }
-    }
-    
-    // For Text objects, ensure text content is preserved
-    if ((obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text') && (obj as any).text) {
-      (cloned as any).text = (obj as any).text;
-    }
-    
-    // For Groups, verify nested objects are cloned
-    if (obj.type === 'group' && (obj as any)._objects) {
-      const groupCloned = cloned as Group;
-      
-      if (groupCloned._objects && groupCloned._objects.length === 0) {
-        throw new Error('Group cloning failed - no objects in cloned group');
-      }
-    }
-    
-    return cloned;
-  };
+  // Helper to serialize object to JSON
+  const serializeObject = (obj: FabricObject) => obj.toObject(CLIPBOARD_PROPS);
 
-  const copy = useCallback(async () => {
+  const copy = useCallback(() => {
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
     if (!activeObject) return;
-    
+
     try {
-      // Handle ActiveSelection (multiple objects selected)
       if (activeObject.type === 'activeSelection') {
         const selection = activeObject as ActiveSelection;
-        const objects = selection.getObjects();
-        
-        // Clone all objects in the selection using deep clone
-        const clonedObjects = await Promise.all(
-          objects.map(obj => deepCloneObject(obj))
+        const objects = selection.getObjects().filter(obj => 
+          !(obj as any).isGridLine && !(obj as any).isRuler
         );
-        
-        // Store as multiple objects
-        setClipboard({ 
-          type: 'multiple', 
-          objects: clonedObjects 
-        } as any);
-        
-        console.log('Copied multiple objects:', clonedObjects.length);
+        const jsons = objects.map(serializeObject);
+        setClipboard({ type: 'multiple', objects: jsons });
+        console.log('Copied multiple objects:', jsons.length, jsons.map(j => j.type));
+        toast.success(`${jsons.length} objects copied`);
       } else {
-        // Handle single object with deep clone
-        const cloned = await deepCloneObject(activeObject);
-        setClipboard(cloned);
-        console.log('Copied single object:', cloned.type);
+        const json = serializeObject(activeObject);
+        setClipboard({ type: 'single', object: json });
+        console.log('Copied single object:', json.type);
+        toast.success('Object copied');
       }
     } catch (error) {
-      console.error('Error copying object:', error);
+      console.error('Copy failed:', error);
       toast.error('Failed to copy object');
     }
   }, [canvas]);
 
-  const paste = useCallback(async () => {
+  const paste = useCallback(() => {
     if (!canvas || !clipboard) return;
-    
+
     try {
-      // Check if clipboard contains multiple objects
-      if ((clipboard as any).type === 'multiple') {
-        const objects = (clipboard as any).objects;
-        
-        // Clone each object again for pasting (so multiple pastes work)
-        const clonedObjects = await Promise.all(
-          objects.map((obj: FabricObject) => deepCloneObject(obj))
-        );
-        
-        const pastedObjects: FabricObject[] = [];
-        
-        // Add each cloned object with offset
-        clonedObjects.forEach((cloned: FabricObject) => {
-          cloned.set({
-            left: (cloned.left || 0) + 10,
-            top: (cloned.top || 0) + 10,
+      if (clipboard.type === 'multiple') {
+        util.enlivenObjects(clipboard.objects).then((objects: FabricObject[]) => {
+          const pasted: FabricObject[] = [];
+          console.log('Enlivened multiple objects:', objects.length, objects.map(o => o.type));
+          
+          objects.forEach(obj => {
+            obj.set({
+              left: (obj.left || 0) + 10,
+              top: (obj.top || 0) + 10,
+            });
+            obj.setCoords();
+            canvas.add(obj);
+            pasted.push(obj);
           });
-          cloned.setCoords();
-          canvas.add(cloned);
-          pastedObjects.push(cloned);
+          
+          if (pasted.length > 1) {
+            const selection = new ActiveSelection(pasted, { canvas });
+            canvas.setActiveObject(selection);
+          } else if (pasted.length === 1) {
+            canvas.setActiveObject(pasted[0]);
+          }
+          
+          canvas.requestRenderAll();
+          saveState();
+          toast.success(`${pasted.length} objects pasted`);
+        }).catch((error: any) => {
+          console.error('Paste enliven failed:', error);
+          toast.error('Failed to paste objects');
         });
-        
-        // Create an active selection with all pasted objects
-        if (pastedObjects.length > 1) {
-          const selection = new ActiveSelection(pastedObjects, { canvas });
-          canvas.setActiveObject(selection);
-        } else if (pastedObjects.length === 1) {
-          canvas.setActiveObject(pastedObjects[0]);
-        }
-        
-        canvas.requestRenderAll();
-        saveState();
-        
-        console.log('Pasted multiple objects:', pastedObjects.length);
-      } else {
-        // Handle single object paste
-        const cloned = await deepCloneObject(clipboard as FabricObject);
-        
-        cloned.set({
-          left: (cloned.left || 0) + 10,
-          top: (cloned.top || 0) + 10,
+      } else if (clipboard.type === 'single') {
+        util.enlivenObjects([clipboard.object]).then((objects: FabricObject[]) => {
+          const obj = objects[0];
+          console.log('Enlivened single object:', obj.type);
+          
+          obj.set({
+            left: (obj.left || 0) + 10,
+            top: (obj.top || 0) + 10,
+          });
+          obj.setCoords();
+          canvas.add(obj);
+          canvas.setActiveObject(obj);
+          canvas.requestRenderAll();
+          saveState();
+          toast.success('Object pasted');
+        }).catch((error: any) => {
+          console.error('Paste enliven failed:', error);
+          toast.error('Failed to paste object');
         });
-        cloned.setCoords();
-        canvas.add(cloned);
-        canvas.setActiveObject(cloned);
-        canvas.requestRenderAll();
-        saveState();
-        
-        console.log('Pasted single object:', cloned.type);
       }
     } catch (error) {
-      console.error('Error pasting object:', error);
+      console.error('Paste failed:', error);
       toast.error('Failed to paste object');
     }
   }, [canvas, clipboard, saveState]);
