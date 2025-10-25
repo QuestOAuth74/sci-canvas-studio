@@ -196,7 +196,7 @@ const CanvasContent = () => {
   }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, togglePin]);
 
   return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+      <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
       {/* Welcome Dialog */}
       <WelcomeDialog />
       
@@ -316,7 +316,7 @@ const CanvasContent = () => {
         />
 
         {/* Main Editor Area */}
-        <div className="flex flex-1 overflow-hidden min-h-0">
+        <div className="flex flex-1 min-h-0">
           {/* Left Sidebar - Icon Categories & Assets */}
           <div className={`glass-effect border-r border-border/40 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
             {isIconLibraryCollapsed ? (
@@ -375,7 +375,7 @@ const CanvasContent = () => {
           <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
         {/* Canvas */}
-        <div className="flex-1 overflow-auto relative min-h-0">
+        <div className="flex-1 relative min-h-0">
           <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
         </div>
 
