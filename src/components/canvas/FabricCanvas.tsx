@@ -2119,27 +2119,50 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
 
         case "right-angle-arrow": {
+          // Single elbow L-shaped arrow: horizontal then vertical
           const rightAnglePath = new Path(
-            `M ${pointer.x} ${pointer.y} L ${pointer.x + 50} ${pointer.y} L ${pointer.x + 50} ${pointer.y + 50} L ${pointer.x + 100} ${pointer.y + 50}`,
+            `M ${pointer.x} ${pointer.y} L ${pointer.x + 100} ${pointer.y} L ${pointer.x + 100} ${pointer.y + 100}`,
             {
               stroke: "#000000",
               strokeWidth: 2,
               fill: null,
               strokeUniform: true,
+              objectCaching: false,
             }
           );
+          
+          // Arrow pointing down at the end
           const rightAngleArrow = new Polygon([
-            { x: pointer.x + 100, y: pointer.y + 50 },
-            { x: pointer.x + 90, y: pointer.y + 44 },
-            { x: pointer.x + 90, y: pointer.y + 56 },
+            { x: pointer.x + 100, y: pointer.y + 100 },
+            { x: pointer.x + 94, y: pointer.y + 90 },
+            { x: pointer.x + 106, y: pointer.y + 90 },
           ], {
             fill: "#000000",
             stroke: "#000000",
             strokeWidth: 0,
+            objectCaching: false,
           });
+          
           const rightAngleGroup = new Group([rightAnglePath, rightAngleArrow], {
             selectable: true,
+            objectCaching: false,
           });
+          
+          // Keep arrow size consistent when scaling
+          rightAngleGroup.on('scaling', function() {
+            const group = this as Group;
+            const scaleX = group.scaleX || 1;
+            const scaleY = group.scaleY || 1;
+            
+            // Get the arrow from the group
+            const arrow = group.getObjects()[1];
+            if (arrow) {
+              // Counter-scale the arrow to maintain its size
+              arrow.scaleX = 1 / scaleX;
+              arrow.scaleY = 1 / scaleY;
+            }
+          });
+          
           canvas.add(rightAngleGroup);
           canvas.setActiveObject(rightAngleGroup);
           if (onShapeCreated) onShapeCreated();
