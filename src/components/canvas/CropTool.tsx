@@ -1,33 +1,27 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Canvas as FabricCanvas, FabricImage, Rect } from "fabric";
 import { Button } from "@/components/ui/button";
-import { Check, X, Square, Circle, Crop, ZoomIn } from "lucide-react";
+import { Check, X, Square, Circle } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
-import { Slider } from "@/components/ui/slider";
 
 interface CropToolProps {
   canvas: FabricCanvas;
   selectedImage: FabricImage;
   onApply: (
     cropRect: { left: number; top: number; width: number; height: number }, 
-    isCircular: boolean,
-    mode: 'standard' | 'highlight',
-    magnification: number
+    isCircular: boolean
   ) => void;
   onCancel: () => void;
 }
 
 export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolProps) => {
   const overlayRef = useRef<HTMLDivElement>(null);
-  const magnifyCanvasRef = useRef<HTMLCanvasElement>(null);
   const [cropRect, setCropRect] = useState({ left: 0, top: 0, width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageBounds, setImageBounds] = useState({ left: 0, top: 0, width: 0, height: 0 });
   const [isCircular, setIsCircular] = useState(false);
-  const [cropMode, setCropMode] = useState<'standard' | 'highlight'>('standard');
-  const [magnification, setMagnification] = useState(2);
 
   // Initialize crop rectangle to match image bounds
   useEffect(() => {
@@ -165,75 +159,6 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // Render magnified preview in real-time
-  useEffect(() => {
-    if (!magnifyCanvasRef.current || !selectedImage || !canvas) return;
-    
-    const magnifyCanvas = magnifyCanvasRef.current;
-    const ctx = magnifyCanvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Set magnified canvas size
-    const previewSize = 300;
-    magnifyCanvas.width = previewSize;
-    magnifyCanvas.height = previewSize;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, previewSize, previewSize);
-    
-    // Create circular clip path
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(previewSize / 2, previewSize / 2, previewSize / 2, 0, Math.PI * 2);
-    ctx.clip();
-    
-    // Get the image element from Fabric.js
-    const imgElement = selectedImage.getElement() as HTMLImageElement;
-    
-    // Calculate source rectangle (in image coordinates)
-    const zoom = canvas.getZoom();
-    const vpt = canvas.viewportTransform || [1, 0, 0, 1, 0, 0];
-    const bounds = selectedImage.getBoundingRect();
-    
-    // Convert crop rect back to image coordinates
-    const canvasEl = canvas.getElement();
-    const rect = canvasEl.getBoundingClientRect();
-    
-    const sourceX = ((cropRect.left - rect.left - vpt[4]) / zoom - bounds.left) * (selectedImage.scaleX || 1);
-    const sourceY = ((cropRect.top - rect.top - vpt[5]) / zoom - bounds.top) * (selectedImage.scaleY || 1);
-    const sourceW = (cropRect.width / zoom) * (selectedImage.scaleX || 1);
-    const sourceH = (cropRect.height / zoom) * (selectedImage.scaleY || 1);
-    
-    // Apply magnification to determine how much of the source to show
-    const magSourceW = sourceW / magnification;
-    const magSourceH = sourceH / magnification;
-    const magSourceX = sourceX + (sourceW - magSourceW) / 2;
-    const magSourceY = sourceY + (sourceH - magSourceH) / 2;
-    
-    // Draw magnified portion
-    try {
-      ctx.drawImage(
-        imgElement,
-        Math.max(0, magSourceX),
-        Math.max(0, magSourceY),
-        Math.min(magSourceW, imgElement.width),
-        Math.min(magSourceH, imgElement.height),
-        0, 0, previewSize, previewSize
-      );
-    } catch (error) {
-      console.error('Error drawing magnified preview:', error);
-    }
-    
-    ctx.restore();
-    
-    // Draw border around magnified circle
-    ctx.strokeStyle = 'hsl(var(--primary))';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(previewSize / 2, previewSize / 2, previewSize / 2 - 2, 0, Math.PI * 2);
-    ctx.stroke();
-    
-  }, [cropRect, selectedImage, canvas, magnification]);
 
   const handleApply = () => {
     // Convert viewport coordinates back to canvas coordinates
@@ -249,7 +174,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
       height: cropRect.height / zoom
     };
 
-    onApply(canvasCropRect, isCircular, cropMode, magnification);
+    onApply(canvasCropRect, isCircular);
   };
 
   const dimensions = `${Math.round(cropRect.width / canvas.getZoom())} × ${Math.round(cropRect.height / canvas.getZoom())} px`;
@@ -269,66 +194,25 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
         Crop Image: {dimensions}
       </div>
       
-      {/* Crop mode selector */}
+      {/* Shape selector */}
       <div className="glass-effect p-1 rounded-lg flex gap-1">
         <Toggle
-          pressed={cropMode === 'standard'}
-          onPressedChange={() => setCropMode('standard')}
+          pressed={!isCircular}
+          onPressedChange={() => setIsCircular(false)}
           size="sm"
-          aria-label="Standard crop"
+          aria-label="Rectangle crop"
         >
-          <Crop className="h-4 w-4" />
-          <span className="ml-1 text-xs">Crop</span>
+          <Square className="h-4 w-4" />
         </Toggle>
         <Toggle
-          pressed={cropMode === 'highlight'}
-          onPressedChange={() => setCropMode('highlight')}
+          pressed={isCircular}
+          onPressedChange={() => setIsCircular(true)}
           size="sm"
-          aria-label="Highlight crop"
+          aria-label="Circle crop"
         >
-          <ZoomIn className="h-4 w-4" />
-          <span className="ml-1 text-xs">Highlight</span>
+          <Circle className="h-4 w-4" />
         </Toggle>
       </div>
-      
-      {/* Zoom slider - only for highlight mode */}
-      {cropMode === 'highlight' && (
-        <div className="glass-effect p-4 rounded-lg">
-          <label className="text-xs text-muted-foreground mb-2 block">
-            Magnification: {magnification.toFixed(1)}x
-          </label>
-          <Slider
-            value={[magnification]}
-            onValueChange={(value) => setMagnification(value[0])}
-            min={1}
-            max={5}
-            step={0.1}
-            className="w-48"
-          />
-        </div>
-      )}
-      
-      {/* Shape selector - only for standard crop mode */}
-      {cropMode === 'standard' && (
-        <div className="glass-effect p-1 rounded-lg flex gap-1">
-          <Toggle
-            pressed={!isCircular}
-            onPressedChange={() => setIsCircular(false)}
-            size="sm"
-            aria-label="Rectangle crop"
-          >
-            <Square className="h-4 w-4" />
-          </Toggle>
-          <Toggle
-            pressed={isCircular}
-            onPressedChange={() => setIsCircular(true)}
-            size="sm"
-            aria-label="Circle crop"
-          >
-            <Circle className="h-4 w-4" />
-          </Toggle>
-        </div>
-      )}
         
         <div className="flex gap-2">
           <Button
@@ -351,42 +235,6 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
         </div>
       </div>
 
-      {/* Magnified preview - only for highlight mode */}
-      {cropMode === 'highlight' && (
-        <>
-          <div className="absolute top-4 right-4 z-50">
-            <canvas 
-              ref={magnifyCanvasRef}
-              className="rounded-full shadow-2xl border-4 border-primary"
-              style={{ 
-                width: '300px', 
-                height: '300px',
-                background: 'white'
-              }}
-            />
-            <div className="text-center text-xs text-white mt-2 font-medium">
-              Magnified Preview
-            </div>
-          </div>
-
-          {/* Dotted connector line - SVG */}
-          <svg 
-            className="absolute inset-0 pointer-events-none z-40"
-            style={{ width: '100%', height: '100%' }}
-          >
-            <line
-              x1={cropRect.left + cropRect.width / 2}
-              y1={cropRect.top + cropRect.height / 2}
-              x2={typeof window !== 'undefined' ? window.innerWidth - 154 : 0}
-              y2={154}
-              stroke="hsl(var(--primary))"
-              strokeOpacity="0.6"
-              strokeWidth="2"
-              strokeDasharray="8,8"
-            />
-          </svg>
-        </>
-      )}
 
       {/* Crop rectangle */}
       <div
@@ -398,7 +246,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
         height: cropRect.height,
         boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
         cursor: 'move',
-        borderRadius: (cropMode === 'highlight' || isCircular) ? '50%' : '0'
+        borderRadius: isCircular ? '50%' : '0'
       }}
         onMouseDown={(e) => handleMouseDown(e)}
       >
