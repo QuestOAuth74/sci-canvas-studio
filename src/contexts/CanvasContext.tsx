@@ -1054,6 +1054,18 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         updated_at: new Date().toISOString()
       };
 
+      // Check payload size before saving
+      const payloadSize = new Blob([JSON.stringify(projectData)]).size / (1024 * 1024);
+      console.log(`Save payload size: ${payloadSize.toFixed(2)}MB, Objects: ${canvas.getObjects().length}`);
+      
+      if (payloadSize > 4) {
+        toast.error('Project too large to save (>4MB)', {
+          description: 'Remove complex icons or reduce object count'
+        });
+        setIsSaving(false);
+        return;
+      }
+
       if (currentProjectId) {
         // Update existing project
         const { error } = await supabase
@@ -1078,8 +1090,25 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       }
     } catch (error: any) {
-      console.error('Save error:', error);
-      toast.error(error.message || "Failed to save project");
+      console.error('Save error:', {
+        message: error.message,
+        details: error.toString(),
+        hint: error.hint,
+        code: error.code
+      });
+      
+      // Provide specific error messages
+      if (error.message?.includes('payload') || error.message?.includes('too large') || error.message?.includes('size')) {
+        toast.error('Project too large to save', {
+          description: 'Remove some complex icons and try again'
+        });
+      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('fetch') || error.message?.includes('network')) {
+        toast.error('Network timeout during save', {
+          description: 'Project may be too large or connection is slow'
+        });
+      } else {
+        toast.error(error.message || "Failed to save project");
+      }
     } finally {
       setIsSaving(false);
     }

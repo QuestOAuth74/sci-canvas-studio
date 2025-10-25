@@ -281,13 +281,25 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
         return;
       }
 
-      // Check SVG size and warn if large
+      // Check SVG size and enforce limits
       const svgSizeKB = new Blob([data.svg_content]).size / 1024;
       console.log(`Loading icon: ${icon.name}, Size: ${svgSizeKB.toFixed(2)} KB`);
       
-      if (svgSizeKB > 500) {
+      // Block icons over 200KB
+      if (svgSizeKB > 200) {
         toast.dismiss(loadingToastId);
-        toast.loading('Processing large icon, please wait...', { id: loadingToastId });
+        toast.error(`Icon too large (${svgSizeKB.toFixed(0)}KB)`, {
+          description: 'Maximum size is 200KB. This icon may cause save failures.'
+        });
+        return;
+      }
+      
+      // Warn for icons over 100KB
+      if (svgSizeKB > 100) {
+        toast.dismiss(loadingToastId);
+        toast.warning(`Large icon (${svgSizeKB.toFixed(0)}KB)`, {
+          description: 'May affect save performance. Use with caution.'
+        });
       }
 
       const event = new CustomEvent("addIconToCanvas", {
