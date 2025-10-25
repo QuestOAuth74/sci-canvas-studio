@@ -108,29 +108,85 @@ export function chaikinSmooth(points: Point[], iterations: number = 1): Point[] 
 }
 
 /**
- * Extract points from a Fabric.js Path object
+ * Sample points along a quadratic bezier curve
+ */
+function sampleQuadraticCurve(p0: Point, cp: Point, p1: Point, samples: number = 5): Point[] {
+  const points: Point[] = [];
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples;
+    const t1 = 1 - t;
+    points.push({
+      x: t1 * t1 * p0.x + 2 * t1 * t * cp.x + t * t * p1.x,
+      y: t1 * t1 * p0.y + 2 * t1 * t * cp.y + t * t * p1.y
+    });
+  }
+  return points;
+}
+
+/**
+ * Sample points along a cubic bezier curve
+ */
+function sampleCubicCurve(p0: Point, cp1: Point, cp2: Point, p1: Point, samples: number = 5): Point[] {
+  const points: Point[] = [];
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples;
+    const t1 = 1 - t;
+    const t1_2 = t1 * t1;
+    const t1_3 = t1_2 * t1;
+    const t_2 = t * t;
+    const t_3 = t_2 * t;
+    
+    points.push({
+      x: t1_3 * p0.x + 3 * t1_2 * t * cp1.x + 3 * t1 * t_2 * cp2.x + t_3 * p1.x,
+      y: t1_3 * p0.y + 3 * t1_2 * t * cp1.y + 3 * t1 * t_2 * cp2.y + t_3 * p1.y
+    });
+  }
+  return points;
+}
+
+/**
+ * Extract points from a Fabric.js Path object with curve sampling
  */
 export function extractPathPoints(path: Path): Point[] {
   const pathData = path.path as any[];
   if (!pathData || pathData.length === 0) return [];
 
   const points: Point[] = [];
+  let lastPoint: Point = { x: 0, y: 0 };
   
   for (let i = 0; i < pathData.length; i++) {
     const cmd = pathData[i];
     const cmdType = cmd[0];
     
-    if (cmdType === 'M' || cmdType === 'L') {
-      // Move or Line command: [cmd, x, y]
-      points.push({ x: cmd[1], y: cmd[2] });
+    if (cmdType === 'M') {
+      // Move command: [cmd, x, y]
+      lastPoint = { x: cmd[1], y: cmd[2] };
+      points.push(lastPoint);
+    } else if (cmdType === 'L') {
+      // Line command: [cmd, x, y]
+      lastPoint = { x: cmd[1], y: cmd[2] };
+      points.push(lastPoint);
     } else if (cmdType === 'Q') {
       // Quadratic curve: [cmd, cpx, cpy, x, y]
-      // Add the end point
-      points.push({ x: cmd[3], y: cmd[4] });
+      const sampledPoints = sampleQuadraticCurve(
+        lastPoint,
+        { x: cmd[1], y: cmd[2] },
+        { x: cmd[3], y: cmd[4] },
+        3
+      );
+      points.push(...sampledPoints.slice(1)); // Skip first point (it's lastPoint)
+      lastPoint = { x: cmd[3], y: cmd[4] };
     } else if (cmdType === 'C') {
       // Cubic curve: [cmd, cp1x, cp1y, cp2x, cp2y, x, y]
-      // Add the end point
-      points.push({ x: cmd[5], y: cmd[6] });
+      const sampledPoints = sampleCubicCurve(
+        lastPoint,
+        { x: cmd[1], y: cmd[2] },
+        { x: cmd[3], y: cmd[4] },
+        { x: cmd[5], y: cmd[6] },
+        3
+      );
+      points.push(...sampledPoints.slice(1)); // Skip first point (it's lastPoint)
+      lastPoint = { x: cmd[5], y: cmd[6] };
     }
   }
   
@@ -138,37 +194,64 @@ export function extractPathPoints(path: Path): Point[] {
 }
 
 /**
- * Convert points back to SVG path data
+ * Convert Catmull-Rom control points to Cubic Bezier control points
  */
-export function pointsToPathData(points: Point[]): any[] {
+function catmullRomToBezier(
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  tension: number = 0.5
+): { cp1: Point; cp2: Point } {
+  const t = tension / 6;
+  
+  return {
+    cp1: {
+      x: p1.x + (p2.x - p0.x) * t,
+      y: p1.y + (p2.y - p0.y) * t
+    },
+    cp2: {
+      x: p2.x - (p3.x - p1.x) * t,
+      y: p2.y - (p3.y - p1.y) * t
+    }
+  };
+}
+
+/**
+ * Convert points to smooth Catmull-Rom SVG path data
+ */
+export function pointsToPathData(points: Point[], tension: number = 1.0): any[] {
   if (points.length === 0) return [];
+  if (points.length === 1) return [['M', points[0].x, points[0].y]];
+  if (points.length === 2) {
+    return [
+      ['M', points[0].x, points[0].y],
+      ['L', points[1].x, points[1].y]
+    ];
+  }
   
   const pathData: any[] = [];
   
   // Start with Move command
   pathData.push(['M', points[0].x, points[0].y]);
   
-  // Use quadratic bezier curves for smoothness
-  for (let i = 1; i < points.length; i++) {
-    if (i === points.length - 1) {
-      // Last point: use Line
-      pathData.push(['L', points[i].x, points[i].y]);
-    } else {
-      // Create smooth curve using midpoints as control points
-      const p0 = points[i - 1];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      
-      // Control point is the current point
-      const cpx = p1.x;
-      const cpy = p1.y;
-      
-      // End point is midpoint to next
-      const ex = (p1.x + p2.x) / 2;
-      const ey = (p1.y + p2.y) / 2;
-      
-      pathData.push(['Q', cpx, cpy, ex, ey]);
-    }
+  // For first segment, use ghost point
+  const p0_ghost = {
+    x: 2 * points[0].x - points[1].x,
+    y: 2 * points[0].y - points[1].y
+  };
+  
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = i === 0 ? p0_ghost : points[i - 1];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = i === points.length - 2 
+      ? { x: 2 * p2.x - p1.x, y: 2 * p2.y - p1.y } // Ghost point for end
+      : points[i + 2];
+    
+    const { cp1, cp2 } = catmullRomToBezier(p0, p1, p2, p3, tension);
+    
+    pathData.push(['C', cp1.x, cp1.y, cp2.x, cp2.y, p2.x, p2.y]);
   }
   
   return pathData;
@@ -178,7 +261,7 @@ export function pointsToPathData(points: Point[]): any[] {
  * Main smoothing function for Fabric.js Path objects
  */
 export function smoothFabricPath(path: Path, strength: number): void {
-  // Extract current path points
+  // Extract current path points with curve sampling
   const points = extractPathPoints(path);
   
   if (points.length < 3) {
@@ -187,28 +270,39 @@ export function smoothFabricPath(path: Path, strength: number): void {
   }
   
   // Map strength (0-100) to smoothing parameters
-  let iterations = 1;
-  let tolerance = 3;
+  let simplifyTolerance = 0;
+  let chaikinIterations = 0;
+  let catmullTension = 1.0;
   
-  if (strength <= 30) {
-    iterations = 1;
-    tolerance = 2;
-  } else if (strength <= 70) {
-    iterations = 2;
-    tolerance = 3;
+  if (strength <= 33) {
+    // Light smoothing
+    simplifyTolerance = 0; // No simplification
+    chaikinIterations = 0;
+    catmullTension = 0.8; // Tighter curves
+  } else if (strength <= 66) {
+    // Medium smoothing
+    simplifyTolerance = 1.5;
+    chaikinIterations = 1;
+    catmullTension = 1.0; // Medium curves
   } else {
-    iterations = 3;
-    tolerance = 4;
+    // Heavy smoothing
+    simplifyTolerance = 2.5;
+    chaikinIterations = 2;
+    catmullTension = 1.2; // Looser curves
   }
   
-  // First simplify to remove redundant points
-  let smoothedPoints = simplifyPath(points, tolerance);
+  // Simplify path if tolerance > 0
+  let smoothedPoints = simplifyTolerance > 0 
+    ? simplifyPath(points, simplifyTolerance)
+    : points;
   
-  // Then apply Chaikin smoothing
-  smoothedPoints = chaikinSmooth(smoothedPoints, iterations);
+  // Apply Chaikin smoothing if iterations > 0
+  if (chaikinIterations > 0) {
+    smoothedPoints = chaikinSmooth(smoothedPoints, chaikinIterations);
+  }
   
-  // Convert back to path data
-  const newPathData = pointsToPathData(smoothedPoints);
+  // Convert to smooth Catmull-Rom path
+  const newPathData = pointsToPathData(smoothedPoints, catmullTension);
   
   // Update the path
   path.path = newPathData;
