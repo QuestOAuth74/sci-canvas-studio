@@ -84,10 +84,23 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     "#f3f4f6", // Light gray
   ];
 
+  // Helper function to get text object from selection
+  const getTextObject = (obj: any): Textbox | null => {
+    if (obj?.type === 'textbox') {
+      return obj as Textbox;
+    }
+    // Check if it's a group containing text
+    if (obj?.type === 'group') {
+      const textObj = obj.getObjects().find((o: any) => o.type === 'textbox');
+      return textObj as Textbox || null;
+    }
+    return null;
+  };
+
   // Update text properties when selected object changes
   useEffect(() => {
-    if (selectedObject && selectedObject.type === 'textbox') {
-      const textObj = selectedObject as Textbox;
+    const textObj = getTextObject(selectedObject);
+    if (textObj) {
       setTextFont(textObj.fontFamily || "Inter");
       setTextSize(textObj.fontSize || 24);
       setTextColor(textObj.fill as string || "#000000");
@@ -118,8 +131,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleFontChange = (font: string) => {
     setTextFont(font);
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      const textObj = selectedObject as Textbox;
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
       textObj.set({ fontFamily: font });
       canvas.renderAll();
     }
@@ -129,8 +142,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     const numSize = parseInt(size);
     if (!isNaN(numSize)) {
       setTextSize(numSize);
-      if (canvas && selectedObject && selectedObject.type === 'textbox') {
-        const textObj = selectedObject as Textbox;
+      const textObj = getTextObject(selectedObject);
+      if (canvas && textObj) {
         textObj.set({ fontSize: numSize });
         canvas.renderAll();
       }
@@ -139,8 +152,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleTextColorChange = (color: string) => {
     setTextColor(color);
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      const textObj = selectedObject as Textbox;
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
       textObj.set({ fill: color });
       canvas.renderAll();
     }
@@ -964,53 +977,56 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                 </div>
               )}
               
-              <div className="pt-3 border-t">
-                <h3 className="font-semibold text-sm mb-3">Text</h3>
-                <div className="space-y-2">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Font Family</Label>
-                    <Select value={textFont} onValueChange={handleFontChange}>
-                      <SelectTrigger className="h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        {GOOGLE_FONTS.map((font) => (
-                          <SelectItem 
-                            key={font.value} 
-                            value={font.value}
-                            className="text-xs"
-                            style={{ fontFamily: font.value }}
-                          >
-                            {font.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
+              {/* Text Properties - Show for textbox or groups containing text */}
+              {(selectedObject && (selectedObject.type === 'textbox' || getTextObject(selectedObject))) && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Text</h3>
+                  <div className="space-y-2">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Size</Label>
-                      <Input 
-                        type="number" 
-                        value={textSize} 
-                        onChange={(e) => handleTextSizeChange(e.target.value)}
-                        className="h-8 text-xs" 
-                        min="8"
-                        max="200"
-                      />
+                      <Label className="text-xs">Font Family</Label>
+                      <Select value={textFont} onValueChange={handleFontChange}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {GOOGLE_FONTS.map((font) => (
+                            <SelectItem 
+                              key={font.value} 
+                              value={font.value}
+                              className="text-xs"
+                              style={{ fontFamily: font.value }}
+                            >
+                              {font.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Color</Label>
-                      <Input 
-                        type="color" 
-                        value={textColor} 
-                        onChange={(e) => handleTextColorChange(e.target.value)}
-                        className="h-8" 
-                      />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Size</Label>
+                        <Input 
+                          type="number" 
+                          value={textSize} 
+                          onChange={(e) => handleTextSizeChange(e.target.value)}
+                          className="h-8 text-xs" 
+                          min="8"
+                          max="200"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Color</Label>
+                        <Input 
+                          type="color" 
+                          value={textColor} 
+                          onChange={(e) => handleTextColorChange(e.target.value)}
+                          className="h-8" 
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="pt-3 border-t">
                 <h3 className="font-semibold text-sm mb-3">Arrange</h3>

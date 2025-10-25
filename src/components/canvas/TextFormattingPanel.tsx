@@ -60,10 +60,23 @@ export const TextFormattingPanel = () => {
     selectedObject,
   } = useCanvas();
 
+  // Helper function to get text object from selection
+  const getTextObject = (obj: any): Textbox | null => {
+    if (obj?.type === 'textbox') {
+      return obj as Textbox;
+    }
+    // Check if it's a group containing text
+    if (obj?.type === 'group') {
+      const textObj = obj.getObjects().find((o: any) => o.type === 'textbox');
+      return textObj as Textbox || null;
+    }
+    return null;
+  };
+
   // Update toolbar to reflect selected text object's properties
   useEffect(() => {
-    if (selectedObject && selectedObject.type === 'textbox') {
-      const textObj = selectedObject as Textbox;
+    const textObj = getTextObject(selectedObject);
+    if (textObj) {
       if (textObj.fontFamily) setTextFont(textObj.fontFamily);
       if (textObj.textAlign) setTextAlign(textObj.textAlign);
       setTextBold(textObj.fontWeight === 'bold');
@@ -83,8 +96,9 @@ export const TextFormattingPanel = () => {
     
     setTextFont(font);
     // Update selected text object if exists
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      selectedObject.set({ fontFamily: font });
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
+      textObj.set({ fontFamily: font });
       canvas.renderAll();
     }
   };
@@ -93,8 +107,9 @@ export const TextFormattingPanel = () => {
     const newBold = !textBold;
     setTextBold(newBold);
     // Update selected text object if exists
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      selectedObject.set({ fontWeight: newBold ? 'bold' : 'normal' });
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
+      textObj.set({ fontWeight: newBold ? 'bold' : 'normal' });
       canvas.renderAll();
     }
   };
@@ -103,8 +118,9 @@ export const TextFormattingPanel = () => {
     const newItalic = !textItalic;
     setTextItalic(newItalic);
     // Update selected text object if exists
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      selectedObject.set({ fontStyle: newItalic ? 'italic' : 'normal' });
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
+      textObj.set({ fontStyle: newItalic ? 'italic' : 'normal' });
       canvas.renderAll();
     }
   };
@@ -112,8 +128,9 @@ export const TextFormattingPanel = () => {
   const handleAlignChange = (align: string) => {
     setTextAlign(align);
     // Update selected text object if exists
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      selectedObject.set({ textAlign: align as any });
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
+      textObj.set({ textAlign: align as any });
       canvas.renderAll();
     }
   };
@@ -122,8 +139,9 @@ export const TextFormattingPanel = () => {
     const newUnderline = !textUnderline;
     setTextUnderline(newUnderline);
     // Update selected text object if exists
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      selectedObject.set({ underline: newUnderline });
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
+      textObj.set({ underline: newUnderline });
       canvas.renderAll();
     }
   };
@@ -132,8 +150,9 @@ export const TextFormattingPanel = () => {
     const newOverline = !textOverline;
     setTextOverline(newOverline);
     // Update selected text object if exists
-    if (canvas && selectedObject && selectedObject.type === 'textbox') {
-      selectedObject.set({ overline: newOverline });
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
+      textObj.set({ overline: newOverline });
       canvas.renderAll();
     }
   };
