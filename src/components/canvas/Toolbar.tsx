@@ -14,7 +14,6 @@ import {
   Hexagon,
   Spline,
   Crop,
-  Workflow,
 } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
@@ -119,24 +118,6 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Smart Connectors</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Separator className="my-1" />
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={activeTool === "right-angle-arrow" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => onToolChange("right-angle-arrow")}
-            className="w-10 h-10"
-          >
-            <Workflow className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Right-Angle Arrow (W)</p>
         </TooltipContent>
       </Tooltip>
       

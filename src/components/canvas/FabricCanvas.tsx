@@ -10,7 +10,6 @@ import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
 import { StraightLineTool } from "@/lib/straightLineTool";
 import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
 import { CurvedLineTool } from "@/lib/curvedLineTool";
-import { RightAngleArrowTool } from "@/lib/rightAngleArrowTool";
 import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 
@@ -69,7 +68,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
   const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
-  const rightAngleArrowToolRef = useRef<RightAngleArrowTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
   
   const { 
@@ -1016,79 +1014,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       window.removeEventListener("keydown", handleKeyDown);
       if (orthogonalLineToolRef.current) {
         orthogonalLineToolRef.current.cancel();
-      }
-    };
-  }, [canvas, activeTool, onShapeCreated, onToolChange]);
-
-  // Right Angle Arrow Tool - 3-click drawing tool
-  useEffect(() => {
-    if (!canvas || activeTool !== "right-angle-arrow") {
-      if (rightAngleArrowToolRef.current) {
-        rightAngleArrowToolRef.current.cancel();
-        rightAngleArrowToolRef.current = null;
-      }
-      return;
-    }
-
-    const options = {
-      strokeWidth: 2,
-      strokeColor: '#000000',
-      snap: false,
-      gridSize: 20,
-    };
-
-    rightAngleArrowToolRef.current = new RightAngleArrowTool(canvas, options);
-    rightAngleArrowToolRef.current.start();
-
-    // Handle clicks
-    const handleMouseDown = (e: any) => {
-      // Skip if clicking on an existing object
-      if (e.target) {
-        e.e.preventDefault();
-        e.e.stopPropagation();
-        return;
-      }
-      
-      e.e.preventDefault();
-      e.e.stopPropagation();
-      
-      const pointer = canvas.getPointer(e.e);
-      const finished = rightAngleArrowToolRef.current?.addPoint(pointer.x, pointer.y);
-      
-      if (finished) {
-        toast.success("Right-angle arrow created!");
-        if (onShapeCreated) onShapeCreated();
-        onToolChange?.("select");
-      }
-    };
-
-    // Preview
-    const handleMouseMove = (e: any) => {
-      const pointer = canvas.getPointer(e.e);
-      rightAngleArrowToolRef.current?.updatePreview(pointer.x, pointer.y);
-    };
-
-    // Cancel
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        rightAngleArrowToolRef.current?.cancel();
-        onToolChange?.("select");
-        toast.info("Right-angle arrow cancelled");
-      }
-    };
-
-    canvas.on("mouse:down", handleMouseDown);
-    canvas.on("mouse:move", handleMouseMove);
-    window.addEventListener("keydown", handleKeyDown);
-
-    toast.info("Click 3 points: start, elbow, end to create right-angle arrow");
-
-    return () => {
-      canvas.off("mouse:down", handleMouseDown);
-      canvas.off("mouse:move", handleMouseMove);
-      window.removeEventListener("keydown", handleKeyDown);
-      if (rightAngleArrowToolRef.current) {
-        rightAngleArrowToolRef.current.cancel();
       }
     };
   }, [canvas, activeTool, onShapeCreated, onToolChange]);

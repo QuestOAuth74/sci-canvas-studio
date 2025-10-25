@@ -194,10 +194,6 @@ const CanvasContent = () => {
         e.preventDefault();
         setActiveTool("straight-line");
         toast.info("Straight line tool activated");
-      } else if (!modifier && e.key.toLowerCase() === 'w' && !isEditingText) {
-        e.preventDefault();
-        setActiveTool("right-angle-arrow");
-        toast.info("Right-angle arrow tool activated");
       } else if (!modifier && e.key.toLowerCase() === 'c' && !isEditingText) {
         e.preventDefault();
         const activeObject = canvas?.getActiveObject();
