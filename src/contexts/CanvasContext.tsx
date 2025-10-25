@@ -977,22 +977,23 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   ) => {
     if (!canvas) return;
 
-    const imgLeft = sourceImage.left || 0;
-    const imgTop = sourceImage.top || 0;
-    const scaleX = sourceImage.scaleX || 1;
-    const scaleY = sourceImage.scaleY || 1;
+    // Get the actual image bounds on canvas
+    const imgBounds = sourceImage.getBoundingRect();
+    const imgElement = sourceImage.getElement() as HTMLImageElement;
 
-    // Calculate crop area in image coordinates
-    const cropInImageCoords = {
-      left: (cropRect.left - imgLeft) / scaleX,
-      top: (cropRect.top - imgTop) / scaleY,
-      width: cropRect.width / scaleX,
-      height: cropRect.height / scaleY
-    };
+    // Calculate what portion of the IMAGE (in image pixel coordinates) to extract
+    // cropRect is in canvas coordinates, we need to convert to image coordinates
+    const relativeLeft = (cropRect.left - imgBounds.left) / imgBounds.width;
+    const relativeTop = (cropRect.top - imgBounds.top) / imgBounds.height;
+    const relativeWidth = cropRect.width / imgBounds.width;
+    const relativeHeight = cropRect.height / imgBounds.height;
 
-    // Get the image element
-    const imgElement = sourceImage.getElement();
-    
+    // Now convert to actual image pixel coordinates
+    const sourceX = relativeLeft * imgElement.naturalWidth;
+    const sourceY = relativeTop * imgElement.naturalHeight;
+    const sourceW = relativeWidth * imgElement.naturalWidth;
+    const sourceH = relativeHeight * imgElement.naturalHeight;
+
     // Create a temporary canvas to extract and magnify the cropped portion
     const tempCanvas = document.createElement('canvas');
     const size = 300; // Fixed size for magnified circle
@@ -1008,15 +1009,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
     ctx.clip();
     
-    // Calculate source area considering magnification
-    const sourceW = cropInImageCoords.width / magnification;
-    const sourceH = cropInImageCoords.height / magnification;
-    const sourceX = cropInImageCoords.left + (cropInImageCoords.width - sourceW) / 2;
-    const sourceY = cropInImageCoords.top + (cropInImageCoords.height - sourceH) / 2;
+    // Calculate the area to extract considering magnification
+    // For magnification, we want to show a SMALLER portion of the source
+    const magSourceW = sourceW / magnification;
+    const magSourceH = sourceH / magnification;
+    const magSourceX = sourceX + (sourceW - magSourceW) / 2;
+    const magSourceY = sourceY + (sourceH - magSourceH) / 2;
     
+    // Draw the magnified portion
     ctx.drawImage(
       imgElement,
-      sourceX, sourceY, sourceW, sourceH,
+      Math.max(0, magSourceX),
+      Math.max(0, magSourceY),
+      Math.min(magSourceW, imgElement.naturalWidth - magSourceX),
+      Math.min(magSourceH, imgElement.naturalHeight - magSourceY),
       0, 0, size, size
     );
     ctx.restore();
@@ -1032,27 +1038,34 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     FabricImage.fromURL(tempCanvas.toDataURL()).then((fabricImg) => {
       if (!canvas) return;
       
-      // Position the magnified circle to the right of the original selection
+      // Calculate center of crop area
+      const cropCenterX = cropRect.left + cropRect.width / 2;
+      const cropCenterY = cropRect.top + cropRect.height / 2;
+      
+      // Position the magnified circle to the right of the crop area with some spacing
+      const spacing = 150;
+      const magnifiedLeft = cropRect.left + cropRect.width + spacing;
+      const magnifiedTop = cropCenterY - size / 2; // Center vertically with crop area
+      
       fabricImg.set({
-        left: cropRect.left + cropRect.width + 100,
-        top: cropRect.top,
+        left: magnifiedLeft,
+        top: magnifiedTop,
         selectable: true,
         name: 'Magnified Highlight'
       });
+      
+      // Calculate magnified circle center
+      const magnifiedCenterX = magnifiedLeft + size / 2;
+      const magnifiedCenterY = magnifiedTop + size / 2;
 
-      // Create circle indicator on original image
-      const centerX = cropRect.left + cropRect.width / 2;
-      const centerY = cropRect.top + cropRect.height / 2;
-      const magnifiedCenterX = fabricImg.left! + size / 2;
-      const magnifiedCenterY = fabricImg.top! + size / 2;
-
+      // Create circle indicator on original image - matches crop area size
       const circleIndicator = new Circle({
-        left: centerX,
-        top: centerY,
+        left: cropCenterX,
+        top: cropCenterY,
         radius: Math.min(cropRect.width, cropRect.height) / 2,
         fill: 'transparent',
         stroke: '#8b5cf6',
-        strokeWidth: 3,
+        strokeWidth: 2,
         selectable: false,
         evented: false,
         name: 'Highlight Indicator',
@@ -1060,9 +1073,22 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         originY: 'center'
       });
 
-      // Create dotted connector line
+      // Create dotted connector lines from edge of circle indicator to edge of magnified circle
+      // Calculate the angle between the two circles
+      const angle = Math.atan2(magnifiedCenterY - cropCenterY, magnifiedCenterX - cropCenterX);
+      
+      // Calculate start point (edge of indicator circle)
+      const indicatorRadius = Math.min(cropRect.width, cropRect.height) / 2;
+      const startX = cropCenterX + indicatorRadius * Math.cos(angle);
+      const startY = cropCenterY + indicatorRadius * Math.sin(angle);
+      
+      // Calculate end point (edge of magnified circle)
+      const magnifiedRadius = size / 2;
+      const endX = magnifiedCenterX - magnifiedRadius * Math.cos(angle);
+      const endY = magnifiedCenterY - magnifiedRadius * Math.sin(angle);
+      
       const line = new Line(
-        [centerX, centerY, magnifiedCenterX, magnifiedCenterY],
+        [startX, startY, endX, endY],
         {
           stroke: '#8b5cf6',
           strokeWidth: 2,
@@ -1073,7 +1099,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       );
 
-      // Add all elements to canvas
+      // Add all elements to canvas first
       canvas.add(circleIndicator);
       canvas.add(line);
       canvas.add(fabricImg);
