@@ -916,42 +916,62 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const object = selectedObject as any;
     
-    
-    // Get the object's current properties
-    const objLeft = object.left || 0;
-    const objTop = object.top || 0;
+    // Use getBoundingRect() to get actual object bounds regardless of origin
+    const objectBounds = object.getBoundingRect();
     const scaleX = object.scaleX || 1;
     const scaleY = object.scaleY || 1;
-    const angle = object.angle || 0;
 
-    // Calculate crop area relative to the object's coordinate system
-    // We need to convert from canvas coordinates to object-local coordinates
-    const cropInObjectCoords = {
-      left: (cropRect.left - objLeft) / scaleX,
-      top: (cropRect.top - objTop) / scaleY,
-      width: cropRect.width / scaleX,
-      height: cropRect.height / scaleY
+    // Calculate crop area relative to the object's bounding box
+    // These are in canvas coordinates
+    const cropRelativeToObject = {
+      left: cropRect.left - objectBounds.left,
+      top: cropRect.top - objectBounds.top,
+      width: cropRect.width,
+      height: cropRect.height
     };
+
+    // Convert to object-local coordinates by dividing by scale
+    const cropInObjectCoords = {
+      left: cropRelativeToObject.left / scaleX,
+      top: cropRelativeToObject.top / scaleY,
+      width: cropRelativeToObject.width / scaleX,
+      height: cropRelativeToObject.height / scaleY
+    };
+
+    // For groups, we need to account for the origin being at center
+    // Get the object's actual width/height in its coordinate system
+    let adjustedCropCoords = { ...cropInObjectCoords };
+    
+    if (object.type === 'group') {
+      // For groups with center origin, we need to offset by half the object's dimensions
+      const objWidth = object.width || 0;
+      const objHeight = object.height || 0;
+      
+      adjustedCropCoords = {
+        left: cropInObjectCoords.left - objWidth / 2,
+        top: cropInObjectCoords.top - objHeight / 2,
+        width: cropInObjectCoords.width,
+        height: cropInObjectCoords.height
+      };
+    }
 
     // Create clipPath for non-destructive cropping
     let clipPath;
     if (isCircular) {
-      // For circular crop, use the center and radius
-      const radius = Math.min(cropInObjectCoords.width, cropInObjectCoords.height) / 2;
+      const radius = Math.min(adjustedCropCoords.width, adjustedCropCoords.height) / 2;
       clipPath = new Circle({
-        left: cropInObjectCoords.left + cropInObjectCoords.width / 2,
-        top: cropInObjectCoords.top + cropInObjectCoords.height / 2,
+        left: adjustedCropCoords.left + adjustedCropCoords.width / 2,
+        top: adjustedCropCoords.top + adjustedCropCoords.height / 2,
         radius: radius,
         originX: 'center',
         originY: 'center'
       });
     } else {
-      // For rectangular crop
       clipPath = new Rect({
-        left: cropInObjectCoords.left,
-        top: cropInObjectCoords.top,
-        width: cropInObjectCoords.width,
-        height: cropInObjectCoords.height,
+        left: adjustedCropCoords.left,
+        top: adjustedCropCoords.top,
+        width: adjustedCropCoords.width,
+        height: adjustedCropCoords.height,
         originX: 'left',
         originY: 'top'
       });
