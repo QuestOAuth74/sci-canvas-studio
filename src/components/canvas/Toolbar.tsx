@@ -185,25 +185,31 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
             variant="ghost"
             size="icon"
             onClick={() => {
-              // Fallback: check canvas directly if selectedObject is out of sync
-              const activeObject = canvas?.getActiveObject();
-              if (activeObject && activeObject.type === 'image') {
-                setSelectedObject(activeObject);
-                setCropMode(true);
-              } else if (!isImageSelected) {
-                toast.error("Please select an image first");
+              // Check if selected object is an image or group (SVG icon)
+              const isImageOrIcon = selectedObject && 
+                (selectedObject.type === 'image' || selectedObject.type === 'group');
+              
+              if (!isImageOrIcon) {
+                // Fallback: check canvas directly
+                const activeObject = canvas?.getActiveObject();
+                if (activeObject && (activeObject.type === 'image' || activeObject.type === 'group')) {
+                  setSelectedObject(activeObject);
+                  setCropMode(true);
+                } else {
+                  toast.error("Please select an image or icon first");
+                }
               } else {
                 setCropMode(true);
               }
             }}
             className="w-10 h-10"
-            disabled={!isImageSelected}
+            disabled={!(selectedObject && (selectedObject.type === 'image' || selectedObject.type === 'group'))}
           >
             <Crop className="h-5 w-5" />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right">
-          <p>Crop Image (C)</p>
+          <p>Crop Image/Icon (C)</p>
         </TooltipContent>
       </Tooltip>
       

@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Canvas as FabricCanvas, FabricImage, Rect } from "fabric";
+import { Canvas as FabricCanvas, FabricImage, Group, Rect } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Check, X, Square, Circle } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 
 interface CropToolProps {
   canvas: FabricCanvas;
-  selectedImage: FabricImage;
+  selectedObject: FabricImage | Group;
   onApply: (
     cropRect: { left: number; top: number; width: number; height: number }, 
     isCircular: boolean
@@ -14,7 +14,7 @@ interface CropToolProps {
   onCancel: () => void;
 }
 
-export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolProps) => {
+export const CropTool = ({ canvas, selectedObject, onApply, onCancel }: CropToolProps) => {
   const overlayRef = useRef<HTMLDivElement>(null);
   const [cropRect, setCropRect] = useState({ left: 0, top: 0, width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -25,9 +25,9 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
 
   // Initialize crop rectangle to match image bounds
   useEffect(() => {
-    if (!selectedImage || !canvas) return;
+    if (!selectedObject || !canvas) return;
 
-    const bounds = selectedImage.getBoundingRect();
+    const bounds = selectedObject.getBoundingRect();
     const canvasEl = canvas.getElement();
     const rect = canvasEl.getBoundingClientRect();
     
@@ -45,7 +45,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
 
     setImageBounds(imgBounds);
     setCropRect(imgBounds);
-  }, [selectedImage, canvas]);
+  }, [selectedObject, canvas]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent, handle?: string) => {
     e.preventDefault();
@@ -191,7 +191,7 @@ export const CropTool = ({ canvas, selectedImage, onApply, onCancel }: CropToolP
     {/* Action buttons - moved to top left */}
     <div className="absolute top-4 left-4 flex flex-col gap-2 z-50">
       <div className="glass-effect px-4 py-2 rounded-lg text-sm font-medium">
-        Crop Image: {dimensions}
+        Crop {selectedObject.type === 'image' ? 'Image' : 'Icon'}: {dimensions}
       </div>
       
       {/* Shape selector */}

@@ -25,7 +25,7 @@ import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { CropTool } from "@/components/canvas/CropTool";
 import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { FabricImage } from "fabric";
+import { FabricImage, Group } from "fabric";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -223,7 +223,7 @@ const CanvasContent = () => {
       } else if (!modifier && e.key.toLowerCase() === 'c' && !isEditingText) {
         e.preventDefault();
         const activeObject = canvas?.getActiveObject();
-        if (activeObject && activeObject.type === 'image') {
+        if (activeObject && (activeObject.type === 'image' || activeObject.type === 'group')) {
           setCropMode(true);
           toast.info("Crop mode activated");
         }
@@ -289,16 +289,20 @@ const CanvasContent = () => {
       {/* Crop Tool */}
       {cropMode && canvas && (() => {
         // Check selectedObject first, fallback to canvas active object
-        const imageToEdit = selectedObject?.type === 'image' 
+        const objectToEdit = selectedObject && 
+          (selectedObject.type === 'image' || selectedObject.type === 'group')
           ? selectedObject 
-          : canvas.getActiveObject()?.type === 'image' 
-            ? canvas.getActiveObject() 
-            : null;
+          : canvas.getActiveObject();
         
-        return imageToEdit && (
+        const canCrop = objectToEdit && 
+          (objectToEdit.type === 'image' || objectToEdit.type === 'group');
+        
+        if (!canCrop) return null;
+
+        return (
           <CropTool
             canvas={canvas}
-            selectedImage={imageToEdit as FabricImage}
+            selectedObject={objectToEdit as FabricImage | Group}
             onApply={cropImage}
             onCancel={() => setCropMode(false)}
           />

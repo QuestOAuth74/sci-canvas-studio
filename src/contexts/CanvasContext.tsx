@@ -905,23 +905,30 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     cropRect: { left: number; top: number; width: number; height: number }, 
     isCircular: boolean = false
   ) => {
-    if (!canvas || !selectedObject || selectedObject.type !== 'image') return;
+    if (!canvas || !selectedObject) return;
+    
+    // Support both image and group types (groups are SVG icons)
+    const supportedTypes = ['image', 'group'];
+    if (!supportedTypes.includes(selectedObject.type)) {
+      toast.error("Please select an image or icon to crop");
+      return;
+    }
 
-    const image = selectedObject as any;
+    const object = selectedObject as any;
     
     
-    // Get the image's current properties
-    const imgLeft = image.left || 0;
-    const imgTop = image.top || 0;
-    const scaleX = image.scaleX || 1;
-    const scaleY = image.scaleY || 1;
-    const angle = image.angle || 0;
+    // Get the object's current properties
+    const objLeft = object.left || 0;
+    const objTop = object.top || 0;
+    const scaleX = object.scaleX || 1;
+    const scaleY = object.scaleY || 1;
+    const angle = object.angle || 0;
 
-    // Calculate crop area relative to the image's coordinate system
-    // We need to convert from canvas coordinates to image-local coordinates
-    const cropInImageCoords = {
-      left: (cropRect.left - imgLeft) / scaleX,
-      top: (cropRect.top - imgTop) / scaleY,
+    // Calculate crop area relative to the object's coordinate system
+    // We need to convert from canvas coordinates to object-local coordinates
+    const cropInObjectCoords = {
+      left: (cropRect.left - objLeft) / scaleX,
+      top: (cropRect.top - objTop) / scaleY,
       width: cropRect.width / scaleX,
       height: cropRect.height / scaleY
     };
@@ -930,10 +937,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     let clipPath;
     if (isCircular) {
       // For circular crop, use the center and radius
-      const radius = Math.min(cropInImageCoords.width, cropInImageCoords.height) / 2;
+      const radius = Math.min(cropInObjectCoords.width, cropInObjectCoords.height) / 2;
       clipPath = new Circle({
-        left: cropInImageCoords.left + cropInImageCoords.width / 2,
-        top: cropInImageCoords.top + cropInImageCoords.height / 2,
+        left: cropInObjectCoords.left + cropInObjectCoords.width / 2,
+        top: cropInObjectCoords.top + cropInObjectCoords.height / 2,
         radius: radius,
         originX: 'center',
         originY: 'center'
@@ -941,24 +948,26 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     } else {
       // For rectangular crop
       clipPath = new Rect({
-        left: cropInImageCoords.left,
-        top: cropInImageCoords.top,
-        width: cropInImageCoords.width,
-        height: cropInImageCoords.height,
+        left: cropInObjectCoords.left,
+        top: cropInObjectCoords.top,
+        width: cropInObjectCoords.width,
+        height: cropInObjectCoords.height,
         originX: 'left',
         originY: 'top'
       });
     }
 
-    // Apply the clipPath to the image
-    image.set({
+    // Apply the clipPath to the object
+    object.set({
       clipPath: clipPath
     });
 
     canvas.renderAll();
     saveState();
     setCropMode(false);
-    toast.success(isCircular ? "Image cropped (circular)" : "Image cropped (rectangular)");
+    
+    const objectType = selectedObject.type === 'image' ? 'Image' : 'Icon';
+    toast.success(isCircular ? `${objectType} cropped (circular)` : `${objectType} cropped (rectangular)`);
   }, [canvas, selectedObject, saveState]);
 
 
