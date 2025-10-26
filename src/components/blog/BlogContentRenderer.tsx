@@ -23,8 +23,10 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
 
       case 'heading':
         const HeadingTag = `h${node.attrs?.level || 2}` as any;
+        const headingText = node.content?.map((n: any) => (n.text ? n.text : '')).join('');
+        const headingId = headingText?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '';
         return (
-          <HeadingTag key={index} className="font-bold mt-8 mb-4">
+          <HeadingTag key={index} id={headingId} className="font-bold mt-8 mb-4 scroll-mt-20">
             {node.content?.map((child: any, i: number) => renderNode(child, i))}
           </HeadingTag>
         );
