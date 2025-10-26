@@ -988,37 +988,58 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
     }
     
-    // Use absolute-positioned clipPath for all other cases (robust for any transform)
-    console.debug('Using absolute-positioned clipPath');
+    // Use object-local clipPath for all other cases (moves with the object)
+    console.debug('Using object-local clipPath');
+    
+    // Get object's transformation matrix and invert it to convert canvas coords to object-local coords
+    const matrix = object.calcTransformMatrix();
+    const invertedMatrix = util.invertTransform(matrix);
     
     let clipPath;
     if (isCircular) {
-      // Create circular clipPath directly in canvas coordinates
-      const centerX = cropRect.left + cropRect.width / 2;
-      const centerY = cropRect.top + cropRect.height / 2;
-      const radius = Math.min(cropRect.width, cropRect.height) / 2;
+      // Circular crop: transform center point to object-local space
+      const canvasCenter = {
+        x: cropRect.left + cropRect.width / 2,
+        y: cropRect.top + cropRect.height / 2
+      };
+      const localCenter = util.transformPoint(canvasCenter, invertedMatrix);
+      
+      // Calculate radius in object-local scale
+      const radius = Math.min(cropRect.width, cropRect.height) / 2 / Math.min(scaleX, scaleY);
       
       clipPath = new Circle({
-        left: centerX,
-        top: centerY,
+        left: localCenter.x,
+        top: localCenter.y,
         radius,
         originX: 'center',
         originY: 'center'
       });
+      
+      console.debug('Created circular clipPath (local)', { localCenter, radius });
     } else {
-      // Create rectangular clipPath directly in canvas coordinates
+      // Rectangular crop: transform corners to object-local space
+      const topLeft = util.transformPoint(
+        { x: cropRect.left, y: cropRect.top },
+        invertedMatrix
+      );
+      const bottomRight = util.transformPoint(
+        { x: cropRect.left + cropRect.width, y: cropRect.top + cropRect.height },
+        invertedMatrix
+      );
+      
       clipPath = new Rect({
-        left: cropRect.left,
-        top: cropRect.top,
-        width: cropRect.width,
-        height: cropRect.height,
+        left: topLeft.x,
+        top: topLeft.y,
+        width: bottomRight.x - topLeft.x,
+        height: bottomRight.y - topLeft.y,
         originX: 'left',
         originY: 'top'
       });
+      
+      console.debug('Created rectangular clipPath (local)', { topLeft, bottomRight });
     }
     
-    // Set absolute positioning - clipPath coordinates are in canvas space, not object-local
-    (clipPath as any).absolutePositioned = true;
+    // ClipPath is now in object-local coordinates, so it will move with the object
     (clipPath as any).inverted = false;
 
     // Apply the clipPath to the object
