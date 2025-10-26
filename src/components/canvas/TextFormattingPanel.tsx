@@ -14,6 +14,8 @@ import {
   Type,
   Bold,
   Italic,
+  List,
+  ListOrdered,
 } from "lucide-react";
 import {
   Tooltip,
@@ -56,6 +58,8 @@ export const TextFormattingPanel = () => {
     setTextBold,
     textItalic,
     setTextItalic,
+    textListType,
+    setTextListType,
     canvas,
     selectedObject,
   } = useCanvas();
@@ -73,6 +77,35 @@ export const TextFormattingPanel = () => {
     return null;
   };
 
+  // Helper functions for list processing
+  const removeListFormatting = (text: string): string => {
+    return text
+      .split('\n')
+      .map(line => line.replace(/^(•\s|\d+\.\s)/, ''))
+      .join('\n');
+  };
+
+  const applyBulletFormatting = (text: string): string => {
+    return text
+      .split('\n')
+      .map(line => line.trim() ? `• ${line.replace(/^(•\s|\d+\.\s)/, '')}` : '')
+      .join('\n');
+  };
+
+  const applyNumberedFormatting = (text: string): string => {
+    let counter = 1;
+    return text
+      .split('\n')
+      .map(line => {
+        if (line.trim()) {
+          const cleanLine = line.replace(/^(•\s|\d+\.\s)/, '');
+          return `${counter++}. ${cleanLine}`;
+        }
+        return '';
+      })
+      .join('\n');
+  };
+
   // Update toolbar to reflect selected text object's properties
   useEffect(() => {
     const textObj = getTextObject(selectedObject);
@@ -83,8 +116,9 @@ export const TextFormattingPanel = () => {
       setTextItalic(textObj.fontStyle === 'italic');
       setTextUnderline(!!textObj.underline);
       setTextOverline(!!textObj.overline);
+      setTextListType((textObj as any).listType || 'none');
     }
-  }, [selectedObject, setTextFont, setTextAlign, setTextBold, setTextItalic, setTextUnderline, setTextOverline]);
+  }, [selectedObject, setTextFont, setTextAlign, setTextBold, setTextItalic, setTextUnderline, setTextOverline, setTextListType]);
 
   const handleFontChange = async (font: string) => {
     // Ensure font is loaded before applying
@@ -153,6 +187,30 @@ export const TextFormattingPanel = () => {
     const textObj = getTextObject(selectedObject);
     if (canvas && textObj) {
       textObj.set({ overline: newOverline });
+      canvas.renderAll();
+    }
+  };
+
+  const handleListTypeChange = (type: 'none' | 'bullet' | 'numbered') => {
+    setTextListType(type);
+    // Update selected text object if exists
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
+      let newText = textObj.text || '';
+      
+      // Remove existing list formatting
+      newText = removeListFormatting(newText);
+      
+      // Apply new formatting based on type
+      if (type === 'bullet') {
+        newText = applyBulletFormatting(newText);
+      } else if (type === 'numbered') {
+        newText = applyNumberedFormatting(newText);
+      }
+      
+      // Store list type and update text
+      (textObj as any).listType = type;
+      textObj.set({ text: newText });
       canvas.renderAll();
     }
   };
@@ -279,6 +337,37 @@ export const TextFormattingPanel = () => {
           </Button>
         </TooltipTrigger>
         <TooltipContent>Overline</TooltipContent>
+      </Tooltip>
+
+      <div className="w-px h-6 bg-border mx-1" />
+
+      {/* List Formatting */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={textListType === "bullet" ? "default" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleListTypeChange(textListType === 'bullet' ? 'none' : 'bullet')}
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Bullet List</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={textListType === "numbered" ? "default" : "ghost"}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => handleListTypeChange(textListType === 'numbered' ? 'none' : 'numbered')}
+          >
+            <ListOrdered className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Numbered List</TooltipContent>
       </Tooltip>
     </div>
   );

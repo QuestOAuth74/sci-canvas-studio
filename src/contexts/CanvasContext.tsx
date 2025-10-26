@@ -87,6 +87,8 @@ interface CanvasContextType {
   setTextBold: (bold: boolean) => void;
   textItalic: boolean;
   setTextItalic: (italic: boolean) => void;
+  textListType: 'none' | 'bullet' | 'numbered';
+  setTextListType: (type: 'none' | 'bullet' | 'numbered') => void;
   
   // Pin/Lock operations
   pinObject: () => void;
@@ -155,6 +157,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [textOverline, setTextOverline] = useState(false);
   const [textBold, setTextBold] = useState(false);
   const [textItalic, setTextItalic] = useState(false);
+  const [textListType, setTextListType] = useState<'none' | 'bullet' | 'numbered'>('none');
   
   // Pin state
   const [isPinned, setIsPinned] = useState(false);
@@ -1345,6 +1348,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setTextBold,
     textItalic,
     setTextItalic,
+    textListType,
+    setTextListType,
     pinObject,
     unpinObject,
     togglePin,

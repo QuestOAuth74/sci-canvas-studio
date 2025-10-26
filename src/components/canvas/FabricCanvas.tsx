@@ -1216,6 +1216,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             evented: true,
             hoverCursor: 'text',
           });
+          (shapeText as any).listType = 'none';
           
           const group = new Group([bgShape, shapeText], {
             left: pointer.x,
@@ -1307,6 +1308,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           fontStyle: textItalic ? 'italic' : 'normal',
           fill: "#000000",
         });
+        (text as any).listType = 'none';
         canvas.add(text);
         canvas.setActiveObject(text);
         // Immediately enter editing so user can type
