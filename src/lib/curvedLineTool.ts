@@ -427,16 +427,41 @@ export class CurvedLineTool {
         curveData.mainPath = newPath;
       }
 
-      // Update marker angles based on new curve tangent
-      const newStartAngle = this.calculateStartAngle(start, newControl, end);
-      const newEndAngle = this.calculateEndAngle(start, newControl, end);
+      // Update local control point for transform sync
+      const inv = util.invertTransform(group.calcTransformMatrix());
+      curveData.curvedLocalControl = util.transformPoint(new FabricPoint(newControl.x, newControl.y), inv);
 
-      if (curveData.startMarker) {
-        curveData.startMarker.set({ angle: newStartAngle });
-      }
+      // Update marker positions and angles using local coordinates
+      const localStart = curveData.curvedLocalStart;
+      const localEnd = curveData.curvedLocalEnd;
+      const localControl = curveData.curvedLocalControl;
 
-      if (curveData.endMarker) {
-        curveData.endMarker.set({ angle: newEndAngle });
+      if (localStart && localEnd && localControl) {
+        const scaleX = group.scaleX || 1;
+        const scaleY = group.scaleY || 1;
+        const groupAngle = group.angle || 0;
+
+        if (curveData.startMarker) {
+          const startAngle = this.calculateStartAngle(localStart, localControl, localEnd);
+          curveData.startMarker.set({
+            left: localStart.x,
+            top: localStart.y,
+            angle: startAngle + groupAngle,
+            scaleX: 1 / scaleX,
+            scaleY: 1 / scaleY,
+          });
+        }
+
+        if (curveData.endMarker) {
+          const endAngle = this.calculateEndAngle(localStart, localControl, localEnd);
+          curveData.endMarker.set({
+            left: localEnd.x,
+            top: localEnd.y,
+            angle: endAngle + groupAngle,
+            scaleX: 1 / scaleX,
+            scaleY: 1 / scaleY,
+          });
+        }
       }
 
       this.canvas.renderAll();
