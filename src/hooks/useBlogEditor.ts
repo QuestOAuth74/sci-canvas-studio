@@ -141,34 +141,37 @@ export const useBlogEditor = (postId?: string) => {
   };
 
   // Save post (create or update)
-  const savePost = async (): Promise<boolean> => {
+  const savePost = async (overrideData?: Partial<BlogEditorFormData>): Promise<boolean> => {
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Merge override data with form data
+      const dataToSave = { ...formData, ...overrideData };
+
       // Generate slug if not exists
-      let slug = formData.slug;
-      if (!slug && formData.title) {
-        slug = await generateSlug(formData.title);
+      let slug = dataToSave.slug;
+      if (!slug && dataToSave.title) {
+        slug = await generateSlug(dataToSave.title);
       }
 
-      const reading_time = calculateReadingTime(formData.content);
+      const reading_time = calculateReadingTime(dataToSave.content);
 
       const postData = {
-        title: formData.title,
+        title: dataToSave.title,
         slug,
-        content: formData.content || {},
-        excerpt: formData.excerpt,
-        featured_image_url: formData.featured_image_url,
-        featured_image_alt: formData.featured_image_alt,
-        status: formData.status,
-        published_at: formData.published_at,
-        scheduled_for: formData.scheduled_for,
-        seo_title: formData.seo_title,
-        seo_description: formData.seo_description,
-        seo_keywords: formData.seo_keywords,
-        og_image: formData.og_image,
+        content: dataToSave.content || {},
+        excerpt: dataToSave.excerpt,
+        featured_image_url: dataToSave.featured_image_url,
+        featured_image_alt: dataToSave.featured_image_alt,
+        status: dataToSave.status,
+        published_at: dataToSave.published_at,
+        scheduled_for: dataToSave.scheduled_for,
+        seo_title: dataToSave.seo_title,
+        seo_description: dataToSave.seo_description,
+        seo_keywords: dataToSave.seo_keywords,
+        og_image: dataToSave.og_image,
         reading_time,
         author_id: user.id,
       };
@@ -248,16 +251,24 @@ export const useBlogEditor = (postId?: string) => {
 
   // Publish post
   const publishPost = async (): Promise<boolean> => {
-    setFormData((prev) => ({
-      ...prev,
-      status: "published",
-      published_at: new Date().toISOString(),
-    }));
-
-    // Wait for state update
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    const publishedAt = new Date().toISOString();
     
-    return savePost();
+    // Save with explicit publish status
+    const success = await savePost({
+      status: "published",
+      published_at: publishedAt,
+    });
+
+    // Update UI state after successful save
+    if (success) {
+      setFormData((prev) => ({
+        ...prev,
+        status: "published",
+        published_at: publishedAt,
+      }));
+    }
+    
+    return success;
   };
 
   // Auto-save functionality (debounced)
