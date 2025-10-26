@@ -938,40 +938,24 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       height: cropRelativeToObject.height / scaleY
     };
 
-    // For groups, we need to account for the origin being at center
-    // Get the object's actual width/height in its coordinate system
-    let adjustedCropCoords = { ...cropInObjectCoords };
-    
-    if (object.type === 'group') {
-      // For groups with center origin, we need to offset by half the object's dimensions
-      const objWidth = object.width || 0;
-      const objHeight = object.height || 0;
-      
-      adjustedCropCoords = {
-        left: cropInObjectCoords.left - objWidth / 2,
-        top: cropInObjectCoords.top - objHeight / 2,
-        width: cropInObjectCoords.width,
-        height: cropInObjectCoords.height
-      };
-    }
-
     // Create clipPath for non-destructive cropping
+    // Use cropInObjectCoords directly - it's already in object-local coordinates
     let clipPath;
     if (isCircular) {
-      const radius = Math.min(adjustedCropCoords.width, adjustedCropCoords.height) / 2;
+      const radius = Math.min(cropInObjectCoords.width, cropInObjectCoords.height) / 2;
       clipPath = new Circle({
-        left: adjustedCropCoords.left + adjustedCropCoords.width / 2,
-        top: adjustedCropCoords.top + adjustedCropCoords.height / 2,
+        left: cropInObjectCoords.left + cropInObjectCoords.width / 2,
+        top: cropInObjectCoords.top + cropInObjectCoords.height / 2,
         radius: radius,
-        originX: 'center',
-        originY: 'center'
+        originX: 'left',
+        originY: 'top'
       });
     } else {
       clipPath = new Rect({
-        left: adjustedCropCoords.left,
-        top: adjustedCropCoords.top,
-        width: adjustedCropCoords.width,
-        height: adjustedCropCoords.height,
+        left: cropInObjectCoords.left,
+        top: cropInObjectCoords.top,
+        width: cropInObjectCoords.width,
+        height: cropInObjectCoords.height,
         originX: 'left',
         originY: 'top'
       });
