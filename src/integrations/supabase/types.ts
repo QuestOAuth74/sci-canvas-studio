@@ -723,6 +723,7 @@ export type Database = {
         Args: { new_project_name: string; source_project_id: string }
         Returns: string
       }
+      extract_tiptap_text: { Args: { content: Json }; Returns: string }
       generate_blog_slug: { Args: { title_param: string }; Returns: string }
       get_related_blog_posts: {
         Args: { limit_param?: number; post_id_param: string }
@@ -752,6 +753,8 @@ export type Database = {
         Args: { project_id_param: string }
         Returns: undefined
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "user"
