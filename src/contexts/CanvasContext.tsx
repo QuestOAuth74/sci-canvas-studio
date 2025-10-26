@@ -938,7 +938,35 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       height: cropRelativeToObject.height / scaleY
     };
 
-    // Create clipPath for non-destructive cropping
+    // If it's a plain image and rectangular crop, use intrinsic image cropping for correct behavior
+    if (selectedObject.type === 'image' && !isCircular) {
+      try {
+        const img = object as any;
+        // cropX/cropY/width/height are in the image's local coordinate system (before scaling)
+        img.set({
+          cropX: cropInObjectCoords.left,
+          cropY: cropInObjectCoords.top,
+          width: cropInObjectCoords.width,
+          height: cropInObjectCoords.height,
+          // Normalize origin so top-left of the new image aligns predictably
+          originX: 'left',
+          originY: 'top',
+          // Position the cropped image at the crop rectangle's canvas position
+          left: cropRect.left,
+          top: cropRect.top,
+        });
+        img.setCoords();
+        canvas.renderAll();
+        saveState();
+        setCropMode(false);
+        toast.success('Image cropped (rectangular)');
+        return;
+      } catch (e) {
+        console.error('Image crop error, falling back to clipPath:', e);
+      }
+    }
+
+    // Create clipPath for non-destructive cropping (used for icons/groups or circular crops)
     // Use cropInObjectCoords directly - it's already in object-local coordinates
     let clipPath;
     if (isCircular) {
@@ -946,9 +974,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       clipPath = new Circle({
         left: cropInObjectCoords.left + cropInObjectCoords.width / 2,
         top: cropInObjectCoords.top + cropInObjectCoords.height / 2,
-        radius: radius,
-        originX: 'left',
-        originY: 'top'
+        radius,
+        originX: 'center',
+        originY: 'center'
       });
     } else {
       clipPath = new Rect({
@@ -960,10 +988,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         originY: 'top'
       });
     }
+    (clipPath as any).absolutePositioned = false;
+    (clipPath as any).inverted = false;
 
     // Apply the clipPath to the object
     object.set({
-      clipPath: clipPath
+      clipPath
     });
 
     canvas.renderAll();
