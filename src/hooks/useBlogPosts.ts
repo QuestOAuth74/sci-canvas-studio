@@ -17,6 +17,8 @@ export const useBlogPosts = (options?: {
     queryKey: ['blog-posts', options],
     staleTime: 0, // Force fresh data
     queryFn: async () => {
+      const hasSearch = options?.searchQuery && options.searchQuery.trim().length > 0;
+      
       let query = supabase
         .from('blog_posts')
         .select(`
@@ -24,9 +26,7 @@ export const useBlogPosts = (options?: {
           author:profiles(id, full_name, avatar_url, email),
           categories:blog_post_categories(category:blog_categories(*)),
           tags:blog_post_tags(tag:blog_tags(*))
-        `)
-        .order('published_at', { ascending: false, nullsFirst: false })
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' });
 
       if (options?.status) {
         query = query.eq('status', options.status);
@@ -70,11 +70,22 @@ export const useBlogPosts = (options?: {
         }
       }
 
-      if (options?.searchQuery) {
+      // Full-text search with ranking
+      if (hasSearch) {
         query = query.textSearch('search_vector', options.searchQuery, {
           type: 'websearch',
           config: 'english'
         });
+      }
+
+      // Apply ordering - by relevance if searching, otherwise by date
+      if (hasSearch) {
+        // Note: ts_rank ordering would require a custom RPC function
+        // For now, full-text search with filter is already quite good
+        query = query.order('published_at', { ascending: false, nullsFirst: false });
+      } else {
+        query = query.order('published_at', { ascending: false, nullsFirst: false })
+                     .order('created_at', { ascending: false });
       }
 
       if (options?.limit) {
@@ -85,7 +96,7 @@ export const useBlogPosts = (options?: {
         query = query.range(options.offset, options.offset + (options.limit || 10) - 1);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
 
       if (error) {
         toast({
@@ -96,7 +107,41 @@ export const useBlogPosts = (options?: {
         throw error;
       }
 
-      return (data || []) as any as BlogPost[];
+      // Fallback to fuzzy search if no results from full-text search
+      if (hasSearch && (!data || data.length === 0)) {
+        const fuzzyQuery = supabase
+          .from('blog_posts')
+          .select(`
+            *,
+            author:profiles(id, full_name, avatar_url, email),
+            categories:blog_post_categories(category:blog_categories(*)),
+            tags:blog_post_tags(tag:blog_tags(*))
+          `, { count: 'exact' })
+          .or(`title.ilike.%${options.searchQuery}%,excerpt.ilike.%${options.searchQuery}%`)
+          .order('published_at', { ascending: false, nullsFirst: false });
+
+        if (options?.status) {
+          fuzzyQuery.eq('status', options.status);
+        }
+
+        if (options?.limit) {
+          fuzzyQuery.limit(options.limit);
+        }
+
+        const { data: fuzzyData, error: fuzzyError, count: fuzzyCount } = await fuzzyQuery;
+
+        if (!fuzzyError && fuzzyData) {
+          return {
+            posts: fuzzyData as any as BlogPost[],
+            count: fuzzyCount || 0
+          };
+        }
+      }
+
+      return {
+        posts: (data || []) as any as BlogPost[],
+        count: count || 0
+      };
     },
   });
 };

@@ -6,11 +6,15 @@ import { Plus, Eye, BarChart } from "lucide-react";
 import { BlogPostsTable } from "@/components/admin/blog/BlogPostsTable";
 
 const BlogManagement = () => {
-  const { data: allPosts } = useBlogPosts({});
-  const { data: publishedPosts } = useBlogPosts({ status: 'published' });
-  const { data: draftPosts } = useBlogPosts({ status: 'draft' });
+  const { data: allResult } = useBlogPosts({});
+  const { data: publishedResult } = useBlogPosts({ status: 'published' });
+  const { data: draftResult } = useBlogPosts({ status: 'draft' });
 
-  const totalViews = publishedPosts?.reduce((sum, post) => sum + post.view_count, 0) || 0;
+  const allPosts = allResult?.posts || [];
+  const publishedPosts = publishedResult?.posts || [];
+  const draftPosts = draftResult?.posts || [];
+
+  const totalViews = publishedPosts.reduce((sum, post) => sum + post.view_count, 0);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -32,21 +36,21 @@ const BlogManagement = () => {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Posts</CardDescription>
-            <CardTitle className="text-3xl">{allPosts?.length || 0}</CardTitle>
+            <CardTitle className="text-3xl">{allPosts.length}</CardTitle>
           </CardHeader>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Published</CardDescription>
-            <CardTitle className="text-3xl">{publishedPosts?.length || 0}</CardTitle>
+            <CardTitle className="text-3xl">{publishedPosts.length}</CardTitle>
           </CardHeader>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Drafts</CardDescription>
-            <CardTitle className="text-3xl">{draftPosts?.length || 0}</CardTitle>
+            <CardTitle className="text-3xl">{draftPosts.length}</CardTitle>
           </CardHeader>
         </Card>
         

@@ -9,12 +9,14 @@ import Autoplay from "embla-carousel-autoplay";
 
 export const BlogPostsCarousel = () => {
   const navigate = useNavigate();
-  const { data: posts, isLoading } = useBlogPosts({ 
+  const { data: result, isLoading } = useBlogPosts({ 
     status: 'published',
     limit: 6 
   });
 
-  if (isLoading || !posts || posts.length === 0) {
+  const posts = result?.posts || [];
+
+  if (isLoading || posts.length === 0) {
     return null;
   }
 

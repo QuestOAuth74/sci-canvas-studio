@@ -30,9 +30,11 @@ import { format } from "date-fns";
 
 export const BlogPostsTable = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published' | 'scheduled'>('all');
-  const { data: posts, isLoading } = useBlogPosts(
+  const { data: result, isLoading } = useBlogPosts(
     statusFilter === 'all' ? {} : { status: statusFilter }
   );
+  
+  const posts = result?.posts || [];
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

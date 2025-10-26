@@ -16,18 +16,21 @@ const Blog = () => {
   const [searchParams] = useSearchParams();
   const categorySlug = searchParams.get('category') || undefined;
   const tagSlug = searchParams.get('tag') || undefined;
-  const searchQuery = searchParams.get('q') || undefined;
-  const [page, setPage] = useState(0);
-  const limit = 12;
+  const searchQuery = searchParams.get('search') || undefined;
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 12;
 
-  const { data: posts, isLoading } = useBlogPosts({
+  const { data: result, isLoading } = useBlogPosts({
     status: 'published',
     categorySlug,
     tagSlug,
     searchQuery,
-    limit,
-    offset: page * limit,
+    limit: postsPerPage,
+    offset: (currentPage - 1) * postsPerPage,
   });
+
+  const posts = result?.posts || [];
+  const totalCount = result?.count || 0;
 
   const { data: categories } = useBlogCategories();
 
@@ -120,6 +123,27 @@ const Blog = () => {
               <div className="glossy-card p-6">
                 <BlogFilters />
               </div>
+
+              {/* Search Results Info */}
+              {searchQuery && !isLoading && (
+                <div className="mb-6 p-4 border-4 border-border bg-card shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <p className="text-sm font-bold">
+                    {totalCount > 0 ? (
+                      <>
+                        Found <span className="text-primary">{totalCount}</span> post{totalCount !== 1 ? 's' : ''} for{' '}
+                        <span className="text-foreground">"{searchQuery}"</span>
+                      </>
+                    ) : (
+                      <>
+                        No results for <span className="text-foreground">"{searchQuery}"</span>
+                        <span className="block mt-2 text-muted-foreground font-normal">
+                          Try different keywords or browse by category
+                        </span>
+                      </>
+                    )}
+                  </p>
+                </div>
+              )}
               
               {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -140,19 +164,20 @@ const Blog = () => {
                     ))}
                   </div>
                   
-                  {posts.length === limit && (
+                  {totalCount > postsPerPage && (
                     <div className="flex justify-center gap-4">
                       <Button
                         variant="outline"
-                        onClick={() => setPage(p => Math.max(0, p - 1))}
-                        disabled={page === 0}
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
                         className="glossy-button border-[3px]"
                       >
                         Previous
                       </Button>
                       <Button
                         variant="outline"
-                        onClick={() => setPage(p => p + 1)}
+                        onClick={() => setCurrentPage(p => p + 1)}
+                        disabled={currentPage * postsPerPage >= totalCount}
                         className="glossy-button border-[3px]"
                       >
                         Next
@@ -160,7 +185,7 @@ const Blog = () => {
                     </div>
                   )}
                 </>
-              ) : (
+              ) : !searchQuery ? (
                 <div className="glossy-card p-16 text-center">
                   <div className="w-20 h-20 mx-auto mb-6 bg-muted/30 border-[3px] border-foreground rounded-2xl neo-shadow flex items-center justify-center">
                     <BookOpen className="w-10 h-10 text-muted-foreground" />
@@ -168,7 +193,7 @@ const Blog = () => {
                   <p className="text-xl font-bold text-muted-foreground">No blog posts found.</p>
                   <p className="text-muted-foreground mt-2">Try adjusting your filters or check back later!</p>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Sidebar */}

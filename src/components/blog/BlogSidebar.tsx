@@ -7,10 +7,12 @@ import { Eye, TrendingUp, Folder } from "lucide-react";
 
 export const BlogSidebar = () => {
   const { data: categories } = useBlogCategories();
-  const { data: popularPosts } = useBlogPosts({
+  const { data: result } = useBlogPosts({
     status: 'published',
     limit: 5,
   });
+  
+  const popularPosts = result?.posts || [];
 
   return (
     <div className="space-y-6">
@@ -49,7 +51,7 @@ export const BlogSidebar = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
-          {popularPosts?.sort((a, b) => b.view_count - a.view_count).slice(0, 5).map((post, idx) => (
+          {popularPosts.sort((a, b) => b.view_count - a.view_count).slice(0, 5).map((post, idx) => (
             <Link
               key={post.id}
               to={`/blog/${post.slug}`}

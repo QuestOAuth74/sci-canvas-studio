@@ -57,3 +57,8 @@ export interface BlogPostTag {
   post_id: string;
   tag_id: string;
 }
+
+export interface BlogPostsResult {
+  posts: BlogPost[];
+  count: number;
+}
