@@ -112,6 +112,33 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
           />
         );
 
+      case 'youtube':
+        const getYouTubeEmbedUrl = (url: string) => {
+          if (!url) return '';
+          
+          // Extract video ID from various YouTube URL formats
+          const videoIdMatch = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+          const videoId = videoIdMatch ? videoIdMatch[1] : '';
+          
+          return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+        };
+
+        const embedUrl = getYouTubeEmbedUrl(node.attrs?.src);
+        
+        return (
+          <div key={index} className="my-8">
+            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+              <iframe
+                src={embedUrl}
+                className="absolute top-0 left-0 w-full h-full border-4 border-foreground shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="YouTube video"
+              />
+            </div>
+          </div>
+        );
+
       case 'horizontalRule':
         return <hr key={index} className="my-8 border-border" />;
 
