@@ -1,8 +1,13 @@
+import { useState } from "react";
+import { ImageZoomModal } from "./ImageZoomModal";
+
 interface BlogContentRendererProps {
   content: any; // TipTap JSON content
 }
 
 export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
+  const [zoomImage, setZoomImage] = useState<{ src: string; alt: string } | null>(null);
+
   if (!content || !content.content) {
     return null;
   }
@@ -100,7 +105,8 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
             src={node.attrs?.src}
             alt={node.attrs?.alt || ''}
             title={node.attrs?.title}
-            className="max-w-full h-auto rounded-lg my-6"
+            className="max-w-full h-auto rounded-lg my-6 cursor-zoom-in hover:opacity-90 transition-opacity"
+            onClick={() => setZoomImage({ src: node.attrs?.src, alt: node.attrs?.alt || '' })}
           />
         );
 
@@ -155,8 +161,19 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
   };
 
   return (
-    <div className="blog-content">
-      {content.content.map((node: any, index: number) => renderNode(node, index))}
-    </div>
+    <>
+      <div className="blog-content">
+        {content.content.map((node: any, index: number) => renderNode(node, index))}
+      </div>
+      
+      {zoomImage && (
+        <ImageZoomModal
+          src={zoomImage.src}
+          alt={zoomImage.alt}
+          isOpen={!!zoomImage}
+          onClose={() => setZoomImage(null)}
+        />
+      )}
+    </>
   );
 };
