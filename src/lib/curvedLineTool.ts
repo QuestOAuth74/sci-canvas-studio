@@ -1,4 +1,4 @@
-import { Canvas, Path, Circle, Line, Group } from "fabric";
+import { Canvas, Path, Circle, Line, Group, util, Point as FabricPoint } from "fabric";
 
 export type MarkerType = 'none' | 'arrow' | 'diamond' | 'circle' | 'dot';
 export type LineStyleType = 'solid' | 'dashed' | 'dotted';
@@ -175,6 +175,12 @@ export class CurvedLineTool {
       endMarker: this.options.endMarker,
       lineStyle: this.options.lineStyle,
     };
+    
+    // Store local coordinates for transform sync
+    const inv = util.invertTransform(group.calcTransformMatrix());
+    (group as any).curvedLocalStart = util.transformPoint(new FabricPoint(this.startPoint.x, this.startPoint.y), inv);
+    (group as any).curvedLocalEnd = util.transformPoint(new FabricPoint(endPoint.x, endPoint.y), inv);
+    (group as any).curvedLocalControl = util.transformPoint(new FabricPoint(this.controlPoint.x, this.controlPoint.y), inv);
 
     // Add control handle and lines to canvas
     this.canvas.add(line1, line2, controlHandle);
@@ -454,62 +460,46 @@ export class CurvedLineTool {
   }
 
   private attachTransformSync(group: Group): void {
+    const startMarker = (group as any).startMarker as Group | null;
+    const endMarker = (group as any).endMarker as Group | null;
+    
+    if (!startMarker && !endMarker) return;
+
     const syncMarkers = () => {
-      const curveData = group as any;
-      const start = curveData.curvedLineStart;
-      const end = curveData.curvedLineEnd;
-      const control = curveData.curvedLineControlPoint;
-      const startMarker = curveData.startMarker;
-      const endMarker = curveData.endMarker;
+      const localStart = (group as any).curvedLocalStart;
+      const localEnd = (group as any).curvedLocalEnd;
+      const localControl = (group as any).curvedLocalControl;
+      
+      if (!localStart || !localEnd || !localControl) return;
 
-      if (!start || !end || !control) return;
-
-      // Get group's transformation matrix
-      const matrix = group.calcTransformMatrix();
       const scaleX = group.scaleX || 1;
       const scaleY = group.scaleY || 1;
+      const groupAngle = group.angle || 0;
 
-      // Transform original points to current positions
-      const transformedStart = {
-        x: start.x * scaleX + (group.left || 0) - (group.width || 0) * scaleX / 2,
-        y: start.y * scaleY + (group.top || 0) - (group.height || 0) * scaleY / 2
-      };
-
-      const transformedEnd = {
-        x: end.x * scaleX + (group.left || 0) - (group.width || 0) * scaleX / 2,
-        y: end.y * scaleY + (group.top || 0) - (group.height || 0) * scaleY / 2
-      };
-
-      const transformedControl = {
-        x: control.x * scaleX + (group.left || 0) - (group.width || 0) * scaleX / 2,
-        y: control.y * scaleY + (group.top || 0) - (group.height || 0) * scaleY / 2
-      };
-
-      // Update start marker position and angle
       if (startMarker) {
-        const startAngle = this.calculateStartAngle(transformedStart, transformedControl, transformedEnd);
+        const startAngle = this.calculateStartAngle(localStart, localControl, localEnd);
         startMarker.set({
-          left: start.x,
-          top: start.y,
-          angle: startAngle + (group.angle || 0),
+          left: localStart.x,
+          top: localStart.y,
+          angle: startAngle + groupAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
         });
       }
 
-      // Update end marker position and angle
       if (endMarker) {
-        const endAngle = this.calculateEndAngle(transformedStart, transformedControl, transformedEnd);
+        const endAngle = this.calculateEndAngle(localStart, localControl, localEnd);
         endMarker.set({
-          left: end.x,
-          top: end.y,
-          angle: endAngle + (group.angle || 0),
+          left: localEnd.x,
+          top: localEnd.y,
+          angle: endAngle + groupAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
         });
       }
 
       group.setCoords();
+      this.canvas.requestRenderAll();
     };
 
     // Sync on all transform events

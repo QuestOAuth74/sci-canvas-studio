@@ -1,4 +1,4 @@
-import { Canvas as FabricCanvas, Circle, Path, Group, Polygon, FabricObject, Point } from "fabric";
+import { Canvas as FabricCanvas, Circle, Path, Group, Polygon, FabricObject, Point as FabricPoint, util } from "fabric";
 import { toast } from "sonner";
 import { routeOrthogonal, smoothOrthogonalPath } from "./lineRouting";
 
@@ -103,13 +103,13 @@ export class OrthogonalLineTool {
     this.canvas.add(handle);
   }
 
-  private calculateOrthogonalPath(points: OrthogonalLinePoint[]): Point[] {
+  private calculateOrthogonalPath(points: OrthogonalLinePoint[]): FabricPoint[] {
     if (points.length < 2) return [];
 
-    const fabricPoints: Point[] = [];
+    const fabricPoints: FabricPoint[] = [];
     
     // Add first point
-    fabricPoints.push(new Point(points[0].x, points[0].y));
+    fabricPoints.push(new FabricPoint(points[0].x, points[0].y));
 
     // For each segment, create orthogonal path
     for (let i = 1; i < points.length; i++) {
@@ -122,8 +122,8 @@ export class OrthogonalLineTool {
       // If only first and current point, use routeOrthogonal
       if (i === 1 && points.length === 2) {
         const orthogonalPoints = routeOrthogonal(
-          new Point(prev.x, prev.y),
-          new Point(curr.x, curr.y)
+          new FabricPoint(prev.x, prev.y),
+          new FabricPoint(curr.x, curr.y)
         );
         // Skip first point as it's already added
         fabricPoints.push(...orthogonalPoints.slice(1));
@@ -131,12 +131,12 @@ export class OrthogonalLineTool {
         // Determine dominant direction
         if (dx > dy) {
           // Horizontal first
-          fabricPoints.push(new Point(curr.x, prev.y));
+          fabricPoints.push(new FabricPoint(curr.x, prev.y));
         } else {
           // Vertical first
-          fabricPoints.push(new Point(prev.x, curr.y));
+          fabricPoints.push(new FabricPoint(prev.x, curr.y));
         }
-        fabricPoints.push(new Point(curr.x, curr.y));
+        fabricPoints.push(new FabricPoint(curr.x, curr.y));
       }
     }
 
@@ -229,7 +229,7 @@ export class OrthogonalLineTool {
     this.canvas.renderAll();
   }
 
-  private calculateAngle(from: Point, to: Point): number {
+  private calculateAngle(from: FabricPoint, to: FabricPoint): number {
     return Math.atan2(to.y - from.y, to.x - from.x) * (180 / Math.PI);
   }
 
@@ -336,63 +336,69 @@ export class OrthogonalLineTool {
   }
 
   private attachTransformSync(group: Group): void {
-    const objects = (group as any).getObjects ? (group as any).getObjects() : (group as any)._objects || [];
-    const path = objects.find((o: any) => o.type === 'path');
-    const markers = objects.filter((o: any) => o !== path);
-
-    // Store original waypoints in group coordinates
-    const waypoints = (group as any).orthogonalLineWaypoints as OrthogonalLinePoint[];
-    if (!waypoints || waypoints.length < 1) return;
-
-    // Calculate orthogonal points from waypoints
-    const orthogonalPoints = this.calculateOrthogonalPath(waypoints);
-    if (orthogonalPoints.length < 2) return;
-
-    const startMarker = markers[0];
-    const endMarker = markers[markers.length - 1];
+    const startMarker = (group as any).startMarker as FabricObject | null;
+    const endMarker = (group as any).endMarker as FabricObject | null;
+    
+    if (!startMarker && !endMarker) return;
 
     const syncMarkers = () => {
+      const localPoints = (group as any).orthogonalLineLocalPoints as FabricPoint[] | undefined;
+      
+      if (!localPoints || localPoints.length < 2) return;
+
       const scaleX = group.scaleX || 1;
       const scaleY = group.scaleY || 1;
+      const groupAngle = group.angle || 0;
 
-      // Apply inverse scale to keep markers at constant visual size
-      markers.forEach((m: any) => {
-        m.set({
+      if (startMarker && localPoints.length >= 2) {
+        const localStart = localPoints[0];
+        const localSecond = localPoints[1];
+        const dx = localSecond.x - localStart.x;
+        const dy = localSecond.y - localStart.y;
+        const localAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        
+        startMarker.set({
+          left: localStart.x,
+          top: localStart.y,
+          angle: localAngle + groupAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
-          strokeUniform: true,
-        });
-      });
-
-      // Update marker angles based on orthogonal path
-      if (startMarker && orthogonalPoints.length >= 2) {
-        const angle = this.calculateAngle(orthogonalPoints[1], orthogonalPoints[0]);
-        startMarker.set({ 
-          angle: angle + (group.angle || 0),
-          left: orthogonalPoints[0].x,
-          top: orthogonalPoints[0].y
         });
       }
 
-      if (endMarker && orthogonalPoints.length >= 2) {
-        const lastIdx = orthogonalPoints.length - 1;
-        const angle = this.calculateAngle(orthogonalPoints[lastIdx - 1], orthogonalPoints[lastIdx]);
-        endMarker.set({ 
-          angle: angle + (group.angle || 0),
-          left: orthogonalPoints[lastIdx].x,
-          top: orthogonalPoints[lastIdx].y
+      if (endMarker && localPoints.length >= 2) {
+        const localEnd = localPoints[localPoints.length - 1];
+        const localSecondLast = localPoints[localPoints.length - 2];
+        const dx = localEnd.x - localSecondLast.x;
+        const dy = localEnd.y - localSecondLast.y;
+        const localAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        
+        endMarker.set({
+          left: localEnd.x,
+          top: localEnd.y,
+          angle: localAngle + groupAngle,
+          scaleX: 1 / scaleX,
+          scaleY: 1 / scaleY,
         });
+      }
+
+      // Ensure line stroke stays consistent
+      const objects = group.getObjects();
+      const path = objects[0] as Path;
+      if (path) {
+        path.set({ strokeUniform: true });
       }
 
       group.setCoords();
+      this.canvas.requestRenderAll();
     };
 
-    // Initialize and sync on all transform events
-    syncMarkers();
     group.on('scaling', syncMarkers);
     group.on('rotating', syncMarkers);
     group.on('moving', syncMarkers);
     group.on('modified', syncMarkers);
+
+    syncMarkers();
   }
 
   finish(): Group | Path | null {
@@ -486,17 +492,24 @@ export class OrthogonalLineTool {
         selectable: true,
       });
       
-      // Sync marker transforms to keep them attached
-      this.attachTransformSync(finalObject);
-      
       // Store custom properties
       (finalObject as any).isOrthogonalLine = true;
       (finalObject as any).orthogonalLineWaypoints = this.waypoints;
+      (finalObject as any).startMarker = objects.length >= 2 ? objects[1] : null;
+      (finalObject as any).endMarker = objects.length >= 3 ? objects[objects.length - 1] : null;
       (finalObject as any).markerOptions = {
         startMarker: this.options.startMarker,
         endMarker: this.options.endMarker,
         lineStyle: this.options.lineStyle,
       };
+      
+      // Store local coordinates for transform sync
+      const inv = util.invertTransform(finalObject.calcTransformMatrix());
+      const localOrtho = orthogonalPoints.map(p => util.transformPoint(new FabricPoint(p.x, p.y), inv));
+      (finalObject as any).orthogonalLineLocalPoints = localOrtho;
+      
+      // Sync marker transforms to keep them attached
+      this.attachTransformSync(finalObject);
     } else {
       finalObject = finalPath;
       (finalObject as any).isOrthogonalLine = true;

@@ -1,4 +1,4 @@
-import { Canvas as FabricCanvas, Circle, Path, Group, Polygon, FabricObject } from "fabric";
+import { Canvas as FabricCanvas, Circle, Path, Group, Polygon, FabricObject, util, Point as FabricPoint } from "fabric";
 import { toast } from "sonner";
 
 export interface StraightLinePoint {
@@ -301,59 +301,69 @@ export class StraightLineTool {
   }
 
   private attachTransformSync(group: Group): void {
-    const objects = (group as any).getObjects ? (group as any).getObjects() : (group as any)._objects || [];
-    const path = objects.find((o: any) => o.type === 'path');
-    const markers = objects.filter((o: any) => o !== path);
-
-    // Store original endpoints in group coordinates
-    const points = (group as any).straightLinePoints as StraightLinePoint[];
-    if (!points || points.length < 2) return;
-
-    const startMarker = markers[0];
-    const endMarker = markers[markers.length - 1];
+    const startMarker = (group as any).startMarker as FabricObject | null;
+    const endMarker = (group as any).endMarker as FabricObject | null;
+    
+    if (!startMarker && !endMarker) return;
 
     const syncMarkers = () => {
+      const localPoints = (group as any).straightLineLocalPoints as FabricPoint[] | undefined;
+      
+      if (!localPoints || localPoints.length < 2) return;
+
       const scaleX = group.scaleX || 1;
       const scaleY = group.scaleY || 1;
+      const groupAngle = group.angle || 0;
 
-      // Apply inverse scale to keep markers at constant visual size
-      markers.forEach((m: any) => {
-        m.set({
+      if (startMarker && localPoints.length >= 2) {
+        const localStart = localPoints[0];
+        const localSecond = localPoints[1];
+        const dx = localSecond.x - localStart.x;
+        const dy = localSecond.y - localStart.y;
+        const localAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        
+        startMarker.set({
+          left: localStart.x,
+          top: localStart.y,
+          angle: localAngle + groupAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
-          strokeUniform: true,
-        });
-      });
-
-      // Update marker angles based on scaled line segments
-      if (startMarker && points.length >= 2) {
-        const angle = this.calculateAngle(points[1], points[0]);
-        startMarker.set({ 
-          angle: angle + (group.angle || 0),
-          left: points[0].x,
-          top: points[0].y
         });
       }
 
-      if (endMarker && points.length >= 2) {
-        const lastIdx = points.length - 1;
-        const angle = this.calculateAngle(points[lastIdx - 1], points[lastIdx]);
-        endMarker.set({ 
-          angle: angle + (group.angle || 0),
-          left: points[lastIdx].x,
-          top: points[lastIdx].y
+      if (endMarker && localPoints.length >= 2) {
+        const localEnd = localPoints[localPoints.length - 1];
+        const localSecondLast = localPoints[localPoints.length - 2];
+        const dx = localEnd.x - localSecondLast.x;
+        const dy = localEnd.y - localSecondLast.y;
+        const localAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        
+        endMarker.set({
+          left: localEnd.x,
+          top: localEnd.y,
+          angle: localAngle + groupAngle,
+          scaleX: 1 / scaleX,
+          scaleY: 1 / scaleY,
         });
+      }
+
+      // Ensure line stroke stays consistent
+      const objects = group.getObjects();
+      const path = objects[0] as Path;
+      if (path) {
+        path.set({ strokeUniform: true });
       }
 
       group.setCoords();
+      this.canvas.requestRenderAll();
     };
 
-    // Initialize and sync on all transform events
-    syncMarkers();
     group.on('scaling', syncMarkers);
     group.on('rotating', syncMarkers);
     group.on('moving', syncMarkers);
     group.on('modified', syncMarkers);
+
+    syncMarkers();
   }
 
   finish(): Group | Path | null {
@@ -384,30 +394,33 @@ export class StraightLineTool {
     });
 
     const objects: FabricObject[] = [finalPath];
+    
+    let startMarkerObj: FabricObject | null = null;
+    let endMarkerObj: FabricObject | null = null;
 
     // Add start marker
     if (this.options.startMarker !== 'none' && this.points.length >= 2) {
       const angle = this.calculateAngle(this.points[1], this.points[0]);
-      const marker = this.createMarker(
+      startMarkerObj = this.createMarker(
         this.options.startMarker,
         this.points[0].x,
         this.points[0].y,
         angle
       );
-      objects.push(marker);
+      objects.push(startMarkerObj);
     }
 
     // Add end marker
     if (this.options.endMarker !== 'none' && this.points.length >= 2) {
       const lastIdx = this.points.length - 1;
       const angle = this.calculateAngle(this.points[lastIdx - 1], this.points[lastIdx]);
-      const marker = this.createMarker(
+      endMarkerObj = this.createMarker(
         this.options.endMarker,
         this.points[lastIdx].x,
         this.points[lastIdx].y,
         angle
       );
-      objects.push(marker);
+      objects.push(endMarkerObj);
     }
 
     // Create final object (group if has markers, path otherwise)
@@ -417,17 +430,24 @@ export class StraightLineTool {
         selectable: true,
       });
       
-      // Sync marker transforms to keep them attached
-      this.attachTransformSync(finalObject);
-      
       // Store custom properties
       (finalObject as any).isStraightLine = true;
       (finalObject as any).straightLinePoints = this.points;
+      (finalObject as any).startMarker = startMarkerObj;
+      (finalObject as any).endMarker = endMarkerObj;
       (finalObject as any).markerOptions = {
         startMarker: this.options.startMarker,
         endMarker: this.options.endMarker,
         lineStyle: this.options.lineStyle,
       };
+      
+      // Store local coordinates for transform sync
+      const inv = util.invertTransform(finalObject.calcTransformMatrix());
+      const localPoints = this.points.map(p => util.transformPoint(new FabricPoint(p.x, p.y), inv));
+      (finalObject as any).straightLineLocalPoints = localPoints;
+      
+      // Sync marker transforms to keep them attached
+      this.attachTransformSync(finalObject);
     } else {
       finalObject = finalPath;
       (finalObject as any).isStraightLine = true;
