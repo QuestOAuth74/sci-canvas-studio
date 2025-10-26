@@ -15,6 +15,7 @@ export const useBlogPosts = (options?: {
 
   return useQuery({
     queryKey: ['blog-posts', options],
+    staleTime: 0, // Force fresh data
     queryFn: async () => {
       let query = supabase
         .from('blog_posts')
