@@ -19,6 +19,7 @@ export const MediaUploader = ({ onUpload, children }: MediaUploaderProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [altText, setAltText] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const uploadFile = async (file: File) => {
     try {
@@ -64,6 +65,7 @@ export const MediaUploader = ({ onUpload, children }: MediaUploaderProps) => {
     onDrop: async (acceptedFiles) => {
       const file = acceptedFiles[0];
       if (file) {
+        setSelectedFile(file);
         // Show preview
         const reader = new FileReader();
         reader.onload = () => {
@@ -75,10 +77,7 @@ export const MediaUploader = ({ onUpload, children }: MediaUploaderProps) => {
   });
 
   const handleUpload = async () => {
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = input?.files?.[0];
-    
-    if (!file) {
+    if (!selectedFile) {
       toast({
         title: "Error",
         description: "Please select a file",
@@ -87,7 +86,7 @@ export const MediaUploader = ({ onUpload, children }: MediaUploaderProps) => {
       return;
     }
 
-    const url = await uploadFile(file);
+    const url = await uploadFile(selectedFile);
     if (url) {
       onUpload(url);
       toast({
@@ -97,11 +96,19 @@ export const MediaUploader = ({ onUpload, children }: MediaUploaderProps) => {
       setIsOpen(false);
       setPreview(null);
       setAltText("");
+      setSelectedFile(null);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) {
+        setPreview(null);
+        setAltText("");
+        setSelectedFile(null);
+      }
+    }}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -154,6 +161,7 @@ export const MediaUploader = ({ onUpload, children }: MediaUploaderProps) => {
                   onClick={() => {
                     setPreview(null);
                     setAltText("");
+                    setSelectedFile(null);
                   }}
                   variant="outline"
                   className="flex-1"
