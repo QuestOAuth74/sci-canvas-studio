@@ -15,6 +15,7 @@ import { getWebApplicationSchema, getOrganizationSchema } from "@/components/SEO
 import { useRecentSignups } from "@/hooks/useRecentSignups";
 import { SignupToast } from "@/components/SignupToast";
 import { InstitutionCarousel } from "@/components/InstitutionCarousel";
+import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -299,6 +300,11 @@ const Index = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Blog Posts Carousel */}
+      <div className="container mx-auto px-4 relative z-10">
+        <BlogPostsCarousel />
       </div>
 
       {/* Footer Section */}
