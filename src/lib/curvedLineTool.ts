@@ -182,6 +182,9 @@ export class CurvedLineTool {
     (group as any).curvedLocalEnd = util.transformPoint(new FabricPoint(endPoint.x, endPoint.y), inv);
     (group as any).curvedLocalControl = util.transformPoint(new FabricPoint(this.controlPoint.x, this.controlPoint.y), inv);
 
+    // Attach transform sync to main group
+    this.attachTransformSync(group);
+
     // Add control handle and lines to canvas
     this.canvas.add(line1, line2, controlHandle);
 
@@ -315,7 +318,6 @@ export class CurvedLineTool {
       angle: angle,
     });
 
-    this.attachTransformSync(group);
     return group;
   }
 
@@ -420,6 +422,7 @@ export class CurvedLineTool {
           strokeWidth: mainPath.strokeWidth,
           fill: '',
           strokeDashArray: mainPath.strokeDashArray,
+          strokeUniform: true,
         });
         
         group.remove(mainPath);
@@ -427,8 +430,15 @@ export class CurvedLineTool {
         curveData.mainPath = newPath;
       }
 
-      // Update local control point for transform sync
+      // Force group to recalculate bounds and coordinates
+      group.setCoords();
+
+      // Recompute inverse transform with current group matrix
       const inv = util.invertTransform(group.calcTransformMatrix());
+      
+      // Recompute all three local positions using world coordinates
+      curveData.curvedLocalStart = util.transformPoint(new FabricPoint(start.x, start.y), inv);
+      curveData.curvedLocalEnd = util.transformPoint(new FabricPoint(end.x, end.y), inv);
       curveData.curvedLocalControl = util.transformPoint(new FabricPoint(newControl.x, newControl.y), inv);
 
       // Update marker positions and angles using local coordinates
@@ -439,14 +449,13 @@ export class CurvedLineTool {
       if (localStart && localEnd && localControl) {
         const scaleX = group.scaleX || 1;
         const scaleY = group.scaleY || 1;
-        const groupAngle = group.angle || 0;
 
         if (curveData.startMarker) {
           const startAngle = this.calculateStartAngle(localStart, localControl, localEnd);
           curveData.startMarker.set({
             left: localStart.x,
             top: localStart.y,
-            angle: startAngle + groupAngle,
+            angle: startAngle,
             scaleX: 1 / scaleX,
             scaleY: 1 / scaleY,
           });
@@ -457,7 +466,7 @@ export class CurvedLineTool {
           curveData.endMarker.set({
             left: localEnd.x,
             top: localEnd.y,
-            angle: endAngle + groupAngle,
+            angle: endAngle,
             scaleX: 1 / scaleX,
             scaleY: 1 / scaleY,
           });
@@ -499,14 +508,13 @@ export class CurvedLineTool {
 
       const scaleX = group.scaleX || 1;
       const scaleY = group.scaleY || 1;
-      const groupAngle = group.angle || 0;
 
       if (startMarker) {
         const startAngle = this.calculateStartAngle(localStart, localControl, localEnd);
         startMarker.set({
           left: localStart.x,
           top: localStart.y,
-          angle: startAngle + groupAngle,
+          angle: startAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
         });
@@ -517,7 +525,7 @@ export class CurvedLineTool {
         endMarker.set({
           left: localEnd.x,
           top: localEnd.y,
-          angle: endAngle + groupAngle,
+          angle: endAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
         });
