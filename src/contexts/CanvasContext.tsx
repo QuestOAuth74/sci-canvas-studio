@@ -916,85 +916,113 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const object = selectedObject as any;
     
-    // Use getBoundingRect() to get actual object bounds regardless of origin
-    const objectBounds = object.getBoundingRect();
+    // Clear any existing clipPath before applying new crop
+    if (object.clipPath) {
+      object.set({ clipPath: null });
+    }
+    
+    // Get object properties for debugging and decision-making
+    const angle = object.angle || 0;
+    const skewX = object.skewX || 0;
+    const skewY = object.skewY || 0;
     const scaleX = object.scaleX || 1;
     const scaleY = object.scaleY || 1;
-
-    // Calculate crop area relative to the object's bounding box
-    // These are in canvas coordinates
-    const cropRelativeToObject = {
-      left: cropRect.left - objectBounds.left,
-      top: cropRect.top - objectBounds.top,
-      width: cropRect.width,
-      height: cropRect.height
-    };
-
-    // Convert to object-local coordinates by dividing by scale
-    const cropInObjectCoords = {
-      left: cropRelativeToObject.left / scaleX,
-      top: cropRelativeToObject.top / scaleY,
-      width: cropRelativeToObject.width / scaleX,
-      height: cropRelativeToObject.height / scaleY
-    };
-
-    // If it's a plain image and rectangular crop, use intrinsic image cropping for correct behavior
-    if (selectedObject.type === 'image' && !isCircular) {
+    
+    console.debug('Crop operation:', {
+      type: object.type,
+      angle,
+      skewX,
+      skewY,
+      scaleX,
+      scaleY,
+      cropRect,
+      isCircular
+    });
+    
+    // Only use intrinsic image cropping for plain, unrotated, unskewed images with rectangular crop
+    const isPlainImage = selectedObject.type === 'image';
+    const canUseIntrinsicCrop = isPlainImage && !isCircular && angle === 0 && skewX === 0 && skewY === 0;
+    
+    if (canUseIntrinsicCrop) {
       try {
+        console.debug('Using intrinsic image crop');
         const img = object as any;
-        // cropX/cropY/width/height are in the image's local coordinate system (before scaling)
+        
+        // Get the image's current position accounting for origin
+        const imgLeft = img.left - (img.width * img.scaleX * (img.originX === 'center' ? 0.5 : img.originX === 'right' ? 1 : 0));
+        const imgTop = img.top - (img.height * img.scaleY * (img.originY === 'center' ? 0.5 : img.originY === 'bottom' ? 1 : 0));
+        
+        // Calculate crop in image-local coordinates (before scaling)
+        const localCropX = (cropRect.left - imgLeft) / scaleX;
+        const localCropY = (cropRect.top - imgTop) / scaleY;
+        const localCropWidth = cropRect.width / scaleX;
+        const localCropHeight = cropRect.height / scaleY;
+        
+        console.debug('Intrinsic crop coords:', {
+          localCropX,
+          localCropY,
+          localCropWidth,
+          localCropHeight
+        });
+        
+        // Apply intrinsic crop properties
         img.set({
-          cropX: cropInObjectCoords.left,
-          cropY: cropInObjectCoords.top,
-          width: cropInObjectCoords.width,
-          height: cropInObjectCoords.height,
-          // Normalize origin so top-left of the new image aligns predictably
+          cropX: localCropX,
+          cropY: localCropY,
+          width: localCropWidth,
+          height: localCropHeight,
           originX: 'left',
           originY: 'top',
-          // Position the cropped image at the crop rectangle's canvas position
           left: cropRect.left,
-          top: cropRect.top,
+          top: cropRect.top
         });
+        
         img.setCoords();
         canvas.renderAll();
         saveState();
         setCropMode(false);
-        toast.success('Image cropped (rectangular)');
+        toast.success('Image cropped');
         return;
       } catch (e) {
-        console.error('Image crop error, falling back to clipPath:', e);
+        console.error('Intrinsic crop error, falling back to clipPath:', e);
       }
     }
-
-    // Create clipPath for non-destructive cropping (used for icons/groups or circular crops)
-    // Use cropInObjectCoords directly - it's already in object-local coordinates
+    
+    // Use absolute-positioned clipPath for all other cases (robust for any transform)
+    console.debug('Using absolute-positioned clipPath');
+    
     let clipPath;
     if (isCircular) {
-      const radius = Math.min(cropInObjectCoords.width, cropInObjectCoords.height) / 2;
+      // Create circular clipPath directly in canvas coordinates
+      const centerX = cropRect.left + cropRect.width / 2;
+      const centerY = cropRect.top + cropRect.height / 2;
+      const radius = Math.min(cropRect.width, cropRect.height) / 2;
+      
       clipPath = new Circle({
-        left: cropInObjectCoords.left + cropInObjectCoords.width / 2,
-        top: cropInObjectCoords.top + cropInObjectCoords.height / 2,
+        left: centerX,
+        top: centerY,
         radius,
         originX: 'center',
         originY: 'center'
       });
     } else {
+      // Create rectangular clipPath directly in canvas coordinates
       clipPath = new Rect({
-        left: cropInObjectCoords.left,
-        top: cropInObjectCoords.top,
-        width: cropInObjectCoords.width,
-        height: cropInObjectCoords.height,
+        left: cropRect.left,
+        top: cropRect.top,
+        width: cropRect.width,
+        height: cropRect.height,
         originX: 'left',
         originY: 'top'
       });
     }
-    (clipPath as any).absolutePositioned = false;
+    
+    // Set absolute positioning - clipPath coordinates are in canvas space, not object-local
+    (clipPath as any).absolutePositioned = true;
     (clipPath as any).inverted = false;
 
     // Apply the clipPath to the object
-    object.set({
-      clipPath
-    });
+    object.set({ clipPath });
 
     canvas.renderAll();
     saveState();
