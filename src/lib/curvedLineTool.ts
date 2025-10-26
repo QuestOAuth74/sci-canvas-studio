@@ -309,7 +309,7 @@ export class CurvedLineTool {
       angle: angle,
     });
 
-    this.attachMarkerScaleLock(group);
+    this.attachTransformSync(group);
     return group;
   }
 
@@ -453,13 +453,73 @@ export class CurvedLineTool {
     });
   }
 
-  private attachMarkerScaleLock(group: Group): void {
-    group.on('scaling', () => {
-      group.set({
-        scaleX: 1,
-        scaleY: 1,
-      });
-    });
+  private attachTransformSync(group: Group): void {
+    const syncMarkers = () => {
+      const curveData = group as any;
+      const start = curveData.curvedLineStart;
+      const end = curveData.curvedLineEnd;
+      const control = curveData.curvedLineControlPoint;
+      const startMarker = curveData.startMarker;
+      const endMarker = curveData.endMarker;
+
+      if (!start || !end || !control) return;
+
+      // Get group's transformation matrix
+      const matrix = group.calcTransformMatrix();
+      const scaleX = group.scaleX || 1;
+      const scaleY = group.scaleY || 1;
+
+      // Transform original points to current positions
+      const transformedStart = {
+        x: start.x * scaleX + (group.left || 0) - (group.width || 0) * scaleX / 2,
+        y: start.y * scaleY + (group.top || 0) - (group.height || 0) * scaleY / 2
+      };
+
+      const transformedEnd = {
+        x: end.x * scaleX + (group.left || 0) - (group.width || 0) * scaleX / 2,
+        y: end.y * scaleY + (group.top || 0) - (group.height || 0) * scaleY / 2
+      };
+
+      const transformedControl = {
+        x: control.x * scaleX + (group.left || 0) - (group.width || 0) * scaleX / 2,
+        y: control.y * scaleY + (group.top || 0) - (group.height || 0) * scaleY / 2
+      };
+
+      // Update start marker position and angle
+      if (startMarker) {
+        const startAngle = this.calculateStartAngle(transformedStart, transformedControl, transformedEnd);
+        startMarker.set({
+          left: start.x,
+          top: start.y,
+          angle: startAngle + (group.angle || 0),
+          scaleX: 1 / scaleX,
+          scaleY: 1 / scaleY,
+        });
+      }
+
+      // Update end marker position and angle
+      if (endMarker) {
+        const endAngle = this.calculateEndAngle(transformedStart, transformedControl, transformedEnd);
+        endMarker.set({
+          left: end.x,
+          top: end.y,
+          angle: endAngle + (group.angle || 0),
+          scaleX: 1 / scaleX,
+          scaleY: 1 / scaleY,
+        });
+      }
+
+      group.setCoords();
+    };
+
+    // Sync on all transform events
+    group.on('scaling', syncMarkers);
+    group.on('rotating', syncMarkers);
+    group.on('moving', syncMarkers);
+    group.on('modified', syncMarkers);
+
+    // Initialize
+    syncMarkers();
   }
 
   private getStrokeDashArray(): number[] | undefined {

@@ -300,27 +300,60 @@ export class StraightLineTool {
     }
   }
 
-  private attachMarkerScaleLock(group: Group): void {
+  private attachTransformSync(group: Group): void {
     const objects = (group as any).getObjects ? (group as any).getObjects() : (group as any)._objects || [];
     const path = objects.find((o: any) => o.type === 'path');
     const markers = objects.filter((o: any) => o !== path);
 
-    const lock = () => {
-      const sx = group.scaleX || 1;
-      const sy = group.scaleY || 1;
+    // Store original endpoints in group coordinates
+    const points = (group as any).straightLinePoints as StraightLinePoint[];
+    if (!points || points.length < 2) return;
+
+    const startMarker = markers[0];
+    const endMarker = markers[markers.length - 1];
+
+    const syncMarkers = () => {
+      const scaleX = group.scaleX || 1;
+      const scaleY = group.scaleY || 1;
+
+      // Apply inverse scale to keep markers at constant visual size
       markers.forEach((m: any) => {
         m.set({
-          scaleX: 1 / sx,
-          scaleY: 1 / sy,
+          scaleX: 1 / scaleX,
+          scaleY: 1 / scaleY,
           strokeUniform: true,
         });
       });
+
+      // Update marker angles based on scaled line segments
+      if (startMarker && points.length >= 2) {
+        const angle = this.calculateAngle(points[1], points[0]);
+        startMarker.set({ 
+          angle: angle + (group.angle || 0),
+          left: points[0].x,
+          top: points[0].y
+        });
+      }
+
+      if (endMarker && points.length >= 2) {
+        const lastIdx = points.length - 1;
+        const angle = this.calculateAngle(points[lastIdx - 1], points[lastIdx]);
+        endMarker.set({ 
+          angle: angle + (group.angle || 0),
+          left: points[lastIdx].x,
+          top: points[lastIdx].y
+        });
+      }
+
+      group.setCoords();
     };
 
-    // Initialize and keep locked during transforms
-    lock();
-    group.on('scaling', lock);
-    group.on('modified', lock);
+    // Initialize and sync on all transform events
+    syncMarkers();
+    group.on('scaling', syncMarkers);
+    group.on('rotating', syncMarkers);
+    group.on('moving', syncMarkers);
+    group.on('modified', syncMarkers);
   }
 
   finish(): Group | Path | null {
@@ -384,8 +417,8 @@ export class StraightLineTool {
         selectable: true,
       });
       
-      // Lock marker scale to prevent resizing
-      this.attachMarkerScaleLock(finalObject);
+      // Sync marker transforms to keep them attached
+      this.attachTransformSync(finalObject);
       
       // Store custom properties
       (finalObject as any).isStraightLine = true;

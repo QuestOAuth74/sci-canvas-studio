@@ -335,27 +335,64 @@ export class OrthogonalLineTool {
     }
   }
 
-  private attachMarkerScaleLock(group: Group): void {
+  private attachTransformSync(group: Group): void {
     const objects = (group as any).getObjects ? (group as any).getObjects() : (group as any)._objects || [];
     const path = objects.find((o: any) => o.type === 'path');
     const markers = objects.filter((o: any) => o !== path);
 
-    const lock = () => {
-      const sx = group.scaleX || 1;
-      const sy = group.scaleY || 1;
+    // Store original waypoints in group coordinates
+    const waypoints = (group as any).orthogonalLineWaypoints as OrthogonalLinePoint[];
+    if (!waypoints || waypoints.length < 1) return;
+
+    // Calculate orthogonal points from waypoints
+    const orthogonalPoints = this.calculateOrthogonalPath(waypoints);
+    if (orthogonalPoints.length < 2) return;
+
+    const startMarker = markers[0];
+    const endMarker = markers[markers.length - 1];
+
+    const syncMarkers = () => {
+      const scaleX = group.scaleX || 1;
+      const scaleY = group.scaleY || 1;
+
+      // Apply inverse scale to keep markers at constant visual size
       markers.forEach((m: any) => {
         m.set({
-          scaleX: 1 / sx,
-          scaleY: 1 / sy,
+          scaleX: 1 / scaleX,
+          scaleY: 1 / scaleY,
           strokeUniform: true,
         });
       });
+
+      // Update marker angles based on orthogonal path
+      if (startMarker && orthogonalPoints.length >= 2) {
+        const angle = this.calculateAngle(orthogonalPoints[1], orthogonalPoints[0]);
+        startMarker.set({ 
+          angle: angle + (group.angle || 0),
+          left: orthogonalPoints[0].x,
+          top: orthogonalPoints[0].y
+        });
+      }
+
+      if (endMarker && orthogonalPoints.length >= 2) {
+        const lastIdx = orthogonalPoints.length - 1;
+        const angle = this.calculateAngle(orthogonalPoints[lastIdx - 1], orthogonalPoints[lastIdx]);
+        endMarker.set({ 
+          angle: angle + (group.angle || 0),
+          left: orthogonalPoints[lastIdx].x,
+          top: orthogonalPoints[lastIdx].y
+        });
+      }
+
+      group.setCoords();
     };
 
-    // Initialize and keep locked during transforms
-    lock();
-    group.on('scaling', lock);
-    group.on('modified', lock);
+    // Initialize and sync on all transform events
+    syncMarkers();
+    group.on('scaling', syncMarkers);
+    group.on('rotating', syncMarkers);
+    group.on('moving', syncMarkers);
+    group.on('modified', syncMarkers);
   }
 
   finish(): Group | Path | null {
@@ -449,8 +486,8 @@ export class OrthogonalLineTool {
         selectable: true,
       });
       
-      // Lock marker scale to prevent resizing
-      this.attachMarkerScaleLock(finalObject);
+      // Sync marker transforms to keep them attached
+      this.attachTransformSync(finalObject);
       
       // Store custom properties
       (finalObject as any).isOrthogonalLine = true;
