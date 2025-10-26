@@ -20,7 +20,7 @@ export const useBlogPosts = (options?: {
         .from('blog_posts')
         .select(`
           *,
-          author:profiles!blog_posts_author_id_fkey(id, full_name, avatar_url, email),
+          author:profiles(id, full_name, avatar_url, email),
           categories:blog_post_categories(category:blog_categories(*)),
           tags:blog_post_tags(tag:blog_tags(*))
         `)
@@ -110,7 +110,7 @@ export const useBlogPost = (slug: string) => {
         .from('blog_posts')
         .select(`
           *,
-          author:profiles!blog_posts_author_id_fkey(id, full_name, avatar_url, email),
+          author:profiles(id, full_name, avatar_url, email),
           categories:blog_post_categories(category:blog_categories(*)),
           tags:blog_post_tags(tag:blog_tags(*))
         `)
