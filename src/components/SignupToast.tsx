@@ -16,7 +16,7 @@ export const SignupToast = ({ count, topCountries = [], totalWithLocation = 0 }:
 
   const getLocationMessage = () => {
     if (topCountries.length === 0) {
-      return `<strong>${count} people</strong> joined BioSketch in the last 24 hours!`;
+      return `<strong>${count} people</strong> joined today!`;
     }
 
     const displayCountries = topCountries.slice(0, 2);
@@ -26,9 +26,9 @@ export const SignupToast = ({ count, topCountries = [], totalWithLocation = 0 }:
     const countryNames = displayCountries.map(c => c.country).join(', ');
     
     if (remainingCount > 0) {
-      return `<strong>${count} people</strong> joined from ${countryNames} and ${remainingCount} other ${remainingCount === 1 ? 'country' : 'countries'}!`;
+      return `<strong>${count} people</strong> joined from ${countryNames} and ${remainingCount} other ${remainingCount === 1 ? 'country' : 'countries'} today!`;
     } else {
-      return `<strong>${count} people</strong> from ${countryNames} joined BioSketch!`;
+      return `<strong>${count} people</strong> from ${countryNames} joined today!`;
     }
   };
 
@@ -53,14 +53,21 @@ export const SignupToast = ({ count, topCountries = [], totalWithLocation = 0 }:
     const showToastWithDelay = () => {
       setTimeout(() => {
         if (shouldShowToast()) {
-          toast.success(
-            <div className="flex items-center gap-3">
-              <Users className="h-5 w-5" />
+          toast(
+            <div className="flex items-center gap-3 text-white">
+              <Users className="h-5 w-5 text-white" />
               <span dangerouslySetInnerHTML={{ __html: getLocationMessage() }} />
             </div>,
             {
               duration: 6000,
               position: "bottom-right",
+              className: "colorful-signup-toast",
+              style: {
+                background: "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--secondary)))",
+                border: "3px solid white",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)",
+                color: "white",
+              },
             }
           );
 
