@@ -106,9 +106,9 @@ export const IconSubmissionManager = () => {
                 <Card key={submission.id} className="p-6">
                   <div className="flex flex-col gap-4">
                     {/* Preview */}
-                    <div className="w-full h-32 bg-checker rounded-lg flex items-center justify-center">
+                    <div className="w-full h-32 bg-muted rounded-lg flex items-center justify-center">
                       {submission.thumbnail ? (
-                        <img src={submission.thumbnail} alt={submission.name} className="max-w-full max-h-full" style={{ backgroundColor: 'transparent' }} />
+                        <img src={submission.thumbnail} alt={submission.name} className="max-w-full max-h-full" />
                       ) : (
                         <div dangerouslySetInnerHTML={{ __html: submission.svg_content }} className="max-w-full max-h-full" />
                       )}

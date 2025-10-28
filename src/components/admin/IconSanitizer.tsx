@@ -9,7 +9,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ChevronLeft, ChevronRight, Trash2, RefreshCw, Eye, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { generateIconThumbnail } from "@/lib/thumbnailGenerator";
 
 interface IconIssue {
   id: string;
@@ -131,12 +130,31 @@ export const IconSanitizer = () => {
   const regenerateThumbnail = async (iconId: string, svgContent: string) => {
     setIsProcessing(true);
     try {
-      // Use shared thumbnail generator that preserves transparency
-      const thumbnail = await generateIconThumbnail(svgContent);
+      // Simple thumbnail generation - create optimized SVG
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgContent, "image/svg+xml");
+      const svgElement = doc.querySelector("svg");
+
+      if (!svgElement) {
+        throw new Error("Invalid SVG content");
+      }
+
+      // Ensure viewBox
+      if (!svgElement.hasAttribute("viewBox")) {
+        const width = svgElement.getAttribute("width") || "100";
+        const height = svgElement.getAttribute("height") || "100";
+        svgElement.setAttribute("viewBox", `0 0 ${width} ${height}`);
+      }
+
+      // Remove unnecessary attributes
+      svgElement.removeAttribute("width");
+      svgElement.removeAttribute("height");
+
+      const optimizedSvg = new XMLSerializer().serializeToString(svgElement);
 
       const { error } = await supabase
         .from("icons")
-        .update({ thumbnail })
+        .update({ thumbnail: optimizedSvg })
         .eq("id", iconId);
 
       if (error) throw error;
@@ -354,16 +372,12 @@ export const IconSanitizer = () => {
                     <Card key={icon.id} className="border-2">
                       <CardContent className="p-4">
                         <div className="flex gap-4">
-                          <div className="flex-shrink-0 w-24 h-24 bg-checker rounded flex items-center justify-center">
+                          <div className="flex-shrink-0 w-24 h-24 bg-muted rounded flex items-center justify-center">
                             {icon.thumbnail ? (
-                              icon.thumbnail.trim().startsWith('<svg') || icon.thumbnail.includes('<svg') ? (
-                                <div
-                                  dangerouslySetInnerHTML={{ __html: icon.thumbnail }}
-                                  className="w-20 h-20"
-                                />
-                              ) : (
-                                <img src={icon.thumbnail} alt={icon.name} className="w-20 h-20 object-contain" style={{ backgroundColor: 'transparent' }} />
-                              )
+                              <div
+                                dangerouslySetInnerHTML={{ __html: icon.thumbnail }}
+                                className="w-20 h-20"
+                              />
                             ) : (
                               <AlertTriangle className="w-8 h-8 text-muted-foreground" />
                             )}

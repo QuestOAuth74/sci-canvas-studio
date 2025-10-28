@@ -11,7 +11,6 @@ import JSZip from "jszip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
-import { generateIconThumbnail } from "@/lib/thumbnailGenerator";
 
 interface Category {
   id: string;
@@ -255,25 +254,10 @@ export const IconUploader = () => {
       setDebugInfo("");
       setFilePreview(null);
       
-      // Check file extension for SVG or PNG
-      const isValidFile = selectedFile.name.toLowerCase().endsWith('.svg') || 
-                          selectedFile.name.toLowerCase().endsWith('.png');
-      if (!isValidFile) {
-        setValidationWarning("File must have .svg or .png extension");
+      // Check file extension first
+      if (!selectedFile.name.toLowerCase().endsWith('.svg')) {
+        setValidationWarning("File must have .svg extension");
         setDebugInfo(`File type: ${selectedFile.type}, Name: ${selectedFile.name}`);
-        return;
-      }
-      
-      // Handle PNG files
-      if (selectedFile.name.toLowerCase().endsWith('.png')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const base64 = event.target?.result as string;
-          setFilePreview(base64);
-          setValidationWarning("");
-          setDebugInfo(`✓ Valid PNG detected\nFile Size: ${(selectedFile.size / 1024).toFixed(2)} KB`);
-        };
-        reader.readAsDataURL(selectedFile);
         return;
       }
 
@@ -415,6 +399,60 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
     return cleaned || 'Unnamed Icon';
   };
 
+  // Generate optimized thumbnail from full SVG (target max 50KB)
+  const generateThumbnail = (svgContent: string): string | null => {
+    try {
+      // Step 1: Remove only XML declarations, DOCTYPE, comments, metadata - keep xmlns:xlink and defs
+      let optimized = svgContent
+        .replace(/<\?xml[^>]*\?>/g, '')
+        .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
+        .replace(/<!--[\s\S]*?-->/g, '')
+        .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
+        .replace(/<title>[\s\S]*?<\/title>/gi, '')
+        .replace(/<desc>[\s\S]*?<\/desc>/gi, '')
+        .trim();
+
+      // Step 2: Ensure viewBox exists
+      const viewBoxMatch = optimized.match(/viewBox=["']([^"']*)["']/);
+      const widthMatch = optimized.match(/width=["']([^"']*)["']/);
+      const heightMatch = optimized.match(/height=["']([^"']*)["']/);
+
+      if (!viewBoxMatch && widthMatch && heightMatch) {
+        const width = parseFloat(widthMatch[1]);
+        const height = parseFloat(heightMatch[1]);
+        if (!isNaN(width) && !isNaN(height)) {
+          optimized = optimized.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
+        }
+      }
+
+      // Step 3: Remove only non-essential attributes (KEEP style and class for colors!)
+      optimized = optimized
+        .replace(/\s+id=["'][^"']*["']/g, '')
+        .replace(/\s+data-[^=]*=["'][^"']*["']/g, '');
+      // DO NOT remove style="" or class="" - they contain critical color/styling info!
+
+      // Step 4: Reduce decimal precision aggressively
+      optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
+
+      // Step 5: Remove whitespace
+      optimized = optimized
+        .replace(/\s+/g, ' ')
+        .replace(/>\s+</g, '><')
+        .trim();
+
+      // Step 6: Validate result is still valid SVG (support namespaced tags)
+      if (!/<\s*(?:\w+:)?svg[\s\S]*<\/\s*(?:\w+:)?svg\s*>/i.test(optimized)) {
+        console.warn('Optimization produced invalid SVG, using original');
+        return svgContent; // Return original instead of null
+      }
+
+      console.log(`Thumbnail optimized: ${svgContent.length} → ${optimized.length} bytes`);
+      return optimized;
+    } catch (error) {
+      console.error('Thumbnail generation error:', error);
+      return null;
+    }
+  };
 
   const handleUpload = async () => {
     if (!file || !selectedCategory || !iconName) {
@@ -430,37 +468,18 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
     setIsUploading(true);
     
     try {
-      let content: string;
-      let thumbnail: string;
+      const result = await readFileWithFallback(file);
       
-      // Handle PNG files
-      if (file.name.toLowerCase().endsWith('.png')) {
-        const reader = new FileReader();
-        const base64 = await new Promise<string>((resolve, reject) => {
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-        
-        content = base64;
-        thumbnail = base64; // Use PNG as its own thumbnail
-      } else {
-        // Handle SVG files
-        const result = await readFileWithFallback(file);
-        
-        if (!result.isValid || !result.content) {
-          toast.error(result.error || "Invalid SVG file");
-          setIsUploading(false);
-          return;
-        }
-        
-        // Use original content for storage, normalized for thumbnail
-        const originalContent = result.content;
-        const normalizedContent = normalizeSvgForHtml(result.content);
-        thumbnail = await generateIconThumbnail(normalizedContent);
-        content = originalContent;
+      if (!result.isValid || !result.content) {
+        toast.error(result.error || "Invalid SVG file");
+        setIsUploading(false);
+        return;
       }
       
+      // Use original content for storage, normalized for thumbnail
+      const originalContent = result.content;
+      const normalizedContent = normalizeSvgForHtml(result.content);
+      const thumbnail = generateThumbnail(normalizedContent);
       const sanitizedName = sanitizeFileName(iconName);
       
       const { error } = await supabase
@@ -468,8 +487,8 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
         .insert([{
           name: sanitizedName,
           category: selectedCategory,
-          svg_content: content,
-          thumbnail: thumbnail || content
+          svg_content: originalContent,
+          thumbnail: thumbnail || normalizedContent
         }]);
 
       if (error) {
@@ -543,7 +562,7 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
               const sanitized = validation.normalized;
               const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
               const iconName = sanitizeFileName(rawName);
-              const thumbnail = await generateIconThumbnail(sanitized);
+              const thumbnail = generateThumbnail(sanitized);
               
               const { error } = await supabase
                 .from('icons')
@@ -607,7 +626,7 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
         <CardHeader>
           <CardTitle>Upload Single Icon</CardTitle>
           <CardDescription>
-            Upload SVG or PNG files to your icon library
+            Upload SVG files to your icon library
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -638,11 +657,11 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="file">Icon File (SVG or PNG)</Label>
+            <Label htmlFor="file">Icon File (SVG)</Label>
             <Input
               id="file"
               type="file"
-              accept=".svg,.png,image/svg+xml,image/png"
+              accept=".svg"
               onChange={handleFileChange}
             />
             {fileSize > 0 && (
@@ -702,14 +721,10 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
             <div className="border border-border rounded-lg p-4">
               <Label className="text-sm font-medium mb-2 block">Preview:</Label>
               <div className="w-24 h-24 mx-auto border border-border rounded-lg p-2 flex items-center justify-center bg-muted">
-                {filePreview.startsWith('data:image/png') ? (
-                  <img src={filePreview} alt="Icon preview" className="max-w-full max-h-full object-contain" />
-                ) : (
-                  <div 
-                    dangerouslySetInnerHTML={{ __html: filePreview }}
-                    className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
-                  />
-                )}
+                <div 
+                  dangerouslySetInnerHTML={{ __html: filePreview }}
+                  className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
+                />
               </div>
             </div>
           )}

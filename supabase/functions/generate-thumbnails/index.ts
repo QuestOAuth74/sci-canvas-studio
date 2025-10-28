@@ -3,44 +3,61 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface IconRecord {
+  id: string;
+  name: string;
+  svg_content: string;
+  thumbnail: string | null;
 }
 
-// Simple thumbnail generation that preserves transparency
-function generateThumbnail(svgContent: string): string | null {
+// Ultra-aggressive optimization for large SVGs (fallback)
+function generateUltraCompressedThumbnail(svgContent: string): string | null {
   try {
-    // Minimal cleanup - remove comments and metadata but KEEP defs, style, and class
     let optimized = svgContent
+      // Remove all XML/metadata
       .replace(/<\?xml[^>]*\?>/g, '')
       .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
       .replace(/<!--[\s\S]*?-->/g, '')
       .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
       .replace(/<title>[\s\S]*?<\/title>/gi, '')
       .replace(/<desc>[\s\S]*?<\/desc>/gi, '')
-      .trim();
-
-    // Ensure viewBox exists
-    const viewBoxMatch = optimized.match(/viewBox=["']([^"']*)["']/);
-    const widthMatch = optimized.match(/width=["']([^"']*)["']/);
-    const heightMatch = optimized.match(/height=["']([^"']*)["']/);
-
-    if (!viewBoxMatch && widthMatch && heightMatch) {
-      const width = parseFloat(widthMatch[1]);
-      const height = parseFloat(heightMatch[1]);
-      if (!isNaN(width) && !isNaN(height)) {
-        optimized = optimized.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
-      }
-    }
-
-    // Minimal whitespace cleanup
-    optimized = optimized
+      .replace(/<defs>[\s\S]*?<\/defs>/gi, '')
+      
+      // Remove ALL styling and attributes except essential structure
+      .replace(/\s+id=["'][^"']*["']/g, '')
+      .replace(/\s+class=["'][^"']*["']/g, '')
+      .replace(/\s+style=["'][^"']*["']/g, '')
+      .replace(/\s+fill=["'][^"']*["']/g, '')
+      .replace(/\s+stroke=["'][^"']*["']/g, '')
+      .replace(/\s+stroke-width=["'][^"']*["']/g, '')
+      .replace(/\s+opacity=["'][^"']*["']/g, '')
+      .replace(/\s+data-[^=]*=["'][^"']*["']/g, '')
+      .replace(/\s+xmlns:[^=]*=["'][^"']*["']/g, '')
+      
+      // Convert all numbers to integers (lose precision for thumbnails)
+      .replace(/(\d+\.\d+)/g, (match) => Math.round(parseFloat(match)).toString())
+      
+      // Extreme whitespace minification
       .replace(/\s+/g, ' ')
       .replace(/>\s+</g, '><')
       .trim();
 
-    console.log(`Thumbnail: ${svgContent.length} → ${optimized.length} bytes`);
+    // Ensure viewBox exists
+    if (!optimized.includes('viewBox')) {
+      const widthMatch = optimized.match(/width=["']([^"']*)["']/);
+      const heightMatch = optimized.match(/height=["']([^"']*)["']/);
+      if (widthMatch && heightMatch) {
+        const width = Math.round(parseFloat(widthMatch[1]));
+        const height = Math.round(parseFloat(heightMatch[1]));
+        optimized = optimized.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
+      }
+    }
+
     return optimized;
   } catch (error) {
-    console.error('Thumbnail generation error:', error);
+    console.error('Ultra compression failed:', error);
     return null;
   }
 }
