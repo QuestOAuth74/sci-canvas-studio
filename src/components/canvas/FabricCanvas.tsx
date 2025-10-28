@@ -13,7 +13,7 @@ import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 
-// Sanitize SVG namespace issues before parsing with Fabric.js
+// Sanitize SVG namespace issues and strip background styles before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
   let sanitized = svgContent
     // Replace <ns0:svg> and other namespace prefixes with <svg>
@@ -30,6 +30,13 @@ const sanitizeSVGNamespaces = (svgContent: string): string => {
   if (!sanitized.includes('xmlns="http://www.w3.org/2000/svg"')) {
     sanitized = sanitized.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
   }
+  
+  // Strip background/background-color from root <svg> tag to prevent black backgrounds
+  sanitized = sanitized.replace(/<svg([^>]*)\s+background(-color)?=["'][^"']*["']/gi, '<svg$1');
+  sanitized = sanitized.replace(/<svg([^>]*)\s+style=["']([^"']*)["']/gi, (match, attrs, styleContent) => {
+    const cleanedStyle = styleContent.replace(/background(-color)?:[^;]+;?/gi, '').trim();
+    return cleanedStyle ? `<svg${attrs} style="${cleanedStyle}"` : `<svg${attrs}`;
+  });
   
   return sanitized;
 };
@@ -57,13 +64,19 @@ const isLikelyBackground = (obj: any, index: number, dims: { width: number; heig
   if (!(obj.type === "rect" || obj.type === "path")) return false;
   const fill = normalizeColor(obj.fill.toString());
   if (!isBlackOrWhite(fill)) return false;
-  const ow = (obj.width as number) || 0;
-  const oh = (obj.height as number) || 0;
+  
+  // Consider scaleX/scaleY for actual rendered size
+  const scaleX = obj.scaleX ?? 1;
+  const scaleY = obj.scaleY ?? 1;
+  const ow = ((obj.width as number) || 0) * scaleX;
+  const oh = ((obj.height as number) || 0) * scaleY;
   const covers = ow >= dims.width * 0.9 && oh >= dims.height * 0.9; // 90%+ coverage
   const noStroke = !obj.stroke || normalizeColor(String(obj.stroke)) === "none";
   const opaque = (obj.opacity ?? 1) >= 0.995 && (obj.fillOpacity ?? 1) >= 0.995;
   const nearOrigin = Math.abs((obj.left ?? 0)) < 2 && Math.abs((obj.top ?? 0)) < 2;
-  return covers && noStroke && opaque && (index === 0 || nearOrigin);
+  
+  // Background if: first object OR covers 90%+ OR is large and near origin
+  return (index === 0 || covers || (nearOrigin && ow > dims.width * 0.8 && oh > dims.height * 0.8)) && noStroke && opaque;
 };
 
 interface FabricCanvasProps {
@@ -175,9 +188,42 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       const { svgData } = event.detail;
 
       try {
+        // Check if this is a data URL image (PNG/JPEG/etc) - treat as image not SVG
+        if (svgData.startsWith('data:image/')) {
+          console.log('🖼️ Detected data URL image, treating as raster image');
+          const img = new Image();
+          
+          img.onload = () => {
+            const fabricImage = new FabricImage(img, {
+              left: (canvas.width || 0) / 2,
+              top: (canvas.height || 0) / 2,
+              originX: "center",
+              originY: "center",
+            });
+            
+            const maxW = (canvas.width || 0) * 0.6;
+            const maxH = (canvas.height || 0) * 0.6;
+            const scale = Math.min(maxW / fabricImage.width!, maxH / fabricImage.height!, 1);
+            fabricImage.scale(scale);
+            
+            canvas.add(fabricImage);
+            canvas.setActiveObject(fabricImage);
+            canvas.renderAll();
+            toast.success("Icon added to canvas");
+          };
+          
+          img.onerror = () => {
+            console.error("Failed to load image from data URL");
+            toast.error("Failed to load image");
+          };
+          
+          img.src = svgData;
+          return;
+        }
+
         const startTime = performance.now();
         
-        // Sanitize SVG before parsing to fix namespace issues
+        // Sanitize SVG before parsing to fix namespace issues and strip backgrounds
         console.log('Original SVG size:', svgData.length, 'Has color info:', /fill=|style=/.test(svgData));
         const sanitizedSVG = sanitizeSVGNamespaces(svgData);
         console.log('Sanitized SVG size:', sanitizedSVG.length, 'Preserved colors:', /fill=|style=/.test(sanitizedSVG));
@@ -192,7 +238,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         const { objects, options } = await Promise.race([parsePromise, timeoutPromise]) as Awaited<ReturnType<typeof loadSVGFromString>>;
         
         const parseTime = performance.now() - startTime;
-        console.log(`SVG parsed in ${parseTime.toFixed(2)}ms`);
+        console.log(`SVG parsed in ${parseTime.toFixed(2)}ms, ${objects.length} objects`);
+        console.log('First 3 parsed objects:', objects.slice(0, 3).map((o: any) => ({ type: o.type, fill: o.fill, width: o.width, height: o.height })));
         
         if (parseTime > 5000) {
           console.warn('Large SVG detected - parsing took over 5 seconds');
@@ -201,8 +248,28 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         // Robustly strip full-bleed black/white backgrounds before grouping
         const dims = getParsedContentSize(objects as any, options as any);
         const filteredObjects = (objects as any[]).filter((obj: any, idx: number) => !isLikelyBackground(obj, idx, dims));
+        console.log(`🧹 Filtered ${objects.length - filteredObjects.length} background objects`);
         
         const group = util.groupSVGElements(filteredObjects, options);
+        
+        // Force-clear any black/white backgroundColor that Fabric may have set
+        if (group.backgroundColor) {
+          const bgColor = normalizeColor(String(group.backgroundColor));
+          if (isBlackOrWhite(bgColor)) {
+            console.log('🚫 Clearing group backgroundColor:', group.backgroundColor);
+            group.backgroundColor = undefined;
+          }
+        }
+        
+        // Clear backgroundColor on child objects if present (check _objects for v6)
+        if ((group as any)._objects) {
+          (group as any)._objects.forEach((obj: any) => {
+            if (obj.backgroundColor && isBlackOrWhite(normalizeColor(String(obj.backgroundColor)))) {
+              console.log('🚫 Clearing child backgroundColor:', obj.backgroundColor);
+              obj.backgroundColor = undefined;
+            }
+          });
+        }
         
         // Scale to fit within 60% of canvas area
         const maxW = (canvas.width || 0) * 0.6;
@@ -247,7 +314,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         
         // Try to parse as SVG first
         if (content.trim().startsWith('<svg') || content.includes('xmlns="http://www.w3.org/2000/svg"')) {
-          // Sanitize SVG before parsing
+          // Sanitize SVG before parsing and strip backgrounds
           const sanitizedContent = sanitizeSVGNamespaces(content);
           const { objects, options } = await loadSVGFromString(sanitizedContent);
           
@@ -256,6 +323,23 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           const filteredObjects = (objects as any[]).filter((obj: any, idx: number) => !isLikelyBackground(obj, idx, dims));
           
           const group = util.groupSVGElements(filteredObjects, options);
+          
+          // Force-clear any black/white backgroundColor
+          if (group.backgroundColor) {
+            const bgColor = normalizeColor(String(group.backgroundColor));
+            if (isBlackOrWhite(bgColor)) {
+              group.backgroundColor = undefined;
+            }
+          }
+          
+          // Clear child backgroundColor (check _objects for v6)
+          if ((group as any)._objects) {
+            (group as any)._objects.forEach((obj: any) => {
+              if (obj.backgroundColor && isBlackOrWhite(normalizeColor(String(obj.backgroundColor)))) {
+                obj.backgroundColor = undefined;
+              }
+            });
+          }
           
           const maxW = (canvas.width || 0) * 0.6;
           const maxH = (canvas.height || 0) * 0.6;
