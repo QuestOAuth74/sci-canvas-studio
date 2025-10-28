@@ -223,6 +223,41 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
         const startTime = performance.now();
         
+        // If this is an SVG that simply embeds a raster <image>, extract and add as FabricImage
+        const embeddedRasterMatch = svgData.match(/<image[^>]+(?:href|xlink:href)=["'](data:image\/[^"]+|https?:\/\/[^"']+\.(?:png|jpg|jpeg|webp))["']/i);
+        if (embeddedRasterMatch) {
+          const rasterSrc = embeddedRasterMatch[1];
+          console.log('🖼️ Detected embedded raster in SVG, extracting image instead of parsing SVG');
+          const img = new Image();
+          // Attempt CORS when URL is remote
+          if (!rasterSrc.startsWith('data:')) img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            const fabricImage = new FabricImage(img, {
+              left: (canvas.width || 0) / 2,
+              top: (canvas.height || 0) / 2,
+              originX: 'center',
+              originY: 'center',
+            });
+            const maxW = (canvas.width || 0) * 0.6;
+            const maxH = (canvas.height || 0) * 0.6;
+            const scale = Math.min(maxW / (fabricImage.width || 1), maxH / (fabricImage.height || 1), 1);
+            fabricImage.scale(scale);
+            canvas.add(fabricImage);
+            canvas.setActiveObject(fabricImage);
+            canvas.renderAll();
+            toast.success('Icon added to canvas');
+          };
+          img.onerror = () => {
+            console.warn('Failed to load embedded raster image from SVG, falling back to SVG parsing');
+          };
+          img.src = rasterSrc;
+          if (img.complete) {
+            // Force synchronous onload for cached images
+            (img as any).onload?.({});
+          }
+          return;
+        }
+        
         // Sanitize SVG before parsing to fix namespace issues and strip backgrounds
         console.log('Original SVG size:', svgData.length, 'Has color info:', /fill=|style=/.test(svgData));
         const sanitizedSVG = sanitizeSVGNamespaces(svgData);
@@ -314,6 +349,38 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         
         // Try to parse as SVG first
         if (content.trim().startsWith('<svg') || content.includes('xmlns="http://www.w3.org/2000/svg"')) {
+          // If SVG just embeds a raster <image>, extract and add as FabricImage
+          const embeddedRasterMatch = content.match(/<image[^>]+(?:href|xlink:href)=["'](data:image\/[^"]+|https?:\/\/[^"']+\.(?:png|jpg|jpeg|webp))["']/i);
+          if (embeddedRasterMatch) {
+            const rasterSrc = embeddedRasterMatch[1];
+            const img = new Image();
+            if (!rasterSrc.startsWith('data:')) img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              const fabricImage = new FabricImage(img, {
+                left: (canvas.width || 0) / 2,
+                top: (canvas.height || 0) / 2,
+                originX: 'center',
+                originY: 'center',
+              });
+              const maxW = (canvas.width || 0) * 0.6;
+              const maxH = (canvas.height || 0) * 0.6;
+              const scale = Math.min(maxW / (fabricImage.width || 1), maxH / (fabricImage.height || 1), 1);
+              fabricImage.scale(scale);
+              canvas.add(fabricImage);
+              canvas.setActiveObject(fabricImage);
+              canvas.renderAll();
+              toast.success('Asset added to canvas');
+            };
+            img.onerror = () => {
+              console.warn('Failed to load embedded raster image from SVG, falling back to SVG parsing');
+            };
+            img.src = rasterSrc;
+            if (img.complete) {
+              (img as any).onload?.({});
+            }
+            return;
+          }
+
           // Sanitize SVG before parsing and strip backgrounds
           const sanitizedContent = sanitizeSVGNamespaces(content);
           const { objects, options } = await loadSVGFromString(sanitizedContent);
