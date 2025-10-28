@@ -34,6 +34,38 @@ const sanitizeSVGNamespaces = (svgContent: string): string => {
   return sanitized;
 };
 
+// Helpers to robustly strip "background" shapes from parsed SVGs
+// Detects full-bleed black/white rectangles or paths that cover the viewBox/content
+// and are typically exported by illustrators as an artboard background.
+const normalizeColor = (c?: string) => (c || "").replace(/\s+/g, "").toLowerCase();
+const isBlackOrWhite = (c?: string) => {
+  const n = normalizeColor(c);
+  return (
+    n === "#000" || n === "#000000" || n === "black" || n === "rgb(0,0,0)" || n === "rgba(0,0,0,1)" || n === "hsl(0,0%,0%)" ||
+    n === "#fff" || n === "#ffffff" || n === "white" || n === "rgb(255,255,255)" || n === "rgba(255,255,255,1)" || n === "hsl(0,0%,100%)"
+  );
+};
+
+const getParsedContentSize = (objects: any[], options: any) => {
+  const width = (options && (options.width || options.viewBoxWidth)) ?? Math.max(...objects.map((o: any) => o?.width || 0), 1);
+  const height = (options && (options.height || options.viewBoxHeight)) ?? Math.max(...objects.map((o: any) => o?.height || 0), 1);
+  return { width, height };
+};
+
+const isLikelyBackground = (obj: any, index: number, dims: { width: number; height: number }) => {
+  if (!obj || !obj.fill) return false;
+  if (!(obj.type === "rect" || obj.type === "path")) return false;
+  const fill = normalizeColor(obj.fill.toString());
+  if (!isBlackOrWhite(fill)) return false;
+  const ow = (obj.width as number) || 0;
+  const oh = (obj.height as number) || 0;
+  const covers = ow >= dims.width * 0.9 && oh >= dims.height * 0.9; // 90%+ coverage
+  const noStroke = !obj.stroke || normalizeColor(String(obj.stroke)) === "none";
+  const opaque = (obj.opacity ?? 1) >= 0.995 && (obj.fillOpacity ?? 1) >= 0.995;
+  const nearOrigin = Math.abs((obj.left ?? 0)) < 2 && Math.abs((obj.top ?? 0)) < 2;
+  return covers && noStroke && opaque && (index === 0 || nearOrigin);
+};
+
 interface FabricCanvasProps {
   activeTool: string;
   onShapeCreated?: () => void;
@@ -166,22 +198,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           console.warn('Large SVG detected - parsing took over 5 seconds');
         }
         
-        // Filter out background rectangles (common in exported SVGs)
-        const filteredObjects = objects.filter((obj: any) => {
-          // Skip if it's a rect that likely serves as background
-          if (obj.type === 'rect' && obj.fill) {
-            const fill = obj.fill.toString().toLowerCase();
-            // Check if it's a solid black, white, or very large rect covering the viewBox
-            const isBackgroundColor = fill === '#000000' || fill === '#ffffff' || fill === 'black' || fill === 'white' || fill === 'rgb(0,0,0)' || fill === 'rgb(255,255,255)';
-            const coversFullArea = obj.width >= (options.width * 0.95) && obj.height >= (options.height * 0.95);
-            
-            if (isBackgroundColor && coversFullArea) {
-              console.log('Filtered out background rect:', fill, obj.width, obj.height);
-              return false;
-            }
-          }
-          return true;
-        });
+        // Robustly strip full-bleed black/white backgrounds before grouping
+        const dims = getParsedContentSize(objects as any, options as any);
+        const filteredObjects = (objects as any[]).filter((obj: any, idx: number) => !isLikelyBackground(obj, idx, dims));
         
         const group = util.groupSVGElements(filteredObjects, options);
         
@@ -232,18 +251,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           const sanitizedContent = sanitizeSVGNamespaces(content);
           const { objects, options } = await loadSVGFromString(sanitizedContent);
           
-          // Filter out background rectangles
-          const filteredObjects = objects.filter((obj: any) => {
-            if (obj.type === 'rect' && obj.fill) {
-              const fill = obj.fill.toString().toLowerCase();
-              const isBackgroundColor = fill === '#000000' || fill === '#ffffff' || fill === 'black' || fill === 'white' || fill === 'rgb(0,0,0)' || fill === 'rgb(255,255,255)';
-              const coversFullArea = obj.width >= (options.width * 0.95) && obj.height >= (options.height * 0.95);
-              if (isBackgroundColor && coversFullArea) {
-                return false;
-              }
-            }
-            return true;
-          });
+          // Robustly strip full-bleed black/white backgrounds
+          const dims = getParsedContentSize(objects as any, options as any);
+          const filteredObjects = (objects as any[]).filter((obj: any, idx: number) => !isLikelyBackground(obj, idx, dims));
           
           const group = util.groupSVGElements(filteredObjects, options);
           
@@ -642,18 +652,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             if (file.type === "image/svg+xml" || fileExtension === ".svg") {
               // Handle SVG files
               loadSVGFromString(imgUrl).then(({ objects, options }) => {
-                // Filter out background rectangles
-                const filteredObjects = objects.filter((obj: any) => {
-                  if (obj.type === 'rect' && obj.fill) {
-                    const fill = obj.fill.toString().toLowerCase();
-                    const isBackgroundColor = fill === '#000000' || fill === '#ffffff' || fill === 'black' || fill === 'white' || fill === 'rgb(0,0,0)' || fill === 'rgb(255,255,255)';
-                    const coversFullArea = obj.width >= (options.width * 0.95) && obj.height >= (options.height * 0.95);
-                    if (isBackgroundColor && coversFullArea) {
-                      return false;
-                    }
-                  }
-                  return true;
-                });
+                // Robustly strip full-bleed black/white backgrounds
+                const dims = getParsedContentSize(objects as any, options as any);
+                const filteredObjects = (objects as any[]).filter((obj: any, idx: number) => !isLikelyBackground(obj, idx, dims));
                 
                 const group = util.groupSVGElements(filteredObjects, options);
                 
