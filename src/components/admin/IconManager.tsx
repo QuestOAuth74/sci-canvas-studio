@@ -348,13 +348,23 @@ export const IconManager = () => {
                 </div>
                 
                 {/* Rest of the icon card remains the same */}
-                <div className="aspect-square border border-border rounded-lg p-2 flex items-center justify-center bg-muted">
+                <div className="aspect-square border border-border rounded-lg p-2 flex items-center justify-center bg-checker">
                   {icon.thumbnail && !isBroken ? (
-                    <div 
-                      dangerouslySetInnerHTML={{ __html: icon.thumbnail }}
-                      className="w-16 h-16 [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
-                      onError={() => handleThumbnailError(icon.id)}
-                    />
+                    icon.thumbnail.trim().startsWith('<svg') || icon.thumbnail.includes('<svg') ? (
+                      <div 
+                        dangerouslySetInnerHTML={{ __html: icon.thumbnail }}
+                        className="w-16 h-16 [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
+                        onError={() => handleThumbnailError(icon.id)}
+                      />
+                    ) : (
+                      <img 
+                        src={icon.thumbnail} 
+                        alt={icon.name}
+                        className="w-16 h-16 object-contain"
+                        style={{ backgroundColor: 'transparent' }}
+                        onError={() => handleThumbnailError(icon.id)}
+                      />
+                    )
                   ) : (
                     <div 
                       dangerouslySetInnerHTML={{ __html: icon.svg_content }}

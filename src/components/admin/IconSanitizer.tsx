@@ -372,12 +372,16 @@ export const IconSanitizer = () => {
                     <Card key={icon.id} className="border-2">
                       <CardContent className="p-4">
                         <div className="flex gap-4">
-                          <div className="flex-shrink-0 w-24 h-24 bg-muted rounded flex items-center justify-center">
+                          <div className="flex-shrink-0 w-24 h-24 bg-checker rounded flex items-center justify-center">
                             {icon.thumbnail ? (
-                              <div
-                                dangerouslySetInnerHTML={{ __html: icon.thumbnail }}
-                                className="w-20 h-20"
-                              />
+                              icon.thumbnail.trim().startsWith('<svg') || icon.thumbnail.includes('<svg') ? (
+                                <div
+                                  dangerouslySetInnerHTML={{ __html: icon.thumbnail }}
+                                  className="w-20 h-20"
+                                />
+                              ) : (
+                                <img src={icon.thumbnail} alt={icon.name} className="w-20 h-20 object-contain" style={{ backgroundColor: 'transparent' }} />
+                              )
                             ) : (
                               <AlertTriangle className="w-8 h-8 text-muted-foreground" />
                             )}

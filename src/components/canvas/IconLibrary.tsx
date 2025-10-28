@@ -342,15 +342,25 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   const renderIconButton = (icon: Icon) => {
     const hasThumbnail = !!icon.thumbnail;
     const isBroken = !!brokenMap[icon.id];
-    const safeSvg = hasThumbnail && !isBroken ? sanitizeSvg(icon.thumbnail!) : '';
-    const thumbSrc = hasThumbnail && !isBroken ? svgToDataUrl(safeSvg) : '';
     const isLoaded = !!loadedMap[icon.id];
+    
+    // Determine thumbnail source based on format
+    let thumbSrc = '';
+    if (hasThumbnail && !isBroken) {
+      const t = icon.thumbnail!;
+      if (t.trim().startsWith('<svg') || t.includes('<svg')) {
+        const safe = sanitizeSvg(t);
+        thumbSrc = svgToDataUrl(safe);
+      } else {
+        thumbSrc = t;
+      }
+    }
     
     return (
       <button
         key={icon.id}
         onClick={() => handleIconClick(icon)}
-        className="aspect-square border border-border/40 rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/40 hover:border-primary transition-transform hover:scale-105 relative"
+        className="aspect-square border border-border/40 rounded overflow-hidden p-1.5 bg-checker hover:border-primary transition-transform hover:scale-105 relative"
         title={icon.name}
       >
         {!hasThumbnail || isBroken ? (
@@ -374,7 +384,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
               onLoad={() => onImgLoad(icon.id)}
               onError={() => onImgError(icon.id)}
               className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
-              style={{ imageRendering: "pixelated" }}
+              style={{ backgroundColor: 'transparent' }}
             />
           </>
         )}
