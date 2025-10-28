@@ -406,7 +406,21 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
 
         try {
           const { objects: svgObjects, options } = await loadSVGFromString(iconData.svg_content);
-          const group = util.groupSVGElements(svgObjects, options);
+          
+          // Filter out background rectangles
+          const filteredObjects = svgObjects.filter((obj: any) => {
+            if (obj.type === 'rect' && obj.fill) {
+              const fill = obj.fill.toString().toLowerCase();
+              const isBackgroundColor = fill === '#000000' || fill === '#ffffff' || fill === 'black' || fill === 'white' || fill === 'rgb(0,0,0)' || fill === 'rgb(255,255,255)';
+              const coversFullArea = obj.width >= (options.width * 0.95) && obj.height >= (options.height * 0.95);
+              if (isBackgroundColor && coversFullArea) {
+                return false;
+              }
+            }
+            return true;
+          });
+          
+          const group = util.groupSVGElements(filteredObjects, options);
 
           const originalWidth = group.width || 100;
           const originalHeight = group.height || 100;

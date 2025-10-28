@@ -166,7 +166,24 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           console.warn('Large SVG detected - parsing took over 5 seconds');
         }
         
-        const group = util.groupSVGElements(objects, options);
+        // Filter out background rectangles (common in exported SVGs)
+        const filteredObjects = objects.filter((obj: any) => {
+          // Skip if it's a rect that likely serves as background
+          if (obj.type === 'rect' && obj.fill) {
+            const fill = obj.fill.toString().toLowerCase();
+            // Check if it's a solid black, white, or very large rect covering the viewBox
+            const isBackgroundColor = fill === '#000000' || fill === '#ffffff' || fill === 'black' || fill === 'white' || fill === 'rgb(0,0,0)' || fill === 'rgb(255,255,255)';
+            const coversFullArea = obj.width >= (options.width * 0.95) && obj.height >= (options.height * 0.95);
+            
+            if (isBackgroundColor && coversFullArea) {
+              console.log('Filtered out background rect:', fill, obj.width, obj.height);
+              return false;
+            }
+          }
+          return true;
+        });
+        
+        const group = util.groupSVGElements(filteredObjects, options);
         
         // Scale to fit within 60% of canvas area
         const maxW = (canvas.width || 0) * 0.6;
@@ -214,7 +231,21 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           // Sanitize SVG before parsing
           const sanitizedContent = sanitizeSVGNamespaces(content);
           const { objects, options } = await loadSVGFromString(sanitizedContent);
-          const group = util.groupSVGElements(objects, options);
+          
+          // Filter out background rectangles
+          const filteredObjects = objects.filter((obj: any) => {
+            if (obj.type === 'rect' && obj.fill) {
+              const fill = obj.fill.toString().toLowerCase();
+              const isBackgroundColor = fill === '#000000' || fill === '#ffffff' || fill === 'black' || fill === 'white' || fill === 'rgb(0,0,0)' || fill === 'rgb(255,255,255)';
+              const coversFullArea = obj.width >= (options.width * 0.95) && obj.height >= (options.height * 0.95);
+              if (isBackgroundColor && coversFullArea) {
+                return false;
+              }
+            }
+            return true;
+          });
+          
+          const group = util.groupSVGElements(filteredObjects, options);
           
           const maxW = (canvas.width || 0) * 0.6;
           const maxH = (canvas.height || 0) * 0.6;
@@ -611,7 +642,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             if (file.type === "image/svg+xml" || fileExtension === ".svg") {
               // Handle SVG files
               loadSVGFromString(imgUrl).then(({ objects, options }) => {
-                const group = util.groupSVGElements(objects, options);
+                // Filter out background rectangles
+                const filteredObjects = objects.filter((obj: any) => {
+                  if (obj.type === 'rect' && obj.fill) {
+                    const fill = obj.fill.toString().toLowerCase();
+                    const isBackgroundColor = fill === '#000000' || fill === '#ffffff' || fill === 'black' || fill === 'white' || fill === 'rgb(0,0,0)' || fill === 'rgb(255,255,255)';
+                    const coversFullArea = obj.width >= (options.width * 0.95) && obj.height >= (options.height * 0.95);
+                    if (isBackgroundColor && coversFullArea) {
+                      return false;
+                    }
+                  }
+                  return true;
+                });
+                
+                const group = util.groupSVGElements(filteredObjects, options);
                 
                 // Scale to fit within 60% of canvas
                 const maxW = (canvas.width || 0) * 0.6;
