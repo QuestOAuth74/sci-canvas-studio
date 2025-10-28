@@ -33,9 +33,6 @@ export async function generateIconThumbnail(svgContent: string): Promise<string>
         const ctx = canvas.getContext('2d');
         
         if (ctx) {
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, 200, 200);
-          
           // Calculate scaling to fit within canvas while maintaining aspect ratio
           const scale = Math.min(180 / img.width, 180 / img.height);
           const x = (200 - img.width * scale) / 2;
