@@ -11,6 +11,7 @@ import JSZip from "jszip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
+import { generateIconThumbnail } from "@/lib/thumbnailGenerator";
 
 interface Category {
   id: string;
@@ -399,60 +400,6 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
     return cleaned || 'Unnamed Icon';
   };
 
-  // Generate optimized thumbnail from full SVG (target max 50KB)
-  const generateThumbnail = (svgContent: string): string | null => {
-    try {
-      // Step 1: Remove only XML declarations, DOCTYPE, comments, metadata - keep xmlns:xlink and defs
-      let optimized = svgContent
-        .replace(/<\?xml[^>]*\?>/g, '')
-        .replace(/<!DOCTYPE[\s\S]*?>/gi, '')
-        .replace(/<!--[\s\S]*?-->/g, '')
-        .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
-        .replace(/<title>[\s\S]*?<\/title>/gi, '')
-        .replace(/<desc>[\s\S]*?<\/desc>/gi, '')
-        .trim();
-
-      // Step 2: Ensure viewBox exists
-      const viewBoxMatch = optimized.match(/viewBox=["']([^"']*)["']/);
-      const widthMatch = optimized.match(/width=["']([^"']*)["']/);
-      const heightMatch = optimized.match(/height=["']([^"']*)["']/);
-
-      if (!viewBoxMatch && widthMatch && heightMatch) {
-        const width = parseFloat(widthMatch[1]);
-        const height = parseFloat(heightMatch[1]);
-        if (!isNaN(width) && !isNaN(height)) {
-          optimized = optimized.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
-        }
-      }
-
-      // Step 3: Remove only non-essential attributes (KEEP style and class for colors!)
-      optimized = optimized
-        .replace(/\s+id=["'][^"']*["']/g, '')
-        .replace(/\s+data-[^=]*=["'][^"']*["']/g, '');
-      // DO NOT remove style="" or class="" - they contain critical color/styling info!
-
-      // Step 4: Reduce decimal precision aggressively
-      optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
-
-      // Step 5: Remove whitespace
-      optimized = optimized
-        .replace(/\s+/g, ' ')
-        .replace(/>\s+</g, '><')
-        .trim();
-
-      // Step 6: Validate result is still valid SVG (support namespaced tags)
-      if (!/<\s*(?:\w+:)?svg[\s\S]*<\/\s*(?:\w+:)?svg\s*>/i.test(optimized)) {
-        console.warn('Optimization produced invalid SVG, using original');
-        return svgContent; // Return original instead of null
-      }
-
-      console.log(`Thumbnail optimized: ${svgContent.length} → ${optimized.length} bytes`);
-      return optimized;
-    } catch (error) {
-      console.error('Thumbnail generation error:', error);
-      return null;
-    }
-  };
 
   const handleUpload = async () => {
     if (!file || !selectedCategory || !iconName) {
@@ -479,7 +426,7 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
       // Use original content for storage, normalized for thumbnail
       const originalContent = result.content;
       const normalizedContent = normalizeSvgForHtml(result.content);
-      const thumbnail = generateThumbnail(normalizedContent);
+      const thumbnail = await generateIconThumbnail(normalizedContent);
       const sanitizedName = sanitizeFileName(iconName);
       
       const { error } = await supabase
@@ -562,7 +509,7 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
               const sanitized = validation.normalized;
               const rawName = filename.split('/').pop()?.replace('.svg', '') || `icon-${Date.now()}`;
               const iconName = sanitizeFileName(rawName);
-              const thumbnail = generateThumbnail(sanitized);
+              const thumbnail = await generateIconThumbnail(sanitized);
               
               const { error } = await supabase
                 .from('icons')

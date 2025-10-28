@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ChevronLeft, ChevronRight, Trash2, RefreshCw, Eye, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { generateIconThumbnail } from "@/lib/thumbnailGenerator";
 
 interface IconIssue {
   id: string;
@@ -130,31 +131,12 @@ export const IconSanitizer = () => {
   const regenerateThumbnail = async (iconId: string, svgContent: string) => {
     setIsProcessing(true);
     try {
-      // Simple thumbnail generation - create optimized SVG
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(svgContent, "image/svg+xml");
-      const svgElement = doc.querySelector("svg");
-
-      if (!svgElement) {
-        throw new Error("Invalid SVG content");
-      }
-
-      // Ensure viewBox
-      if (!svgElement.hasAttribute("viewBox")) {
-        const width = svgElement.getAttribute("width") || "100";
-        const height = svgElement.getAttribute("height") || "100";
-        svgElement.setAttribute("viewBox", `0 0 ${width} ${height}`);
-      }
-
-      // Remove unnecessary attributes
-      svgElement.removeAttribute("width");
-      svgElement.removeAttribute("height");
-
-      const optimizedSvg = new XMLSerializer().serializeToString(svgElement);
+      // Use shared thumbnail generator that preserves transparency
+      const thumbnail = await generateIconThumbnail(svgContent);
 
       const { error } = await supabase
         .from("icons")
-        .update({ thumbnail: optimizedSvg })
+        .update({ thumbnail })
         .eq("id", iconId);
 
       if (error) throw error;

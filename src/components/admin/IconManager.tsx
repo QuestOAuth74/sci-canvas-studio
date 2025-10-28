@@ -7,6 +7,7 @@ import { Trash2, ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from "lucid
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { generateIconThumbnail } from "@/lib/thumbnailGenerator";
 
 interface Icon {
   id: string;
@@ -167,8 +168,8 @@ export const IconManager = () => {
     setRegeneratingId(icon.id);
     
     try {
-      // Generate new optimized thumbnail
-      const thumbnail = generateThumbnail(icon.svg_content);
+      // Generate new thumbnail with transparency preserved
+      const thumbnail = await generateIconThumbnail(icon.svg_content);
       
       const { error } = await supabase
         .from('icons')
@@ -192,51 +193,6 @@ export const IconManager = () => {
     }
   };
 
-  const generateThumbnail = (svgContent: string): string => {
-    try {
-      let optimized = svgContent
-        .replace(/<\?xml[^>]*\?>/g, '')
-        .replace(/<!--[\s\S]*?-->/g, '')
-        .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
-        .replace(/<title>[\s\S]*?<\/title>/gi, '')
-        .replace(/<desc>[\s\S]*?<\/desc>/gi, '')
-        .replace(/<defs>[\s\S]*?<\/defs>/gi, '')
-        .trim();
-
-      const viewBoxMatch = optimized.match(/viewBox=["']([^"']*)["']/);
-      const widthMatch = optimized.match(/width=["']([^"']*)["']/);
-      const heightMatch = optimized.match(/height=["']([^"']*)["']/);
-
-      if (!viewBoxMatch && widthMatch && heightMatch) {
-        const width = parseFloat(widthMatch[1]);
-        const height = parseFloat(heightMatch[1]);
-        if (!isNaN(width) && !isNaN(height)) {
-          optimized = optimized.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
-        }
-      }
-
-      optimized = optimized
-        .replace(/\s+id=["'][^"']*["']/g, '')
-        .replace(/\s+class=["'][^"']*["']/g, '')
-        .replace(/\s+style=["'][^"']*["']/g, '')
-        .replace(/\s+data-[^=]*=["'][^"']*["']/g, '');
-
-      optimized = optimized.replace(/(\d+\.\d{2,})/g, (match) => parseFloat(match).toFixed(1));
-      optimized = optimized.replace(/\s+/g, ' ').replace(/>\s+</g, '><').trim();
-
-      if (optimized.length > 50000) {
-        optimized = optimized
-          .replace(/\s+fill=["'][^"']*["']/g, '')
-          .replace(/\s+stroke=["'][^"']*["']/g, '');
-        optimized = optimized.replace(/(\d+\.\d+)/g, (match) => Math.round(parseFloat(match)).toString());
-      }
-
-      return optimized;
-    } catch (error) {
-      console.error('Thumbnail generation error:', error);
-      return svgContent;
-    }
-  };
 
   const handleThumbnailError = (iconId: string) => {
     brokenThumbnails.add(iconId);
