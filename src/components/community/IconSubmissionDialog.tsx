@@ -60,8 +60,9 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.name.endsWith('.svg')) {
-      toast.error('Please upload an SVG file');
+    const isValidFile = file.name.endsWith('.svg') || file.name.endsWith('.png');
+    if (!isValidFile) {
+      toast.error('Please upload an SVG or PNG file');
       return;
     }
 
@@ -71,6 +72,19 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
     }
 
     const reader = new FileReader();
+    
+    // Handle PNG files
+    if (file.name.endsWith('.png')) {
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        setSvgPreview(base64);
+        setFormData(prev => ({ ...prev, svg_content: base64 }));
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+    
+    // Handle SVG files
     reader.onload = async (event) => {
       let svgContent = event.target?.result as string;
       
@@ -118,7 +132,10 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
 
     setLoading(true);
     try {
-      const thumbnail = await generateIconThumbnail(formData.svg_content);
+      // Generate thumbnail - for PNG use as-is, for SVG generate
+      const thumbnail = formData.svg_content.startsWith('data:image/png')
+        ? formData.svg_content
+        : await generateIconThumbnail(formData.svg_content);
       
       const result = await submitIcon({
         name: formData.name.trim(),
@@ -155,21 +172,24 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">Suggest an Icon</DialogTitle>
           <DialogDescription>
-            Submit an SVG icon to be reviewed and added to our library. All submissions will be reviewed by our team.
+            Submit an SVG or PNG icon to be reviewed and added to our library. All submissions will be reviewed by our team.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* SVG Upload */}
+          {/* Icon Upload */}
           <div className="space-y-2">
-            <Label htmlFor="svg-upload">SVG File *</Label>
+            <Label htmlFor="svg-upload">Icon File (SVG or PNG) *</Label>
             <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
               {svgPreview ? (
                 <div className="space-y-4">
-                  <div 
-                    className="w-32 h-32 mx-auto bg-muted rounded-lg flex items-center justify-center"
-                    dangerouslySetInnerHTML={{ __html: svgPreview }}
-                  />
+                  <div className="w-32 h-32 mx-auto bg-muted rounded-lg flex items-center justify-center">
+                    {svgPreview.startsWith('data:image/png') ? (
+                      <img src={svgPreview} alt="Preview" className="max-w-full max-h-full object-contain" />
+                    ) : (
+                      <div dangerouslySetInnerHTML={{ __html: svgPreview }} />
+                    )}
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
@@ -186,12 +206,12 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
               ) : (
                 <label htmlFor="svg-upload" className="cursor-pointer">
                   <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-sm font-medium mb-2">Click to upload SVG file</p>
+                  <p className="text-sm font-medium mb-2">Click to upload SVG or PNG file</p>
                   <p className="text-xs text-muted-foreground">Maximum file size: 2MB</p>
                   <input
                     id="svg-upload"
                     type="file"
-                    accept=".svg"
+                    accept=".svg,.png,image/svg+xml,image/png"
                     onChange={handleFileUpload}
                     className="hidden"
                   />

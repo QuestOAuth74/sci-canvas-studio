@@ -255,10 +255,25 @@ export const IconUploader = () => {
       setDebugInfo("");
       setFilePreview(null);
       
-      // Check file extension first
-      if (!selectedFile.name.toLowerCase().endsWith('.svg')) {
-        setValidationWarning("File must have .svg extension");
+      // Check file extension for SVG or PNG
+      const isValidFile = selectedFile.name.toLowerCase().endsWith('.svg') || 
+                          selectedFile.name.toLowerCase().endsWith('.png');
+      if (!isValidFile) {
+        setValidationWarning("File must have .svg or .png extension");
         setDebugInfo(`File type: ${selectedFile.type}, Name: ${selectedFile.name}`);
+        return;
+      }
+      
+      // Handle PNG files
+      if (selectedFile.name.toLowerCase().endsWith('.png')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const base64 = event.target?.result as string;
+          setFilePreview(base64);
+          setValidationWarning("");
+          setDebugInfo(`✓ Valid PNG detected\nFile Size: ${(selectedFile.size / 1024).toFixed(2)} KB`);
+        };
+        reader.readAsDataURL(selectedFile);
         return;
       }
 
@@ -415,18 +430,37 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
     setIsUploading(true);
     
     try {
-      const result = await readFileWithFallback(file);
+      let content: string;
+      let thumbnail: string;
       
-      if (!result.isValid || !result.content) {
-        toast.error(result.error || "Invalid SVG file");
-        setIsUploading(false);
-        return;
+      // Handle PNG files
+      if (file.name.toLowerCase().endsWith('.png')) {
+        const reader = new FileReader();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        
+        content = base64;
+        thumbnail = base64; // Use PNG as its own thumbnail
+      } else {
+        // Handle SVG files
+        const result = await readFileWithFallback(file);
+        
+        if (!result.isValid || !result.content) {
+          toast.error(result.error || "Invalid SVG file");
+          setIsUploading(false);
+          return;
+        }
+        
+        // Use original content for storage, normalized for thumbnail
+        const originalContent = result.content;
+        const normalizedContent = normalizeSvgForHtml(result.content);
+        thumbnail = await generateIconThumbnail(normalizedContent);
+        content = originalContent;
       }
       
-      // Use original content for storage, normalized for thumbnail
-      const originalContent = result.content;
-      const normalizedContent = normalizeSvgForHtml(result.content);
-      const thumbnail = await generateIconThumbnail(normalizedContent);
       const sanitizedName = sanitizeFileName(iconName);
       
       const { error } = await supabase
@@ -434,8 +468,8 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
         .insert([{
           name: sanitizedName,
           category: selectedCategory,
-          svg_content: originalContent,
-          thumbnail: thumbnail || normalizedContent
+          svg_content: content,
+          thumbnail: thumbnail || content
         }]);
 
       if (error) {
@@ -573,7 +607,7 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
         <CardHeader>
           <CardTitle>Upload Single Icon</CardTitle>
           <CardDescription>
-            Upload SVG files to your icon library
+            Upload SVG or PNG files to your icon library
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -604,11 +638,11 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="file">Icon File (SVG)</Label>
+            <Label htmlFor="file">Icon File (SVG or PNG)</Label>
             <Input
               id="file"
               type="file"
-              accept=".svg"
+              accept=".svg,.png,image/svg+xml,image/png"
               onChange={handleFileChange}
             />
             {fileSize > 0 && (
@@ -668,10 +702,14 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
             <div className="border border-border rounded-lg p-4">
               <Label className="text-sm font-medium mb-2 block">Preview:</Label>
               <div className="w-24 h-24 mx-auto border border-border rounded-lg p-2 flex items-center justify-center bg-muted">
-                <div 
-                  dangerouslySetInnerHTML={{ __html: filePreview }}
-                  className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
-                />
+                {filePreview.startsWith('data:image/png') ? (
+                  <img src={filePreview} alt="Icon preview" className="max-w-full max-h-full object-contain" />
+                ) : (
+                  <div 
+                    dangerouslySetInnerHTML={{ __html: filePreview }}
+                    className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
+                  />
+                )}
               </div>
             </div>
           )}
