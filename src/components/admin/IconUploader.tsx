@@ -239,6 +239,15 @@ export const IconUploader = () => {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
+      
+      // Check file size (2MB limit)
+      if (selectedFile.size > 2 * 1024 * 1024) {
+        setValidationWarning("File size must be less than 2MB");
+        setFilePreview(null);
+        setDebugInfo("");
+        return;
+      }
+      
       setFile(selectedFile);
       setFileSize(selectedFile.size);
       setValidationWarning("");

@@ -285,17 +285,17 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       const svgSizeKB = new Blob([data.svg_content]).size / 1024;
       console.log(`Loading icon: ${icon.name}, Size: ${svgSizeKB.toFixed(2)} KB`);
       
-    // Block icons over 600KB (increased for scientific illustrations)
-    if (svgSizeKB > 600) {
+    // Block icons over 2MB (increased for scientific illustrations)
+    if (svgSizeKB > 2048) {
       toast.dismiss(loadingToastId);
       toast.error(`Icon too large (${svgSizeKB.toFixed(0)}KB)`, {
-        description: 'Maximum size is 600KB for scientific illustrations.'
+        description: 'Maximum size is 2MB for scientific illustrations.'
       });
       return;
     }
       
-      // Warn for icons over 100KB
-      if (svgSizeKB > 100) {
+      // Warn for icons over 500KB
+      if (svgSizeKB > 500) {
         toast.dismiss(loadingToastId);
         toast.warning(`Large icon (${svgSizeKB.toFixed(0)}KB)`, {
           description: 'May affect save performance. Use with caution.'
