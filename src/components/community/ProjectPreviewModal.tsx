@@ -71,7 +71,7 @@ export function ProjectPreviewModal({ project, isOpen, onClose }: ProjectPreview
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto stable-dialog">
         <DialogHeader>
           <DialogTitle className="text-2xl">{project.title || 'Untitled Project'}</DialogTitle>
           <DialogDescription>
