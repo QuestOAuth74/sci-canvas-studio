@@ -13,6 +13,7 @@ import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as FabricCircle, Polygon } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { ChevronLeft, ChevronRight, Pin, PinOff } from "lucide-react";
 
 const GOOGLE_FONTS = [
@@ -51,7 +52,11 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     selectedObject,
     togglePin,
     isPinned,
-    smoothenPath
+    smoothenPath,
+    eraserWidth,
+    setEraserWidth,
+    eraserRestoreMode,
+    setEraserRestoreMode,
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -69,7 +74,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [freeformLineThickness, setFreeformLineThickness] = useState(2);
   const [freeformStartMarker, setFreeformStartMarker] = useState<"none" | "dot" | "arrow">("none");
   const [freeformEndMarker, setFreeformEndMarker] = useState<"none" | "dot" | "arrow">("none");
-  const [eraserWidth, setEraserWidth] = useState(20);
   const [smoothingStrength, setSmoothingStrength] = useState(50);
 
   const COLOR_PALETTE = [
@@ -669,6 +673,18 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     }
   };
 
+  const handleEraserRestoreModeChange = (checked: boolean) => {
+    setEraserRestoreMode(checked);
+    if (canvas && canvas.freeDrawingBrush) {
+      // Update brush color based on mode
+      if (checked) {
+        canvas.freeDrawingBrush.color = "#ffffff"; // Restore mode - paint white
+      } else {
+        canvas.freeDrawingBrush.color = "rgba(0,0,0,0.01)"; // Erase mode
+      }
+    }
+  };
+
   return (
     <div className="glass-panel flex flex-col h-full min-h-0">{/* Toggle button - always visible */}
       <div className="p-2 border-b border-border/40 flex items-center justify-between">
@@ -1095,6 +1111,23 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                         className="w-full"
                       />
                     </div>
+                    
+                    {/* Restore Mode Toggle */}
+                    <div className="flex items-center justify-between space-x-2 pt-2">
+                      <Label htmlFor="restore-mode" className="text-xs cursor-pointer">
+                        Restore Mode
+                      </Label>
+                      <Switch
+                        id="restore-mode"
+                        checked={eraserRestoreMode}
+                        onCheckedChange={handleEraserRestoreModeChange}
+                      />
+                    </div>
+                    {eraserRestoreMode && (
+                      <p className="text-xs text-muted-foreground">
+                        Restore mode: Paint to undo erasing
+                      </p>
+                    )}
                   </div>
                 </div>
               )}

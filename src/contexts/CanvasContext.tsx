@@ -114,6 +114,12 @@ interface CanvasContextType {
   
   // Nudge operations
   nudgeObject: (direction: 'up' | 'down' | 'left' | 'right', amount?: number) => void;
+  
+  // Eraser properties
+  eraserWidth: number;
+  setEraserWidth: (width: number) => void;
+  eraserRestoreMode: boolean;
+  setEraserRestoreMode: (mode: boolean) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -148,6 +154,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [historyStep, setHistoryStep] = useState(0);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("Untitled Diagram");
+  const [eraserWidth, setEraserWidth] = useState(20);
+  const [eraserRestoreMode, setEraserRestoreMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
   // Text formatting state
@@ -1362,6 +1370,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     cropImage,
     smoothenPath,
     nudgeObject,
+    eraserWidth,
+    setEraserWidth,
+    eraserRestoreMode,
+    setEraserRestoreMode,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

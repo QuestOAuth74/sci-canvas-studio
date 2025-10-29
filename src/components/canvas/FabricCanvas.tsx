@@ -85,6 +85,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     textOverline,
     textBold,
     textItalic,
+    eraserWidth,
+    eraserRestoreMode,
   } = useCanvas();
 
   useEffect(() => {
@@ -536,7 +538,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     }
   }, [canvas, activeTool]);
 
-  // Handle eraser tool
+  // Handle eraser tool - improved to properly erase objects
   useEffect(() => {
     if (!canvas) return;
 
@@ -544,26 +546,38 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       canvas.isDrawingMode = true;
       canvas.selection = false;
       
+      // Use PencilBrush configured as eraser
       const eraserBrush = new PencilBrush(canvas);
-      eraserBrush.width = 20;
-      eraserBrush.color = "rgba(255,255,255,1)"; // Use white to blend with background
-      canvas.freeDrawingBrush = eraserBrush;
+      eraserBrush.width = eraserWidth || 20;
+      eraserBrush.color = eraserRestoreMode ? "#ffffff" : "rgba(0,0,0,0.01)";
       
+      canvas.freeDrawingBrush = eraserBrush;
       canvas.defaultCursor = "crosshair";
       canvas.hoverCursor = "crosshair";
 
       const handleEraserPath = (e: any) => {
         const path = e.path as Path;
-        if (path) {
-          path.globalCompositeOperation = "destination-out";
-          (path as any).isEraserPath = true;
-          path.selectable = false;
-          path.evented = false;
-          canvas.renderAll();
-        }
+        if (!path) return;
+
+        // Mark objects as erasable
+        (path as any).globalCompositeOperation = "destination-out";
+        (path as any).isEraserPath = true;
+        (path as any).erasable = false;
+        path.selectable = false;
+        path.evented = false;
+        path.opacity = 1;
+        
+        canvas.renderAll();
       };
 
       canvas.on("path:created", handleEraserPath);
+
+      // Mark all existing objects as erasable
+      canvas.forEachObject((obj) => {
+        if (!(obj as any).isEraserPath) {
+          (obj as any).erasable = true;
+        }
+      });
 
       return () => {
         canvas.off("path:created", handleEraserPath);
@@ -573,7 +587,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         canvas.hoverCursor = "move";
       };
     }
-  }, [canvas, activeTool]);
+  }, [canvas, activeTool, eraserWidth, eraserRestoreMode]);
 
   // Handle image insertion tool
   useEffect(() => {
