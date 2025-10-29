@@ -94,29 +94,24 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       // Load fonts before initializing canvas
       await loadAllFonts();
       
+      // Set global control styles on FabricObject prototype (applies to all objects)
+      FabricObject.prototype.cornerColor = '#EF4444';        // Red square dots
+      FabricObject.prototype.cornerStrokeColor = '#ffffff';
+      FabricObject.prototype.cornerStyle = 'rect';           // Square corners
+      FabricObject.prototype.cornerSize = 8;
+      FabricObject.prototype.transparentCorners = false;
+      FabricObject.prototype.borderColor = '#EF4444';        // Red selection border
+      FabricObject.prototype.borderScaleFactor = 2;
+      FabricObject.prototype.padding = 4;
+
       const canvas = new Canvas(canvasRef.current!, {
         width: canvasDimensions.width,
         height: canvasDimensions.height,
         backgroundColor: backgroundColor,
-        // Make corner controls larger and more distinct for easier resizing
         controlsAboveOverlay: true,
         centeredScaling: false,
         centeredRotation: true,
       });
-
-    // Configure control appearance for easier object manipulation
-    canvas.set({
-      borderColor: '#0D9488',
-      cornerColor: '#EF4444',        // Red square dots
-      cornerStrokeColor: '#ffffff',
-      cornerStyle: 'rect',           // Square corners
-      cornerSize: 8,                 // Smaller, more refined
-      transparentCorners: false,
-      borderOpacityWhenMoving: 0.5,
-      borderScaleFactor: 2,
-      padding: 4,
-      rotatingPointOffset: 40,       // Distance from object to rotation control
-    } as any);
 
     // Custom rotation control rendering (semi-circle with arrow like BioRender)
     const renderRotationControl = (
@@ -201,6 +196,19 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     // Initialize connector visual feedback
     connectorFeedbackRef.current = new ConnectorVisualFeedback(canvas);
+    
+    // Apply control styles to any existing objects on canvas
+    canvas.getObjects().forEach((obj) => {
+      obj.set({
+        cornerColor: '#EF4444',
+        cornerStrokeColor: '#ffffff',
+        cornerStyle: 'rect',
+        cornerSize: 8,
+        transparentCorners: false,
+        borderColor: '#EF4444',
+      });
+    });
+    canvas.requestRenderAll();
     
     setCanvas(canvas);
 
