@@ -133,12 +133,14 @@ All colors MUST be HSL.
 
   /* Stable Dialog - Prevents vibration on hover/tablet */
   .stable-dialog {
-    transform: translateZ(0);
+    transform: translate(-50%, -50%) translateZ(0) !important;
     backface-visibility: hidden;
-    will-change: auto !important;
+    will-change: transform !important;
+    transition: none !important;
   }
 
-  .stable-dialog:hover {
+  .stable-dialog:hover,
+  .stable-dialog.glass-card:hover {
     transform: translate(-50%, -50%) translateZ(0) !important;
   }
   
