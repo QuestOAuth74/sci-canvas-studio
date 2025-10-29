@@ -113,6 +113,22 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         centeredRotation: true,
       });
 
+      // Apply control styling to all objects added to canvas
+      canvas.on('object:added', (e) => {
+        if (e.target) {
+          e.target.set({
+            cornerColor: '#EF4444',        // Red square dots
+            cornerStrokeColor: '#ffffff',
+            cornerStyle: 'rect',           // Square corners
+            cornerSize: 8,
+            transparentCorners: false,
+            borderColor: '#EF4444',        // Red selection border
+            borderScaleFactor: 2,
+            padding: 4,
+          });
+        }
+      });
+
     // Custom rotation control rendering (semi-circle with arrow like BioRender)
     const renderRotationControl = (
       ctx: CanvasRenderingContext2D,
