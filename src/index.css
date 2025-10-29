@@ -444,6 +444,289 @@ All colors MUST be HSL.
   }
 }
 
+/* Modern Blog Content Styles */
+.blog-content-modern {
+  font-size: 1.125rem;
+  line-height: 1.75;
+  color: hsl(var(--foreground));
+  max-width: 75ch;
+}
+
+/* Drop Cap Styling */
+.blog-content-modern .drop-cap::first-letter {
+  float: left;
+  font-size: 4.5rem;
+  line-height: 0.85;
+  font-weight: 900;
+  margin: 0.1em 0.15em 0 0;
+  padding: 0.2em 0.3em;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: 4px solid hsl(var(--foreground));
+  box-shadow: 6px 6px 0px hsl(var(--foreground));
+}
+
+/* Enhanced Headings */
+.blog-content-modern h2 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.5rem;
+  letter-spacing: -0.03em;
+}
+
+.blog-content-modern h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 80px;
+  height: 6px;
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--foreground));
+}
+
+.blog-content-modern h3 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  position: relative;
+  padding-left: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.blog-content-modern h3::before {
+  content: '■';
+  position: absolute;
+  left: 0;
+  color: hsl(var(--accent));
+  font-size: 1.2em;
+}
+
+.blog-content-modern h4 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  color: hsl(var(--primary));
+}
+
+/* Beautiful Blockquotes */
+.blog-content-modern blockquote {
+  position: relative;
+  padding: 2rem 2rem 2rem 4rem;
+  margin: 3rem 0;
+  font-size: 1.5rem;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.6;
+  background: hsl(var(--accent) / 0.1);
+  border: 4px solid hsl(var(--foreground));
+  box-shadow: 8px 8px 0px hsl(var(--foreground));
+}
+
+.blog-content-modern blockquote::before {
+  content: '"';
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 5rem;
+  line-height: 1;
+  color: hsl(var(--accent));
+  font-family: Georgia, serif;
+  font-weight: 700;
+}
+
+/* Enhanced Lists */
+.blog-content-modern ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 2rem 0;
+}
+
+.blog-content-modern ul li {
+  position: relative;
+  padding-left: 2.5rem;
+  margin-bottom: 1rem;
+  line-height: 1.8;
+}
+
+.blog-content-modern ul li::before {
+  content: '▪';
+  position: absolute;
+  left: 0.5rem;
+  color: hsl(var(--primary));
+  font-size: 1.5em;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.blog-content-modern ol {
+  margin: 2rem 0;
+  padding-left: 2rem;
+}
+
+.blog-content-modern ol li {
+  margin-bottom: 1rem;
+  line-height: 1.8;
+  padding-left: 0.5rem;
+}
+
+/* Enhanced Links */
+.blog-content-modern a {
+  color: hsl(var(--primary));
+  font-weight: 700;
+  text-decoration: none;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.blog-content-modern a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  background: hsl(var(--primary));
+  transition: width 0.3s ease;
+}
+
+.blog-content-modern a:hover::after {
+  width: 100%;
+}
+
+/* Code Blocks */
+.blog-content-modern pre {
+  position: relative;
+  background: hsl(var(--muted));
+  border: 4px solid hsl(var(--foreground));
+  box-shadow: 6px 6px 0px hsl(var(--foreground));
+  padding: 2rem;
+  margin: 2rem 0;
+  overflow-x: auto;
+  border-radius: 0;
+}
+
+.blog-content-modern pre code {
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.95em;
+  line-height: 1.6;
+  color: hsl(var(--foreground));
+}
+
+/* Inline code */
+.blog-content-modern :not(pre) > code {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  font-weight: 600;
+  border: 2px solid hsl(var(--primary) / 0.3);
+  font-size: 0.9em;
+}
+
+/* First Paragraph Enhancement */
+.blog-content-modern > p:first-of-type,
+.blog-content-modern .drop-cap {
+  font-size: 1.35rem;
+  font-weight: 500;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+/* Images with captions */
+.blog-content-modern figure {
+  margin: 3rem 0;
+}
+
+.blog-content-modern figure img {
+  width: 100%;
+  height: auto;
+}
+
+.blog-content-modern figcaption {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.95rem;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+  border-top: 2px solid hsl(var(--border));
+  padding-top: 0.75rem;
+}
+
+/* Paragraph spacing */
+.blog-content-modern p {
+  margin-bottom: 1.75rem;
+  line-height: 1.8;
+}
+
+/* Horizontal Rule */
+.blog-content-modern hr {
+  margin: 4rem 0;
+  border: none;
+  height: 6px;
+  background: hsl(var(--foreground));
+  box-shadow: 0 4px 0px hsl(var(--primary));
+  position: relative;
+}
+
+.blog-content-modern hr::after {
+  content: '◆';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: hsl(var(--background));
+  padding: 0 1rem;
+  color: hsl(var(--primary));
+  font-size: 1.5rem;
+}
+
+/* Strong/Bold text */
+.blog-content-modern strong {
+  font-weight: 700;
+  color: hsl(var(--foreground));
+}
+
+/* Emphasis/Italic text */
+.blog-content-modern em {
+  font-style: italic;
+  color: hsl(var(--foreground));
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .blog-content-modern {
+    font-size: 1rem;
+  }
+  
+  .blog-content-modern h2 {
+    font-size: 2rem;
+  }
+  
+  .blog-content-modern h3 {
+    font-size: 1.5rem;
+  }
+  
+  .blog-content-modern blockquote {
+    font-size: 1.25rem;
+    padding: 1.5rem 1.5rem 1.5rem 3rem;
+  }
+  
+  .blog-content-modern blockquote::before {
+    font-size: 3.5rem;
+  }
+  
+  .blog-content-modern .drop-cap::first-letter {
+    font-size: 3.5rem;
+    padding: 0.15em 0.25em;
+  }
+}
+
 /* Tiptap Table Styles */
 .ProseMirror table {
   border-collapse: collapse;

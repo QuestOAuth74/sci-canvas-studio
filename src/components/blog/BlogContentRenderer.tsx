@@ -7,6 +7,7 @@ interface BlogContentRendererProps {
 
 export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
   const [zoomImage, setZoomImage] = useState<{ src: string; alt: string } | null>(null);
+  const [firstParagraphRendered, setFirstParagraphRendered] = useState(false);
 
   if (!content || !content.content) {
     return null;
@@ -15,8 +16,18 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
   const renderNode = (node: any, index: number): JSX.Element | null => {
     switch (node.type) {
       case 'paragraph':
+        // Add drop-cap class to first paragraph only
+        const isFirstParagraph = !firstParagraphRendered && node.content?.some((n: any) => n.text);
+        if (isFirstParagraph) {
+          setFirstParagraphRendered(true);
+          return (
+            <p key={index} className="drop-cap">
+              {node.content?.map((child: any, i: number) => renderNode(child, i))}
+            </p>
+          );
+        }
         return (
-          <p key={index} className="mb-4">
+          <p key={index}>
             {node.content?.map((child: any, i: number) => renderNode(child, i))}
           </p>
         );
@@ -26,7 +37,7 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
         const headingText = node.content?.map((n: any) => (n.text ? n.text : '')).join('');
         const headingId = headingText?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || '';
         return (
-          <HeadingTag key={index} id={headingId} className="font-bold mt-8 mb-4 scroll-mt-20">
+          <HeadingTag key={index} id={headingId} className="scroll-mt-20">
             {node.content?.map((child: any, i: number) => renderNode(child, i))}
           </HeadingTag>
         );
@@ -65,14 +76,14 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
 
       case 'bulletList':
         return (
-          <ul key={index} className="list-disc list-inside mb-4 ml-4">
+          <ul key={index}>
             {node.content?.map((child: any, i: number) => renderNode(child, i))}
           </ul>
         );
 
       case 'orderedList':
         return (
-          <ol key={index} className="list-decimal list-inside mb-4 ml-4">
+          <ol key={index} className="list-decimal ml-8 space-y-3">
             {node.content?.map((child: any, i: number) => renderNode(child, i))}
           </ol>
         );
@@ -86,14 +97,14 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
 
       case 'blockquote':
         return (
-          <blockquote key={index} className="border-l-4 border-primary pl-4 italic my-6">
+          <blockquote key={index}>
             {node.content?.map((child: any, i: number) => renderNode(child, i))}
           </blockquote>
         );
 
       case 'codeBlock':
         return (
-          <pre key={index} className="bg-muted p-4 rounded-lg overflow-x-auto mb-4">
+          <pre key={index}>
             <code>
               {node.content?.map((child: any) => child.text).join('')}
             </code>
@@ -102,14 +113,18 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
 
       case 'image':
         return (
-          <img
-            key={index}
-            src={node.attrs?.src}
-            alt={node.attrs?.alt || ''}
-            title={node.attrs?.title}
-            className="max-w-full h-auto rounded-lg my-6 cursor-zoom-in hover:opacity-90 transition-opacity"
-            onClick={() => setZoomImage({ src: node.attrs?.src, alt: node.attrs?.alt || '' })}
-          />
+          <figure key={index}>
+            <img
+              src={node.attrs?.src}
+              alt={node.attrs?.alt || ''}
+              title={node.attrs?.title}
+              className="max-w-full h-auto cursor-zoom-in hover:opacity-90 transition-opacity border-4 border-foreground shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+              onClick={() => setZoomImage({ src: node.attrs?.src, alt: node.attrs?.alt || '' })}
+            />
+            {node.attrs?.title && (
+              <figcaption>{node.attrs.title}</figcaption>
+            )}
+          </figure>
         );
 
       case 'youtube':
@@ -140,7 +155,7 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
         );
 
       case 'horizontalRule':
-        return <hr key={index} className="my-8 border-border" />;
+        return <hr key={index} />;
 
       case 'table':
         return (
@@ -191,7 +206,7 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
 
   return (
     <>
-      <div className="blog-content">
+      <div className="blog-content-modern prose-enhanced">
         {content.content.map((node: any, index: number) => renderNode(node, index))}
       </div>
       
