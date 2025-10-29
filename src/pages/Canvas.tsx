@@ -18,6 +18,7 @@ import { MenuBar } from "@/components/canvas/MenuBar";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
+import { MobileWarningDialog } from "@/components/canvas/MobileWarningDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
@@ -257,6 +258,9 @@ const CanvasContent = () => {
 
   return (
       <div className="h-screen bg-background flex flex-col">
+      {/* Mobile Warning Dialog */}
+      <MobileWarningDialog />
+      
       {/* Keyboard Shortcuts Dialog */}
       <KeyboardShortcutsDialog 
         open={showShortcuts} 
