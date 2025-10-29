@@ -37,7 +37,7 @@ export function MobileWarningDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+      <DialogContent className="sm:max-w-md stable-dialog" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="space-y-4">
           <div className="flex justify-center gap-3 mb-2">
             <Monitor className="w-12 h-12 text-primary" />

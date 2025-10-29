@@ -130,6 +130,17 @@ All colors MUST be HSL.
   .glass-border-glow {
     box-shadow: 0 0 20px rgba(160, 100, 240, 0.3), inset 0 0 20px rgba(255, 255, 255, 0.1);
   }
+
+  /* Stable Dialog - Prevents vibration on hover/tablet */
+  .stable-dialog {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: auto !important;
+  }
+
+  .stable-dialog:hover {
+    transform: translate(-50%, -50%) translateZ(0) !important;
+  }
   
   .glossy-feature-card:hover {
     box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
