@@ -31,6 +31,14 @@ const resetPasswordSchema = z.object({
   email: z.string().email('Invalid email address')
 });
 
+const updatePasswordSchema = z.object({
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
 export default function Auth() {
   const navigate = useNavigate();
   const { user, signIn, signUp, loading } = useAuth();
@@ -40,6 +48,10 @@ export default function Auth() {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetEmailError, setResetEmailError] = useState('');
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [updatePasswordErrors, setUpdatePasswordErrors] = useState<any>({});
 
   // Floating lab icons configuration
   const floatingIcons = [
@@ -75,10 +87,22 @@ export default function Auth() {
   const signUpCaptchaRef = useRef<HCaptchaHandle>(null);
 
   useEffect(() => {
-    if (user && !loading) {
+    // Check if this is a password reset link
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery' || type === 'magiclink') {
+      setShowUpdatePassword(true);
+      setShowResetPassword(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Don't redirect if we're updating password
+    if (user && !loading && !showUpdatePassword) {
       navigate('/');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, showUpdatePassword, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,6 +216,50 @@ export default function Auth() {
     }
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdatePasswordErrors({});
+
+    const result = updatePasswordSchema.safeParse({ 
+      password: newPassword, 
+      confirmPassword: confirmPassword 
+    });
+    
+    if (!result.success) {
+      const errors: any = {};
+      result.error.errors.forEach(err => {
+        errors[err.path[0]] = err.message;
+      });
+      setUpdatePasswordErrors(errors);
+      return;
+    }
+
+    setIsLoading(true);
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    setIsLoading(false);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Password updated",
+        description: "Your password has been successfully updated. You can now sign in with your new password.",
+      });
+      setNewPassword('');
+      setConfirmPassword('');
+      setShowUpdatePassword(false);
+      // Sign out to force re-login with new password
+      await supabase.auth.signOut();
+      navigate('/auth');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden grid-background">
@@ -249,11 +317,52 @@ export default function Auth() {
             BioSketch
           </CardTitle>
           <CardDescription className="text-center">
-            {showResetPassword ? 'Reset your password' : 'Create and manage your diagrams'}
+            {showUpdatePassword ? 'Set your new password' : showResetPassword ? 'Reset your password' : 'Create and manage your diagrams'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {showResetPassword ? (
+          {showUpdatePassword ? (
+            <div className="space-y-4">
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-semibold">Set New Password</h3>
+                <p className="text-sm text-muted-foreground">Enter your new password below</p>
+              </div>
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {updatePasswordErrors.password && (
+                    <p className="text-sm text-destructive">{updatePasswordErrors.password}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Confirm new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                  {updatePasswordErrors.confirmPassword && (
+                    <p className="text-sm text-destructive">{updatePasswordErrors.confirmPassword}</p>
+                  )}
+                </div>
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update Password
+                </Button>
+              </form>
+            </div>
+          ) : showResetPassword ? (
             <div className="space-y-4">
               <Button
                 variant="ghost"
