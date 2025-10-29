@@ -181,7 +181,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       return true;
     };
 
-    // Apply custom rotation control to FabricObject prototype
+    // Apply custom rotation control to FabricObject prototype safely
+    if (!FabricObject.prototype.controls) {
+      FabricObject.prototype.controls = {};
+    }
+    
     FabricObject.prototype.controls.mtr = new Control({
       x: 0,
       y: -0.5,
