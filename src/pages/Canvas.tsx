@@ -257,7 +257,7 @@ const CanvasContent = () => {
   }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject]);
 
   return (
-      <div className="h-screen bg-gradient-to-br from-background via-background to-muted/20 flex flex-col">
+      <div className="h-screen bg-background flex flex-col">
       {/* Welcome Dialog */}
       <WelcomeDialog />
       
@@ -309,8 +309,8 @@ const CanvasContent = () => {
         );
       })()}
 
-      {/* Top Header with Menu - Glass effect */}
-      <header className="glass-effect border-b border-border/40">
+      {/* Top Header with Menu */}
+      <header className="glass-effect border-b">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
@@ -411,7 +411,7 @@ const CanvasContent = () => {
         {/* Main Editor Area */}
         <div className="flex flex-1 min-h-0">
           {/* Left Sidebar - Icon Categories & Assets */}
-          <div className={`glass-effect border-r border-border/40 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
+          <div className={`glass-effect border-r flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
             {isIconLibraryCollapsed ? (
               <div className="p-2">
                 <Button
@@ -473,7 +473,7 @@ const CanvasContent = () => {
         </div>
 
         {/* Right Sidebar - Properties & Layers */}
-        <div className={`glass-effect border-l border-border/40 flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
+        <div className={`glass-effect border-l flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-2">
               <Button

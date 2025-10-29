@@ -350,7 +350,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       <button
         key={icon.id}
         onClick={() => handleIconClick(icon)}
-        className="aspect-square border border-border/40 rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/40 hover:border-primary transition-transform hover:scale-105 relative"
+        className="aspect-square border rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/30 hover:border-primary/50 transition-all hover:scale-105 hover:shadow-sm relative"
         title={icon.name}
       >
         {!hasThumbnail || isBroken ? (
@@ -385,7 +385,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Toggle button - always visible */}
-      <div className="p-2 border-b border-border/40 flex items-center justify-between">
+      <div className="p-2 border-b flex items-center justify-between">
         <Button
           variant="ghost"
           size="icon"
@@ -400,7 +400,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
         <>
-          <div className="p-4 border-b border-border/40 space-y-3">
+          <div className="p-4 border-b space-y-3">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
               <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
@@ -430,7 +430,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           {loading && (
             <div className="px-3 py-4 space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="border border-border/40 rounded-lg p-3 space-y-3">
+                <div key={i} className="border rounded-lg p-3 space-y-3">
                   <Skeleton className="h-6 w-32" />
                   <div className="grid grid-cols-4 gap-1.5">
                     {Array.from({ length: 8 }).map((_, idx) => (
@@ -470,7 +470,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                 {/* Pinned Categories Section */}
                 {pinnedCategories.length > 0 && (
                   <>
-                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b border-border/40 bg-yellow-500/5 rounded-t mb-2">
+                    <div className="px-3 py-2 text-xs font-semibold text-muted-foreground border-b bg-primary/5 rounded-t mb-2">
                       ⭐ Pinned Categories
                     </div>
                     <Accordion 
