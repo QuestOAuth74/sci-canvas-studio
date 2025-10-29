@@ -24,6 +24,7 @@ import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { CropTool } from "@/components/canvas/CropTool";
 import { ExportDialog } from "@/components/canvas/ExportDialog";
+import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonalLineDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 
@@ -40,6 +41,7 @@ const CanvasContent = () => {
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "layers">("properties");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
+  const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
   const { isAdmin } = useAuth();
   const {
     canvas,
@@ -88,8 +90,17 @@ const CanvasContent = () => {
   };
 
   const handleShapeSelect = (shape: string) => {
-    setActiveTool(shape);
-    toast.success(`Selected ${shape}`);
+    if (shape === 'orthogonal-line-custom') {
+      setCustomOrthogonalDialogOpen(true);
+    } else {
+      setActiveTool(shape);
+      toast.success(`Selected ${shape}`);
+    }
+  };
+
+  const handleCustomOrthogonalLine = (startMarker: string, endMarker: string) => {
+    setActiveTool(`orthogonal-line-custom-${startMarker}-${endMarker}`);
+    toast.success(`Custom orthogonal line selected: ${startMarker} → ${endMarker}`);
   };
 
   const handleShapeCreated = useCallback(() => {
@@ -284,6 +295,13 @@ const CanvasContent = () => {
         onExport={handleExportImage}
         canvasWidth={canvasDimensions.width}
         canvasHeight={canvasDimensions.height}
+      />
+      
+      {/* Custom Orthogonal Line Dialog */}
+      <CustomOrthogonalLineDialog
+        open={customOrthogonalDialogOpen}
+        onOpenChange={setCustomOrthogonalDialogOpen}
+        onConfirm={handleCustomOrthogonalLine}
       />
       
       {/* Crop Tool */}

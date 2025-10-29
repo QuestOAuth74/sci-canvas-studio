@@ -15,6 +15,7 @@ import {
   Circle,
   Diamond,
   Dot,
+  Sparkles,
 } from "lucide-react";
 
 interface OrthogonalLineToolProps {
@@ -62,6 +63,15 @@ export const OrthogonalLineTool = ({ onLineSelect, activeTool }: OrthogonalLineT
           <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-circle')}>
             <Circle className="mr-2 h-4 w-4" />
             <span>Orthogonal with Circles ○—○</span>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Custom</DropdownMenuLabel>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => onLineSelect('orthogonal-line-custom')}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            <span>Custom Orthogonal Line</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
 
