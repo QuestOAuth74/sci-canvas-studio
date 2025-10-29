@@ -105,16 +105,16 @@ const Index = () => {
           {/* Hero Section */}
           <div className="space-y-8 text-center animate-fade-in">
             {/* Badge */}
-            <div className="neo-badge inline-flex items-center gap-2 animate-scale-in">
-              <Sparkles className="h-4 w-4" />
-              <span>Free for Scientists</span>
+            <div className="frosted-glass inline-flex items-center gap-2 px-4 py-2 rounded-full animate-scale-in">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <span className="font-medium">Free for Scientists</span>
             </div>
             
             {/* Logo and Title */}
             <div className="space-y-8">
               <div className="flex items-center justify-center gap-6 flex-wrap">
-                <div className="glossy-icon-box">
-                  <Microscope className="h-16 w-16 md:h-20 md:w-20 text-primary" />
+                <div className="glass-shine p-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 border border-white/20 shadow-lg">
+                  <Microscope className="h-16 w-16 md:h-20 md:w-20 text-white" />
                 </div>
                 <div className="relative">
                   <h1 className="text-7xl md:text-9xl font-black tracking-tighter relative">
@@ -122,8 +122,8 @@ const Index = () => {
                       BioSketch
                     </span>
                   </h1>
-                  {/* Neo-brutalist underline accent */}
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-48 h-3 bg-accent border-[3px] border-foreground neo-shadow-sm" />
+                  {/* Glassmorphic accent */}
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-48 h-3 bg-gradient-to-r from-primary/60 via-accent/60 to-primary/60 rounded-full backdrop-blur-sm border border-white/20 shadow-lg" />
                 </div>
               </div>
               
@@ -131,9 +131,9 @@ const Index = () => {
                 <p className="text-2xl md:text-3xl font-bold leading-tight text-foreground">
                   Create stunning scientific illustrations with an intuitive drag-and-drop interface
                 </p>
-                <div className="inline-block p-6 rounded-2xl border-[3px] border-foreground neo-shadow bg-gradient-to-br from-card via-card/90 to-muted/40 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent pointer-events-none" />
-                  <p className="text-lg md:text-xl font-semibold text-foreground/80 relative">
+                <div className="glass-card p-6 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+                  <p className="text-lg md:text-xl font-semibold text-foreground/90 relative">
                     Perfect for publications, presentations, and educational materials 🔬
                   </p>
                 </div>
@@ -225,40 +225,40 @@ const Index = () => {
 
           {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-6 pt-8">
-            <div className="relative bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-950/30 dark:via-amber-950/20 dark:to-yellow-950/30 border-[3px] border-foreground rounded-2xl p-8 neo-shadow hover:neo-shadow-xl transition-all duration-300 animate-fade-in group overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-200/40 to-transparent dark:from-amber-800/40 rounded-full blur-3xl" />
+            <div className="glass-card p-8 animate-fade-in group overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
               <div className="relative">
-                <div className="inline-flex p-4 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl border-[3px] border-foreground neo-shadow mb-6 group-hover:scale-110 transition-transform">
+                <div className="inline-flex p-4 bg-gradient-to-br from-primary to-primary/80 rounded-2xl border border-white/20 shadow-lg mb-6 group-hover:scale-110 transition-transform">
                   <Palette className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-black mb-3 tracking-tight">Drag & Drop</h3>
-                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                <h3 className="text-2xl font-bold mb-3 tracking-tight">Drag & Drop</h3>
+                <p className="text-base font-medium leading-relaxed text-foreground/70">
                   Intuitive interface lets you arrange vector icons effortlessly on your canvas
                 </p>
               </div>
             </div>
             
-            <div className="relative bg-gradient-to-br from-rose-50 via-pink-50 to-red-50 dark:from-rose-950/30 dark:via-pink-950/20 dark:to-red-950/30 border-[3px] border-foreground rounded-2xl p-8 neo-shadow hover:neo-shadow-xl transition-all duration-300 animate-fade-in [animation-delay:100ms] group overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-200/40 to-transparent dark:from-pink-800/40 rounded-full blur-3xl" />
+            <div className="glass-card p-8 animate-fade-in [animation-delay:100ms] group overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-secondary/20 to-transparent rounded-full blur-3xl" />
               <div className="relative">
-                <div className="inline-flex p-4 bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl border-[3px] border-foreground neo-shadow mb-6 group-hover:scale-110 transition-transform">
+                <div className="inline-flex p-4 bg-gradient-to-br from-secondary to-secondary/80 rounded-2xl border border-white/20 shadow-lg mb-6 group-hover:scale-110 transition-transform">
                   <Microscope className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-black mb-3 tracking-tight">Organized Library</h3>
-                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                <h3 className="text-2xl font-bold mb-3 tracking-tight">Organized Library</h3>
+                <p className="text-base font-medium leading-relaxed text-foreground/70">
                   Scientific icons categorized for quick access and seamless workflow
                 </p>
               </div>
             </div>
             
-            <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/20 dark:to-orange-950/30 border-[3px] border-foreground rounded-2xl p-8 neo-shadow hover:neo-shadow-xl transition-all duration-300 animate-fade-in [animation-delay:200ms] group overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-200/40 to-transparent dark:from-yellow-800/40 rounded-full blur-3xl" />
+            <div className="glass-card p-8 animate-fade-in [animation-delay:200ms] group overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-accent/30 to-transparent rounded-full blur-3xl" />
               <div className="relative">
-                <div className="inline-flex p-4 bg-gradient-to-br from-amber-500 to-yellow-500 rounded-2xl border-[3px] border-foreground neo-shadow mb-6 group-hover:scale-110 transition-transform">
+                <div className="inline-flex p-4 bg-gradient-to-br from-accent to-accent/80 rounded-2xl border border-white/20 shadow-lg mb-6 group-hover:scale-110 transition-transform">
                   <Zap className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-black mb-3 tracking-tight">Export Ready</h3>
-                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                <h3 className="text-2xl font-bold mb-3 tracking-tight">Export Ready</h3>
+                <p className="text-base font-medium leading-relaxed text-foreground/70">
                   High-quality exports optimized for publications and presentations
                 </p>
               </div>
@@ -267,32 +267,32 @@ const Index = () => {
 
           {/* Additional Features */}
           <div className="grid md:grid-cols-2 gap-6 animate-fade-in [animation-delay:300ms]">
-            <div className="relative bg-gradient-to-br from-amber-50 via-yellow-50/50 to-background dark:from-amber-950/20 dark:via-yellow-950/10 dark:to-background border-[3px] border-foreground rounded-2xl p-10 neo-shadow hover:neo-shadow-xl transition-all duration-300 group overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-yellow-200/30 to-transparent dark:from-yellow-800/20 rounded-full blur-3xl" />
+            <div className="glass-card p-10 group overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-5">
-                  <div className="inline-flex p-3 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl border-[3px] border-foreground neo-shadow group-hover:scale-110 transition-transform">
+                  <div className="inline-flex p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
                     <Shield className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-black">Open Source & Free</h3>
+                  <h3 className="text-2xl font-bold">Open Source & Free</h3>
                 </div>
-                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                <p className="text-base font-medium leading-relaxed text-foreground/70">
                   Built for the scientific community. No paywalls, no subscriptions. 
                   Just powerful tools for creating beautiful illustrations.
                 </p>
               </div>
             </div>
 
-            <div className="relative bg-gradient-to-br from-orange-50 via-red-50/50 to-background dark:from-orange-950/20 dark:via-red-950/10 dark:to-background border-[3px] border-foreground rounded-2xl p-10 neo-shadow hover:neo-shadow-xl transition-all duration-300 group overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-orange-200/30 to-transparent dark:from-orange-800/20 rounded-full blur-3xl" />
+            <div className="glass-card p-10 group overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-secondary/20 to-transparent rounded-full blur-3xl" />
               <div className="relative">
                 <div className="flex items-center gap-4 mb-5">
-                  <div className="inline-flex p-3 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl border-[3px] border-foreground neo-shadow group-hover:scale-110 transition-transform">
+                  <div className="inline-flex p-3 bg-gradient-to-br from-secondary to-secondary/80 rounded-xl border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
                     <Sparkles className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-black">Professional Quality</h3>
+                  <h3 className="text-2xl font-bold">Professional Quality</h3>
                 </div>
-                <p className="text-base font-semibold leading-relaxed text-foreground/70">
+                <p className="text-base font-medium leading-relaxed text-foreground/70">
                   Export publication-ready graphics in multiple formats. 
                   Perfect for journals, posters, and presentations.
                 </p>

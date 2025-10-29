@@ -120,66 +120,62 @@ export default function Projects() {
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredProjects.length === 0 ? (
-          <Card className="text-center py-16">
-            <CardContent>
-              <FolderOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <CardTitle className="mb-2">
-                {searchQuery ? 'No projects found' : 'No projects yet'}
-              </CardTitle>
-              <CardDescription className="mb-6">
-                {searchQuery
-                  ? 'Try a different search term'
-                  : 'Create your first diagram to get started'}
-              </CardDescription>
-              {!searchQuery && (
-                <Button onClick={createNewProject}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Project
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <div className="glass-card text-center py-16">
+            <FolderOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">
+              {searchQuery ? 'No projects found' : 'No projects yet'}
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              {searchQuery
+                ? 'Try a different search term'
+                : 'Create your first diagram to get started'}
+            </p>
+            {!searchQuery && (
+              <Button onClick={createNewProject}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Project
+              </Button>
+            )}
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProjects.map((project) => (
-              <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="truncate">{project.name}</CardTitle>
-                  <CardDescription>
+              <div key={project.id} className="glass-card">
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold truncate mb-1">{project.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
                     {format(new Date(project.updated_at), 'MMM d, yyyy h:mm a')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-muted-foreground">
+                  </p>
+                  <div className="text-sm text-muted-foreground mb-4">
                     <p>Size: {project.canvas_width} × {project.canvas_height}px</p>
                     <p>Paper: {project.paper_size}</p>
                   </div>
-                </CardContent>
-                <CardFooter className="flex gap-2">
-                  <Button
-                    onClick={() => openProject(project.id)}
-                    className="flex-1"
-                  >
-                    <FolderOpen className="mr-2 h-4 w-4" />
-                    Open
-                  </Button>
-                  <Button
-                    onClick={() => setShareDialogProject(project)}
-                    variant="outline"
-                    size="icon"
-                    title={project.is_public ? 'Shared to community' : 'Share to community'}
-                  >
-                    <Share2 className={`h-4 w-4 ${project.is_public ? 'text-primary' : ''}`} />
-                  </Button>
-                  <Button
-                    onClick={() => deleteProject(project.id, project.name)}
-                    variant="destructive"
-                    size="icon"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </CardFooter>
-              </Card>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => openProject(project.id)}
+                      className="flex-1"
+                    >
+                      <FolderOpen className="mr-2 h-4 w-4" />
+                      Open
+                    </Button>
+                    <Button
+                      onClick={() => setShareDialogProject(project)}
+                      variant="outline"
+                      size="icon"
+                      title={project.is_public ? 'Shared to community' : 'Share to community'}
+                    >
+                      <Share2 className={`h-4 w-4 ${project.is_public ? 'text-primary' : ''}`} />
+                    </Button>
+                    <Button
+                      onClick={() => deleteProject(project.id, project.name)}
+                      variant="destructive"
+                      size="icon"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         )}

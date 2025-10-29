@@ -235,7 +235,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
             paginatedAssets.map((asset) => (
               <div
                 key={asset.id}
-                className="group relative flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent cursor-pointer transition-colors"
+                className="group relative flex items-center gap-3 p-3 glass-panel cursor-pointer hover:shadow-md transition-all"
                 onClick={() => handleAssetClick(asset)}
               >
                 <div className="flex-shrink-0 w-12 h-12 rounded bg-muted flex items-center justify-center overflow-hidden">

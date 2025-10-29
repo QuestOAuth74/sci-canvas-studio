@@ -208,37 +208,30 @@ export default function Community() {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                  <Skeleton className="h-48 w-full rounded-none" />
-                  <CardHeader>
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Skeleton className="h-6 w-6 rounded-full" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                    <div className="flex items-center gap-4 mb-3">
-                      <Skeleton className="h-4 w-12" />
-                      <Skeleton className="h-4 w-12" />
-                      <Skeleton className="h-4 w-12" />
-                    </div>
-                    <div className="flex gap-2">
-                      <Skeleton className="h-5 w-16" />
-                      <Skeleton className="h-5 w-20" />
-                      <Skeleton className="h-5 w-14" />
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Skeleton className="h-3 w-32" />
-                  </CardFooter>
-                </Card>
+                <div key={i} className="glass-card overflow-hidden p-4">
+                  <Skeleton className="h-48 w-full rounded-lg mb-4" />
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-2/3 mb-4" />
+                  <div className="flex items-center gap-2 mb-3">
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                  <div className="flex items-center gap-4 mb-3">
+                    <Skeleton className="h-4 w-12" />
+                    <Skeleton className="h-4 w-12" />
+                    <Skeleton className="h-4 w-12" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-14" />
+                  </div>
+                </div>
               ))}
             </div>
           ) : filteredProjects.length === 0 ? (
-            <div className="text-center py-16">
+            <div className="glass-card text-center py-16">
               <p className="text-muted-foreground">
                 {searchQuery
                   ? 'No projects found matching your search'
