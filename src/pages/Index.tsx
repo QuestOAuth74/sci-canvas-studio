@@ -302,10 +302,12 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Blog Posts Carousel */}
-      <div className="container mx-auto px-4 relative z-10">
-        <BlogPostsCarousel />
-      </div>
+        {/* Blog Posts Carousel - Only for authenticated users */}
+        {user && (
+          <div className="container mx-auto px-4 relative z-10">
+            <BlogPostsCarousel />
+          </div>
+        )}
 
       {/* Footer Section */}
       <footer className="relative z-10 border-t border-border/60 bg-gradient-to-b from-muted/30 to-background mt-16">
