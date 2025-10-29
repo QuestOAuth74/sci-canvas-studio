@@ -123,8 +123,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    // Use 'local' scope to clear local session even if server logout fails
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
+    
+    // Ignore "Session not found" errors since the goal is to be logged out
+    if (error && !error.message.includes('Session not found') && !error.message.includes('session_not_found')) {
       toast.error(error.message);
     } else {
       toast.success('Signed out successfully');
