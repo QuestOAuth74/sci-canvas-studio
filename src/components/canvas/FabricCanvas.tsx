@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush } from "fabric";
+import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush, Control, FabricObject } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { loadAllFonts } from "@/lib/fontLoader";
@@ -107,15 +107,91 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Configure control appearance for easier object manipulation
     canvas.set({
       borderColor: '#0D9488',
-      cornerColor: '#0D9488',
+      cornerColor: '#EF4444',        // Red square dots
       cornerStrokeColor: '#ffffff',
-      cornerStyle: 'circle',
-      cornerSize: 12,
+      cornerStyle: 'rect',           // Square corners
+      cornerSize: 8,                 // Smaller, more refined
       transparentCorners: false,
       borderOpacityWhenMoving: 0.5,
       borderScaleFactor: 2,
       padding: 4,
+      rotatingPointOffset: 40,       // Distance from object to rotation control
     } as any);
+
+    // Custom rotation control rendering (semi-circle with arrow like BioRender)
+    const renderRotationControl = (
+      ctx: CanvasRenderingContext2D,
+      left: number,
+      top: number,
+      _styleOverride: any,
+      fabricObject: any
+    ) => {
+      const size = 20;
+      const isHovering = fabricObject.canvas?.getActiveObject() === fabricObject;
+      
+      // Fade out when not hovering
+      const opacity = isHovering ? 1.0 : 0.5;
+      
+      ctx.save();
+      ctx.globalAlpha = opacity;
+      ctx.translate(left, top);
+      ctx.rotate(util.degreesToRadians(fabricObject.angle || 0));
+      
+      // Draw semi-circle background
+      ctx.fillStyle = '#0D9488'; // Teal color
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      
+      ctx.beginPath();
+      ctx.arc(0, 0, size / 2, Math.PI, 0, false); // Semi-circle (bottom half)
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+      // Draw arrow pointing up
+      ctx.strokeStyle = '#ffffff';
+      ctx.fillStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      
+      // Arrow shaft
+      ctx.beginPath();
+      ctx.moveTo(0, -2);
+      ctx.lineTo(0, -8);
+      ctx.stroke();
+      
+      // Arrow head
+      ctx.beginPath();
+      ctx.moveTo(0, -8);
+      ctx.lineTo(-3, -5);
+      ctx.lineTo(3, -5);
+      ctx.closePath();
+      ctx.fill();
+      
+      ctx.restore();
+    };
+
+    // Rotation action handler
+    const rotationHandler = (eventData: MouseEvent, transform: any, x: number, y: number) => {
+      const target = transform.target;
+      const ex = x - target.getCenterPoint().x;
+      const ey = y - target.getCenterPoint().y;
+      const angle = Math.atan2(ey, ex) * (180 / Math.PI) - 90;
+      
+      target.angle = angle;
+      return true;
+    };
+
+    // Apply custom rotation control to FabricObject prototype
+    FabricObject.prototype.controls.mtr = new Control({
+      x: 0,
+      y: -0.5,
+      offsetY: -40,
+      cursorStyle: 'grab',
+      actionHandler: rotationHandler,
+      actionName: 'rotate',
+      render: renderRotationControl,
+      withConnection: true,
+    });
 
     canvas.isDrawingMode = false;
     
