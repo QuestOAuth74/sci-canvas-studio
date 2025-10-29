@@ -62,6 +62,9 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [imageToneColor, setImageToneColor] = useState("#3b82f6");
   const [imageToneOpacity, setImageToneOpacity] = useState(0.3);
   const [iconColor, setIconColor] = useState("#000000");
+  const [iconToneColor, setIconToneColor] = useState("#3b82f6");
+  const [iconToneIntensity, setIconToneIntensity] = useState(0.5);
+  const [iconToneMode, setIconToneMode] = useState<"direct" | "tone">("direct");
   const [freeformLineColor, setFreeformLineColor] = useState("#000000");
   const [freeformLineThickness, setFreeformLineThickness] = useState(2);
   const [freeformStartMarker, setFreeformStartMarker] = useState<"none" | "dot" | "arrow">("none");
@@ -272,6 +275,161 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       canvas.renderAll();
     }
   };
+
+  // Helper to convert hex to HSL
+  const hexToHSL = (hex: string): { h: number; s: number; l: number } => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+
+    return { h: h * 360, s: s * 100, l: l * 100 };
+  };
+
+  const handleIconToneChange = (color: string, intensity: number = iconToneIntensity) => {
+    setIconToneColor(color);
+    if (canvas && selectedObject && selectedObject.type === 'group') {
+      const group = selectedObject as Group;
+      const { h } = hexToHSL(color);
+      
+      // Apply CSS filter-like effects using custom properties
+      (group as any).iconToneColor = color;
+      (group as any).iconToneIntensity = intensity;
+      (group as any).iconToneHue = h;
+      
+      // Apply blend color filter to simulate tone
+      const blendFilter = new filters.BlendColor({
+        color: color,
+        mode: 'tint',
+        alpha: intensity,
+      });
+      
+      // Store original colors if not already stored
+      if (!(group as any).originalColors) {
+        const originalColors = new Map();
+        const storeColors = (obj: FabricObject, path: string = '') => {
+          if (obj.type === 'group') {
+            (obj as Group).getObjects().forEach((child, idx) => storeColors(child, `${path}/${idx}`));
+          } else {
+            originalColors.set(path, { fill: obj.fill, stroke: obj.stroke });
+          }
+        };
+        storeColors(group);
+        (group as any).originalColors = originalColors;
+      }
+      
+      // Apply tint to all objects in group
+      const applyTintToObject = (obj: FabricObject) => {
+        if (obj.type === 'group') {
+          (obj as Group).getObjects().forEach(applyTintToObject);
+        } else if (obj.type === 'image' || obj instanceof FabricImage) {
+          // For raster images in the group, apply filter
+          const imgObj = obj as FabricImage;
+          imgObj.filters = [blendFilter];
+          imgObj.applyFilters();
+        } else {
+          // For vector paths, blend colors manually
+          const blendColor = (originalColor: string, tintColor: string, intensity: number): string => {
+            if (!originalColor || originalColor === 'transparent' || originalColor === 'none') return originalColor;
+            
+            const orig = parseInt(originalColor.slice(1), 16);
+            const tint = parseInt(tintColor.slice(1), 16);
+            
+            const origR = (orig >> 16) & 0xFF;
+            const origG = (orig >> 8) & 0xFF;
+            const origB = orig & 0xFF;
+            
+            const tintR = (tint >> 16) & 0xFF;
+            const tintG = (tint >> 8) & 0xFF;
+            const tintB = tint & 0xFF;
+            
+            const newR = Math.round(origR * (1 - intensity) + tintR * intensity);
+            const newG = Math.round(origG * (1 - intensity) + tintG * intensity);
+            const newB = Math.round(origB * (1 - intensity) + tintB * intensity);
+            
+            return `#${((1 << 24) + (newR << 16) + (newG << 8) + newB).toString(16).slice(1)}`;
+          };
+          
+          const hasFill = obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none';
+          const hasStroke = obj.stroke && obj.stroke !== 'transparent' && obj.stroke !== 'none';
+          
+          if (hasFill && typeof obj.fill === 'string') {
+            obj.set({ fill: blendColor(obj.fill, color, intensity) });
+          }
+          if (hasStroke && typeof obj.stroke === 'string') {
+            obj.set({ stroke: blendColor(obj.stroke, color, intensity) });
+          }
+        }
+      };
+      
+      group.getObjects().forEach(applyTintToObject);
+      canvas.renderAll();
+    }
+  };
+
+  const handleIconToneIntensityChange = (intensity: number) => {
+    setIconToneIntensity(intensity);
+    handleIconToneChange(iconToneColor, intensity);
+  };
+
+  const handleRemoveIconTone = () => {
+    if (canvas && selectedObject && selectedObject.type === 'group') {
+      const group = selectedObject as Group;
+      
+      // Restore original colors
+      if ((group as any).originalColors) {
+        const originalColors = (group as any).originalColors as Map<string, any>;
+        
+        const restoreColors = (obj: FabricObject, path: string = '') => {
+          if (obj.type === 'group') {
+            (obj as Group).getObjects().forEach((child, idx) => restoreColors(child, `${path}/${idx}`));
+          } else {
+            const stored = originalColors.get(path);
+            if (stored) {
+              obj.set({ fill: stored.fill, stroke: stored.stroke });
+            }
+            // Clear image filters
+            if (obj.type === 'image' || obj instanceof FabricImage) {
+              (obj as FabricImage).filters = [];
+              (obj as FabricImage).applyFilters();
+            }
+          }
+        };
+        
+        restoreColors(group);
+        delete (group as any).originalColors;
+        delete (group as any).iconToneColor;
+        delete (group as any).iconToneIntensity;
+        delete (group as any).iconToneHue;
+      }
+      
+      canvas.renderAll();
+      setIconToneIntensity(0.5);
+    }
+  };
+
+  const TONE_PRESETS = [
+    { name: "Warm", color: "#f59e0b", emoji: "🌅" },
+    { name: "Cool", color: "#06b6d4", emoji: "❄️" },
+    { name: "Sepia", color: "#92400e", emoji: "☕" },
+    { name: "Vibrant", color: "#ec4899", emoji: "🎨" },
+    { name: "Night", color: "#1e3a8a", emoji: "🌙" },
+    { name: "Forest", color: "#15803d", emoji: "🌲" },
+  ];
 
   const handlePaperSizeChange = (sizeId: string) => {
     setPaperSize(sizeId);
@@ -650,44 +808,129 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
               
               <StylePanel />
 
-              {/* Icon Color - Only show for SVG groups (icons) */}
+              {/* Icon Color & Tone - Only show for SVG groups (icons) */}
               {selectedObject && selectedObject.type === 'group' && !isShapeWithTextGroup(selectedObject) && (
                 <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Icon Color</h3>
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Color</Label>
-                      <div className="grid grid-cols-6 gap-2">
-                        {COLOR_PALETTE.map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => handleIconColorChange(color)}
-                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                            style={{ 
-                              backgroundColor: color,
-                              borderColor: iconColor === color ? '#0D9488' : '#e5e7eb'
-                            }}
-                            title={color}
+                  <h3 className="font-semibold text-sm mb-3">Icon Styling</h3>
+                  <Tabs value={iconToneMode} onValueChange={(v) => setIconToneMode(v as "direct" | "tone")}>
+                    <TabsList className="grid w-full grid-cols-2 mb-3">
+                      <TabsTrigger value="direct" className="text-xs">Direct Color</TabsTrigger>
+                      <TabsTrigger value="tone" className="text-xs">Color Tone</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="direct" className="space-y-3 mt-0">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Color</Label>
+                        <div className="grid grid-cols-6 gap-2">
+                          {COLOR_PALETTE.map((color) => (
+                            <button
+                              key={color}
+                              onClick={() => handleIconColorChange(color)}
+                              className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                              style={{ 
+                                backgroundColor: color,
+                                borderColor: iconColor === color ? '#0D9488' : '#e5e7eb'
+                              }}
+                              title={color}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            type="color" 
+                            value={iconColor}
+                            onChange={(e) => handleIconColorChange(e.target.value)}
+                            className="h-8 w-12 p-1" 
                           />
-                        ))}
+                          <Input 
+                            type="text" 
+                            value={iconColor}
+                            onChange={(e) => handleIconColorChange(e.target.value)}
+                            className="h-8 text-xs flex-1" 
+                            placeholder="#000000"
+                          />
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          type="color" 
-                          value={iconColor}
-                          onChange={(e) => handleIconColorChange(e.target.value)}
-                          className="h-8 w-12 p-1" 
-                        />
-                        <Input 
-                          type="text" 
-                          value={iconColor}
-                          onChange={(e) => handleIconColorChange(e.target.value)}
-                          className="h-8 text-xs flex-1" 
-                          placeholder="#000000"
+                    </TabsContent>
+                    
+                    <TabsContent value="tone" className="space-y-3 mt-0">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Tone Presets</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {TONE_PRESETS.map((preset) => (
+                            <Button
+                              key={preset.name}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleIconToneChange(preset.color)}
+                              className="h-8 text-xs gap-1"
+                            >
+                              <span>{preset.emoji}</span>
+                              <span>{preset.name}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs">Custom Tone Color</Label>
+                        <div className="grid grid-cols-6 gap-2">
+                          {COLOR_PALETTE.map((color) => (
+                            <button
+                              key={color}
+                              onClick={() => handleIconToneChange(color)}
+                              className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                              style={{ 
+                                backgroundColor: color,
+                                borderColor: iconToneColor === color ? '#0D9488' : '#e5e7eb'
+                              }}
+                              title={color}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            type="color" 
+                            value={iconToneColor}
+                            onChange={(e) => handleIconToneChange(e.target.value)}
+                            className="h-8 w-12 p-1" 
+                          />
+                          <Input 
+                            type="text" 
+                            value={iconToneColor}
+                            onChange={(e) => handleIconToneChange(e.target.value)}
+                            className="h-8 text-xs flex-1" 
+                            placeholder="#3b82f6"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Tone Intensity</Label>
+                          <span className="text-xs text-muted-foreground">{Math.round(iconToneIntensity * 100)}%</span>
+                        </div>
+                        <Input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.05"
+                          value={iconToneIntensity}
+                          onChange={(e) => handleIconToneIntensityChange(parseFloat(e.target.value))}
+                          className="h-8"
                         />
                       </div>
-                    </div>
-                  </div>
+
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleRemoveIconTone}
+                        className="w-full text-xs h-8"
+                      >
+                        Remove Tone
+                      </Button>
+                    </TabsContent>
+                  </Tabs>
                 </div>
               )}
 
