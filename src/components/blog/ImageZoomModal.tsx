@@ -57,7 +57,7 @@ export const ImageZoomModal = ({ src, alt, isOpen, onClose }: ImageZoomModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden stable-dialog">
         <div className="relative w-full h-[90vh] bg-background/95">
           <div className="absolute top-4 right-4 z-10 flex gap-2">
             <Button
