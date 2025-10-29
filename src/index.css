@@ -139,9 +139,29 @@ All colors MUST be HSL.
     transition: none !important;
   }
 
+  /* Enhanced stable positioning for dialogs and menus */
+  .stable-dialog,
+  .stable-dialog *,
+  .stable-menu,
+  .stable-menu * {
+    transform-style: flat !important;
+  }
+
   .stable-dialog:hover,
   .stable-dialog.glass-card:hover {
     transform: translate(-50%, -50%) translateZ(0) !important;
+  }
+
+  .stable-menu:hover,
+  .stable-menu.glass-card:hover {
+    transform: none !important;
+  }
+
+  /* Prevent glass-card hover effects from affecting positioned elements */
+  .stable-dialog .glass-card:hover,
+  .stable-menu .glass-card:hover {
+    transform: none !important;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
   }
   
   .glossy-feature-card:hover {
