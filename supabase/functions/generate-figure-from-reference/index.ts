@@ -292,17 +292,18 @@ SPATIAL ANALYSIS REQUIREMENTS:
     const elementData = await elementResponse.json();
     const elementText = elementData.choices[0].message.content;
     console.log('Pass 1 complete');
+    console.log('GPT-5 Response length:', elementText?.length || 0);
+    console.log('Response preview:', elementText?.substring(0, 200));
     console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
 
-    const elementJsonMatch = elementText.match(/\{[\s\S]*\}/);
-    if (!elementJsonMatch) {
-      return new Response(JSON.stringify({ error: 'Failed to parse element analysis' }), {
+    const elementAnalysis = extractJSON(elementText);
+    if (!elementAnalysis) {
+      console.error('Failed to extract JSON from GPT-5 response:', elementText);
+      return new Response(JSON.stringify({ error: 'Failed to parse element analysis - invalid JSON format' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const elementAnalysis = JSON.parse(elementJsonMatch[0]);
 
     // STEP 1B: PASS 2 - Deep Connector Analysis
     console.log('[PROGRESS] connector_analysis | 0% | Starting connector analysis...');
@@ -398,17 +399,17 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     const connectorData = await connectorResponse.json();
     const connectorText = connectorData.choices[0].message.content;
     console.log('Pass 2 complete');
+    console.log('Connector response length:', connectorText?.length || 0);
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
 
-    const connectorJsonMatch = connectorText.match(/\{[\s\S]*\}/);
-    if (!connectorJsonMatch) {
-      return new Response(JSON.stringify({ error: 'Failed to parse connector analysis' }), {
+    const connectorAnalysis = extractJSON(connectorText);
+    if (!connectorAnalysis) {
+      console.error('Failed to extract JSON from connector response:', connectorText);
+      return new Response(JSON.stringify({ error: 'Failed to parse connector analysis - invalid JSON format' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const connectorAnalysis = JSON.parse(connectorJsonMatch[0]);
 
     // Merge analyses into final structure
     const analysis = {
