@@ -27,13 +27,22 @@ interface GeneratedLayout {
     icon_id?: string;
     icon_name?: string;
     scale?: number;
-    // Shape properties
+    // Enhanced shape properties
     shape_type?: 'rectangle' | 'circle' | 'oval';
+    shape_subtype?: 'text_label' | 'simple_shape' | 'complex_shape';
     width?: number;
     height?: number;
     fill_color?: string;
     stroke_color?: string;
     stroke_width?: number;
+    rounded_corners?: boolean;
+    // Enhanced text properties
+    text_content?: string;
+    text_properties?: {
+      font_size?: 'small' | 'medium' | 'large';
+      text_alignment?: 'center' | 'left' | 'right';
+      multiline?: boolean;
+    };
     // Common properties
     x: number;
     y: number;
@@ -291,6 +300,20 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
     }
   };
 
+  // Helper function to get category-based colors
+  const getCategoryColor = (category?: string): string => {
+    const colorMap: Record<string, string> = {
+      'protein': '#FFE5CC',
+      'enzyme': '#FFE5CC',
+      'signal': '#FFE5CC',
+      'receptor': '#C8E6C9',
+      'molecule': '#BBDEFB',
+      'complex': '#E1BEE7',
+      'default': '#F5F5F5'
+    };
+    return colorMap[category || 'default'] || colorMap['default'];
+  };
+
   const applyLayout = async (useProposed = false) => {
     if (!response || !canvas) return;
 
@@ -343,7 +366,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       const addedObjects: any[] = [];
       const indexMap: Record<number, number> = {}; // maps layout index -> addedObjects index
 
-      // First, add all shapes
+      // First, add all shapes with embedded text
       for (const i of shapeIdxs) {
         const obj = objects[i];
         
@@ -353,45 +376,73 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const width = obj.width || 100;
           const height = obj.height || 60;
           
+          // Determine fill color based on category if not specified
+          const fillColor = obj.fill_color || getCategoryColor(obj.shape_subtype);
+          
+          // Create the shape
           let shapeObj;
           if (obj.shape_type === 'circle' || obj.shape_type === 'oval') {
             shapeObj = new Circle({
-              left: x,
-              top: y,
+              left: 0,
+              top: 0,
               radius: Math.min(width, height) / 2,
-              fill: obj.fill_color || '#E8F5E9',
-              stroke: obj.stroke_color || '#2E7D32',
+              fill: fillColor,
+              stroke: obj.stroke_color || '#333333',
               strokeWidth: obj.stroke_width || 2,
-              angle: obj.rotation || 0,
             });
           } else {
+            // Rectangle with optional rounded corners
             shapeObj = new Rect({
-              left: x,
-              top: y,
+              left: 0,
+              top: 0,
               width,
               height,
-              fill: obj.fill_color || '#E8F5E9',
-              stroke: obj.stroke_color || '#2E7D32',
+              fill: fillColor,
+              stroke: obj.stroke_color || '#333333',
               strokeWidth: obj.stroke_width || 2,
-              angle: obj.rotation || 0,
+              rx: obj.rounded_corners ? 10 : 0,
+              ry: obj.rounded_corners ? 10 : 0,
             });
           }
           
-          canvas.add(shapeObj);
-          addedObjects.push(shapeObj);
-          indexMap[i] = addedObjects.length - 1;
-          
-          if (obj.label) {
-            const text = new FabricText(obj.label, {
-              left: x + width / 2,
-              top: y + height / 2,
-              fontSize: 14,
+          // Create text if there's text content
+          const textContent = obj.text_content || obj.label || '';
+          if (textContent) {
+            const fontSize = obj.text_properties?.font_size === 'large' ? 16 : 
+                           obj.text_properties?.font_size === 'small' ? 10 : 13;
+            
+            const textObj = new FabricText(textContent, {
+              left: width / 2,
+              top: height / 2,
+              fontSize,
               fill: '#000000',
               fontFamily: 'Arial',
+              textAlign: obj.text_properties?.text_alignment || 'center',
               originX: 'center',
               originY: 'center',
             });
-            canvas.add(text);
+            
+            // Group shape and text together
+            const group = new Group([shapeObj, textObj], {
+              left: x,
+              top: y,
+              angle: obj.rotation || 0,
+            });
+            
+            canvas.add(group);
+            addedObjects.push(group);
+            indexMap[i] = addedObjects.length - 1;
+          } else {
+            // No text, just add the shape
+            shapeObj.set({
+              left: x,
+              top: y,
+              angle: obj.rotation || 0,
+            });
+            
+            canvas.add(shapeObj);
+            addedObjects.push(shapeObj);
+            indexMap[i] = addedObjects.length - 1;
           }
         } catch (err) {
           console.error(`Failed to create shape:`, err);

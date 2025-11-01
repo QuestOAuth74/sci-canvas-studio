@@ -186,6 +186,8 @@ CRITICAL: Distinguish between simple geometric shapes with labels vs. biological
 - Simple shapes: rectangles, circles, ovals with text labels → mark as "shape" type
 - Biological elements: proteins, organs, cells, molecules → mark as "icon" type
 
+For shapes with text, extract the ACTUAL TEXT CONTENT visible inside the shape.
+
 Return valid JSON ONLY:
 {
   "identified_elements": [
@@ -193,7 +195,8 @@ Return valid JSON ONLY:
       "name": "precise element name or label text",
       "element_type": "shape|icon",
       "shape_type": "rectangle|circle|oval|none",
-      "category": "biology|chemistry|physics|anatomy|protein|enzyme|receptor|organ|cell|molecule|text_label",
+      "shape_subtype": "text_label|simple_shape|complex_shape",
+      "category": "biology|chemistry|physics|anatomy|protein|enzyme|receptor|organ|cell|molecule|signal|text_label",
       "description": "detailed description including visual characteristics",
       "position_x": 45.5,
       "position_y": 30.2,
@@ -203,6 +206,13 @@ Return valid JSON ONLY:
       "visual_notes": "color, shape, distinguishing features",
       "fill_color": "#RRGGBB if colored shape",
       "stroke_color": "#RRGGBB if bordered",
+      "text_content": "the actual text visible inside or on the shape (for shapes only)",
+      "text_properties": {
+        "font_size": "small|medium|large",
+        "text_alignment": "center|left|right",
+        "multiline": true|false
+      },
+      "rounded_corners": true|false,
       "search_terms": ["most_specific_term", "broader_term", "category_term", "alternative_name"]
     }
   ],
@@ -250,7 +260,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-5',
         messages: [
           { role: 'system', content: elementSystemPrompt },
           {
@@ -356,7 +366,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-5',
         messages: [
           { role: 'system', content: connectorSystemPrompt },
           {
@@ -722,7 +732,7 @@ Return ONLY JSON:
         }
       }
       
-      // For shapes: create shape objects
+      // For shapes: create shape objects with text content
       if (m.element.element_type === 'shape') {
         let width = 100, height = 60;
         if (m.element.bounding_box) {
@@ -734,12 +744,16 @@ Return ONLY JSON:
           type: 'shape',
           element_index: m.element_index,
           shape_type: m.element.shape_type || 'rectangle',
+          shape_subtype: m.element.shape_subtype,
           x,
           y,
           width,
           height,
           rotation: m.element.rotation || 0,
           label: m.element.name,
+          text_content: m.element.text_content,
+          text_properties: m.element.text_properties,
+          rounded_corners: m.element.rounded_corners || (m.element.shape_type === 'rectangle'),
           fill_color: m.element.fill_color || '#E8F5E9',
           stroke_color: m.element.stroke_color || '#2E7D32',
           stroke_width: 2
@@ -874,7 +888,7 @@ Return ONLY JSON:
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'gpt-5',
             messages: [
               { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
               {
