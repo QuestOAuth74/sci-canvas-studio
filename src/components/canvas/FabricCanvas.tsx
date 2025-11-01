@@ -2294,7 +2294,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           const width = 80;
           const height = 20;
           const bracketTop = new Path(
-            `M ${pointer.x} ${pointer.y + height} L ${pointer.x} ${pointer.y} L ${pointer.x + width} ${pointer.y} L ${pointer.x + width} ${pointer.y + height}`,
+            `M ${pointer.x} ${pointer.y} L ${pointer.x + width} ${pointer.y} M ${pointer.x + width/2} ${pointer.y} L ${pointer.x + width/2} ${pointer.y + height}`,
             {
               stroke: "#000000",
               strokeWidth: 2,
@@ -2312,7 +2312,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           const width = 80;
           const height = 20;
           const bracketBottom = new Path(
-            `M ${pointer.x} ${pointer.y} L ${pointer.x} ${pointer.y + height} L ${pointer.x + width} ${pointer.y + height} L ${pointer.x + width} ${pointer.y}`,
+            `M ${pointer.x + width/2} ${pointer.y} L ${pointer.x + width/2} ${pointer.y + height} M ${pointer.x} ${pointer.y + height} L ${pointer.x + width} ${pointer.y + height}`,
             {
               stroke: "#000000",
               strokeWidth: 2,
