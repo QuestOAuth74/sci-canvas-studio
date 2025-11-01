@@ -276,6 +276,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
             ]
           }
         ],
+        response_format: { type: 'json_object' },
         max_completion_tokens: 4000,
       }),
     });
@@ -383,6 +384,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
             ]
           }
         ],
+        response_format: { type: 'json_object' },
         max_completion_tokens: 3000,
       }),
     });
@@ -905,6 +907,7 @@ Return ONLY JSON:
                 ]
               }
             ],
+            response_format: { type: 'json_object' },
             max_completion_tokens: 2000,
           }),
         });
