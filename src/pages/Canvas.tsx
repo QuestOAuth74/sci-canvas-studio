@@ -197,8 +197,11 @@ const CanvasContent = () => {
         e.preventDefault();
         copy();
       } else if (modifier && e.key === 'v') {
-        e.preventDefault();
-        paste();
+        // Allow native paste when editing text
+        if (!isEditingText) {
+          e.preventDefault();
+          paste();
+        }
       } else if (modifier && e.key === 'a') {
         e.preventDefault();
         selectAll();
