@@ -260,7 +260,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5',
+        model: 'gpt-5-2025-08-07',
         messages: [
           { role: 'system', content: elementSystemPrompt },
           {
@@ -276,31 +276,117 @@ SPATIAL ANALYSIS REQUIREMENTS:
             ]
           }
         ],
-        response_format: { type: 'json_object' },
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'return_element_analysis',
+              description: 'Return the element analysis with identified elements, spatial analysis, and overall layout',
+              parameters: {
+                type: 'object',
+                properties: {
+                  identified_elements: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        name: { type: 'string' },
+                        element_type: { type: 'string', enum: ['shape', 'icon'] },
+                        shape_type: { type: 'string' },
+                        shape_subtype: { type: 'string' },
+                        category: { type: 'string' },
+                        description: { type: 'string' },
+                        position_x: { type: 'number' },
+                        position_y: { type: 'number' },
+                        bounding_box: {
+                          type: 'object',
+                          properties: {
+                            width: { type: 'number' },
+                            height: { type: 'number' }
+                          }
+                        },
+                        estimated_size: { type: 'string' },
+                        rotation: { type: 'number' },
+                        visual_notes: { type: 'string' },
+                        fill_color: { type: 'string' },
+                        stroke_color: { type: 'string' },
+                        text_content: { type: 'string' },
+                        text_properties: { type: 'object' },
+                        rounded_corners: { type: 'boolean' },
+                        search_terms: { type: 'array', items: { type: 'string' } }
+                      },
+                      required: ['name', 'element_type', 'position_x', 'position_y']
+                    }
+                  },
+                  spatial_analysis: { type: 'object' },
+                  overall_layout: { type: 'object' }
+                },
+                required: ['identified_elements', 'spatial_analysis', 'overall_layout']
+              }
+            }
+          }
+        ],
+        tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
         max_completion_tokens: 4000,
       }),
     });
 
     if (!elementResponse.ok) {
       const errorText = await elementResponse.text();
-      console.error('Pass 1 error:', elementResponse.status, errorText);
-      return new Response(JSON.stringify({ error: 'Failed to analyze elements' }), {
-        status: 500,
+      console.error('Pass 1 OpenAI error:', elementResponse.status, errorText);
+      return new Response(JSON.stringify({ 
+        error: 'Failed to analyze elements', 
+        details: `OpenAI returned ${elementResponse.status}` 
+      }), {
+        status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const elementData = await elementResponse.json();
-    const elementText = elementData.choices[0].message.content;
     console.log('Pass 1 complete');
-    console.log('GPT-5 Response length:', elementText?.length || 0);
-    console.log('Response preview:', elementText?.substring(0, 200));
+    
+    // Extract JSON from function call arguments (priority), then content (fallback)
+    let elementAnalysis = null;
+    
+    // Strategy 1: Extract from tool_calls (primary for function calling)
+    if (elementData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
+      try {
+        const args = elementData.choices[0].message.tool_calls[0].function.arguments;
+        elementAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
+        console.log('✓ Extracted from tool_calls');
+      } catch (e) {
+        console.log('Failed to parse tool_calls arguments:', e);
+      }
+    }
+    
+    // Strategy 2: Extract from legacy function_call (secondary)
+    if (!elementAnalysis && elementData.choices[0]?.message?.function_call?.arguments) {
+      try {
+        const args = elementData.choices[0].message.function_call.arguments;
+        elementAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
+        console.log('✓ Extracted from function_call');
+      } catch (e) {
+        console.log('Failed to parse function_call arguments:', e);
+      }
+    }
+    
+    // Strategy 3: Extract from content (fallback)
+    if (!elementAnalysis && elementData.choices[0]?.message?.content) {
+      elementAnalysis = extractJSON(elementData.choices[0].message.content);
+      if (elementAnalysis) {
+        console.log('✓ Extracted from content');
+      }
+    }
+    
     console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
 
-    const elementAnalysis = extractJSON(elementText);
-    if (!elementAnalysis) {
-      console.error('Failed to extract JSON from GPT-5 response:', elementText);
-      return new Response(JSON.stringify({ error: 'Failed to parse element analysis - invalid JSON format' }), {
+    if (!elementAnalysis || !elementAnalysis.identified_elements) {
+      console.error('Failed to extract element analysis. Response:', JSON.stringify(elementData).slice(0, 1500));
+      return new Response(JSON.stringify({ 
+        error: 'Failed to parse element analysis - no valid data from GPT-5',
+        hint: 'Check edge function logs for details'
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -368,7 +454,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5',
+        model: 'gpt-5-2025-08-07',
         messages: [
           { role: 'system', content: connectorSystemPrompt },
           {
@@ -384,30 +470,115 @@ CONNECTOR ANALYSIS REQUIREMENTS:
             ]
           }
         ],
-        response_format: { type: 'json_object' },
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'return_connector_analysis',
+              description: 'Return the connector analysis with all connectors and their properties',
+              parameters: {
+                type: 'object',
+                properties: {
+                  connectors: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        from_element: { type: 'number' },
+                        to_element: { type: 'number' },
+                        relationship_type: { type: 'string' },
+                        visual_style: {
+                          type: 'object',
+                          properties: {
+                            line_type: { type: 'string' },
+                            line_style: { type: 'string' },
+                            thickness: { type: 'string' },
+                            color: { type: 'string' }
+                          }
+                        },
+                        markers: {
+                          type: 'object',
+                          properties: {
+                            start: { type: 'string' },
+                            end: { type: 'string' }
+                          }
+                        },
+                        routing: { type: 'object' },
+                        label: { type: 'string' },
+                        label_position: { type: 'string' },
+                        directionality: { type: 'string' },
+                        justification: { type: 'string' }
+                      },
+                      required: ['from_element', 'to_element', 'relationship_type']
+                    }
+                  }
+                },
+                required: ['connectors']
+              }
+            }
+          }
+        ],
+        tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
         max_completion_tokens: 3000,
       }),
     });
 
     if (!connectorResponse.ok) {
       const errorText = await connectorResponse.text();
-      console.error('Pass 2 error:', connectorResponse.status, errorText);
-      return new Response(JSON.stringify({ error: 'Failed to analyze connectors' }), {
-        status: 500,
+      console.error('Pass 2 OpenAI error:', connectorResponse.status, errorText);
+      return new Response(JSON.stringify({ 
+        error: 'Failed to analyze connectors',
+        details: `OpenAI returned ${connectorResponse.status}` 
+      }), {
+        status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const connectorData = await connectorResponse.json();
-    const connectorText = connectorData.choices[0].message.content;
     console.log('Pass 2 complete');
-    console.log('Connector response length:', connectorText?.length || 0);
+    
+    // Extract JSON from function call arguments (priority), then content (fallback)
+    let connectorAnalysis = null;
+    
+    // Strategy 1: Extract from tool_calls (primary for function calling)
+    if (connectorData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
+      try {
+        const args = connectorData.choices[0].message.tool_calls[0].function.arguments;
+        connectorAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
+        console.log('✓ Extracted from tool_calls');
+      } catch (e) {
+        console.log('Failed to parse tool_calls arguments:', e);
+      }
+    }
+    
+    // Strategy 2: Extract from legacy function_call (secondary)
+    if (!connectorAnalysis && connectorData.choices[0]?.message?.function_call?.arguments) {
+      try {
+        const args = connectorData.choices[0].message.function_call.arguments;
+        connectorAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
+        console.log('✓ Extracted from function_call');
+      } catch (e) {
+        console.log('Failed to parse function_call arguments:', e);
+      }
+    }
+    
+    // Strategy 3: Extract from content (fallback)
+    if (!connectorAnalysis && connectorData.choices[0]?.message?.content) {
+      connectorAnalysis = extractJSON(connectorData.choices[0].message.content);
+      if (connectorAnalysis) {
+        console.log('✓ Extracted from content');
+      }
+    }
+    
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
 
-    const connectorAnalysis = extractJSON(connectorText);
-    if (!connectorAnalysis) {
-      console.error('Failed to extract JSON from connector response:', connectorText);
-      return new Response(JSON.stringify({ error: 'Failed to parse connector analysis - invalid JSON format' }), {
+    if (!connectorAnalysis || !connectorAnalysis.connectors) {
+      console.error('Failed to extract connector analysis. Response:', JSON.stringify(connectorData).slice(0, 1500));
+      return new Response(JSON.stringify({ 
+        error: 'Failed to parse connector analysis - no valid data from GPT-5',
+        hint: 'Check edge function logs for details'
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
