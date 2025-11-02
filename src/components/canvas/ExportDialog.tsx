@@ -83,7 +83,7 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-[480px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Export Image</DialogTitle>
           <DialogDescription>
@@ -91,7 +91,7 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-4 overflow-y-auto max-h-[60vh]">
           {/* Export Presets */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">Quick Presets</Label>
