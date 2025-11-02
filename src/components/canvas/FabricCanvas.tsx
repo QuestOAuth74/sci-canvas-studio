@@ -79,6 +79,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     setSelectedObject, 
     gridEnabled, 
     rulersEnabled, 
+    snapToGrid,
+    gridSize,
     backgroundColor, 
     canvasDimensions, 
     zoom,
@@ -88,6 +90,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     textOverline,
     textBold,
     textItalic,
+    saveState,
   } = useCanvas();
 
   useEffect(() => {

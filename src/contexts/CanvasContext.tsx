@@ -17,6 +17,10 @@ interface CanvasContextType {
   setGridEnabled: (enabled: boolean) => void;
   rulersEnabled: boolean;
   setRulersEnabled: (enabled: boolean) => void;
+  snapToGrid: boolean;
+  setSnapToGrid: (enabled: boolean) => void;
+  gridSize: number;
+  setGridSize: (size: number) => void;
   backgroundColor: string;
   setBackgroundColor: (color: string) => void;
   canvasDimensions: { width: number; height: number };
@@ -119,6 +123,23 @@ interface CanvasContextType {
   
   // Nudge operations
   nudgeObject: (direction: 'up' | 'down' | 'left' | 'right', amount?: number) => void;
+  
+  // Flash effect
+  flashCanvas: (type?: 'success' | 'info') => void;
+  
+  // Recovery operations
+  recoverCanvas: (recoveryData: any) => void;
+  checkForRecovery: () => { data: any; ageMinutes: number } | null;
+  
+  // Advanced shortcuts
+  duplicateSelected: () => void;
+  pasteInPlace: () => void;
+  deselectAll: () => void;
+  toggleLockSelected: () => void;
+  hideSelected: () => void;
+  showAllHidden: () => void;
+  rotateSelected: (degrees: number) => void;
+  duplicateBelow: () => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -146,11 +167,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [zoom, setZoom] = useState(100);
   const [gridEnabled, setGridEnabled] = useState(true);
   const [rulersEnabled, setRulersEnabled] = useState(true);
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [gridSize, setGridSize] = useState(20);
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 1200, height: 800 });
   const [paperSize, setPaperSize] = useState("custom");
   const [history, setHistory] = useState<string[]>([]);
   const [historyStep, setHistoryStep] = useState(0);
+  const MAX_HISTORY_SIZE = 50;
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("Untitled Diagram");
   const [isSaving, setIsSaving] = useState(false);
@@ -180,13 +204,19 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // Export dialog state
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
-  // History management
+  // History management with size limit for performance
   const saveState = useCallback(() => {
     if (!canvas) return;
-    const json = JSON.stringify(canvas.toJSON());
-    setHistory(prev => [...prev.slice(0, historyStep + 1), json]);
-    setHistoryStep(prev => prev + 1);
-  }, [canvas, historyStep]);
+    const json = JSON.stringify(canvas.toJSON(['selectable', 'evented', 'pinned']));
+    const newHistory = history.slice(0, historyStep + 1);
+    newHistory.push(json);
+    
+    // Limit history size for performance
+    const limitedHistory = newHistory.slice(-MAX_HISTORY_SIZE);
+    setHistory(limitedHistory);
+    setHistoryStep(limitedHistory.length - 1);
+    setSaveStatus('unsaved');
+  }, [canvas, history, historyStep, MAX_HISTORY_SIZE]);
 
   const undo = useCallback(() => {
     if (!canvas || historyStep === 0) return;
@@ -1394,6 +1424,190 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     return () => clearInterval(autoSaveInterval);
   }, [canvas, user, currentProjectId]); // Removed saveProject from deps to prevent interval resets
 
+  // Auto-recovery system
+  useEffect(() => {
+    if (!canvas) return;
+
+    const autoRecover = setInterval(() => {
+      if (saveStatus === 'unsaved') {
+        const state = canvas.toJSON(['selectable', 'evented', 'pinned']);
+        const recovery = {
+          state,
+          timestamp: Date.now(),
+          projectName,
+          projectId: currentProjectId
+        };
+        localStorage.setItem('canvas_recovery', JSON.stringify(recovery));
+      }
+    }, 30000);
+
+    return () => clearInterval(autoRecover);
+  }, [canvas, saveStatus, projectName, currentProjectId]);
+
+  // Warn on page unload if unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveStatus === 'unsaved') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [saveStatus]);
+
+  const recoverCanvas = useCallback((recoveryData: any) => {
+    if (!canvas) return;
+    
+    canvas.loadFromJSON(recoveryData.state, () => {
+      canvas.renderAll();
+      toast.success('Canvas recovered successfully!');
+      localStorage.removeItem('canvas_recovery');
+      setSaveStatus('unsaved');
+    });
+  }, [canvas]);
+
+  const checkForRecovery = useCallback(() => {
+    const recovery = localStorage.getItem('canvas_recovery');
+    if (recovery) {
+      const data = JSON.parse(recovery);
+      const ageMinutes = (Date.now() - data.timestamp) / 60000;
+      if (ageMinutes < 60) {
+        return {
+          data,
+          ageMinutes: Math.floor(ageMinutes)
+        };
+      } else {
+        localStorage.removeItem('canvas_recovery');
+      }
+    }
+    return null;
+  }, []);
+
+  const duplicateSelected = useCallback(() => {
+    if (!canvas || !selectedObject) return;
+
+    if (selectedObject.type === 'activeSelection') {
+      const activeSelection = selectedObject as ActiveSelection;
+      const objects = activeSelection.getObjects();
+      
+      const clones: FabricObject[] = [];
+      let completed = 0;
+      
+      objects.forEach((obj: FabricObject) => {
+        obj.clone((cloned: FabricObject) => {
+          cloned.set({
+            left: (cloned.left || 0) + 20,
+            top: (cloned.top || 0) + 20,
+          });
+          canvas.add(cloned);
+          clones.push(cloned);
+          completed++;
+          
+          if (completed === objects.length) {
+            const selection = new ActiveSelection(clones, { canvas });
+            canvas.setActiveObject(selection);
+            canvas.renderAll();
+            flashCanvas('success');
+            toast.success('Duplicated selection');
+            saveState();
+          }
+        });
+      });
+    } else {
+      selectedObject.clone((cloned: FabricObject) => {
+        cloned.set({
+          left: (cloned.left || 0) + 20,
+          top: (cloned.top || 0) + 20,
+        });
+        canvas.add(cloned);
+        canvas.setActiveObject(cloned);
+        canvas.renderAll();
+        flashCanvas('success');
+        toast.success('Duplicated object');
+        saveState();
+      });
+    }
+  }, [canvas, selectedObject, saveState, flashCanvas]);
+
+  const pasteInPlace = useCallback(() => {
+    paste();
+  }, [paste]);
+
+  const deselectAll = useCallback(() => {
+    if (!canvas) return;
+    canvas.discardActiveObject();
+    canvas.renderAll();
+  }, [canvas]);
+
+  const toggleLockSelected = useCallback(() => {
+    if (!canvas || !selectedObject) return;
+
+    const currentLocked = (selectedObject as any).pinned || false;
+    selectedObject.set({
+      pinned: !currentLocked,
+      selectable: currentLocked,
+      evented: currentLocked,
+    } as any);
+    canvas.renderAll();
+    toast.success(currentLocked ? 'Unlocked object' : 'Locked object');
+    saveState();
+  }, [canvas, selectedObject, saveState]);
+
+  const hideSelected = useCallback(() => {
+    if (!canvas || !selectedObject) return;
+
+    selectedObject.set({ visible: false });
+    canvas.discardActiveObject();
+    canvas.renderAll();
+    toast.success('Object hidden (Cmd+H to show all)');
+    saveState();
+  }, [canvas, selectedObject, saveState]);
+
+  const showAllHidden = useCallback(() => {
+    if (!canvas) return;
+
+    let count = 0;
+    canvas.getObjects().forEach((obj: FabricObject) => {
+      if (!obj.visible) {
+        obj.set({ visible: true });
+        count++;
+      }
+    });
+    canvas.renderAll();
+    if (count > 0) {
+      toast.success(`Showed ${count} hidden object${count > 1 ? 's' : ''}`);
+      saveState();
+    }
+  }, [canvas, saveState]);
+
+  const rotateSelected = useCallback((degrees: number) => {
+    if (!canvas || !selectedObject) return;
+
+    const currentAngle = selectedObject.angle || 0;
+    selectedObject.rotate(currentAngle + degrees);
+    canvas.renderAll();
+    saveState();
+  }, [canvas, selectedObject, saveState]);
+
+  const duplicateBelow = useCallback(() => {
+    if (!canvas || !selectedObject) return;
+
+    selectedObject.clone((cloned: FabricObject) => {
+      const height = selectedObject.getScaledHeight();
+      cloned.set({
+        left: selectedObject.left,
+        top: (selectedObject.top || 0) + height + 20,
+      });
+      canvas.add(cloned);
+      canvas.setActiveObject(cloned);
+      canvas.renderAll();
+      toast.success('Duplicated below');
+      saveState();
+    });
+  }, [canvas, selectedObject, saveState]);
+
   const value: CanvasContextType = {
     canvas,
     setCanvas,
@@ -1405,6 +1619,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setGridEnabled,
     rulersEnabled,
     setRulersEnabled,
+    snapToGrid,
+    setSnapToGrid,
+    gridSize,
+    setGridSize,
     backgroundColor,
     setBackgroundColor,
     canvasDimensions,
@@ -1476,6 +1694,17 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     nudgeObject,
     recentColors,
     addToRecentColors,
+    flashCanvas,
+    recoverCanvas,
+    checkForRecovery,
+    duplicateSelected,
+    pasteInPlace,
+    deselectAll,
+    toggleLockSelected,
+    hideSelected,
+    showAllHidden,
+    rotateSelected,
+    duplicateBelow,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

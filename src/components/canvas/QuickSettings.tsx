@@ -8,8 +8,16 @@ import { useCanvas } from "@/contexts/CanvasContext";
 import { useState } from "react";
 
 export const QuickSettings = () => {
-  const { gridEnabled, setGridEnabled, rulersEnabled, setRulersEnabled } = useCanvas();
-  const [gridSize, setGridSize] = useState(20);
+  const { 
+    gridEnabled, 
+    setGridEnabled, 
+    rulersEnabled, 
+    setRulersEnabled,
+    snapToGrid,
+    setSnapToGrid,
+    gridSize,
+    setGridSize
+  } = useCanvas();
   const [defaultStrokeWidth, setDefaultStrokeWidth] = useState(2);
 
   return (
@@ -43,6 +51,15 @@ export const QuickSettings = () => {
                 id="smart-guides"
                 checked={rulersEnabled} 
                 onCheckedChange={setRulersEnabled} 
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Label htmlFor="snap-grid" className="text-sm">Snap to Grid</Label>
+              <Switch 
+                id="snap-grid"
+                checked={snapToGrid} 
+                onCheckedChange={setSnapToGrid} 
               />
             </div>
             
