@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
 import { LinePropertiesPanel } from "./LinePropertiesPanel";
+import { StylePresets } from "./StylePresets";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
@@ -115,6 +116,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       return obj.getObjects()[0]; // First object is the shape
     }
     return obj; // Return the object itself if not a group
+  };
+
+  // Helper functions to determine object types for context-aware panel
+  const isTextObject = (obj: any) => {
+    return obj?.type === 'textbox' || 
+           (obj?.type === 'group' && obj.getObjects().some((o: any) => o.type === 'textbox'));
+  };
+
+  const isLineObject = (obj: any) => {
+    return obj?.type === 'path' || 
+           obj?.type === 'line' || 
+           (obj as any)?.isFreeformLine;
+  };
+
+  const isShapeObject = (obj: any) => {
+    return obj?.type === 'rect' || 
+           obj?.type === 'circle' || 
+           obj?.type === 'ellipse' || 
+           obj?.type === 'polygon';
+  };
+
+  const isImageObject = (obj: any) => {
+    return obj?.type === 'image';
   };
 
   // Update text properties when selected object changes
@@ -718,10 +742,32 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
             </div>
           )}
 
-          <Tabs defaultValue="diagram" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 m-3">
-              <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>
-              <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
+          <Tabs defaultValue={selectedObject ? "style" : "diagram"} className="w-full">
+            <TabsList className="grid w-full m-3" style={{ gridTemplateColumns: `repeat(${
+              !selectedObject ? 2 : 
+              (isTextObject(selectedObject) ? 3 : isLineObject(selectedObject) ? 3 : 2)
+            }, minmax(0, 1fr))` }}>
+              {!selectedObject && <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>}
+              
+              {selectedObject && (
+                <>
+                  {(isShapeObject(selectedObject) || isImageObject(selectedObject) || selectedObject.type === 'group') && (
+                    <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
+                  )}
+                  
+                  {isTextObject(selectedObject) && (
+                    <TabsTrigger value="text" className="text-xs">Text</TabsTrigger>
+                  )}
+                  
+                  {isLineObject(selectedObject) && (
+                    <TabsTrigger value="line" className="text-xs">Line</TabsTrigger>
+                  )}
+                  
+                  <TabsTrigger value="arrange" className="text-xs">Arrange</TabsTrigger>
+                </>
+              )}
+              
+              {!selectedObject && <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>}
             </TabsList>
           
           <div className="px-3 pb-4">
@@ -803,9 +849,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
             </TabsContent>
             
             <TabsContent value="style" className="space-y-4 mt-0">
-              {/* Line Properties Panel - shown when a connector is selected */}
-              <LinePropertiesPanel />
-              
+              <StylePresets />
+              <div className="h-px bg-border my-2" />
               <StylePanel />
 
               {/* Icon Color & Tone - Only show for SVG groups (icons) */}

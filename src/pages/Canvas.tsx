@@ -23,6 +23,7 @@ import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDi
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { CommandPalette } from "@/components/canvas/CommandPalette";
+import { AlignmentGuides } from "@/components/canvas/AlignmentGuides";
 import { CropTool } from "@/components/canvas/CropTool";
 import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonalLineDialog";
@@ -553,6 +554,7 @@ const CanvasContent = () => {
         {/* Canvas */}
         <div className="flex-1 relative min-h-0">
           <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
+          <AlignmentGuides />
         </div>
 
         {/* Right Sidebar - Properties & Layers */}

@@ -64,6 +64,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     startY: null,
   });
 
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const clonedObjectRef = useRef<FabricObject | null>(null);
+
   const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
@@ -239,6 +242,46 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     canvas.on('selection:cleared', () => {
       setSelectedObject(null);
+    });
+
+    // Alt+Drag duplication handlers
+    canvas.on('mouse:down', async (e) => {
+      const activeObject = canvas.getActiveObject();
+      
+      if (e.e.altKey && activeObject && activeTool === 'select') {
+        e.e.preventDefault();
+        
+        try {
+          const cloned = await activeObject.clone();
+          cloned.set({
+            left: (activeObject.left || 0) + 10,
+            top: (activeObject.top || 0) + 10,
+            evented: true,
+          });
+          
+          canvas.add(cloned);
+          canvas.setActiveObject(cloned);
+          clonedObjectRef.current = cloned;
+          setIsDuplicating(true);
+          canvas.renderAll();
+        } catch (error) {
+          console.error('Failed to clone object:', error);
+        }
+      }
+    });
+
+    canvas.on('mouse:up', () => {
+      if (isDuplicating) {
+        setIsDuplicating(false);
+        clonedObjectRef.current = null;
+        toast.success("Object duplicated", { duration: 1000, className: 'animate-fade-in' });
+      }
+    });
+
+    canvas.on('mouse:move', (e) => {
+      if (e.e.altKey && canvas.getActiveObject() && activeTool === 'select') {
+        canvas.setCursor('copy');
+      }
     });
 
 
