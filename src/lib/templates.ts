@@ -101,16 +101,32 @@ export const TEMPLATES: Template[] = [
         { type: 'textbox', left: 55, top: 280, width: 50, text: 'Seed\nCells', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
         
         // Arrow 1
-        { type: 'line', left: 150, top: 290, x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#333333', strokeWidth: 3 },
-        { type: 'polygon', left: 245, top: 285, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333' },
+        { 
+          type: 'group',
+          left: 150,
+          top: 290,
+          subTargetCheck: false,
+          objects: [
+            { type: 'line', x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#333333', strokeWidth: 3, selectable: false, evented: false },
+            { type: 'polygon', left: 100, top: 0, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333', selectable: false, evented: false }
+          ]
+        },
         
         // Step 2: Culture
         { type: 'rect', left: 280, top: 240, width: 120, height: 100, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 3, rx: 8, ry: 8 },
         { type: 'textbox', left: 290, top: 275, width: 100, text: 'Culture\n48-72h', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
         
         // Arrow 2
-        { type: 'line', left: 420, top: 290, x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#333333', strokeWidth: 3 },
-        { type: 'polygon', left: 515, top: 285, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333' },
+        { 
+          type: 'group',
+          left: 420,
+          top: 290,
+          subTargetCheck: false,
+          objects: [
+            { type: 'line', x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#333333', strokeWidth: 3, selectable: false, evented: false },
+            { type: 'polygon', left: 100, top: 0, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333', selectable: false, evented: false }
+          ]
+        },
         
         // Step 3: Analysis
         { type: 'circle', left: 550, top: 240, radius: 50, fill: '#ffebee', stroke: '#ff5722', strokeWidth: 3 },
@@ -177,24 +193,48 @@ export const TEMPLATES: Template[] = [
         { type: 'textbox', left: 365, top: 97, width: 70, text: 'Start', fontSize: 16, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
         
         // Arrow down
-        { type: 'line', left: 400, top: 130, x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 395, top: 165, points: [{x:5,y:0},{x:0,y:-10},{x:10,y:-10}], fill: '#333333' },
+        { 
+          type: 'group',
+          left: 400,
+          top: 130,
+          subTargetCheck: false,
+          objects: [
+            { type: 'line', x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
+            { type: 'polygon', left: 0, top: 40, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+          ]
+        },
         
         // Process
         { type: 'rect', left: 350, top: 180, width: 100, height: 50, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 2 },
         { type: 'textbox', left: 355, top: 195, width: 90, text: 'Process\nStep', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
         
         // Arrow down
-        { type: 'line', left: 400, top: 230, x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 395, top: 265, points: [{x:5,y:0},{x:0,y:-10},{x:10,y:-10}], fill: '#333333' },
+        { 
+          type: 'group',
+          left: 400,
+          top: 230,
+          subTargetCheck: false,
+          objects: [
+            { type: 'line', x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
+            { type: 'polygon', left: 0, top: 40, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+          ]
+        },
         
         // Decision diamond
         { type: 'polygon', left: 400, top: 280, points: [{x:0,y:-40},{x:50,y:0},{x:0,y:40},{x:-50,y:0}], fill: '#fff3e0', stroke: '#ffb300', strokeWidth: 2 },
         { type: 'textbox', left: 365, top: 272, width: 70, text: 'Decision?', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
         
         // Yes arrow (right)
-        { type: 'line', left: 450, top: 280, x1: 0, y1: 0, x2: 60, y2: 0, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 505, top: 275, points: [{x:0,y:5},{x:-10,y:0},{x:-10,y:10}], fill: '#333333' },
+        { 
+          type: 'group',
+          left: 450,
+          top: 280,
+          subTargetCheck: false,
+          objects: [
+            { type: 'line', x1: 0, y1: 0, x2: 60, y2: 0, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
+            { type: 'polygon', left: 60, top: 0, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+          ]
+        },
         { type: 'textbox', left: 460, top: 255, width: 30, text: 'Yes', fontSize: 12, fontFamily: 'Inter' },
         
         // Process 2 (right)
@@ -202,19 +242,34 @@ export const TEMPLATES: Template[] = [
         { type: 'textbox', left: 525, top: 270, width: 90, text: 'Action A', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
         
         // No arrow (down)
-        { type: 'line', left: 400, top: 320, x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 395, top: 355, points: [{x:5,y:0},{x:0,y:-10},{x:10,y:-10}], fill: '#333333' },
+        { 
+          type: 'group',
+          left: 400,
+          top: 320,
+          subTargetCheck: false,
+          objects: [
+            { type: 'line', x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
+            { type: 'polygon', left: 0, top: 40, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+          ]
+        },
         { type: 'textbox', left: 405, top: 330, width: 30, text: 'No', fontSize: 12, fontFamily: 'Inter' },
         
         // Process 3 (down)
         { type: 'rect', left: 350, top: 370, width: 100, height: 50, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 2 },
         { type: 'textbox', left: 355, top: 385, width: 90, text: 'Action B', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
         
-        // Arrows to End
-        { type: 'line', left: 570, top: 305, x1: 0, y1: 0, x2: 0, y2: 135, stroke: '#333333', strokeWidth: 2 },
+        // Arrows to End - combined into single path with arrow
+        { 
+          type: 'group',
+          left: 570,
+          top: 305,
+          subTargetCheck: false,
+          objects: [
+            { type: 'line', x1: 0, y1: 0, x2: 0, y2: 135, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
+            { type: 'polygon', left: 0, top: 135, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+          ]
+        },
         { type: 'line', left: 400, top: 420, x1: 0, y1: 0, x2: 170, y2: 0, stroke: '#333333', strokeWidth: 2 },
-        { type: 'line', left: 570, top: 420, x1: 0, y1: 0, x2: 0, y2: 20, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 565, top: 435, points: [{x:5,y:0},{x:0,y:-10},{x:10,y:-10}], fill: '#333333' },
         
         // End
         { type: 'rect', left: 520, top: 450, width: 100, height: 50, fill: '#ffebee', stroke: '#f44336', strokeWidth: 2, rx: 25, ry: 25 },
@@ -458,24 +513,34 @@ export const TEMPLATES: Template[] = [
         
         // Arrow down
         {
-          type: "line",
+          type: "group",
           left: 400,
           top: 180,
-          x1: 0,
-          y1: 0,
-          x2: 0,
-          y2: 30,
-          stroke: "#000000",
-          strokeWidth: 2,
-        },
-        {
-          type: "polygon",
-          left: 400,
-          top: 210,
-          points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
-          fill: "#000000",
-          originX: "center",
-          originY: "center",
+          subTargetCheck: false,
+          objects: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 0,
+              y2: 30,
+              stroke: "#000000",
+              strokeWidth: 2,
+              selectable: false,
+              evented: false,
+            },
+            {
+              type: "polygon",
+              left: 0,
+              top: 30,
+              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              fill: "#000000",
+              originX: "center",
+              originY: "center",
+              selectable: false,
+              evented: false,
+            },
+          ],
         },
         
         // Excluded box
@@ -526,24 +591,34 @@ export const TEMPLATES: Template[] = [
         
         // Arrow from randomized down
         {
-          type: "line",
+          type: "group",
           left: 400,
           top: 270,
-          x1: 0,
-          y1: 0,
-          x2: 0,
-          y2: 30,
-          stroke: "#000000",
-          strokeWidth: 2,
-        },
-        {
-          type: "polygon",
-          left: 400,
-          top: 300,
-          points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
-          fill: "#000000",
-          originX: "center",
-          originY: "center",
+          subTargetCheck: false,
+          objects: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 0,
+              y2: 30,
+              stroke: "#000000",
+              strokeWidth: 2,
+              selectable: false,
+              evented: false,
+            },
+            {
+              type: "polygon",
+              left: 0,
+              top: 30,
+              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              fill: "#000000",
+              originX: "center",
+              originY: "center",
+              selectable: false,
+              evented: false,
+            },
+          ],
         },
         
         // ALLOCATION Section
@@ -646,44 +721,64 @@ export const TEMPLATES: Template[] = [
         
         // Arrows down from allocation
         {
-          type: "line",
+          type: "group",
           left: 225,
           top: 430,
-          x1: 0,
-          y1: 0,
-          x2: 0,
-          y2: 30,
-          stroke: "#000000",
-          strokeWidth: 2,
+          subTargetCheck: false,
+          objects: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 0,
+              y2: 30,
+              stroke: "#000000",
+              strokeWidth: 2,
+              selectable: false,
+              evented: false,
+            },
+            {
+              type: "polygon",
+              left: 0,
+              top: 30,
+              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              fill: "#000000",
+              originX: "center",
+              originY: "center",
+              selectable: false,
+              evented: false,
+            },
+          ],
         },
         {
-          type: "polygon",
-          left: 225,
-          top: 460,
-          points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
-          fill: "#000000",
-          originX: "center",
-          originY: "center",
-        },
-        {
-          type: "line",
+          type: "group",
           left: 575,
           top: 430,
-          x1: 0,
-          y1: 0,
-          x2: 0,
-          y2: 30,
-          stroke: "#000000",
-          strokeWidth: 2,
-        },
-        {
-          type: "polygon",
-          left: 575,
-          top: 460,
-          points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
-          fill: "#000000",
-          originX: "center",
-          originY: "center",
+          subTargetCheck: false,
+          objects: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 0,
+              y2: 30,
+              stroke: "#000000",
+              strokeWidth: 2,
+              selectable: false,
+              evented: false,
+            },
+            {
+              type: "polygon",
+              left: 0,
+              top: 30,
+              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              fill: "#000000",
+              originX: "center",
+              originY: "center",
+              selectable: false,
+              evented: false,
+            },
+          ],
         },
         
         // FOLLOW-UP Section
@@ -762,44 +857,64 @@ export const TEMPLATES: Template[] = [
         
         // Arrows down from follow-up
         {
-          type: "line",
+          type: "group",
           left: 225,
           top: 580,
-          x1: 0,
-          y1: 0,
-          x2: 0,
-          y2: 30,
-          stroke: "#000000",
-          strokeWidth: 2,
+          subTargetCheck: false,
+          objects: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 0,
+              y2: 30,
+              stroke: "#000000",
+              strokeWidth: 2,
+              selectable: false,
+              evented: false,
+            },
+            {
+              type: "polygon",
+              left: 0,
+              top: 30,
+              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              fill: "#000000",
+              originX: "center",
+              originY: "center",
+              selectable: false,
+              evented: false,
+            },
+          ],
         },
         {
-          type: "polygon",
-          left: 225,
-          top: 610,
-          points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
-          fill: "#000000",
-          originX: "center",
-          originY: "center",
-        },
-        {
-          type: "line",
+          type: "group",
           left: 575,
           top: 580,
-          x1: 0,
-          y1: 0,
-          x2: 0,
-          y2: 30,
-          stroke: "#000000",
-          strokeWidth: 2,
-        },
-        {
-          type: "polygon",
-          left: 575,
-          top: 610,
-          points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
-          fill: "#000000",
-          originX: "center",
-          originY: "center",
+          subTargetCheck: false,
+          objects: [
+            {
+              type: "line",
+              x1: 0,
+              y1: 0,
+              x2: 0,
+              y2: 30,
+              stroke: "#000000",
+              strokeWidth: 2,
+              selectable: false,
+              evented: false,
+            },
+            {
+              type: "polygon",
+              left: 0,
+              top: 30,
+              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              fill: "#000000",
+              originX: "center",
+              originY: "center",
+              selectable: false,
+              evented: false,
+            },
+          ],
         },
         
         // ANALYSIS Section

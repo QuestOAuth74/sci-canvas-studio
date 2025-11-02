@@ -158,6 +158,7 @@ export class CurvedLineTool {
     const group = new Group(elements, {
       selectable: true,
       hasControls: true,
+      subTargetCheck: false, // Prevent selecting individual marker elements
     });
 
     // Store custom properties

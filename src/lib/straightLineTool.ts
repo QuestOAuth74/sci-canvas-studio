@@ -428,6 +428,7 @@ export class StraightLineTool {
     if (objects.length > 1) {
       finalObject = new Group(objects, {
         selectable: true,
+        subTargetCheck: false, // Prevent selecting individual marker elements
       });
       
       // Store custom properties

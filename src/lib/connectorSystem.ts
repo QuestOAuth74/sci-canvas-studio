@@ -1,4 +1,4 @@
-import { Path, Point, FabricObject, Canvas as FabricCanvas, Polygon } from "fabric";
+import { Path, Point, FabricObject, Canvas as FabricCanvas, Polygon, Group } from "fabric";
 import { ConnectorData, ShapeWithPorts, ArrowMarkerType, LineStyle, RoutingStyle } from "@/types/connector";
 import { calculateShapePorts, findNearestPort } from "./portManager";
 import { routeStraight, routeCurved, routeOrthogonal, pointsToPath, smoothOrthogonalPath } from "./lineRouting";
@@ -177,12 +177,22 @@ export function createConnector(
   (path as ShapeWithPorts).connectorData = connectorData;
   (path as ShapeWithPorts).isConnector = true;
 
-  // Add to canvas
-  canvas.add(path);
-  if (startMarkerObj) canvas.add(startMarkerObj);
-  if (endMarkerObj) canvas.add(endMarkerObj);
+  // Group path and markers together
+  const elements: FabricObject[] = [path];
+  if (startMarkerObj) elements.push(startMarkerObj);
+  if (endMarkerObj) elements.push(endMarkerObj);
 
-  return path;
+  const connectorGroup = new Group(elements, {
+    selectable: true,
+    subTargetCheck: false, // Prevent selecting individual elements
+  } as any);
+
+  // Store connector data on the group instead of path
+  (connectorGroup as ShapeWithPorts).connectorData = connectorData;
+  (connectorGroup as ShapeWithPorts).isConnector = true;
+
+  canvas.add(connectorGroup);
+  return connectorGroup;
 }
 
 // Update connector when connected shapes move
@@ -193,6 +203,10 @@ export function updateConnector(
   if (!connector.connectorData || !connector.isConnector) return;
 
   const data = connector.connectorData;
+  
+  // Get the path from the group (first object)
+  const group = connector as any;
+  const path = group._objects?.[0] as Path;
   
   // Find connected shapes
   const sourceShape = data.sourceShapeId 
@@ -230,8 +244,14 @@ export function updateConnector(
       pathData = pointsToPath(routeStraight(start, end));
   }
 
-  if (connector instanceof Path) {
-    connector.set({ path: (Path as any).parsePath(pathData) } as any);
+  // Update the path within the group
+  if (path instanceof Path) {
+    path.set({ path: (Path as any).parsePath(pathData) } as any);
+  }
+
+  // Recalculate group bounds
+  if (group instanceof Group) {
+    group.setCoords();
   }
 
   canvas.renderAll();
