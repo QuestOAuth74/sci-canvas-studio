@@ -45,7 +45,6 @@ export const useAlignmentGuides = () => {
         // Vertical alignment checks
         // Left edges
         if (Math.abs(movingBounds.left - targetBounds.left) < snapThreshold) {
-          movingObj.set({ left: target.left });
           const line = createGuideLine([targetBounds.left, 0, targetBounds.left, canvas.height || 0]);
           guideLinesRef.current.push(line);
           canvas.add(line);
@@ -53,8 +52,6 @@ export const useAlignmentGuides = () => {
         
         // Center vertical alignment
         if (Math.abs(movingCenterX - targetCenterX) < snapThreshold) {
-          const offset = targetCenterX - movingCenterX;
-          movingObj.set({ left: (movingObj.left || 0) + offset });
           const line = createGuideLine([targetCenterX, 0, targetCenterX, canvas.height || 0]);
           guideLinesRef.current.push(line);
           canvas.add(line);
@@ -62,8 +59,6 @@ export const useAlignmentGuides = () => {
         
         // Right edges
         if (Math.abs(movingRight - targetRight) < snapThreshold) {
-          const offset = targetRight - movingRight;
-          movingObj.set({ left: (movingObj.left || 0) + offset });
           const line = createGuideLine([targetRight, 0, targetRight, canvas.height || 0]);
           guideLinesRef.current.push(line);
           canvas.add(line);
@@ -72,7 +67,6 @@ export const useAlignmentGuides = () => {
         // Horizontal alignment checks
         // Top edges
         if (Math.abs(movingBounds.top - targetBounds.top) < snapThreshold) {
-          movingObj.set({ top: target.top });
           const line = createGuideLine([0, targetBounds.top, canvas.width || 0, targetBounds.top]);
           guideLinesRef.current.push(line);
           canvas.add(line);
@@ -80,8 +74,6 @@ export const useAlignmentGuides = () => {
         
         // Center horizontal alignment
         if (Math.abs(movingCenterY - targetCenterY) < snapThreshold) {
-          const offset = targetCenterY - movingCenterY;
-          movingObj.set({ top: (movingObj.top || 0) + offset });
           const line = createGuideLine([0, targetCenterY, canvas.width || 0, targetCenterY]);
           guideLinesRef.current.push(line);
           canvas.add(line);
@@ -89,8 +81,6 @@ export const useAlignmentGuides = () => {
         
         // Bottom edges
         if (Math.abs(movingBottom - targetBottom) < snapThreshold) {
-          const offset = targetBottom - movingBottom;
-          movingObj.set({ top: (movingObj.top || 0) + offset });
           const line = createGuideLine([0, targetBottom, canvas.width || 0, targetBottom]);
           guideLinesRef.current.push(line);
           canvas.add(line);
