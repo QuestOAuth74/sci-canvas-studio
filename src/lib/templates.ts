@@ -10,337 +10,563 @@ export interface Template {
 }
 
 export const TEMPLATES: Template[] = [
-  // Scientific Templates
   {
-    id: 'western-blot',
-    name: 'Western Blot Figure',
-    description: 'Basic western blot with lanes, bands, and labels for protein detection',
-    category: 'scientific',
-    paperSize: 'letter',
-    dimensions: { width: 800, height: 600 },
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjUwIiB5PSI1MCIgd2lkdGg9IjIwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNmNWY1ZjUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjkwIiB5MT0iNTAiIHgyPSI5MCIgeTI9IjE1MCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiLz48bGluZSB4MT0iMTMwIiB5MT0iNTAiIHgyPSIxMzAiIHkyPSIxNTAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxIi8+PGxpbmUgeDE9IjE3MCIgeTE9IjUwIiB4Mj0iMTcwIiB5Mj0iMTUwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMSIvPjxsaW5lIHgxPSIyMTAiIHkxPSI1MCIgeDI9IjIxMCIgeTI9IjE1MCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSI2MCIgeT0iNzAiIHdpZHRoPSIyMCIgaGVpZ2h0PSI1IiBmaWxsPSIjNDQ0Ii8+PHJlY3QgeD0iMTAwIiB5PSI3MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjUiIGZpbGw9IiM0NDQiLz48cmVjdCB4PSIxNDAiIHk9IjcwIiB3aWR0aD0iMjAiIGhlaWdodD0iNSIgZmlsbD0iIzQ0NCIvPjxyZWN0IHg9IjE4MCIgeT0iNzAiIHdpZHRoPSIyMCIgaGVpZ2h0PSI1IiBmaWxsPSIjNDQ0Ii8+PHRleHQgeD0iMTUwIiB5PSIxNzUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+V2VzdGVybiBCbG90PC90ZXh0Pjwvc3ZnPg==',
+    id: "western-blot",
+    name: "Western Blot",
+    description: "Standard Western blot layout for protein analysis",
+    category: "scientific",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjIyMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjYwIiB5PSI2MCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZTBlN2ZmIi8+PHJlY3QgeD0iMTAwIiB5PSI2MCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZTBlN2ZmIi8+PHJlY3QgeD0iMTQwIiB5PSI2MCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZTBlN2ZmIi8+PHJlY3QgeD0iMTgwIiB5PSI2MCIgd2lkdGg9IjMwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjZTBlN2ZmIi8+PC9zdmc+",
     canvasData: {
-      version: '6.0.0',
+      version: "6.0.0",
       objects: [
+        { type: 'rect', left: 100, top: 50, width: 600, height: 400, fill: '#ffffff', stroke: '#3B82F6', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 120, top: 70, width: 560, text: 'Western Blot Analysis', fontSize: 20, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e293b' },
+        { type: 'line', left: 120, top: 110, x1: 0, y1: 0, x2: 560, y2: 0, stroke: '#cbd5e1', strokeWidth: 2 },
+        
+        { type: 'rect', left: 150, top: 140, width: 80, height: 250, fill: '#EEF2FF', stroke: '#6366F1', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 160, top: 400, width: 60, text: 'Lane 1', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'rect', left: 250, top: 140, width: 80, height: 250, fill: '#EEF2FF', stroke: '#6366F1', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 260, top: 400, width: 60, text: 'Lane 2', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'rect', left: 350, top: 140, width: 80, height: 250, fill: '#EEF2FF', stroke: '#6366F1', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 360, top: 400, width: 60, text: 'Lane 3', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'rect', left: 450, top: 140, width: 80, height: 250, fill: '#EEF2FF', stroke: '#6366F1', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 460, top: 400, width: 60, text: 'Lane 4', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'rect', left: 550, top: 140, width: 80, height: 250, fill: '#EEF2FF', stroke: '#6366F1', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 560, top: 400, width: 60, text: 'Lane 5', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'rect', left: 165, top: 200, width: 50, height: 12, fill: '#4F46E5', rx: 2, ry: 2 },
+        { type: 'rect', left: 265, top: 200, width: 50, height: 12, fill: '#4F46E5', rx: 2, ry: 2 },
+        { type: 'rect', left: 365, top: 200, width: 50, height: 12, fill: '#4F46E5', rx: 2, ry: 2 },
+        { type: 'rect', left: 465, top: 200, width: 50, height: 12, fill: '#4F46E5', rx: 2, ry: 2 },
+        { type: 'rect', left: 565, top: 200, width: 50, height: 12, fill: '#4F46E5', rx: 2, ry: 2 },
+        
+        { type: 'textbox', left: 70, top: 195, width: 60, text: '55 kDa', fontSize: 12, fontFamily: 'Inter', textAlign: 'right', fill: '#64748b' },
+      ]
+    },
+    dimensions: { width: 800, height: 500 },
+    paperSize: "letter",
+  },
+  {
+    id: "microscopy-panel",
+    name: "Microscopy Panel",
+    description: "Multi-panel layout for microscopy images",
+    category: "scientific",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI4MCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iMTYwIiB5PSIyMCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI4MCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iMjAiIHk9IjEyMCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI4MCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iMTYwIiB5PSIxMjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iODAiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==",
+    canvasData: {
+      version: "6.0.0",
+      objects: [
+        { type: 'textbox', left: 300, top: 30, width: 200, text: 'Microscopy Analysis', fontSize: 22, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e293b', textAlign: 'center' },
+        
+        { type: 'rect', left: 100, top: 80, width: 300, height: 250, fill: '#F8FAFC', stroke: '#06B6D4', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 120, top: 100, width: 260, text: 'A', fontSize: 24, fontFamily: 'Inter', fontWeight: 'bold', fill: '#06B6D4' },
+        { type: 'textbox', left: 120, top: 290, width: 260, text: 'DAPI', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'rect', left: 450, top: 80, width: 300, height: 250, fill: '#F8FAFC', stroke: '#06B6D4', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 470, top: 100, width: 260, text: 'B', fontSize: 24, fontFamily: 'Inter', fontWeight: 'bold', fill: '#06B6D4' },
+        { type: 'textbox', left: 470, top: 290, width: 260, text: 'GFP', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'rect', left: 100, top: 380, width: 300, height: 250, fill: '#F8FAFC', stroke: '#06B6D4', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 120, top: 400, width: 260, text: 'C', fontSize: 24, fontFamily: 'Inter', fontWeight: 'bold', fill: '#06B6D4' },
+        { type: 'textbox', left: 120, top: 590, width: 260, text: 'RFP', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'rect', left: 450, top: 380, width: 300, height: 250, fill: '#F8FAFC', stroke: '#06B6D4', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 470, top: 400, width: 260, text: 'D', fontSize: 24, fontFamily: 'Inter', fontWeight: 'bold', fill: '#06B6D4' },
+        { type: 'textbox', left: 470, top: 590, width: 260, text: 'Merge', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#475569' },
+        
+        { type: 'textbox', left: 100, top: 660, width: 650, text: 'Scale bar: 50 μm', fontSize: 12, fontFamily: 'Inter', fill: '#64748b', textAlign: 'center' },
+      ]
+    },
+    dimensions: { width: 800, height: 720 },
+    paperSize: "letter",
+  },
+  {
+    id: "cell-workflow",
+    name: "Cell Workflow",
+    description: "Cellular process workflow diagram",
+    category: "scientific",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxjaXJjbGUgY3g9IjYwIiBjeT0iMTAwIiByPSIzMCIgZmlsbD0iI2UwZTdmZiIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iOTAiIHkxPSIxMDAiIHgyPSIxMzAiIHkyPSIxMDAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iMTYwIiBjeT0iMTAwIiByPSIzMCIgZmlsbD0iI2UwZTdmZiIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMTkwIiB5MT0iMTAwIiB4Mj0iMjMwIiB5Mj0iMTAwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjI2MCIgY3k9IjEwMCIgcj0iMzAiIGZpbGw9IiNlMGU3ZmYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+",
+    canvasData: {
+      version: "6.0.0",
+      objects: [
+        { type: 'textbox', left: 250, top: 30, width: 300, text: 'Cell Signaling Pathway', fontSize: 22, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e293b', textAlign: 'center' },
+        
+        { type: 'rect', left: 100, top: 100, width: 140, height: 100, fill: '#DBEAFE', stroke: '#3B82F6', strokeWidth: 3, rx: 50, ry: 50 },
+        { type: 'textbox', left: 120, top: 130, width: 100, text: 'Receptor', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e40af' },
+        
         {
-          type: 'rect',
-          left: 200,
-          top: 150,
-          width: 400,
-          height: 200,
-          fill: '#f5f5f5',
-          stroke: '#333333',
-          strokeWidth: 2,
+          type: 'group',
+          left: 240,
+          top: 125,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 80, y2: 0, stroke: '#475569', strokeWidth: 3 },
+            { type: 'polygon', left: 80, top: -6, points: [{x:0,y:0},{x:-12,y:-6},{x:-12,y:6}], fill: '#475569' }
+          ]
         },
-        // Lane dividers
-        { type: 'line', left: 260, top: 150, x1: 0, y1: 0, x2: 0, y2: 200, stroke: '#666666', strokeWidth: 1 },
-        { type: 'line', left: 320, top: 150, x1: 0, y1: 0, x2: 0, y2: 200, stroke: '#666666', strokeWidth: 1 },
-        { type: 'line', left: 380, top: 150, x1: 0, y1: 0, x2: 0, y2: 200, stroke: '#666666', strokeWidth: 1 },
-        { type: 'line', left: 440, top: 150, x1: 0, y1: 0, x2: 0, y2: 200, stroke: '#666666', strokeWidth: 1 },
-        { type: 'line', left: 500, top: 150, x1: 0, y1: 0, x2: 0, y2: 200, stroke: '#666666', strokeWidth: 1 },
-        { type: 'line', left: 560, top: 150, x1: 0, y1: 0, x2: 0, y2: 200, stroke: '#666666', strokeWidth: 1 },
-        // Bands
-        { type: 'rect', left: 210, top: 190, width: 40, height: 8, fill: '#444444' },
-        { type: 'rect', left: 270, top: 190, width: 40, height: 8, fill: '#444444' },
-        { type: 'rect', left: 330, top: 190, width: 40, height: 8, fill: '#444444' },
-        { type: 'rect', left: 390, top: 190, width: 40, height: 8, fill: '#444444' },
-        { type: 'rect', left: 450, top: 190, width: 40, height: 8, fill: '#444444' },
-        { type: 'rect', left: 510, top: 190, width: 40, height: 8, fill: '#444444' },
-        // Labels
-        { type: 'textbox', left: 230, top: 120, width: 200, text: 'Target Protein', fontSize: 16, fontFamily: 'Inter' },
-        { type: 'textbox', left: 180, top: 360, width: 460, text: 'Lane 1: Control | Lane 2: Treatment A | Lane 3: Treatment B', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
-      ],
+        
+        { type: 'rect', left: 330, top: 100, width: 140, height: 100, fill: '#FEF3C7', stroke: '#F59E0B', strokeWidth: 3, rx: 50, ry: 50 },
+        { type: 'textbox', left: 350, top: 130, width: 100, text: 'Kinase', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#92400e' },
+        
+        {
+          type: 'group',
+          left: 470,
+          top: 125,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 80, y2: 0, stroke: '#475569', strokeWidth: 3 },
+            { type: 'polygon', left: 80, top: -6, points: [{x:0,y:0},{x:-12,y:-6},{x:-12,y:6}], fill: '#475569' }
+          ]
+        },
+        
+        { type: 'rect', left: 560, top: 100, width: 140, height: 100, fill: '#D1FAE5', stroke: '#10B981', strokeWidth: 3, rx: 50, ry: 50 },
+        { type: 'textbox', left: 580, top: 120, width: 100, text: 'Transcription Factor', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#065f46' },
+        
+        {
+          type: 'group',
+          left: 620,
+          top: 200,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 80, stroke: '#475569', strokeWidth: 3 },
+            { type: 'polygon', left: -6, top: 80, points: [{x:0,y:0},{x:-6,y:-12},{x:6,y:-12}], fill: '#475569' }
+          ]
+        },
+        
+        { type: 'rect', left: 560, top: 290, width: 140, height: 100, fill: '#FCE7F3', stroke: '#EC4899', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 580, top: 320, width: 100, text: 'Gene Expression', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#9f1239' },
+      ]
     },
+    dimensions: { width: 800, height: 450 },
+    paperSize: "letter",
   },
   {
-    id: 'microscopy-panel',
-    name: 'Microscopy Panel',
-    description: '2x2 image panel layout for microscopy or imaging data',
-    category: 'scientific',
-    paperSize: 'letter',
+    id: "experimental-timeline",
+    name: "Experimental Timeline",
+    description: "Timeline for experimental procedures",
+    category: "scientific",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxsaW5lIHgxPSIyMCIgeTE9IjEwMCIgeDI9IjI4MCIgeTI9IjEwMCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjMiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjEwMCIgcj0iMTAiIGZpbGw9IiM0Mjg1RjQiLz48Y2lyY2xlIGN4PSIxNTAiIGN5PSIxMDAiIHI9IjEwIiBmaWxsPSIjNDI4NUY0Ii8+PGNpcmNsZSBjeD0iMjQwIiBjeT0iMTAwIiByPSIxMCIgZmlsbD0iIzQyODVGNCIvPjwvc3ZnPg==",
+    canvasData: {
+      version: "6.0.0",
+      objects: [
+        { type: 'textbox', left: 250, top: 30, width: 300, text: 'Experiment Timeline', fontSize: 22, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e293b', textAlign: 'center' },
+        
+        { type: 'line', left: 100, top: 150, x1: 0, y1: 0, x2: 600, y2: 0, stroke: '#64748b', strokeWidth: 4 },
+        
+        { type: 'circle', left: 95, top: 145, radius: 12, fill: '#3B82F6', stroke: '#1e40af', strokeWidth: 2 },
+        { type: 'textbox', left: 70, top: 180, width: 80, text: 'Day 0\nStart', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b', fontWeight: 'bold' },
+        
+        { type: 'circle', left: 245, top: 145, radius: 12, fill: '#F59E0B', stroke: '#d97706', strokeWidth: 2 },
+        { type: 'textbox', left: 205, top: 180, width: 100, text: 'Day 3\nTreatment', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b', fontWeight: 'bold' },
+        
+        { type: 'circle', left: 395, top: 145, radius: 12, fill: '#10B981', stroke: '#059669', strokeWidth: 2 },
+        { type: 'textbox', left: 360, top: 180, width: 90, text: 'Day 7\nAnalysis', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b', fontWeight: 'bold' },
+        
+        { type: 'circle', left: 545, top: 145, radius: 12, fill: '#8B5CF6', stroke: '#7c3aed', strokeWidth: 2 },
+        { type: 'textbox', left: 515, top: 180, width: 80, text: 'Day 14\nResults', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b', fontWeight: 'bold' },
+        
+        { type: 'circle', left: 695, top: 145, radius: 12, fill: '#EC4899', stroke: '#db2777', strokeWidth: 2 },
+        { type: 'textbox', left: 650, top: 180, width: 110, text: 'Day 21\nPublication', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b', fontWeight: 'bold' },
+      ]
+    },
+    dimensions: { width: 800, height: 280 },
+    paperSize: "letter",
+  },
+  {
+    id: "basic-flowchart",
+    name: "Basic Flowchart",
+    description: "Simple flowchart with decision points",
+    category: "flowchart",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxyZWN0IHg9IjEwMCIgeT0iMjAiIHdpZHRoPSIxMDAiIGhlaWdodD0iNDAiIGZpbGw9IiNlMGU3ZmYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiByeD0iNSIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDgwIDIwMCwxMTAgMTUwLDE0MCAxMDAsMTEwIiBmaWxsPSIjZmZlMGUwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjEwMCIgeT0iMTYwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjZTBlN2ZmIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIgcng9IjUiLz48L3N2Zz4=",
+    canvasData: {
+      version: "6.0.0",
+      objects: [
+        { type: 'rect', left: 300, top: 50, width: 200, height: 80, fill: '#DBEAFE', stroke: '#3B82F6', strokeWidth: 3, rx: 40, ry: 40 },
+        { type: 'textbox', left: 320, top: 70, width: 160, text: 'Start', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 390,
+          top: 130,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 50, stroke: '#475569', strokeWidth: 3 },
+            { type: 'polygon', left: -6, top: 50, points: [{x:0,y:0},{x:-6,y:-12},{x:6,y:-12}], fill: '#475569' }
+          ]
+        },
+        
+        { type: 'polygon', left: 300, top: 190, points: [{x:100,y:0},{x:200,y:50},{x:100,y:100},{x:0,y:50}], fill: '#FEF3C7', stroke: '#F59E0B', strokeWidth: 3 },
+        { type: 'textbox', left: 330, top: 220, width: 140, text: 'Decision?', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 500,
+          top: 230,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#475569', strokeWidth: 3 },
+            { type: 'polygon', left: 100, top: -6, points: [{x:0,y:0},{x:-12,y:-6},{x:-12,y:6}], fill: '#475569' }
+          ]
+        },
+        { type: 'textbox', left: 530, top: 205, width: 40, text: 'Yes', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', fill: '#059669' },
+        
+        {
+          type: 'group',
+          left: 390,
+          top: 290,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 50, stroke: '#475569', strokeWidth: 3 },
+            { type: 'polygon', left: -6, top: 50, points: [{x:0,y:0},{x:-6,y:-12},{x:6,y:-12}], fill: '#475569' }
+          ]
+        },
+        { type: 'textbox', left: 405, top: 305, width: 30, text: 'No', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', fill: '#DC2626' },
+        
+        { type: 'rect', left: 610, top: 200, width: 180, height: 80, fill: '#D1FAE5', stroke: '#10B981', strokeWidth: 3, rx: 10, ry: 10 },
+        { type: 'textbox', left: 630, top: 220, width: 140, text: 'Process A', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+        
+        { type: 'rect', left: 310, top: 350, width: 180, height: 80, fill: '#FCE7F3', stroke: '#EC4899', strokeWidth: 3, rx: 10, ry: 10 },
+        { type: 'textbox', left: 330, top: 370, width: 140, text: 'Process B', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 390,
+          top: 430,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 50, stroke: '#475569', strokeWidth: 3 },
+            { type: 'polygon', left: -6, top: 50, points: [{x:0,y:0},{x:-6,y:-12},{x:6,y:-12}], fill: '#475569' }
+          ]
+        },
+        
+        {
+          type: 'group',
+          left: 600,
+          top: 240,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 100, y2: 240, stroke: '#475569', strokeWidth: 3 },
+            { type: 'polygon', left: 94, top: 240, points: [{x:0,y:0},{x:-12,y:-6},{x:-6,y:-12}], fill: '#475569' }
+          ]
+        },
+        
+        { type: 'rect', left: 300, top: 490, width: 200, height: 80, fill: '#DBEAFE', stroke: '#3B82F6', strokeWidth: 3, rx: 40, ry: 40 },
+        { type: 'textbox', left: 320, top: 510, width: 160, text: 'End', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+      ]
+    },
     dimensions: { width: 800, height: 600 },
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjMwIiB5PSIzMCIgd2lkdGg9IjExMCIgaGVpZ2h0PSI3MCIgZmlsbD0iI2U1ZTVlNSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48cmVjdCB4PSIxNjAiIHk9IjMwIiB3aWR0aD0iMTEwIiBoZWlnaHQ9IjcwIiBmaWxsPSIjZTVlNWU1IiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjMwIiB5PSIxMTAiIHdpZHRoPSIxMTAiIGhlaWdodD0iNzAiIGZpbGw9IiNlNWU1ZTUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iMTYwIiB5PSIxMTAiIHdpZHRoPSIxMTAiIGhlaWdodD0iNzAiIGZpbGw9IiNlNWU1ZTUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iODUiIHk9IjcwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkE8L3RleHQ+PHRleHQgeD0iMjE1IiB5PSI3MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5CPC90ZXh0Pjx0ZXh0IHg9Ijg1IiB5PSIxNTAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QzwvdGV4dD48dGV4dCB4PSIyMTUiIHk9IjE1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5EPC90ZXh0Pjwvc3ZnPg==',
-    canvasData: {
-      version: '6.0.0',
-      objects: [
-        // Top left panel
-        { type: 'rect', left: 150, top: 100, width: 180, height: 140, fill: '#e5e5e5', stroke: '#333333', strokeWidth: 2 },
-        { type: 'textbox', left: 215, top: 75, width: 50, text: 'A', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center' },
-        { type: 'textbox', left: 150, top: 250, width: 180, text: 'Control', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
-        
-        // Top right panel
-        { type: 'rect', left: 350, top: 100, width: 180, height: 140, fill: '#e5e5e5', stroke: '#333333', strokeWidth: 2 },
-        { type: 'textbox', left: 415, top: 75, width: 50, text: 'B', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center' },
-        { type: 'textbox', left: 350, top: 250, width: 180, text: 'Treatment', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
-        
-        // Bottom left panel
-        { type: 'rect', left: 150, top: 280, width: 180, height: 140, fill: '#e5e5e5', stroke: '#333333', strokeWidth: 2 },
-        { type: 'textbox', left: 215, top: 255, width: 50, text: 'C', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center' },
-        { type: 'textbox', left: 150, top: 430, width: 180, text: 'Merge', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
-        
-        // Bottom right panel
-        { type: 'rect', left: 350, top: 280, width: 180, height: 140, fill: '#e5e5e5', stroke: '#333333', strokeWidth: 2 },
-        { type: 'textbox', left: 415, top: 255, width: 50, text: 'D', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center' },
-        { type: 'textbox', left: 350, top: 430, width: 180, text: 'Quantification', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
-      ],
-    },
+    paperSize: "letter",
   },
   {
-    id: 'cell-workflow',
-    name: 'Cell Culture Workflow',
-    description: 'Step-by-step cell culture process with arrows and labels',
-    category: 'scientific',
-    paperSize: 'letter',
-    dimensions: { width: 1000, height: 600 },
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjUwIiBjeT0iMTAwIiByPSIyNSIgZmlsbD0iI2U4ZjVlOSIgc3Ryb2tlPSIjNGNhZjUwIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iNzUiIHkxPSIxMDAiIHgyPSIxMTAiIHkyPSIxMDAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBtYXJrZXItZW5kPSJ1cmwoI2Fycm93KSIvPjxyZWN0IHg9IjExMCIgeT0iNzUiIHdpZHRoPSI2MCIgaGVpZ2h0PSI1MCIgZmlsbD0iI2UzZjJmZCIgc3Ryb2tlPSIjMjE5NmYzIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMTcwIiB5MT0iMTAwIiB4Mj0iMjA1IiB5Mj0iMTAwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIgbWFya2VyLWVuZD0idXJsKCNhcnJvdykiLz48Y2lyY2xlIGN4PSIyMzAiIGN5PSIxMDAiIHI9IjI1IiBmaWxsPSIjZmZlYmVlIiBzdHJva2U9IiNmZjU3MjIiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjUwIiB5PSIxNTUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U2VlZDwvdGV4dD48dGV4dCB4PSIxNDAiIHk9IjE1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5DdWx0dXJlPC90ZXh0Pjx0ZXh0IHg9IjIzMCIgeT0iMTU1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFuYWx5c2lzPC90ZXh0PjxkZWZzPjxtYXJrZXIgaWQ9ImFycm93IiBtYXJrZXJXaWR0aD0iMTAiIG1hcmtlckhlaWdodD0iMTAiIHJlZlg9IjUiIHJlZlk9IjMiIG9yaWVudD0iYXV0byI+PHBhdGggZD0iTSAwIDAgTCA1IDMgTCAwIDYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9tYXJrZXI+PC9kZWZzPjwvc3ZnPg==',
+    id: "swim-lane-diagram",
+    name: "Swim Lane Diagram",
+    description: "Process flow with swim lanes for different actors",
+    category: "flowchart",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSI1MCIgZmlsbD0iI2UwZTdmZiIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSIyMCIgeT0iNzAiIHdpZHRoPSIyNjAiIGhlaWdodD0iNTAiIGZpbGw9IiNmZmUwZTAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHJlY3QgeD0iMjAiIHk9IjEyMCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSI1MCIgZmlsbD0iI2UwZmZlMCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=",
     canvasData: {
-      version: '6.0.0',
+      version: "6.0.0",
       objects: [
-        // Step 1: Seed
-        { type: 'circle', left: 80, top: 240, radius: 50, fill: '#e8f5e9', stroke: '#4caf50', strokeWidth: 3 },
-        { type: 'textbox', left: 55, top: 280, width: 50, text: 'Seed\nCells', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
+        { type: 'textbox', left: 300, top: 30, width: 200, text: 'Process Flow', fontSize: 22, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e293b', textAlign: 'center' },
         
-        // Arrow 1
-        { type: 'line', left: 150, top: 290, x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#333333', strokeWidth: 3 },
-        { type: 'polygon', left: 245, top: 285, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333' },
+        { type: 'rect', left: 50, top: 80, width: 700, height: 120, fill: '#EEF2FF', stroke: '#cbd5e1', strokeWidth: 2 },
+        { type: 'textbox', left: 70, top: 120, width: 100, text: 'Customer', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', fill: '#3B82F6' },
         
-        // Step 2: Culture
-        { type: 'rect', left: 280, top: 240, width: 120, height: 100, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 3, rx: 8, ry: 8 },
-        { type: 'textbox', left: 290, top: 275, width: 100, text: 'Culture\n48-72h', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
+        { type: 'rect', left: 50, top: 200, width: 700, height: 120, fill: '#FEF3C7', stroke: '#cbd5e1', strokeWidth: 2 },
+        { type: 'textbox', left: 70, top: 240, width: 100, text: 'Sales Team', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', fill: '#F59E0B' },
         
-        // Arrow 2
-        { type: 'line', left: 420, top: 290, x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#333333', strokeWidth: 3 },
-        { type: 'polygon', left: 515, top: 285, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333' },
+        { type: 'rect', left: 50, top: 320, width: 700, height: 120, fill: '#D1FAE5', stroke: '#cbd5e1', strokeWidth: 2 },
+        { type: 'textbox', left: 70, top: 360, width: 100, text: 'Fulfillment', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', fill: '#10B981' },
         
-        // Step 3: Analysis
-        { type: 'circle', left: 550, top: 240, radius: 50, fill: '#ffebee', stroke: '#ff5722', strokeWidth: 3 },
-        { type: 'textbox', left: 525, top: 280, width: 50, text: 'Analysis', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
+        { type: 'rect', left: 220, top: 110, width: 140, height: 60, fill: '#DBEAFE', stroke: '#3B82F6', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 235, top: 125, width: 110, text: 'Submit Order', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b' },
         
-        // Title
-        { type: 'textbox', left: 250, top: 150, width: 300, text: 'Cell Culture Workflow', fontSize: 20, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
-      ],
+        {
+          type: 'group',
+          left: 360,
+          top: 135,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 60, y2: 0, stroke: '#475569', strokeWidth: 2 },
+            { type: 'polygon', left: 60, top: -5, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#475569' }
+          ]
+        },
+        
+        { type: 'rect', left: 430, top: 230, width: 140, height: 60, fill: '#FDE68A', stroke: '#F59E0B', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 445, top: 240, width: 110, text: 'Review Order', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 500,
+          top: 170,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 60, stroke: '#475569', strokeWidth: 2 },
+            { type: 'polygon', left: -5, top: 60, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#475569' }
+          ]
+        },
+        
+        { type: 'rect', left: 610, top: 350, width: 120, height: 60, fill: '#A7F3D0', stroke: '#10B981', strokeWidth: 3, rx: 8, ry: 8 },
+        { type: 'textbox', left: 620, top: 365, width: 100, text: 'Ship Order', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 570,
+          top: 260,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 100, y2: 90, stroke: '#475569', strokeWidth: 2 },
+            { type: 'polygon', left: 95, top: 90, points: [{x:0,y:0},{x:-10,y:-5},{x:-5,y:-10}], fill: '#475569' }
+          ]
+        },
+      ]
     },
+    dimensions: { width: 800, height: 470 },
+    paperSize: "letter",
   },
   {
-    id: 'experimental-timeline',
-    name: 'Experimental Timeline',
-    description: 'Timeline showing treatment groups and timepoints',
-    category: 'scientific',
-    paperSize: 'letter',
-    dimensions: { width: 1000, height: 600 },
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxsaW5lIHgxPSIzMCIgeTE9IjEwMCIgeDI9IjI3MCIgeTI9IjEwMCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjMiLz48Y2lyY2xlIGN4PSI2MCIgY3k9IjEwMCIgcj0iOCIgZmlsbD0iIzQzOTZmZiIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjEwMCIgcj0iOCIgZmlsbD0iIzQzOTZmZiIvPjxjaXJjbGUgY3g9IjE4MCIgY3k9IjEwMCIgcj0iOCIgZmlsbD0iIzQzOTZmZiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjEwMCIgcj0iOCIgZmlsbD0iIzQzOTZmZiIvPjx0ZXh0IHg9IjYwIiB5PSIxMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGF5IDA8L3RleHQ+PHRleHQgeD0iMTIwIiB5PSIxMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGF5IDM8L3RleHQ+PHRleHQgeD0iMTgwIiB5PSIxMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGF5IDc8L3RleHQ+PHRleHQgeD0iMjQwIiB5PSIxMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGF5IDE0PC90ZXh0Pjwvc3ZnPg==',
+    id: "consort-flow",
+    name: "Flow Chart for Study",
+    description: "CONSORT 2010 Flow Diagram template for reporting clinical trial participant flow",
+    category: "flowchart",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjI4MCIgaGVpZ2h0PSIzMCIgZmlsbD0iIzQyODVGNCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48cmVjdCB4PSI1MCIgeT0iNTAiIHdpZHRoPSIyMDAiIGhlaWdodD0iNDAiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjEwIiB5PSIxMjAiIHdpZHRoPSIyODAiIGhlaWdodD0iMzAiIGZpbGw9IiM0Mjg1RjQiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iMjAiIHk9IjE2MCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI0MCIgZmlsbD0id2hpdGUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iMTYwIiB5PSIxNjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiIGZpbGw9IndoaXRlIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==",
     canvasData: {
-      version: '6.0.0',
+      version: "6.0.0",
       objects: [
-        // Title
-        { type: 'textbox', left: 300, top: 120, width: 400, text: 'Experimental Timeline', fontSize: 22, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
+        { type: 'textbox', left: 300, top: 20, width: 200, text: 'CONSORT 2010\nFlow Diagram', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e293b', textAlign: 'center' },
         
-        // Main timeline
-        { type: 'line', left: 100, top: 250, x1: 0, y1: 0, x2: 800, y2: 0, stroke: '#333333', strokeWidth: 4 },
+        { type: 'rect', left: 50, top: 80, width: 700, height: 50, fill: '#3B82F6', rx: 8, ry: 8 },
+        { type: 'textbox', left: 70, top: 95, width: 660, text: 'Enrollment', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#ffffff', textAlign: 'center' },
         
-        // Timepoints
-        { type: 'circle', left: 95, top: 245, radius: 12, fill: '#4396ff', stroke: '#1976d2', strokeWidth: 2 },
-        { type: 'textbox', left: 70, top: 270, width: 50, text: 'Day 0\nBaseline', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
+        { type: 'rect', left: 250, top: 150, width: 300, height: 70, fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 270, top: 170, width: 260, text: 'Assessed for eligibility (n= )', fontSize: 14, fontFamily: 'Inter', fill: '#1e293b', textAlign: 'center' },
         
-        { type: 'circle', left: 295, top: 245, radius: 12, fill: '#4396ff', stroke: '#1976d2', strokeWidth: 2 },
-        { type: 'textbox', left: 260, top: 270, width: 70, text: 'Day 3\nTreatment', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
+        {
+          type: 'group',
+          left: 390,
+          top: 220,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 30, stroke: '#334155', strokeWidth: 2 },
+            { type: 'polygon', left: -5, top: 30, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#334155' }
+          ]
+        },
         
-        { type: 'circle', left: 495, top: 245, radius: 12, fill: '#4396ff', stroke: '#1976d2', strokeWidth: 2 },
-        { type: 'textbox', left: 460, top: 270, width: 70, text: 'Day 7\nMid-point', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
+        { type: 'rect', left: 560, top: 170, width: 180, height: 110, fill: '#F8FAFC', stroke: '#94a3b8', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 575, top: 180, width: 150, text: 'Excluded (n= )\n• Not meeting criteria (n= )\n• Declined (n= )\n• Other reasons (n= )', fontSize: 12, fontFamily: 'Inter', fill: '#475569' },
         
-        { type: 'circle', left: 695, top: 245, radius: 12, fill: '#4396ff', stroke: '#1976d2', strokeWidth: 2 },
-        { type: 'textbox', left: 660, top: 270, width: 70, text: 'Day 14\nEndpoint', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
+        { type: 'rect', left: 250, top: 260, width: 300, height: 70, fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 270, top: 280, width: 260, text: 'Randomized (n= )', fontSize: 14, fontFamily: 'Inter', fill: '#1e293b', textAlign: 'center' },
         
-        { type: 'circle', left: 895, top: 245, radius: 12, fill: '#4396ff', stroke: '#1976d2', strokeWidth: 2 },
-        { type: 'textbox', left: 860, top: 270, width: 70, text: 'Day 21\nFollow-up', fontSize: 12, fontFamily: 'Inter', textAlign: 'center' },
+        {
+          type: 'group',
+          left: 390,
+          top: 330,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 30, stroke: '#334155', strokeWidth: 2 },
+            { type: 'polygon', left: -5, top: 30, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#334155' }
+          ]
+        },
         
-        // Notes
-        { type: 'textbox', left: 100, top: 350, width: 800, text: 'Add your experimental details, treatment groups, and observations here...', fontSize: 14, fontFamily: 'Inter', fill: '#666666', textAlign: 'left' },
-      ],
+        { type: 'rect', left: 50, top: 370, width: 700, height: 50, fill: '#3B82F6', rx: 8, ry: 8 },
+        { type: 'textbox', left: 70, top: 385, width: 660, text: 'Allocation', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#ffffff', textAlign: 'center' },
+        
+        {
+          type: 'group',
+          left: 250,
+          top: 420,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: -100, y2: 40, stroke: '#334155', strokeWidth: 2 },
+            { type: 'polygon', left: -105, top: 60, points: [{x:0,y:0},{x:5,y:-10},{x:10,y:-5}], fill: '#334155' }
+          ]
+        },
+        
+        {
+          type: 'group',
+          left: 550,
+          top: 420,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 100, y2: 40, stroke: '#334155', strokeWidth: 2 },
+            { type: 'polygon', left: 95, top: 60, points: [{x:0,y:0},{x:-5,y:-10},{x:-10,y:-5}], fill: '#334155' }
+          ]
+        },
+        
+        { type: 'rect', left: 80, top: 490, width: 200, height: 90, fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 95, top: 505, width: 170, text: 'Allocated to intervention (n= )\n• Received intervention (n= )\n• Did not receive (n= )', fontSize: 12, fontFamily: 'Inter', fill: '#1e293b' },
+        
+        { type: 'rect', left: 520, top: 490, width: 200, height: 90, fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 535, top: 505, width: 170, text: 'Allocated to control (n= )\n• Received control (n= )\n• Did not receive (n= )', fontSize: 12, fontFamily: 'Inter', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 170,
+          top: 580,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 30, stroke: '#334155', strokeWidth: 2 },
+            { type: 'polygon', left: -5, top: 30, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#334155' }
+          ]
+        },
+        
+        {
+          type: 'group',
+          left: 610,
+          top: 580,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 30, stroke: '#334155', strokeWidth: 2 },
+            { type: 'polygon', left: -5, top: 30, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#334155' }
+          ]
+        },
+        
+        { type: 'rect', left: 50, top: 620, width: 700, height: 50, fill: '#3B82F6', rx: 8, ry: 8 },
+        { type: 'textbox', left: 70, top: 635, width: 660, text: 'Follow-Up', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#ffffff', textAlign: 'center' },
+        
+        { type: 'rect', left: 80, top: 690, width: 200, height: 80, fill: '#F8FAFC', stroke: '#94a3b8', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 95, top: 705, width: 170, text: 'Lost to follow-up (n= )\nDiscontinued intervention (n= )', fontSize: 12, fontFamily: 'Inter', fill: '#475569' },
+        
+        { type: 'rect', left: 520, top: 690, width: 200, height: 80, fill: '#F8FAFC', stroke: '#94a3b8', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 535, top: 705, width: 170, text: 'Lost to follow-up (n= )\nDiscontinued intervention (n= )', fontSize: 12, fontFamily: 'Inter', fill: '#475569' },
+        
+        {
+          type: 'group',
+          left: 170,
+          top: 770,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 30, stroke: '#334155', strokeWidth: 2 },
+            { type: 'polygon', left: -5, top: 30, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#334155' }
+          ]
+        },
+        
+        {
+          type: 'group',
+          left: 610,
+          top: 770,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 30, stroke: '#334155', strokeWidth: 2 },
+            { type: 'polygon', left: -5, top: 30, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#334155' }
+          ]
+        },
+        
+        { type: 'rect', left: 50, top: 810, width: 700, height: 50, fill: '#3B82F6', rx: 8, ry: 8 },
+        { type: 'textbox', left: 70, top: 825, width: 660, text: 'Analysis', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#ffffff', textAlign: 'center' },
+        
+        { type: 'rect', left: 80, top: 880, width: 200, height: 80, fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 95, top: 895, width: 170, text: 'Analysed (n= )\nExcluded from analysis (n= )', fontSize: 12, fontFamily: 'Inter', fill: '#1e293b' },
+        
+        { type: 'rect', left: 520, top: 880, width: 200, height: 80, fill: '#ffffff', stroke: '#334155', strokeWidth: 2, rx: 6, ry: 6 },
+        { type: 'textbox', left: 535, top: 895, width: 170, text: 'Analysed (n= )\nExcluded from analysis (n= )', fontSize: 12, fontFamily: 'Inter', fill: '#1e293b' },
+      ]
     },
+    dimensions: { width: 800, height: 1000 },
+    paperSize: "letter",
   },
-  
-  // Flowchart Templates
   {
-    id: 'basic-flowchart',
-    name: 'Basic Flowchart',
-    description: 'Simple process flowchart with start, decision, and end points',
-    category: 'flowchart',
-    paperSize: 'letter',
+    id: "swot-analysis",
+    name: "SWOT Analysis",
+    description: "Four-quadrant SWOT analysis template",
+    category: "business",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjEyNSIgaGVpZ2h0PSI4MCIgZmlsbD0iI2UwZmZlMCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48cmVjdCB4PSIxNTUiIHk9IjIwIiB3aWR0aD0iMTI1IiBoZWlnaHQ9IjgwIiBmaWxsPSIjZmZlMGUwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjIwIiB5PSIxMTAiIHdpZHRoPSIxMjUiIGhlaWdodD0iODAiIGZpbGw9IiNlMGU3ZmYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iMTU1IiB5PSIxMTAiIHdpZHRoPSIxMjUiIGhlaWdodD0iODAiIGZpbGw9IiNmZmYwZTAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+",
+    canvasData: {
+      version: "6.0.0",
+      objects: [
+        { type: 'textbox', left: 250, top: 30, width: 300, text: 'SWOT Analysis', fontSize: 24, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e293b', textAlign: 'center' },
+        
+        { type: 'rect', left: 100, top: 100, width: 300, height: 250, fill: '#D1FAE5', stroke: '#10B981', strokeWidth: 3, rx: 10, ry: 10 },
+        { type: 'textbox', left: 120, top: 120, width: 260, text: 'Strengths', fontSize: 20, fontFamily: 'Inter', fontWeight: 'bold', fill: '#065f46' },
+        { type: 'textbox', left: 120, top: 160, width: 260, text: '• Internal positive attributes\n• Competitive advantages\n• Core competencies', fontSize: 14, fontFamily: 'Inter', fill: '#1e293b' },
+        
+        { type: 'rect', left: 420, top: 100, width: 300, height: 250, fill: '#FEE2E2', stroke: '#EF4444', strokeWidth: 3, rx: 10, ry: 10 },
+        { type: 'textbox', left: 440, top: 120, width: 260, text: 'Weaknesses', fontSize: 20, fontFamily: 'Inter', fontWeight: 'bold', fill: '#991b1b' },
+        { type: 'textbox', left: 440, top: 160, width: 260, text: '• Internal limitations\n• Areas for improvement\n• Resource gaps', fontSize: 14, fontFamily: 'Inter', fill: '#1e293b' },
+        
+        { type: 'rect', left: 100, top: 370, width: 300, height: 250, fill: '#DBEAFE', stroke: '#3B82F6', strokeWidth: 3, rx: 10, ry: 10 },
+        { type: 'textbox', left: 120, top: 390, width: 260, text: 'Opportunities', fontSize: 20, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e40af' },
+        { type: 'textbox', left: 120, top: 430, width: 260, text: '• External favorable factors\n• Market trends\n• Growth potential', fontSize: 14, fontFamily: 'Inter', fill: '#1e293b' },
+        
+        { type: 'rect', left: 420, top: 370, width: 300, height: 250, fill: '#FEF3C7', stroke: '#F59E0B', strokeWidth: 3, rx: 10, ry: 10 },
+        { type: 'textbox', left: 440, top: 390, width: 260, text: 'Threats', fontSize: 20, fontFamily: 'Inter', fontWeight: 'bold', fill: '#92400e' },
+        { type: 'textbox', left: 440, top: 430, width: 260, text: '• External challenges\n• Competition\n• Risk factors', fontSize: 14, fontFamily: 'Inter', fill: '#1e293b' },
+      ]
+    },
+    dimensions: { width: 800, height: 650 },
+    paperSize: "letter",
+  },
+  {
+    id: "venn-diagram",
+    name: "Venn Diagram",
+    description: "Two or three circle Venn diagram",
+    category: "business",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxjaXJjbGUgY3g9IjEyMCIgY3k9IjEwMCIgcj0iNjAiIGZpbGw9IiNlMGU3ZmYiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIiBvcGFjaXR5PSIwLjciLz48Y2lyY2xlIGN4PSIxODAiIGN5PSIxMDAiIHI9IjYwIiBmaWxsPSIjZmZlMGUwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iMC43Ii8+PC9zdmc+",
+    canvasData: {
+      version: "6.0.0",
+      objects: [
+        { type: 'textbox', left: 250, top: 30, width: 300, text: 'Venn Diagram', fontSize: 24, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e293b', textAlign: 'center' },
+        
+        { type: 'circle', left: 150, top: 150, radius: 120, fill: '#DBEAFE', stroke: '#3B82F6', strokeWidth: 3, opacity: 0.7 },
+        { type: 'textbox', left: 180, top: 240, width: 100, text: 'Set A', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1e40af', textAlign: 'center' },
+        
+        { type: 'circle', left: 430, top: 150, radius: 120, fill: '#FEF3C7', stroke: '#F59E0B', strokeWidth: 3, opacity: 0.7 },
+        { type: 'textbox', left: 460, top: 240, width: 100, text: 'Set B', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#92400e', textAlign: 'center' },
+        
+        { type: 'circle', left: 290, top: 290, radius: 120, fill: '#D1FAE5', stroke: '#10B981', strokeWidth: 3, opacity: 0.7 },
+        { type: 'textbox', left: 320, top: 420, width: 100, text: 'Set C', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#065f46', textAlign: 'center' },
+        
+        { type: 'textbox', left: 335, top: 270, width: 130, text: 'Intersection', fontSize: 14, fontFamily: 'Inter', textAlign: 'center', fill: '#1e293b', fontWeight: 'bold' },
+      ]
+    },
+    dimensions: { width: 800, height: 550 },
+    paperSize: "letter",
+  },
+  {
+    id: "mind-map",
+    name: "Mind Map",
+    description: "Central topic with branching ideas",
+    category: "educational",
+    thumbnail: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2Y4ZjlmYSIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjEwMCIgcj0iNDAiIGZpbGw9IiM0Mjg1RjQiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjE1MCIgeTE9IjYwIiB4Mj0iMTUwIiB5Mj0iMjAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iMTUwIiBjeT0iMjAiIHI9IjE1IiBmaWxsPSIjZTBlN2ZmIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIxOTAiIHkxPSIxMDAiIHgyPSIyNDAiIHkyPSIxMDAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iMjQwIiBjeT0iMTAwIiByPSIxNSIgZmlsbD0iI2UwZTdmZiIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=",
+    canvasData: {
+      version: "6.0.0",
+      objects: [
+        { type: 'circle', left: 340, top: 240, radius: 80, fill: '#8B5CF6', stroke: '#6d28d9', strokeWidth: 4 },
+        { type: 'textbox', left: 360, top: 300, width: 120, text: 'Central\nTopic', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#ffffff' },
+        
+        {
+          type: 'group',
+          left: 420,
+          top: 200,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: -80, stroke: '#64748b', strokeWidth: 3 },
+            { type: 'circle', left: -30, top: -110, radius: 30, fill: '#DBEAFE', stroke: '#3B82F6', strokeWidth: 3 }
+          ]
+        },
+        { type: 'textbox', left: 390, top: 75, width: 60, text: 'Idea 1', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 500,
+          top: 280,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#64748b', strokeWidth: 3 },
+            { type: 'circle', left: 100, top: -30, radius: 30, fill: '#FEF3C7', stroke: '#F59E0B', strokeWidth: 3 }
+          ]
+        },
+        { type: 'textbox', left: 600, top: 295, width: 60, text: 'Idea 2', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 420,
+          top: 400,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: 0, y2: 80, stroke: '#64748b', strokeWidth: 3 },
+            { type: 'circle', left: -30, top: 80, radius: 30, fill: '#D1FAE5', stroke: '#10B981', strokeWidth: 3 }
+          ]
+        },
+        { type: 'textbox', left: 390, top: 505, width: 60, text: 'Idea 3', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+        
+        {
+          type: 'group',
+          left: 260,
+          top: 280,
+          objects: [
+            { type: 'line', left: 0, top: 0, x1: 0, y1: 0, x2: -100, y2: 0, stroke: '#64748b', strokeWidth: 3 },
+            { type: 'circle', left: -130, top: -30, radius: 30, fill: '#FCE7F3', stroke: '#EC4899', strokeWidth: 3 }
+          ]
+        },
+        { type: 'textbox', left: 100, top: 295, width: 60, text: 'Idea 4', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#1e293b' },
+      ]
+    },
     dimensions: { width: 800, height: 600 },
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjExMCIgeT0iMjAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2U4ZjVlOSIgc3Ryb2tlPSIjNGNhZjUwIiBzdHJva2Utd2lkdGg9IjIiIHJ4PSIxNSIvPjxsaW5lIHgxPSIxNTAiIHkxPSI1MCIgeDI9IjE1MCIgeTI9IjcwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjExMCIgeT0iNzAiIHdpZHRoPSI4MCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2UzZjJmZCIgc3Ryb2tlPSIjMjE5NmYzIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMTUwIiB5MT0iMTAwIiB4Mj0iMTUwIiB5Mj0iMTIwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDEyMCAxMjAsMTQ1IDE1MCwxNzAgMTgwLDE0NSIgZmlsbD0iI2ZmZjNlMCIgc3Ryb2tlPSIjZmZiMzAwIiBzdHJva2Utd2lkdGg9IjIiLz48dGV4dCB4PSIxNTAiIHk9IjM3IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlN0YXJ0PC90ZXh0Pjx0ZXh0IHg9IjE1MCIgeT0iODgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Qcm9jZXNzPC90ZXh0Pjx0ZXh0IHg9IjE1MCIgeT0iMTUwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iOCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGVjaXNpb248L3RleHQ+PC9zdmc+',
-    canvasData: {
-      version: '6.0.0',
-      objects: [
-        // Start
-        { type: 'rect', left: 350, top: 80, width: 100, height: 50, fill: '#e8f5e9', stroke: '#4caf50', strokeWidth: 2, rx: 25, ry: 25 },
-        { type: 'textbox', left: 365, top: 97, width: 70, text: 'Start', fontSize: 16, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
-        
-        // Arrow down
-        { type: 'line', left: 400, top: 130, x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 395, top: 165, points: [{x:5,y:0},{x:0,y:-10},{x:10,y:-10}], fill: '#333333' },
-        
-        // Process
-        { type: 'rect', left: 350, top: 180, width: 100, height: 50, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 2 },
-        { type: 'textbox', left: 355, top: 195, width: 90, text: 'Process\nStep', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
-        
-        // Arrow down
-        { type: 'line', left: 400, top: 230, x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 395, top: 265, points: [{x:5,y:0},{x:0,y:-10},{x:10,y:-10}], fill: '#333333' },
-        
-        // Decision diamond
-        { type: 'polygon', left: 400, top: 280, points: [{x:0,y:-40},{x:50,y:0},{x:0,y:40},{x:-50,y:0}], fill: '#fff3e0', stroke: '#ffb300', strokeWidth: 2 },
-        { type: 'textbox', left: 365, top: 272, width: 70, text: 'Decision?', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
-        
-        // Yes arrow (right)
-        { type: 'line', left: 450, top: 280, x1: 0, y1: 0, x2: 60, y2: 0, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 505, top: 275, points: [{x:0,y:5},{x:-10,y:0},{x:-10,y:10}], fill: '#333333' },
-        { type: 'textbox', left: 460, top: 255, width: 30, text: 'Yes', fontSize: 12, fontFamily: 'Inter' },
-        
-        // Process 2 (right)
-        { type: 'rect', left: 520, top: 255, width: 100, height: 50, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 2 },
-        { type: 'textbox', left: 525, top: 270, width: 90, text: 'Action A', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
-        
-        // No arrow (down)
-        { type: 'line', left: 400, top: 320, x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 395, top: 355, points: [{x:5,y:0},{x:0,y:-10},{x:10,y:-10}], fill: '#333333' },
-        { type: 'textbox', left: 405, top: 330, width: 30, text: 'No', fontSize: 12, fontFamily: 'Inter' },
-        
-        // Process 3 (down)
-        { type: 'rect', left: 350, top: 370, width: 100, height: 50, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 2 },
-        { type: 'textbox', left: 355, top: 385, width: 90, text: 'Action B', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
-        
-        // Arrows to End
-        { type: 'line', left: 570, top: 305, x1: 0, y1: 0, x2: 0, y2: 135, stroke: '#333333', strokeWidth: 2 },
-        { type: 'line', left: 400, top: 420, x1: 0, y1: 0, x2: 170, y2: 0, stroke: '#333333', strokeWidth: 2 },
-        { type: 'line', left: 570, top: 420, x1: 0, y1: 0, x2: 0, y2: 20, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 565, top: 435, points: [{x:5,y:0},{x:0,y:-10},{x:10,y:-10}], fill: '#333333' },
-        
-        // End
-        { type: 'rect', left: 520, top: 450, width: 100, height: 50, fill: '#ffebee', stroke: '#f44336', strokeWidth: 2, rx: 25, ry: 25 },
-        { type: 'textbox', left: 535, top: 467, width: 70, text: 'End', fontSize: 16, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
-      ],
-    },
+    paperSize: "letter",
   },
-  {
-    id: 'swim-lane',
-    name: 'Swim Lane Diagram',
-    description: 'Cross-functional process flow with department lanes',
-    category: 'flowchart',
-    paperSize: 'letter',
-    dimensions: { width: 1000, height: 700 },
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSI1MCIgZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSIyMCIgeT0iNzAiIHdpZHRoPSIyNjAiIGhlaWdodD0iNTAiIGZpbGw9IiNmOWY5ZjkiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHJlY3QgeD0iMjAiIHk9IjEyMCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSI1MCIgZmlsbD0iI2YwZjBmMCIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSI0MCIgeT0iMzUiIHdpZHRoPSI1MCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2UzZjJmZCIgc3Ryb2tlPSIjMjE5NmYzIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSIxMjAiIHk9Ijg1IiB3aWR0aD0iNTAiIGhlaWdodD0iMjAiIGZpbGw9IiNlM2YyZmQiIHN0cm9rZT0iIzIxOTZmMyIgc3Ryb2tlLXdpZHRoPSIxIi8+PHJlY3QgeD0iMjAwIiB5PSIxMzUiIHdpZHRoPSI1MCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2UzZjJmZCIgc3Ryb2tlPSIjMjE5NmYzIiBzdHJva2Utd2lkdGg9IjEiLz48dGV4dCB4PSI4MCIgeT0iMTgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+RGVwdCBBPC90ZXh0Pjx0ZXh0IHg9IjE0NSIgeT0iNjgiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+RGVwdCBCPC90ZXh0Pjx0ZXh0IHg9IjIyNSIgeT0iMTE4IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iOSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiPkRlcHQgQzwvdGV4dD48L3N2Zz4=',
-    canvasData: {
-      version: '6.0.0',
-      objects: [
-        // Lane backgrounds
-        { type: 'rect', left: 50, top: 100, width: 900, height: 120, fill: '#f5f5f5', stroke: '#999999', strokeWidth: 1 },
-        { type: 'rect', left: 50, top: 220, width: 900, height: 120, fill: '#fafafa', stroke: '#999999', strokeWidth: 1 },
-        { type: 'rect', left: 50, top: 340, width: 900, height: 120, fill: '#f5f5f5', stroke: '#999999', strokeWidth: 1 },
-        
-        // Lane labels
-        { type: 'textbox', left: 60, top: 140, width: 140, text: 'Department A', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', fill: '#555555' },
-        { type: 'textbox', left: 60, top: 260, width: 140, text: 'Department B', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', fill: '#555555' },
-        { type: 'textbox', left: 60, top: 380, width: 140, text: 'Department C', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', fill: '#555555' },
-        
-        // Process boxes in lanes
-        { type: 'rect', left: 250, top: 130, width: 120, height: 60, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 2 },
-        { type: 'textbox', left: 260, top: 150, width: 100, text: 'Task 1', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
-        
-        { type: 'rect', left: 500, top: 250, width: 120, height: 60, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 2 },
-        { type: 'textbox', left: 510, top: 270, width: 100, text: 'Task 2', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
-        
-        { type: 'rect', left: 750, top: 370, width: 120, height: 60, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 2 },
-        { type: 'textbox', left: 760, top: 390, width: 100, text: 'Task 3', fontSize: 14, fontFamily: 'Inter', textAlign: 'center' },
-        
-        // Connecting arrows
-        { type: 'line', left: 370, top: 160, x1: 0, y1: 0, x2: 80, y2: 90, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 445, top: 245, points: [{x:0,y:0},{x:-8,y:-5},{x:-5,y:-8}], fill: '#333333' },
-        
-        { type: 'line', left: 620, top: 280, x1: 0, y1: 0, x2: 80, y2: 90, stroke: '#333333', strokeWidth: 2 },
-        { type: 'polygon', left: 695, top: 365, points: [{x:0,y:0},{x:-8,y:-5},{x:-5,y:-8}], fill: '#333333' },
-        
-        // Title
-        { type: 'textbox', left: 300, top: 50, width: 400, text: 'Cross-Functional Process Flow', fontSize: 20, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
-      ],
-    },
-  },
-  
-  // Business Templates
-  {
-    id: 'swot-analysis',
-    name: 'SWOT Analysis',
-    description: '2x2 grid for Strengths, Weaknesses, Opportunities, Threats',
-    category: 'business',
-    paperSize: 'letter',
-    dimensions: { width: 800, height: 600 },
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHg9IjMwIiB5PSI0MCIgd2lkdGg9IjExNSIgaGVpZ2h0PSI3MCIgZmlsbD0iI2U4ZjVlOSIgc3Ryb2tlPSIjNGNhZjUwIiBzdHJva2Utd2lkdGg9IjIiLz48cmVjdCB4PSIxNTUiIHk9IjQwIiB3aWR0aD0iMTE1IiBoZWlnaHQ9IjcwIiBmaWxsPSIjZmZlYmVlIiBzdHJva2U9IiNmNDQzMzYiIHN0cm9rZS13aWR0aD0iMiIvPjxyZWN0IHg9IjMwIiB5PSIxMjAiIHdpZHRoPSIxMTUiIGhlaWdodD0iNzAiIGZpbGw9IiNlM2YyZmQiIHN0cm9rZT0iIzIxOTZmMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHJlY3QgeD0iMTU1IiB5PSIxMjAiIHdpZHRoPSIxMTUiIGhlaWdodD0iNzAiIGZpbGw9IiNmZmYzZTAiIHN0cm9rZT0iI2ZmYjMwMCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iODciIHk9IjM1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZvbnQtd2VpZ2h0PSJib2xkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TdHJlbmd0aHM8L3RleHQ+PHRleHQgeD0iMjEyIiB5PSIzNSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjExIiBmb250LXdlaWdodD0iYm9sZCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+V2Vha25lc3NlczwvdGV4dD48dGV4dCB4PSI4NyIgeT0iMTE1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZvbnQtd2VpZ2h0PSJib2xkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5PcHBvcnR1bml0aWVzPC90ZXh0Pjx0ZXh0IHg9IjIxMiIgeT0iMTE1IiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZvbnQtd2VpZ2h0PSJib2xkIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UaHJlYXRzPC90ZXh0Pjwvc3ZnPg==',
-    canvasData: {
-      version: '6.0.0',
-      objects: [
-        // Title
-        { type: 'textbox', left: 250, top: 80, width: 300, text: 'SWOT Analysis', fontSize: 24, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
-        
-        // Strengths (top left)
-        { type: 'rect', left: 150, top: 150, width: 280, height: 180, fill: '#e8f5e9', stroke: '#4caf50', strokeWidth: 3 },
-        { type: 'textbox', left: 160, top: 160, width: 260, text: 'STRENGTHS', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#2e7d32' },
-        { type: 'textbox', left: 160, top: 195, width: 260, text: '• Internal positive factors\n• Core competencies\n• Competitive advantages\n• Resources & assets', fontSize: 13, fontFamily: 'Inter', fill: '#333333' },
-        
-        // Weaknesses (top right)
-        { type: 'rect', left: 450, top: 150, width: 280, height: 180, fill: '#ffebee', stroke: '#f44336', strokeWidth: 3 },
-        { type: 'textbox', left: 460, top: 160, width: 260, text: 'WEAKNESSES', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#c62828' },
-        { type: 'textbox', left: 460, top: 195, width: 260, text: '• Internal limitations\n• Areas needing improvement\n• Resource constraints\n• Disadvantages', fontSize: 13, fontFamily: 'Inter', fill: '#333333' },
-        
-        // Opportunities (bottom left)
-        { type: 'rect', left: 150, top: 350, width: 280, height: 180, fill: '#e3f2fd', stroke: '#2196f3', strokeWidth: 3 },
-        { type: 'textbox', left: 160, top: 360, width: 260, text: 'OPPORTUNITIES', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#1565c0' },
-        { type: 'textbox', left: 160, top: 395, width: 260, text: '• External positive factors\n• Market trends\n• Growth potential\n• Partnerships', fontSize: 13, fontFamily: 'Inter', fill: '#333333' },
-        
-        // Threats (bottom right)
-        { type: 'rect', left: 450, top: 350, width: 280, height: 180, fill: '#fff3e0', stroke: '#ffb300', strokeWidth: 3 },
-        { type: 'textbox', left: 460, top: 360, width: 260, text: 'THREATS', fontSize: 18, fontFamily: 'Inter', fontWeight: 'bold', fill: '#e65100' },
-        { type: 'textbox', left: 460, top: 395, width: 260, text: '• External challenges\n• Market competition\n• Regulatory changes\n• Economic factors', fontSize: 13, fontFamily: 'Inter', fill: '#333333' },
-      ],
-    },
-  },
-  {
-    id: 'venn-diagram',
-    name: 'Venn Diagram',
-    description: 'Two or three overlapping circles for comparison',
-    category: 'business',
-    paperSize: 'letter',
-    dimensions: { width: 800, height: 600 },
-    thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjExMCIgY3k9IjEwMCIgcj0iNTUiIGZpbGw9IiNlM2YyZmQiIGZpbGwtb3BhY2l0eT0iMC42IiBzdHJva2U9IiMyMTk2ZjMiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjE5MCIgY3k9IjEwMCIgcj0iNTUiIGZpbGw9IiNmM2U1ZjUiIGZpbGwtb3BhY2l0eT0iMC42IiBzdHJva2U9IiM5YzI3YjAiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9Ijg1IiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCI+U2V0IEE8L3RleHQ+PHRleHQgeD0iMTkwIiB5PSI5MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCI+U2V0IEI8L3RleHQ+PHRleHQgeD0iMTUwIiB5PSIxMDUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSI5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5Cb3RoPC90ZXh0Pjwvc3ZnPg==',
-    canvasData: {
-      version: '6.0.0',
-      objects: [
-        // Title
-        { type: 'textbox', left: 250, top: 80, width: 300, text: 'Venn Diagram Comparison', fontSize: 22, fontFamily: 'Inter', textAlign: 'center', fontWeight: 'bold' },
-        
-        // Left circle
-        { type: 'circle', left: 200, top: 180, radius: 120, fill: '#e3f2fd', fillOpacity: 0.6, stroke: '#2196f3', strokeWidth: 3 },
-        { type: 'textbox', left: 230, top: 200, width: 80, text: 'Category A', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center' },
-        { type: 'textbox', left: 215, top: 230, width: 110, text: '• Feature 1\n• Feature 2\n• Feature 3', fontSize: 13, fontFamily: 'Inter' },
-        
-        // Right circle
-        { type: 'circle', left: 380, top: 180, radius: 120, fill: '#f3e5f5', fillOpacity: 0.6, stroke: '#9c27b0', strokeWidth: 3 },
-        { type: 'textbox', left: 470, top: 200, width: 80, text: 'Category B', fontSize: 16, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center' },
-        { type: 'textbox', left: 455, top: 230, width: 110, text: '• Feature 4\n• Feature 5\n• Feature 6', fontSize: 13, fontFamily: 'Inter' },
-        
-        // Overlap label
-        { type: 'textbox', left: 350, top: 265, width: 100, text: 'Common\nFeatures', fontSize: 14, fontFamily: 'Inter', fontWeight: 'bold', textAlign: 'center', fill: '#6a1b9a' },
-      ],
-    },
-  },
-  
-  // Educational Templates
-  {
-    id: 'mind-map',
-    name: 'Mind Map',
-    description: 'Central idea with branching concepts and sub-topics',
-    category: 'educational',
-    paperSize: 'letter',
-    dimensions: { width: 1000, height: 700 },
+];
     thumbnail: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjE1MCIgY3k9IjEwMCIgcj0iMzAiIGZpbGw9IiNmZmYzZTAiIHN0cm9rZT0iI2ZmYjMwMCIgc3Ryb2tlLXdpZHRoPSIzIi8+PGxpbmUgeDE9IjE4MCIgeTE9IjEwMCIgeDI9IjI0MCIgeTI9IjYwIiBzdHJva2U9IiM2NjYiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjYwIiByPSIxOCIgZmlsbD0iI2UzZjJmZCIgc3Ryb2tlPSIjMjE5NmYzIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMTgwIiB5MT0iMTAwIiB4Mj0iMjQwIiB5Mj0iMTQwIiBzdHJva2U9IiM2NjYiIHN0cm9rZS13aWR0aD0iMiIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjE0MCIgcj0iMTgiIGZpbGw9IiNlM2YyZmQiIHN0cm9rZT0iIzIxOTZmMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjEyMCIgeTE9IjEwMCIgeDI9IjYwIiB5Mj0iNjAiIHN0cm9rZT0iIzY2NiIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iNjAiIGN5PSI2MCIgcj0iMTgiIGZpbGw9IiNlOGY1ZTkiIHN0cm9rZT0iIzRjYWY1MCIgc3Ryb2tlLXdpZHRoPSIyIi8+PHRleHQgeD0iMTUwIiB5PSIxMDUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC13ZWlnaHQ9ImJvbGQiPkNlbnRlcjwvdGV4dD48L3N2Zz4=',
     canvasData: {
       version: '6.0.0',
