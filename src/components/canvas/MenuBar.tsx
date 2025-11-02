@@ -82,7 +82,7 @@ export const MenuBar = () => {
             <MenubarItem onClick={handleSave}>Save As...</MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={handleOpenExportDialog}>Export Image...</MenubarItem>
-            <MenubarItem onClick={exportAsSVG}>Export as SVG</MenubarItem>
+            <MenubarItem onClick={() => exportAsSVG()}>Export as SVG</MenubarItem>
             <MenubarItem onClick={handleExportPDF}>Export as PDF</MenubarItem>
           </MenubarContent>
         </MenubarMenu>

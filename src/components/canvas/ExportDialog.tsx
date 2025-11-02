@@ -3,19 +3,49 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Download } from "lucide-react";
+
+const EXPORT_PRESETS = [
+  {
+    name: "Web (Standard)",
+    format: 'png' as const,
+    dpi: 150 as const,
+    description: "Perfect for websites and presentations"
+  },
+  {
+    name: "Print (High Quality)",
+    format: 'png' as const,
+    dpi: 300 as const,
+    description: "Suitable for professional printing"
+  },
+  {
+    name: "Print (Publication)",
+    format: 'png' as const,
+    dpi: 600 as const,
+    description: "Magazine and publication quality"
+  },
+  {
+    name: "Transparent PNG",
+    format: 'png-transparent' as const,
+    dpi: 300 as const,
+    description: "High quality with no background"
+  },
+];
 
 interface ExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onExport: (format: 'png' | 'png-transparent' | 'jpg', dpi: 150 | 300 | 600) => void;
+  onExport: (format: 'png' | 'png-transparent' | 'jpg', dpi: 150 | 300 | 600, selectionOnly?: boolean) => void;
   canvasWidth: number;
   canvasHeight: number;
+  hasSelection: boolean;
 }
 
-export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvasHeight }: ExportDialogProps) => {
+export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvasHeight, hasSelection }: ExportDialogProps) => {
   const [format, setFormat] = useState<'png' | 'png-transparent' | 'jpg'>('png');
   const [dpi, setDpi] = useState<150 | 300 | 600>(300);
+  const [selectionOnly, setSelectionOnly] = useState(false);
 
   // Calculate export dimensions based on DPI
   const calculateDimensions = (targetDpi: number) => {
@@ -41,8 +71,13 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
   const dimensions = calculateDimensions(dpi);
   const fileSize = estimateFileSize(dimensions.width, dimensions.height, format);
 
+  const applyPreset = (preset: typeof EXPORT_PRESETS[0]) => {
+    setFormat(preset.format);
+    setDpi(preset.dpi);
+  };
+
   const handleExport = () => {
-    onExport(format, dpi);
+    onExport(format, dpi, selectionOnly);
     onOpenChange(false);
   };
 
@@ -57,6 +92,39 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Export Presets */}
+          <div className="space-y-3">
+            <Label className="text-base font-semibold">Quick Presets</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {EXPORT_PRESETS.map(preset => (
+                <Button
+                  key={preset.name}
+                  variant="outline"
+                  className="h-auto py-3 flex flex-col items-start text-left hover:bg-accent"
+                  onClick={() => applyPreset(preset)}
+                >
+                  <span className="font-medium text-sm">{preset.name}</span>
+                  <span className="text-xs text-muted-foreground">{preset.description}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Selection Only Option */}
+          {hasSelection && (
+            <div className="flex items-center space-x-2 p-3 rounded-lg border bg-accent/50">
+              <Checkbox 
+                id="selection-only" 
+                checked={selectionOnly}
+                onCheckedChange={(checked) => setSelectionOnly(checked as boolean)}
+              />
+              <div className="flex-1">
+                <Label htmlFor="selection-only" className="font-medium cursor-pointer">Export selected objects only</Label>
+                <p className="text-sm text-muted-foreground">Only export currently selected items</p>
+              </div>
+            </div>
+          )}
+
           {/* Format Selection */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">Format</Label>

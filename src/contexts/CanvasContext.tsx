@@ -30,6 +30,7 @@ interface CanvasContextType {
   isSaving: boolean;
   saveProject: () => Promise<void>;
   loadProject: (id: string) => Promise<void>;
+  saveStatus: 'saved' | 'saving' | 'unsaved';
   
   // Canvas operations
   undo: () => void;
@@ -65,10 +66,14 @@ interface CanvasContextType {
   ungroupSelected: () => void;
   
   // Export operations
-  exportAsPNG: (dpi?: 150 | 300 | 600) => void;
-  exportAsPNGTransparent: (dpi?: 150 | 300 | 600) => void;
-  exportAsJPG: (dpi?: 150 | 300 | 600) => void;
-  exportAsSVG: () => void;
+  exportAsPNG: (dpi?: 150 | 300 | 600, selectionOnly?: boolean) => void;
+  exportAsPNGTransparent: (dpi?: 150 | 300 | 600, selectionOnly?: boolean) => void;
+  exportAsJPG: (dpi?: 150 | 300 | 600, selectionOnly?: boolean) => void;
+  exportAsSVG: (selectionOnly?: boolean) => void;
+  
+  // Recent colors
+  recentColors: string[];
+  addToRecentColors: (color: string) => void;
   
   // Export dialog state
   exportDialogOpen: boolean;
@@ -149,6 +154,13 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("Untitled Diagram");
   const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
+  
+  // Recent colors state (persisted to localStorage)
+  const [recentColors, setRecentColors] = useState<string[]>(() => {
+    const stored = localStorage.getItem('canvas_recent_colors');
+    return stored ? JSON.parse(stored) : [];
+  });
   
   // Text formatting state
   const [textFont, setTextFont] = useState("Inter");
@@ -272,6 +284,26 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
     });
   };
+  // Canvas flash effect for visual feedback
+  const flashCanvas = useCallback((type: 'success' | 'info' = 'success') => {
+    if (!canvas) return;
+    
+    const wrapper = (canvas as any).wrapperEl?.parentElement;
+    if (!wrapper) return;
+    
+    const overlay = document.createElement('div');
+    overlay.className = `absolute inset-0 pointer-events-none transition-opacity duration-300`;
+    overlay.style.backgroundColor = type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+    overlay.style.opacity = '1';
+    wrapper.style.position = 'relative';
+    wrapper.appendChild(overlay);
+    
+    setTimeout(() => {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 300);
+    }, 100);
+  }, [canvas]);
+
   const copy = useCallback(() => {
     if (!canvas) return;
     const activeObject = canvas.getActiveObject();
@@ -286,18 +318,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         const jsons = objects.map(serializeObject);
         setClipboard({ type: 'multiple', objects: jsons });
         console.log('Copied multiple objects:', jsons.length, jsons.map(j => j.type));
-        toast.success(`${jsons.length} objects copied`);
+        flashCanvas('info');
+        toast.success(`${jsons.length} objects copied`, { duration: 1000, className: 'animate-fade-in' });
       } else {
         const json = serializeObject(activeObject);
         setClipboard({ type: 'single', object: json });
         console.log('Copied single object:', json.type);
-        toast.success('Object copied');
+        flashCanvas('info');
+        toast.success('Object copied', { duration: 1000, className: 'animate-fade-in' });
       }
     } catch (error) {
       console.error('Copy failed:', error);
       toast.error('Failed to copy object');
     }
-  }, [canvas]);
+  }, [canvas, flashCanvas]);
 
   const paste = useCallback(async () => {
     if (!canvas || !clipboard) return;
@@ -327,7 +361,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
         canvas.requestRenderAll();
         saveState();
-        toast.success(`${pasted.length} objects pasted`);
+        flashCanvas('success');
+        toast.success(`${pasted.length} objects pasted`, { duration: 1000, className: 'animate-fade-in' });
       } else if (clipboard.type === 'single') {
         const [obj] = await enliven([clipboard.object]);
         if (!obj) {
@@ -345,13 +380,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         canvas.setActiveObject(obj);
         canvas.requestRenderAll();
         saveState();
-        toast.success('Object pasted');
+        flashCanvas('success');
+        toast.success('Object pasted', { duration: 1000, className: 'animate-fade-in' });
       }
     } catch (error) {
       console.error('Paste failed:', error);
       toast.error('Failed to paste object');
     }
-  }, [canvas, clipboard, saveState]);
+  }, [canvas, clipboard, saveState, flashCanvas]);
 
   const deleteSelected = useCallback(() => {
     if (!canvas) return;
@@ -676,9 +712,33 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     toast.success("Group ungrouped");
   }, [canvas, saveState]);
 
+  // Add to recent colors with localStorage persistence
+  const addToRecentColors = useCallback((color: string) => {
+    setRecentColors(prev => {
+      const filtered = prev.filter(c => c.toLowerCase() !== color.toLowerCase());
+      const updated = [color, ...filtered].slice(0, 8);
+      localStorage.setItem('canvas_recent_colors', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   // Export operations
-  const exportAsPNG = useCallback((dpi: 150 | 300 | 600 = 300) => {
+  const exportAsPNG = useCallback((dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
     if (!canvas) return;
+
+    const originalSelection = canvas.getActiveObject();
+    
+    // If exporting selection only, temporarily hide non-selected objects
+    const hiddenForSelection: FabricObject[] = [];
+    if (selectionOnly && originalSelection) {
+      canvas.getObjects().forEach((obj) => {
+        if (obj !== originalSelection && obj.visible && 
+            !(obj as any).isGridLine && !(obj as any).isRuler) {
+          hiddenForSelection.push(obj);
+          obj.visible = false;
+        }
+      });
+    }
 
     // Temporarily hide guides and eraser paths
     const hidden: FabricObject[] = [];
@@ -698,17 +758,32 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
+    hiddenForSelection.forEach((o) => (o.visible = true));
     canvas.renderAll();
 
     const link = document.createElement('a');
-    link.download = `diagram-${dpi}dpi.png`;
+    link.download = selectionOnly ? `selection-${dpi}dpi.png` : `diagram-${dpi}dpi.png`;
     link.href = dataURL;
     link.click();
-    toast.success(`Exported as PNG at ${dpi} DPI`);
+    toast.success(`Exported as PNG at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
   }, [canvas]);
 
-  const exportAsPNGTransparent = useCallback((dpi: 150 | 300 | 600 = 300) => {
+  const exportAsPNGTransparent = useCallback((dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
     if (!canvas) return;
+
+    const originalSelection = canvas.getActiveObject();
+    
+    // If exporting selection only, temporarily hide non-selected objects
+    const hiddenForSelection: FabricObject[] = [];
+    if (selectionOnly && originalSelection) {
+      canvas.getObjects().forEach((obj) => {
+        if (obj !== originalSelection && obj.visible && 
+            !(obj as any).isGridLine && !(obj as any).isRuler) {
+          hiddenForSelection.push(obj);
+          obj.visible = false;
+        }
+      });
+    }
 
     // Temporarily hide guides and eraser paths
     const hidden: FabricObject[] = [];
@@ -732,17 +807,32 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Restore background and guides
     canvas.backgroundColor = originalBg;
     hidden.forEach((o) => (o.visible = true));
+    hiddenForSelection.forEach((o) => (o.visible = true));
     canvas.renderAll();
 
     const link = document.createElement('a');
-    link.download = `diagram-transparent-${dpi}dpi.png`;
+    link.download = selectionOnly ? `selection-transparent-${dpi}dpi.png` : `diagram-transparent-${dpi}dpi.png`;
     link.href = dataURL;
     link.click();
-    toast.success(`Exported as PNG (transparent) at ${dpi} DPI`);
+    toast.success(`Exported as PNG (transparent) at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
   }, [canvas]);
 
-  const exportAsJPG = useCallback((dpi: 150 | 300 | 600 = 300) => {
+  const exportAsJPG = useCallback((dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
     if (!canvas) return;
+
+    const originalSelection = canvas.getActiveObject();
+    
+    // If exporting selection only, temporarily hide non-selected objects
+    const hiddenForSelection: FabricObject[] = [];
+    if (selectionOnly && originalSelection) {
+      canvas.getObjects().forEach((obj) => {
+        if (obj !== originalSelection && obj.visible && 
+            !(obj as any).isGridLine && !(obj as any).isRuler) {
+          hiddenForSelection.push(obj);
+          obj.visible = false;
+        }
+      });
+    }
 
     // Temporarily hide guides and eraser paths
     const hidden: FabricObject[] = [];
@@ -762,17 +852,32 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
+    hiddenForSelection.forEach((o) => (o.visible = true));
     canvas.renderAll();
 
     const link = document.createElement('a');
-    link.download = `diagram-${dpi}dpi.jpg`;
+    link.download = selectionOnly ? `selection-${dpi}dpi.jpg` : `diagram-${dpi}dpi.jpg`;
     link.href = dataURL;
     link.click();
-    toast.success(`Exported as JPG at ${dpi} DPI`);
+    toast.success(`Exported as JPG at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
   }, [canvas]);
 
-  const exportAsSVG = useCallback(() => {
+  const exportAsSVG = useCallback((selectionOnly: boolean = false) => {
     if (!canvas) return;
+
+    const originalSelection = canvas.getActiveObject();
+    
+    // If exporting selection only, temporarily hide non-selected objects
+    const hiddenForSelection: FabricObject[] = [];
+    if (selectionOnly && originalSelection) {
+      canvas.getObjects().forEach((obj) => {
+        if (obj !== originalSelection && obj.visible && 
+            !(obj as any).isGridLine && !(obj as any).isRuler) {
+          hiddenForSelection.push(obj);
+          obj.visible = false;
+        }
+      });
+    }
 
     // Temporarily hide guides and eraser paths
     const hidden: FabricObject[] = [];
@@ -790,15 +895,17 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
+    hiddenForSelection.forEach((o) => (o.visible = true));
     canvas.renderAll();
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.download = 'diagram.svg';
+    link.download = selectionOnly ? 'selection.svg' : 'diagram.svg';
     link.href = url;
     link.click();
     URL.revokeObjectURL(url);
+    toast.success(`Exported as SVG`, { duration: 1500, className: 'animate-fade-in' });
   }, [canvas]);
 
   // Pin/Lock operations
@@ -1130,6 +1237,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
 
     setIsSaving(true);
+    setSaveStatus('saving');
     try {
       // Hide guides and eraser paths so they are not persisted as visible in saved data
       const hidden: FabricObject[] = [];
@@ -1177,7 +1285,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
           .eq('id', currentProjectId);
 
         if (error) throw error;
-        toast.success("Project saved");
+        setSaveStatus('saved');
+        toast.success("Project saved", { duration: 1000, className: 'animate-fade-in' });
       } else {
         // Create new project
         const { data, error } = await supabase
@@ -1189,7 +1298,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         if (error) throw error;
         if (data) {
           setCurrentProjectId(data.id);
-          toast.success("Project created and saved");
+          setSaveStatus('saved');
+          toast.success("Project created and saved", { duration: 1500, className: 'animate-fade-in' });
         }
       }
     } catch (error: any) {
@@ -1214,6 +1324,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
     } finally {
       setIsSaving(false);
+      setSaveStatus('unsaved');
     }
   }, [canvas, user, projectName, paperSize, canvasDimensions, currentProjectId]);
 
@@ -1307,6 +1418,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     isSaving,
     saveProject,
     loadProject,
+    saveStatus,
     undo,
     redo,
     cut,
@@ -1362,6 +1474,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     cropImage,
     smoothenPath,
     nudgeObject,
+    recentColors,
+    addToRecentColors,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

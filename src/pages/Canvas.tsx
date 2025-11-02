@@ -147,13 +147,13 @@ const CanvasContent = () => {
     }
   };
 
-  const handleExportImage = (format: 'png' | 'png-transparent' | 'jpg', dpi: 150 | 300 | 600) => {
+  const handleExportImage = (format: 'png' | 'png-transparent' | 'jpg', dpi: 150 | 300 | 600, selectionOnly?: boolean) => {
     if (format === 'png') {
-      exportAsPNG(dpi);
+      exportAsPNG(dpi, selectionOnly);
     } else if (format === 'png-transparent') {
-      exportAsPNGTransparent(dpi);
+      exportAsPNGTransparent(dpi, selectionOnly);
     } else if (format === 'jpg') {
-      exportAsJPG(dpi);
+      exportAsJPG(dpi, selectionOnly);
     }
   };
 
@@ -361,6 +361,7 @@ const CanvasContent = () => {
         onExport={handleExportImage}
         canvasWidth={canvasDimensions.width}
         canvasHeight={canvasDimensions.height}
+        hasSelection={!!selectedObject}
       />
       
       {/* Custom Orthogonal Line Dialog */}

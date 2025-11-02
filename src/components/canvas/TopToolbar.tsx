@@ -63,6 +63,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
     setGridEnabled,
     rulersEnabled,
     setRulersEnabled,
+    saveStatus,
   } = useCanvas();
 
   const handleTextToolClick = () => {
@@ -285,7 +286,26 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <div className="flex-1" />
+      <div className="flex-1 flex items-center justify-center">
+        {saveStatus === 'saved' && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
+            All changes saved
+          </span>
+        )}
+        {saveStatus === 'saving' && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
+            Saving...
+          </span>
+        )}
+        {saveStatus === 'unsaved' && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+            Not saved
+          </span>
+        )}
+      </div>
 
       <div className="flex items-center gap-0.5">
         <Tooltip>

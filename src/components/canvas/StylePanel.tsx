@@ -16,7 +16,7 @@ const COLOR_PRESETS = [
 ];
 
 export const StylePanel = () => {
-  const { selectedObject } = useCanvas();
+  const { selectedObject, canvas, recentColors, addToRecentColors } = useCanvas();
   
   const [fill, setFill] = useState("#3b82f6");
   const [fillEnabled, setFillEnabled] = useState(true);
@@ -60,6 +60,7 @@ export const StylePanel = () => {
     const targetShape = getShapeFromGroup(selectedObject);
     targetShape.set({ fill: fillEnabled ? color : '' });
     selectedObject.canvas?.renderAll();
+    addToRecentColors(color);
   };
 
   const handleFillToggle = (enabled: boolean) => {
@@ -76,6 +77,7 @@ export const StylePanel = () => {
     const targetShape = getShapeFromGroup(selectedObject);
     targetShape.set({ stroke: strokeEnabled ? color : '' });
     selectedObject.canvas?.renderAll();
+    addToRecentColors(color);
   };
 
   const handleStrokeToggle = (enabled: boolean) => {
@@ -132,8 +134,35 @@ export const StylePanel = () => {
             placeholder="#000000"
           />
         </div>
+        
+        {/* Recent Colors */}
+        {recentColors.length > 0 && (
+          <div className="pl-6 space-y-1">
+            <Label className="text-xs text-muted-foreground">Recent</Label>
+            <div className="flex gap-1 flex-wrap">
+              {recentColors.map((color, idx) => (
+                <Button
+                  key={`${color}-${idx}`}
+                  variant="outline"
+                  size="icon"
+                  className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                  style={{ 
+                    backgroundColor: color,
+                    borderColor: fill === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                  }}
+                  onClick={() => handleFillChange(color)}
+                  disabled={!selectedObject || !fillEnabled}
+                  title={color}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        
         {/* Color Presets */}
-        <div className="grid grid-cols-9 gap-1 pl-6">
+        <div className="pl-6 space-y-1">
+          <Label className="text-xs text-muted-foreground">Presets</Label>
+          <div className="grid grid-cols-9 gap-1">
           {COLOR_PRESETS.map((color) => (
             <Button
               key={color}
@@ -149,6 +178,7 @@ export const StylePanel = () => {
               title={color}
             />
           ))}
+          </div>
         </div>
       </div>
 
@@ -182,8 +212,35 @@ export const StylePanel = () => {
             placeholder="#000000"
           />
         </div>
+        
+        {/* Recent Colors for Border */}
+        {recentColors.length > 0 && (
+          <div className="pl-6 space-y-1">
+            <Label className="text-xs text-muted-foreground">Recent</Label>
+            <div className="flex gap-1 flex-wrap">
+              {recentColors.map((color, idx) => (
+                <Button
+                  key={`stroke-${color}-${idx}`}
+                  variant="outline"
+                  size="icon"
+                  className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                  style={{ 
+                    backgroundColor: color,
+                    borderColor: stroke === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                  }}
+                  onClick={() => handleStrokeChange(color)}
+                  disabled={!selectedObject || !strokeEnabled}
+                  title={color}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        
         {/* Color Presets */}
-        <div className="grid grid-cols-9 gap-1 pl-6">
+        <div className="pl-6 space-y-1">
+          <Label className="text-xs text-muted-foreground">Presets</Label>
+          <div className="grid grid-cols-9 gap-1">
           {COLOR_PRESETS.map((color) => (
             <Button
               key={color}
@@ -196,9 +253,10 @@ export const StylePanel = () => {
               }}
               onClick={() => handleStrokeChange(color)}
               disabled={!selectedObject || !strokeEnabled}
-              title={color}
+            title={color}
             />
           ))}
+          </div>
         </div>
         <div className="pl-6 space-y-1">
           <Label className="text-xs">Width</Label>

@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Eye, EyeOff, Lock, Search, Trash2 } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { FabricObject } from "fabric";
+import { toast } from "sonner";
 
 interface Layer {
   id: string;
@@ -17,6 +19,8 @@ export const LayersPanel = () => {
   const { canvas, selectedObject, getCanvasObjects, selectObjectById, toggleObjectVisibility } = useCanvas();
   const [layers, setLayers] = useState<Layer[]>([]);
   const [, setRefresh] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLayers, setSelectedLayers] = useState<string[]>([]);
 
   const getObjectName = (obj: FabricObject, index: number): string => {
     if ((obj as any).name) return (obj as any).name;
@@ -82,27 +86,134 @@ export const LayersPanel = () => {
     toggleObjectVisibility(id);
   };
 
+  const generateThumbnail = (obj: FabricObject): string => {
+    try {
+      const tempCanvas = document.createElement('canvas');
+      const size = 32;
+      tempCanvas.width = size;
+      tempCanvas.height = size;
+      const ctx = tempCanvas.getContext('2d');
+      
+      if (!ctx) return '';
+      
+      ctx.fillStyle = '#f3f4f6';
+      ctx.fillRect(0, 0, size, size);
+      
+      const objBounds = obj.getBoundingRect();
+      const scale = Math.min(size / objBounds.width, size / objBounds.height) * 0.8;
+      
+      ctx.save();
+      ctx.translate(size / 2, size / 2);
+      ctx.scale(scale, scale);
+      ctx.translate(-objBounds.width / 2, -objBounds.height / 2);
+      
+      obj.render(ctx as any);
+      ctx.restore();
+      
+      return tempCanvas.toDataURL();
+    } catch (error) {
+      return '';
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (!canvas || selectedLayers.length === 0) return;
+    
+    selectedLayers.forEach(layerId => {
+      const layer = layers.find(l => l.id === layerId);
+      if (layer) {
+        canvas.remove(layer.fabricObject);
+      }
+    });
+    
+    setSelectedLayers([]);
+    canvas.renderAll();
+    toast.success(`Deleted ${selectedLayers.length} layer(s)`, { duration: 1000, className: 'animate-fade-in' });
+  };
+
+  const handleLayerSelect = (layerId: string, ctrlKey: boolean) => {
+    if (ctrlKey) {
+      setSelectedLayers(prev => 
+        prev.includes(layerId) 
+          ? prev.filter(id => id !== layerId)
+          : [...prev, layerId]
+      );
+    } else {
+      setSelectedLayers([]);
+    }
+  };
+
   const isSelected = (layer: Layer) => {
     return selectedObject === layer.fabricObject;
   };
 
+  const isLayerSelected = (layerId: string) => {
+    return selectedLayers.includes(layerId);
+  };
+
+  const filteredLayers = layers.filter(layer =>
+    layer.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="h-full flex flex-col">
+      {/* Search Bar */}
+      <div className="p-2 space-y-2 border-b">
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search layers..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-8 pl-8 text-xs"
+          />
+        </div>
+        
+        {/* Bulk Actions */}
+        {selectedLayers.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground flex-1">
+              {selectedLayers.length} selected
+            </span>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleBulkDelete}
+              className="h-7 text-xs"
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              Delete
+            </Button>
+          </div>
+        )}
+      </div>
+
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
-          {layers.length === 0 ? (
+          {filteredLayers.length === 0 ? (
             <div className="text-center text-sm text-muted-foreground py-8">
-              No objects on canvas
+              {searchQuery ? 'No matching layers' : 'No objects on canvas'}
             </div>
           ) : (
-            layers.map((layer) => (
+            filteredLayers.map((layer) => (
               <div
                 key={layer.id}
-                onClick={() => handleLayerClick(layer)}
+                onClick={(e) => {
+                  handleLayerClick(layer);
+                  handleLayerSelect(layer.id, e.ctrlKey || e.metaKey);
+                }}
                 className={`flex items-center gap-2 p-2 rounded hover:bg-accent cursor-pointer group transition-colors ${
-                  isSelected(layer) ? 'bg-accent' : ''
+                  isSelected(layer) || isLayerSelected(layer.id) ? 'bg-accent' : ''
                 }`}
               >
+                {/* Thumbnail */}
+                <div className="h-8 w-8 rounded bg-muted shrink-0 overflow-hidden border">
+                  <img 
+                    src={generateThumbnail(layer.fabricObject)} 
+                    alt={layer.name}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
                 <Button
                   size="icon"
                   variant="ghost"
