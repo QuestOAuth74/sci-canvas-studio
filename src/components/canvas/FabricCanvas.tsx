@@ -10,7 +10,7 @@ import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
 import { StraightLineTool } from "@/lib/straightLineTool";
 import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
 import { CurvedLineTool } from "@/lib/curvedLineTool";
-import { calculateArcPath, snapToGrid } from "@/lib/advancedLineSystem";
+import { calculateArcPath } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
@@ -79,8 +79,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     setSelectedObject, 
     gridEnabled, 
     rulersEnabled, 
-    snapToGrid,
-    gridSize,
     backgroundColor, 
     canvasDimensions, 
     zoom,
@@ -281,21 +279,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Snap to grid on release (not during drag)
-    canvas.on('object:modified', (e: any) => {
-      if (!snapToGrid) return;
-      
-      const obj = e.target;
-      const snap = gridSize;
-      
-      // Snap to nearest grid intersection
-      obj.set({
-        left: Math.round((obj.left || 0) / snap) * snap,
-        top: Math.round((obj.top || 0) / snap) * snap,
-      });
-      
-      canvas.renderAll();
-    });
+    // Snap-to-grid removed per user request: free movement while dragging and on release
+    // (previous object:modified snapping handler deleted)
 
     canvas.on('mouse:move', (e) => {
       if (e.e.altKey && canvas.getActiveObject() && activeTool === 'select') {
