@@ -281,16 +281,28 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Snap to grid functionality
+    // Snap to grid functionality with threshold
     canvas.on('object:moving', (e: any) => {
       if (!snapToGrid) return;
       
       const obj = e.target;
       const snap = gridSize;
+      const threshold = 8; // Snap only when within 8px of grid line
+      
+      const left = obj.left || 0;
+      const top = obj.top || 0;
+      
+      // Calculate nearest grid point
+      const snappedLeft = Math.round(left / snap) * snap;
+      const snappedTop = Math.round(top / snap) * snap;
+      
+      // Only snap if within threshold distance
+      const shouldSnapLeft = Math.abs(left - snappedLeft) < threshold;
+      const shouldSnapTop = Math.abs(top - snappedTop) < threshold;
       
       obj.set({
-        left: Math.round((obj.left || 0) / snap) * snap,
-        top: Math.round((obj.top || 0) / snap) * snap,
+        left: shouldSnapLeft ? snappedLeft : left,
+        top: shouldSnapTop ? snappedTop : top,
       });
     });
 
