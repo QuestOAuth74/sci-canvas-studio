@@ -309,6 +309,26 @@ const Index = () => {
           </div>
         )}
 
+        {/* Video Section */}
+        <div className="container mx-auto px-4 py-12 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="glass-card p-4 md:p-6 overflow-hidden">
+              <div className="relative rounded-xl overflow-hidden shadow-2xl">
+                <video 
+                  controls 
+                  className="w-full h-auto"
+                >
+                  <source 
+                    src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4" 
+                    type="video/mp4" 
+                  />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            </div>
+          </div>
+        </div>
+
       {/* Footer Section */}
       <footer className="relative z-10 border-t border-border/60 bg-gradient-to-b from-muted/30 to-background mt-16">
         <div className="container mx-auto px-4 py-12">
