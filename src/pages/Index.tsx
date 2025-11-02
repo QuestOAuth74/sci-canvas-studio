@@ -16,6 +16,7 @@ import { useRecentSignups } from "@/hooks/useRecentSignups";
 import { SignupToast } from "@/components/SignupToast";
 import { InstitutionCarousel } from "@/components/InstitutionCarousel";
 import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
+import { CommunityCarousel } from "@/components/community/CommunityCarousel";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -368,6 +369,13 @@ const Index = () => {
                 </Button>
               </div>
             </div>
+
+            {/* Community Gallery Carousel */}
+            {user && (
+              <div className="py-8">
+                <CommunityCarousel />
+              </div>
+            )}
 
             {/* Footer Image */}
             <div className="flex flex-col items-center py-8 gap-4">
