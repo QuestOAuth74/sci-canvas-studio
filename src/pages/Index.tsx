@@ -315,7 +315,10 @@ const Index = () => {
             <div className="glass-card p-4 md:p-6 overflow-hidden">
               <div className="relative rounded-xl overflow-hidden shadow-2xl">
                 <video 
-                  controls 
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
                   className="w-full h-auto"
                 >
                   <source 
