@@ -27,7 +27,7 @@ import {
   Undo2,
   Redo2
 } from "lucide-react";
-import { FabricObject, ActiveSelection } from "fabric";
+import { FabricObject } from "fabric";
 
 interface CanvasContextMenuProps {
   children: React.ReactNode;
@@ -83,9 +83,21 @@ export const CanvasContextMenu = ({
   onOpenProperties,
 }: CanvasContextMenuProps) => {
   const hasSelection = !!selectedObject;
-  const isMultipleSelection = selectedObject instanceof ActiveSelection && selectedObject._objects && (selectedObject._objects?.length ?? 0) > 1;
-  const isGroup = selectedObject?.type === 'group';
-  const isLocked = selectedObject?.lockMovementX || selectedObject?.lockMovementY;
+  // Determine if multiple objects are selected without relying on private Fabric internals
+  const selectionCount = (() => {
+    const anyObj = selectedObject as any;
+    if (!anyObj) return 0;
+    if (anyObj.type === 'activeSelection') {
+      if (typeof anyObj.size === 'function') return anyObj.size();
+      if (typeof anyObj.getObjects === 'function') return (anyObj.getObjects() || []).length;
+      if (Array.isArray(anyObj._objects)) return anyObj._objects.length; // fallback
+      return 0;
+    }
+    return 1;
+  })();
+  const isMultipleSelection = selectionCount > 1;
+  const isGroup = (selectedObject as any)?.type === 'group';
+  const isLocked = (selectedObject as any)?.lockMovementX || (selectedObject as any)?.lockMovementY;
 
   return (
     <ContextMenu>
