@@ -83,7 +83,7 @@ export const CanvasContextMenu = ({
   onOpenProperties,
 }: CanvasContextMenuProps) => {
   const hasSelection = !!selectedObject;
-  const isMultipleSelection = selectedObject instanceof ActiveSelection && selectedObject._objects && selectedObject._objects.length > 1;
+  const isMultipleSelection = selectedObject instanceof ActiveSelection && selectedObject._objects && (selectedObject._objects?.length ?? 0) > 1;
   const isGroup = selectedObject?.type === 'group';
   const isLocked = selectedObject?.lockMovementX || selectedObject?.lockMovementY;
 
