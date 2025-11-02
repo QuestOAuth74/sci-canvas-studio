@@ -22,6 +22,7 @@ import { MobileWarningDialog } from "@/components/canvas/MobileWarningDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
+import { CommandPalette } from "@/components/canvas/CommandPalette";
 import { CropTool } from "@/components/canvas/CropTool";
 import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonalLineDialog";
@@ -42,6 +43,7 @@ const CanvasContent = () => {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const { isAdmin } = useAuth();
   const {
     canvas,
@@ -177,10 +179,63 @@ const CanvasContent = () => {
 
       const isEditingText = isEditingCanvasText || isEditingHTMLInput;
 
+      // Command Palette (Cmd/Ctrl+K)
+      if (modifier && e.key === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+        return;
+      }
+
       // Show shortcuts dialog with ?
       if (e.key === '?' && !modifier && !isEditingText) {
         e.preventDefault();
         setShowShortcuts(true);
+        return;
+      }
+
+      // Number keys for tool switching (1-9)
+      if (!isEditingText && !modifier && /^[1-9]$/.test(e.key)) {
+        const toolMap: Record<string, string> = {
+          '1': 'select',
+          '2': 'text',
+          '3': 'rectangle',
+          '4': 'circle',
+          '5': 'straight-line',
+          '6': 'arrow',
+          '7': 'pen',
+          '8': 'image',
+          '9': 'eraser',
+        };
+        
+        const tool = toolMap[e.key];
+        if (tool) {
+          e.preventDefault();
+          setActiveTool(tool);
+          toast.success(`Switched to ${tool} tool`, { duration: 1000 });
+        }
+        return;
+      }
+
+      // Tab key for cycling through objects
+      if (e.key === 'Tab' && !isEditingText) {
+        e.preventDefault();
+        
+        const allObjects = canvas?.getObjects().filter(obj => 
+          obj.selectable !== false && !(obj as any).isGridLine && !(obj as any).isRuler
+        ) || [];
+        
+        if (allObjects.length === 0) return;
+        
+        const currentIndex = selectedObject ? allObjects.indexOf(selectedObject) : -1;
+        const nextIndex = e.shiftKey 
+          ? (currentIndex - 1 + allObjects.length) % allObjects.length
+          : (currentIndex + 1) % allObjects.length;
+        
+        const nextObject = allObjects[nextIndex];
+        canvas?.setActiveObject(nextObject);
+        canvas?.renderAll();
+        
+        toast.success(`Selected: ${nextObject.type}`, { duration: 800 });
         return;
       }
 
@@ -268,7 +323,7 @@ const CanvasContent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject]);
+  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject]);
 
   return (
       <div className="h-screen bg-background flex flex-col">
@@ -279,6 +334,13 @@ const CanvasContent = () => {
       <KeyboardShortcutsDialog 
         open={showShortcuts} 
         onOpenChange={setShowShortcuts}
+      />
+
+      {/* Command Palette */}
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        onToolChange={setActiveTool}
       />
 
       {/* Save Upload Handler */}

@@ -43,7 +43,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const { recentTools, addRecentTool } = useRecentlyUsedTools();
   
   const tools = [
-    { id: "select", icon: MousePointer2, label: "Select and Transform (S)" },
+    { id: "select", icon: MousePointer2, label: "Select and Transform (1)" },
     { id: "pen", icon: PenTool, label: "Draw Bezier Curves (B)" },
     { id: "freeform-line", icon: Spline, label: "Freeform Curved Line (F)" },
   ];
@@ -238,7 +238,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right">
-          <p>Create Text (T)</p>
+          <p>Create Text (2)</p>
         </TooltipContent>
       </Tooltip>
       
@@ -254,7 +254,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right">
-          <p>Insert Image (I)</p>
+          <p>Insert Image (8)</p>
         </TooltipContent>
       </Tooltip>
       
@@ -304,7 +304,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right">
-          <p>Eraser (E)</p>
+          <p>Eraser (9)</p>
         </TooltipContent>
       </Tooltip>
     </div>

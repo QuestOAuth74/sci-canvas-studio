@@ -30,6 +30,7 @@ import {
 import { useCanvas } from "@/contexts/CanvasContext";
 import { TextFormattingPanel } from "./TextFormattingPanel";
 import { ShapesDropdown } from "./ShapesDropdown";
+import { QuickSettings } from "./QuickSettings";
 import { useState } from "react";
 
 interface TopToolbarProps {
@@ -315,6 +316,10 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
           </TooltipTrigger>
           <TooltipContent>Fit to Screen</TooltipContent>
         </Tooltip>
+
+        <Separator orientation="vertical" className="h-6 mx-1" />
+
+        <QuickSettings />
       </div>
     </div>
   );
