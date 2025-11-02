@@ -14,6 +14,7 @@ import {
   Hexagon,
   Spline,
   Crop,
+  Clock,
 } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
@@ -29,6 +30,8 @@ import { StraightLineTool } from "./StraightLineTool";
 import { OrthogonalLineTool } from "./OrthogonalLineTool";
 import { CurvedLineTool } from "./CurvedLineTool";
 import { ZoomCalloutTool } from "./ZoomCalloutTool";
+import { useRecentlyUsedTools } from "@/hooks/useRecentlyUsedTools";
+import { useEffect } from "react";
 
 interface ToolbarProps {
   activeTool: string;
@@ -37,24 +40,83 @@ interface ToolbarProps {
 
 export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const { canvas, selectedObject, setCropMode, setSelectedObject } = useCanvas();
+  const { recentTools, addRecentTool } = useRecentlyUsedTools();
   
   const tools = [
     { id: "select", icon: MousePointer2, label: "Select and Transform (S)" },
     { id: "pen", icon: PenTool, label: "Draw Bezier Curves (B)" },
     { id: "freeform-line", icon: Spline, label: "Freeform Curved Line (F)" },
   ];
+
+  // Map tool IDs to their icons and labels for recent tools
+  const toolIconMap: Record<string, { icon: any; label: string }> = {
+    "pen": { icon: PenTool, label: "Bezier Curves" },
+    "freeform-line": { icon: Spline, label: "Freeform Line" },
+    "text": { icon: Type, label: "Text" },
+    "image": { icon: Image, label: "Image" },
+    "eraser": { icon: Eraser, label: "Eraser" },
+  };
   
   const isImageSelected = selectedObject && selectedObject.type === 'image';
 
+  // Track tool usage
+  useEffect(() => {
+    if (activeTool && activeTool !== 'select') {
+      addRecentTool(activeTool);
+    }
+  }, [activeTool, addRecentTool]);
+
+  const handleToolChange = (toolId: string) => {
+    onToolChange(toolId);
+  };
+
   return (
     <div className="flex flex-col gap-1 p-2 border-r bg-card">
+      {/* Recently Used Section */}
+      {recentTools.length > 0 && (
+        <>
+          <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            Recent
+          </div>
+          {recentTools.slice(0, 3).map((toolId) => {
+            const toolInfo = toolIconMap[toolId];
+            if (!toolInfo) return null;
+            
+            return (
+              <Tooltip key={`recent-${toolId}`}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={activeTool === toolId ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => handleToolChange(toolId)}
+                    className="w-10 h-10 relative"
+                  >
+                    <toolInfo.icon className="h-5 w-5" />
+                    <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>{toolInfo.label} (Recent)</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+          <Separator className="my-1" />
+        </>
+      )}
+
+      {/* Selection & Drawing Section */}
+      <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+        Drawing
+      </div>
       {tools.map((tool) => (
         <Tooltip key={tool.id}>
           <TooltipTrigger asChild>
             <Button
               variant={activeTool === tool.id ? "default" : "ghost"}
               size="icon"
-              onClick={() => onToolChange(tool.id)}
+              onClick={() => handleToolChange(tool.id)}
               className="w-10 h-10"
             >
               <tool.icon className="h-5 w-5" />
@@ -67,6 +129,11 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       ))}
       
       <Separator className="my-1" />
+      
+      {/* Shapes Section */}
+      <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+        Shapes
+      </div>
       
       <Tooltip>
         <TooltipTrigger asChild>
@@ -90,6 +157,13 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipContent>
       </Tooltip>
       
+      <Separator className="my-1" />
+      
+      {/* Lines Section */}
+      <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+        Lines
+      </div>
+      
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
@@ -104,7 +178,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
-            <OrthogonalLineTool onLineSelect={onToolChange} activeTool={activeTool} />
+            <OrthogonalLineTool onLineSelect={handleToolChange} activeTool={activeTool} />
           </div>
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -115,7 +189,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
-            <CurvedLineTool onLineSelect={onToolChange} activeTool={activeTool} />
+            <CurvedLineTool onLineSelect={handleToolChange} activeTool={activeTool} />
           </div>
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -126,7 +200,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
-            <ConnectorTool onConnectorSelect={onToolChange} activeTool={activeTool} />
+            <ConnectorTool onConnectorSelect={handleToolChange} activeTool={activeTool} />
           </div>
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -137,7 +211,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
-            <ZoomCalloutTool onCalloutSelect={onToolChange} activeTool={activeTool} />
+            <ZoomCalloutTool onCalloutSelect={handleToolChange} activeTool={activeTool} />
           </div>
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -147,12 +221,17 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       
       <Separator className="my-1" />
       
+      {/* Tools Section */}
+      <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+        Tools
+      </div>
+      
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
             variant={activeTool === "text" ? "default" : "ghost"}
             size="icon"
-            onClick={() => onToolChange("text")}
+            onClick={() => handleToolChange("text")}
             className="w-10 h-10"
           >
             <Type className="h-5 w-5" />
@@ -168,7 +247,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           <Button
             variant={activeTool === "image" ? "default" : "ghost"}
             size="icon"
-            onClick={() => onToolChange("image")}
+            onClick={() => handleToolChange("image")}
             className="w-10 h-10"
           >
             <Image className="h-5 w-5" />
@@ -218,7 +297,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           <Button
             variant={activeTool === "eraser" ? "default" : "ghost"}
             size="icon"
-            onClick={() => onToolChange("eraser")}
+            onClick={() => handleToolChange("eraser")}
             className="w-10 h-10"
           >
             <Eraser className="h-5 w-5" />

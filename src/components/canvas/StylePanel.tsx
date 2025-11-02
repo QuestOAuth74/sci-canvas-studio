@@ -4,8 +4,16 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { useEffect, useState } from "react";
+
+// Preset color palette
+const COLOR_PRESETS = [
+  "#000000", "#ffffff", "#ef4444", "#f97316", "#f59e0b", "#eab308",
+  "#84cc16", "#22c55e", "#10b981", "#14b8a6", "#06b6d4", "#0ea5e9",
+  "#3b82f6", "#6366f1", "#8b5cf6", "#a855f7", "#d946ef", "#ec4899",
+];
 
 export const StylePanel = () => {
   const { selectedObject } = useCanvas();
@@ -110,18 +118,37 @@ export const StylePanel = () => {
         <div className="flex gap-2 pl-6">
           <Input
             type="color"
-            className="h-7 w-14"
+            className="h-7 w-14 cursor-pointer"
             value={fill}
             onChange={(e) => handleFillChange(e.target.value)}
             disabled={!selectedObject || !fillEnabled}
           />
           <Input
             type="text"
-            className="h-7 flex-1 text-xs"
+            className="h-7 flex-1 text-xs font-mono"
             value={fill}
             onChange={(e) => handleFillChange(e.target.value)}
             disabled={!selectedObject || !fillEnabled}
+            placeholder="#000000"
           />
+        </div>
+        {/* Color Presets */}
+        <div className="grid grid-cols-9 gap-1 pl-6">
+          {COLOR_PRESETS.map((color) => (
+            <Button
+              key={color}
+              variant="outline"
+              size="icon"
+              className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+              style={{ 
+                backgroundColor: color,
+                borderColor: fill === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+              }}
+              onClick={() => handleFillChange(color)}
+              disabled={!selectedObject || !fillEnabled}
+              title={color}
+            />
+          ))}
         </div>
       </div>
 
@@ -141,18 +168,37 @@ export const StylePanel = () => {
         <div className="flex gap-2 pl-6">
           <Input
             type="color"
-            className="h-7 w-14"
+            className="h-7 w-14 cursor-pointer"
             value={stroke}
             onChange={(e) => handleStrokeChange(e.target.value)}
             disabled={!selectedObject || !strokeEnabled}
           />
           <Input
             type="text"
-            className="h-7 flex-1 text-xs"
+            className="h-7 flex-1 text-xs font-mono"
             value={stroke}
             onChange={(e) => handleStrokeChange(e.target.value)}
             disabled={!selectedObject || !strokeEnabled}
+            placeholder="#000000"
           />
+        </div>
+        {/* Color Presets */}
+        <div className="grid grid-cols-9 gap-1 pl-6">
+          {COLOR_PRESETS.map((color) => (
+            <Button
+              key={color}
+              variant="outline"
+              size="icon"
+              className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+              style={{ 
+                backgroundColor: color,
+                borderColor: stroke === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+              }}
+              onClick={() => handleStrokeChange(color)}
+              disabled={!selectedObject || !strokeEnabled}
+              title={color}
+            />
+          ))}
         </div>
         <div className="pl-6 space-y-1">
           <Label className="text-xs">Width</Label>
@@ -162,6 +208,8 @@ export const StylePanel = () => {
             onChange={(e) => handleStrokeWidthChange(Number(e.target.value))}
             disabled={!selectedObject || !strokeEnabled}
             className="h-7 text-xs" 
+            min="0"
+            step="1"
           />
         </div>
       </div>

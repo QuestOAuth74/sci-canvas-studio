@@ -2976,6 +2976,12 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
   }, [canvas, activeTool, textFont, textAlign, textUnderline, textOverline, textBold, textItalic, connectorState.isDrawing, connectorState.startX, connectorState.startY]);
 
+  // Visual feedback for active tool mode
+  const isToolActive = activeTool && activeTool !== 'select';
+  const toolModeClass = isToolActive 
+    ? 'shadow-[0_0_0_2px_hsl(var(--primary)/0.5)] rounded-sm' 
+    : '';
+
   return (
     <div
       className="w-full h-full overflow-auto relative"
@@ -2985,7 +2991,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       } : undefined}
     >
       <div className="w-full h-full flex items-start justify-center p-4">
-        <div className="shadow-2xl bg-white" style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
+        <div className={`shadow-2xl bg-white transition-all duration-200 ${toolModeClass}`} style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
           <canvas ref={canvasRef} />
         </div>
       </div>

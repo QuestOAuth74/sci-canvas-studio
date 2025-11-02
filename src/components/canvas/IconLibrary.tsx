@@ -347,38 +347,53 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
     const isLoaded = !!loadedMap[icon.id];
     
     return (
-      <button
-        key={icon.id}
-        onClick={() => handleIconClick(icon)}
-        className="aspect-square border rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/30 hover:border-primary/50 transition-all hover:scale-105 hover:shadow-sm relative"
-        title={icon.name}
-      >
-        {!hasThumbnail || isBroken ? (
-          <img
-            src={noPreview}
-            alt={`${icon.name} preview unavailable`}
-            loading="lazy"
-            className="w-full h-full object-contain"
-          />
-        ) : (
-          <>
-            {!isLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Skeleton className="w-6 h-6 rounded-sm" />
-              </div>
-            )}
+      <div key={icon.id} className="relative group">
+        <button
+          onClick={() => handleIconClick(icon)}
+          className="w-full aspect-square border rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/30 hover:border-primary/50 transition-all hover:scale-105 hover:shadow-sm relative"
+          title={icon.name}
+        >
+          {!hasThumbnail || isBroken ? (
             <img
-              src={thumbSrc}
-              alt={icon.name}
+              src={noPreview}
+              alt={`${icon.name} preview unavailable`}
               loading="lazy"
-              onLoad={() => onImgLoad(icon.id)}
-              onError={() => onImgError(icon.id)}
-              className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
-              style={{ imageRendering: "pixelated" }}
+              className="w-full h-full object-contain"
             />
-          </>
+          ) : (
+            <>
+              {!isLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Skeleton className="w-6 h-6 rounded-sm" />
+                </div>
+              )}
+              <img
+                src={thumbSrc}
+                alt={icon.name}
+                loading="lazy"
+                onLoad={() => onImgLoad(icon.id)}
+                onError={() => onImgError(icon.id)}
+                className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
+                style={{ imageRendering: "pixelated" }}
+              />
+            </>
+          )}
+        </button>
+        
+        {/* Hover Preview Tooltip */}
+        {hasThumbnail && !isBroken && (
+          <div className="absolute left-full ml-2 top-0 z-50 hidden group-hover:block pointer-events-none">
+            <div className="bg-popover border rounded-lg shadow-lg p-2 w-32 h-32">
+              <img
+                src={thumbSrc}
+                alt={icon.name}
+                className="w-full h-full object-contain"
+              />
+              <p className="text-[10px] text-center text-foreground mt-1 truncate">{icon.name}</p>
+            </div>
+          </div>
         )}
-      </button>
+      </div>
     );
   };
 
