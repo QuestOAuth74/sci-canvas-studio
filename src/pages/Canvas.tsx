@@ -27,6 +27,7 @@ import { AlignmentGuides } from "@/components/canvas/AlignmentGuides";
 import { CropTool } from "@/components/canvas/CropTool";
 import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonalLineDialog";
+import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 
@@ -46,6 +47,8 @@ const CanvasContent = () => {
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [hasClipboard, setHasClipboard] = useState(false);
+  const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
   const { isAdmin } = useAuth();
   const {
     canvas,
@@ -90,6 +93,41 @@ const CanvasContent = () => {
     rotateSelected,
     duplicateBelow,
   } = useCanvas();
+
+  // Track clipboard status via copy/cut actions
+  useEffect(() => {
+    const handleCopy = () => setHasClipboard(true);
+    const handleCut = () => setHasClipboard(true);
+    
+    // Listen for clipboard operations
+    window.addEventListener('clipboardData', handleCopy);
+    
+    return () => {
+      window.removeEventListener('clipboardData', handleCopy);
+    };
+  }, []);
+
+  // Check for hidden objects
+  useEffect(() => {
+    if (!canvas) return;
+    
+    const checkHidden = () => {
+      const objects = canvas.getObjects();
+      const hasHidden = objects.some(obj => obj.visible === false);
+      setHasHiddenObjects(hasHidden);
+    };
+    
+    checkHidden();
+    canvas.on('object:added', checkHidden);
+    canvas.on('object:removed', checkHidden);
+    canvas.on('object:modified', checkHidden);
+    
+    return () => {
+      canvas.off('object:added', checkHidden);
+      canvas.off('object:removed', checkHidden);
+      canvas.off('object:modified', checkHidden);
+    };
+  }, [canvas]);
 
   // Load project from URL parameter
   useEffect(() => {
@@ -643,7 +681,42 @@ const CanvasContent = () => {
 
         {/* Canvas */}
         <div className="flex-1 relative min-h-0">
-          <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
+          <CanvasContextMenu
+            selectedObject={selectedObject}
+            hasClipboard={hasClipboard}
+            canUndo={true}
+            canRedo={true}
+            hasHiddenObjects={hasHiddenObjects}
+            onCopy={() => {
+              copy();
+              setHasClipboard(true);
+            }}
+            onCut={() => {
+              cut();
+              setHasClipboard(true);
+            }}
+            onPaste={paste}
+            onDuplicate={duplicateSelected}
+            onDelete={deleteSelected}
+            onLock={toggleLockSelected}
+            onHide={hideSelected}
+            onBringToFront={bringToFront}
+            onBringForward={bringForward}
+            onSendBackward={sendBackward}
+            onSendToBack={sendToBack}
+            onGroup={groupSelected}
+            onUngroup={ungroupSelected}
+            onSelectAll={selectAll}
+            onUndo={undo}
+            onRedo={redo}
+            onShowAllHidden={showAllHidden}
+            onOpenProperties={() => {
+              setIsPropertiesPanelCollapsed(false);
+              setRightSidebarTab("properties");
+            }}
+          >
+            <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
+          </CanvasContextMenu>
           <AlignmentGuides />
         </div>
 
