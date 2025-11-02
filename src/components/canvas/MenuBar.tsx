@@ -12,7 +12,11 @@ import { toast } from "sonner";
 import { AboutDialog } from "./AboutDialog";
 import { useState } from "react";
 
-export const MenuBar = () => {
+interface MenuBarProps {
+  onTemplatesClick?: () => void;
+}
+
+export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   
   const {
@@ -75,6 +79,7 @@ export const MenuBar = () => {
             <MenubarItem onClick={handleOpen}>
               Open <MenubarShortcut>⌘O</MenubarShortcut>
             </MenubarItem>
+            <MenubarItem onClick={onTemplatesClick}>Templates...</MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={handleSave}>
               Save <MenubarShortcut>⌘S</MenubarShortcut>

@@ -143,6 +143,7 @@ interface CanvasContextType {
   showAllHidden: () => void;
   rotateSelected: (degrees: number) => void;
   duplicateBelow: () => void;
+  loadTemplate: (template: any) => Promise<void>;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -1488,6 +1489,44 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     return null;
   }, []);
 
+  const loadTemplate = useCallback(async (template: any) => {
+    if (!canvas) return;
+
+    try {
+      toast("Loading template...");
+      await loadAllFonts();
+      
+      canvas.clear();
+      await canvas.loadFromJSON(template.canvasData);
+      
+      canvas.getObjects().forEach(obj => {
+        if (obj.type === 'textbox' || obj.type === 'text') {
+          const fontFamily = (obj as any).fontFamily;
+          if (fontFamily) {
+            obj.set({ fontFamily });
+          }
+        }
+      });
+      
+      canvas.renderAll();
+      
+      setProjectName(`Untitled from ${template.name}`);
+      setCurrentProjectId(null);
+      setPaperSize(template.paperSize);
+      setCanvasDimensions(template.dimensions);
+      canvas.setDimensions(template.dimensions);
+      
+      setHistory([]);
+      saveState();
+      setSaveStatus('unsaved');
+      
+      toast.success(`Template "${template.name}" loaded!`);
+    } catch (error: any) {
+      console.error('Template load error:', error);
+      toast.error("Failed to load template");
+    }
+  }, [canvas, saveState]);
+
   const duplicateSelected = useCallback(async () => {
     if (!canvas || !selectedObject) return;
 
@@ -1704,6 +1743,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     showAllHidden,
     rotateSelected,
     duplicateBelow,
+    loadTemplate,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

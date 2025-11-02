@@ -28,6 +28,7 @@ import { CropTool } from "@/components/canvas/CropTool";
 import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonalLineDialog";
 import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
+import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 
@@ -46,6 +47,7 @@ const CanvasContent = () => {
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [templatesDialogOpen, setTemplatesDialogOpen] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
@@ -92,6 +94,7 @@ const CanvasContent = () => {
     showAllHidden,
     rotateSelected,
     duplicateBelow,
+    loadTemplate,
   } = useCanvas();
 
   // Track clipboard status via copy/cut actions
@@ -471,6 +474,14 @@ const CanvasContent = () => {
         onToolChange={setActiveTool}
       />
 
+      {/* Templates Gallery */}
+      <TemplatesGallery
+        open={templatesDialogOpen}
+        onOpenChange={setTemplatesDialogOpen}
+        onSelectTemplate={loadTemplate}
+        onBlankCanvas={() => setTemplatesDialogOpen(false)}
+      />
+
       {/* Save Upload Handler */}
       <SaveUploadHandler />
       
@@ -568,7 +579,7 @@ const CanvasContent = () => {
                 Saving...
               </span>
             )}
-            <MenuBar />
+            <MenuBar onTemplatesClick={() => setTemplatesDialogOpen(true)} />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
