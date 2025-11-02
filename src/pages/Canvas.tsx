@@ -45,6 +45,7 @@ const CanvasContent = () => {
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const { isAdmin } = useAuth();
   const {
     canvas,
@@ -78,15 +79,45 @@ const CanvasContent = () => {
     exportAsPNGTransparent,
     exportAsJPG,
     canvasDimensions,
+    checkForRecovery,
+    recoverCanvas,
+    duplicateSelected,
+    pasteInPlace,
+    deselectAll,
+    toggleLockSelected,
+    hideSelected,
+    showAllHidden,
+    rotateSelected,
+    duplicateBelow,
   } = useCanvas();
 
-  // Load project if projectId is in URL
+  // Load project from URL parameter
   useEffect(() => {
-    const projectId = searchParams.get('project');
-    if (projectId) {
+    const projectId = searchParams.get("project");
+    if (projectId && canvas) {
       loadProject(projectId);
+      setCurrentProjectId(projectId);
     }
-  }, [searchParams, loadProject]);
+  }, [searchParams, canvas, loadProject]);
+
+  // Check for recovery on load
+  useEffect(() => {
+    if (!canvas) return;
+
+    const recovery = checkForRecovery();
+    if (recovery) {
+      toast.info(
+        `Found unsaved work from ${recovery.ageMinutes} minute${recovery.ageMinutes !== 1 ? 's' : ''} ago`,
+        {
+          duration: 10000,
+          action: {
+            label: 'Recover',
+            onClick: () => recoverCanvas(recovery.data),
+          },
+        }
+      );
+    }
+  }, [canvas, checkForRecovery, recoverCanvas]);
 
   const handleExport = () => {
     toast("Export functionality will save your SVG file");
@@ -240,13 +271,71 @@ const CanvasContent = () => {
         return;
       }
 
-      if (modifier && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        undo();
-      } else if (modifier && e.key === 'z' && e.shiftKey) {
+      // Undo/Redo
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
         e.preventDefault();
         redo();
-      } else if (modifier && e.key === 'x') {
+      } else if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      }
+
+      // Duplicate (Cmd/Ctrl + D)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'd') {
+        e.preventDefault();
+        duplicateSelected();
+      }
+
+      // Paste in place (Cmd/Ctrl + Shift + V)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'v') {
+        e.preventDefault();
+        pasteInPlace();
+      }
+
+      // Deselect all (Cmd/Ctrl + Shift + A)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'a') {
+        e.preventDefault();
+        deselectAll();
+      }
+
+      // Lock/Unlock (Cmd/Ctrl + Shift + L)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'l') {
+        e.preventDefault();
+        toggleLockSelected();
+      }
+
+      // Hide selected (H)
+      if (e.key === 'h' && !e.metaKey && !e.ctrlKey && !e.altKey && !isEditingText) {
+        e.preventDefault();
+        hideSelected();
+      }
+
+      // Show all hidden (Cmd/Ctrl + H)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'h') {
+        e.preventDefault();
+        showAllHidden();
+      }
+
+      // Rotate 90° clockwise (Cmd/Ctrl + R)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'r' && !e.shiftKey) {
+        e.preventDefault();
+        rotateSelected(90);
+      }
+
+      // Rotate 90° counter-clockwise (Cmd/Ctrl + Shift + R)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'r') {
+        e.preventDefault();
+        rotateSelected(-90);
+      }
+
+      // Duplicate and arrange below (Cmd/Ctrl + =)
+      if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+        e.preventDefault();
+        duplicateBelow();
+      }
+
+      // Cut/Copy/Paste
+      if (modifier && e.key === 'x') {
         e.preventDefault();
         cut();
       } else if (modifier && e.key === 'c') {
@@ -324,7 +413,7 @@ const CanvasContent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject]);
+  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow]);
 
   return (
       <div className="h-screen bg-background flex flex-col">

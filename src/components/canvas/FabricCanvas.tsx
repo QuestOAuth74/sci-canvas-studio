@@ -281,6 +281,19 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
+    // Snap to grid functionality
+    canvas.on('object:moving', (e: any) => {
+      if (!snapToGrid) return;
+      
+      const obj = e.target;
+      const snap = gridSize;
+      
+      obj.set({
+        left: Math.round((obj.left || 0) / snap) * snap,
+        top: Math.round((obj.top || 0) / snap) * snap,
+      });
+    });
+
     canvas.on('mouse:move', (e) => {
       if (e.e.altKey && canvas.getActiveObject() && activeTool === 'select') {
         canvas.setCursor('copy');

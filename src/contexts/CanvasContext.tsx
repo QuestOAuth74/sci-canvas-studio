@@ -124,6 +124,9 @@ interface CanvasContextType {
   // Nudge operations
   nudgeObject: (direction: 'up' | 'down' | 'left' | 'right', amount?: number) => void;
   
+  // History
+  saveState: () => void;
+  
   // Flash effect
   flashCanvas: (type?: 'success' | 'info') => void;
   
@@ -207,7 +210,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // History management with size limit for performance
   const saveState = useCallback(() => {
     if (!canvas) return;
-    const json = JSON.stringify(canvas.toJSON(['selectable', 'evented', 'pinned']));
+    const json = JSON.stringify(canvas.toJSON());
     const newHistory = history.slice(0, historyStep + 1);
     newHistory.push(json);
     
@@ -1430,7 +1433,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const autoRecover = setInterval(() => {
       if (saveStatus === 'unsaved') {
-        const state = canvas.toJSON(['selectable', 'evented', 'pinned']);
+        const state = canvas.toJSON();
         const recovery = {
           state,
           timestamp: Date.now(),
@@ -1485,7 +1488,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     return null;
   }, []);
 
-  const duplicateSelected = useCallback(() => {
+  const duplicateSelected = useCallback(async () => {
     if (!canvas || !selectedObject) return;
 
     if (selectedObject.type === 'activeSelection') {
@@ -1493,41 +1496,37 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       const objects = activeSelection.getObjects();
       
       const clones: FabricObject[] = [];
-      let completed = 0;
       
-      objects.forEach((obj: FabricObject) => {
-        obj.clone((cloned: FabricObject) => {
-          cloned.set({
-            left: (cloned.left || 0) + 20,
-            top: (cloned.top || 0) + 20,
-          });
-          canvas.add(cloned);
-          clones.push(cloned);
-          completed++;
-          
-          if (completed === objects.length) {
-            const selection = new ActiveSelection(clones, { canvas });
-            canvas.setActiveObject(selection);
-            canvas.renderAll();
-            flashCanvas('success');
-            toast.success('Duplicated selection');
-            saveState();
-          }
-        });
-      });
-    } else {
-      selectedObject.clone((cloned: FabricObject) => {
+      for (const obj of objects) {
+        const cloned = await obj.clone();
         cloned.set({
           left: (cloned.left || 0) + 20,
           top: (cloned.top || 0) + 20,
         });
         canvas.add(cloned);
-        canvas.setActiveObject(cloned);
+        clones.push(cloned);
+      }
+      
+      if (clones.length > 0) {
+        const selection = new ActiveSelection(clones, { canvas });
+        canvas.setActiveObject(selection);
         canvas.renderAll();
         flashCanvas('success');
-        toast.success('Duplicated object');
+        toast.success('Duplicated selection');
         saveState();
+      }
+    } else {
+      const cloned = await selectedObject.clone();
+      cloned.set({
+        left: (cloned.left || 0) + 20,
+        top: (cloned.top || 0) + 20,
       });
+      canvas.add(cloned);
+      canvas.setActiveObject(cloned);
+      canvas.renderAll();
+      flashCanvas('success');
+      toast.success('Duplicated object');
+      saveState();
     }
   }, [canvas, selectedObject, saveState, flashCanvas]);
 
@@ -1591,21 +1590,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     saveState();
   }, [canvas, selectedObject, saveState]);
 
-  const duplicateBelow = useCallback(() => {
+  const duplicateBelow = useCallback(async () => {
     if (!canvas || !selectedObject) return;
 
-    selectedObject.clone((cloned: FabricObject) => {
-      const height = selectedObject.getScaledHeight();
-      cloned.set({
-        left: selectedObject.left,
-        top: (selectedObject.top || 0) + height + 20,
-      });
-      canvas.add(cloned);
-      canvas.setActiveObject(cloned);
-      canvas.renderAll();
-      toast.success('Duplicated below');
-      saveState();
+    const cloned = await selectedObject.clone();
+    const height = selectedObject.getScaledHeight();
+    cloned.set({
+      left: selectedObject.left,
+      top: (selectedObject.top || 0) + height + 20,
     });
+    canvas.add(cloned);
+    canvas.setActiveObject(cloned);
+    canvas.renderAll();
+    toast.success('Duplicated below');
+    saveState();
   }, [canvas, selectedObject, saveState]);
 
   const value: CanvasContextType = {
@@ -1692,6 +1690,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     cropImage,
     smoothenPath,
     nudgeObject,
+    saveState,
     recentColors,
     addToRecentColors,
     flashCanvas,

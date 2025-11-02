@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ export const LayersPanel = () => {
   const [, setRefresh] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLayers, setSelectedLayers] = useState<string[]>([]);
+  const thumbnailCache = useRef<Map<string, string>>(new Map());
 
   const getObjectName = (obj: FabricObject, index: number): string => {
     if ((obj as any).name) return (obj as any).name;
