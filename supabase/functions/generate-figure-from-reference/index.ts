@@ -2,6 +2,31 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
 
+// Helper function to call Lovable AI with timeout protection
+async function callLovableAIWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number = 45000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timeout - AI analysis taking too long');
+    }
+    throw error;
+  }
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -232,6 +257,8 @@ serve(async (req) => {
 
     // STEP 0: PASS 0 - High-Level Diagram Description
     console.log('[PROGRESS] diagram_description | 0% | Analyzing overall diagram structure...');
+    console.log(`[TIMING] Pass 0 started: ${new Date().toISOString()}`);
+    const pass0Start = Date.now();
     
     const descriptionSystemPrompt = `You are a scientific diagram analysis expert. PASS 0: Generate a comprehensive textual description of this diagram.
 
@@ -282,33 +309,37 @@ Return a clear, detailed description that will help subsequent analysis passes u
     let diagramDescription = '';
     
     try {
-      const descriptionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: descriptionSystemPrompt },
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: descriptionUserPrompt },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+      const descriptionResponse = await callLovableAIWithTimeout(
+        'https://ai.gateway.lovable.dev/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              { role: 'system', content: descriptionSystemPrompt },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: descriptionUserPrompt },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                    }
                   }
-                }
-              ]
-            }
-          ],
-          max_tokens: 800,
-          temperature: 0.3,
-        }),
-      });
+                ]
+              }
+            ],
+            max_tokens: 1000,
+            temperature: 0.3,
+          }),
+        },
+        45000
+      );
 
       if (!descriptionResponse.ok) {
         const errorText = await descriptionResponse.text();
@@ -317,6 +348,8 @@ Return a clear, detailed description that will help subsequent analysis passes u
       } else {
         const descriptionData = await descriptionResponse.json();
         diagramDescription = descriptionData.choices?.[0]?.message?.content || '';
+        const pass0Duration = Date.now() - pass0Start;
+        console.log(`[TIMING] Pass 0 completed: ${new Date().toISOString()} (duration: ${pass0Duration}ms)`);
         console.log('[PROGRESS] diagram_description | 100% | Description complete');
         console.log('📝 Diagram Description:\n', diagramDescription);
       }
@@ -328,6 +361,8 @@ Return a clear, detailed description that will help subsequent analysis passes u
     // STEP 1A: PASS 1 - Element Detection & Precise Positioning
     console.log('[PROGRESS] element_detection | 0% | Starting element analysis...');
     console.log('Pass 1: Analyzing elements and positions...');
+    console.log(`[TIMING] Pass 1 started: ${new Date().toISOString()}`);
+    const pass1Start = Date.now();
     
     // Phase 5: Use image size heuristic instead of AI pre-check (saves 500 tokens)
     let useChunkedMode = false; // Removed chunking mode for simplicity
@@ -378,64 +413,68 @@ CRITICAL LIMITS:
 
     console.log('[PROGRESS] element_detection | 20% | Analyzing batch 1...');
 
-    const elementResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: elementSystemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: elementUserPrompt },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+    const elementResponse = await callLovableAIWithTimeout(
+      'https://ai.gateway.lovable.dev/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: elementSystemPrompt },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: elementUserPrompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                  }
+                }
+              ]
+            }
+          ],
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: 'return_element_analysis',
+                description: 'Return ultra-compact element analysis',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    e: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          n: { type: 'string' },
+                          t: { type: 'string', enum: ['shape', 'icon'] },
+                          s: { type: 'string', enum: ['rect', 'circle', 'oval'] },
+                          x: { type: 'number' },
+                          y: { type: 'number' },
+                          txt: { type: 'string' },
+                          st: { type: 'array', items: { type: 'string' } }
+                        },
+                        required: ['n', 't', 'x', 'y']
+                      }
+                    }
+                  },
+                  required: ['e']
                 }
               }
-            ]
-          }
-        ],
-        tools: [
-          {
-            type: 'function',
-            function: {
-              name: 'return_element_analysis',
-              description: 'Return ultra-compact element analysis',
-              parameters: {
-                type: 'object',
-                properties: {
-                  e: {
-                    type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        n: { type: 'string' },
-                        t: { type: 'string', enum: ['shape', 'icon'] },
-                        s: { type: 'string', enum: ['rect', 'circle', 'oval'] },
-                        x: { type: 'number' },
-                        y: { type: 'number' },
-                        txt: { type: 'string' },
-                        st: { type: 'array', items: { type: 'string' } }
-                      },
-                      required: ['n', 't', 'x', 'y']
-                    }
-                  }
-                },
-                required: ['e']
-              }
             }
-          }
-        ],
-        tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-        max_tokens: 5000, // Phase 1: Increased to handle all elements in one pass
-      }),
-    });
+          ],
+          tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
+          max_tokens: 8000,
+        }),
+      },
+      45000
+    );
 
     if (!elementResponse.ok) {
       const errorText = await elementResponse.text();
@@ -567,6 +606,8 @@ CRITICAL LIMITS:
       }
     }
     
+    const pass1Duration = Date.now() - pass1Start;
+    console.log(`[TIMING] Pass 1 completed: ${new Date().toISOString()} (duration: ${pass1Duration}ms)`);
     console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
     
     // Phase 1: Removed chunked mode to simplify (single-pass only)
@@ -580,52 +621,56 @@ CRITICAL LIMITS:
         console.log(`📊 Current state: Finish reason=${finishReason}, Parse failed=${parseFailedDueToTruncation}`);
         console.log(`📊 Detected element count: ${elementCount}, Using chunked mode: ${useChunkedMode}`);
         
-        const retryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { 
-                role: 'system', 
-                content: 'Return function call ONLY. No prose. Strictly minimal JSON. Analyze elements and positions precisely.' 
-              },
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: elementUserPrompt },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+        const retryResponse = await callLovableAIWithTimeout(
+          'https://ai.gateway.lovable.dev/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${lovableApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [
+                { 
+                  role: 'system', 
+                  content: 'Return function call ONLY. No prose. Strictly minimal JSON. Analyze elements and positions precisely.' 
+                },
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: elementUserPrompt },
+                    {
+                      type: 'image_url',
+                      image_url: {
+                        url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                      }
+                    }
+                  ]
+                }
+              ],
+              tools: [
+                {
+                  type: 'function',
+                  function: {
+                    name: 'return_element_analysis',
+                    description: 'Return ultra-compact element analysis',
+                    parameters: {
+                      type: 'object',
+                      properties: {
+                        e: { type: 'array' }
+                      },
+                      required: ['e']
                     }
                   }
-                ]
-              }
-            ],
-            tools: [
-              {
-                type: 'function',
-                function: {
-                  name: 'return_element_analysis',
-                  description: 'Return ultra-compact element analysis',
-                  parameters: {
-                    type: 'object',
-                    properties: {
-                      e: { type: 'array' }
-                    },
-                    required: ['e']
-                  }
                 }
-              }
-            ],
-            tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-            max_tokens: 4500,
-          }),
-        });
+              ],
+              tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
+              max_tokens: 8000,
+            }),
+          },
+          45000
+        );
         
         if (retryResponse.ok) {
           const retryData = await retryResponse.json();
@@ -706,6 +751,8 @@ CRITICAL LIMITS:
     // STEP 1B: PASS 2 - Deep Connector Analysis
     console.log('[PROGRESS] connector_analysis | 0% | Starting connector analysis...');
     console.log('Pass 2: Analyzing connectors in detail...');
+    console.log(`[TIMING] Pass 2 started: ${new Date().toISOString()}`);
+    const pass2Start = Date.now();
     
     const connectorSystemPrompt = `You are a connector analysis expert. PASS 2: Analyze ONLY the connectors/arrows/lines between elements.
 
@@ -761,14 +808,16 @@ CONNECTOR ANALYSIS REQUIREMENTS:
 
     const connectorUserPrompt = "PASS 2 - Analyze ALL connectors, arrows, and lines in detail.";
 
-    const connectorResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+    const connectorResponse = await callLovableAIWithTimeout(
+      'https://ai.gateway.lovable.dev/v1/chat/completions',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${lovableApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: connectorSystemPrompt },
           {
@@ -833,9 +882,11 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
-        max_tokens: 1500, // Increased from 800 to handle complex diagrams with many connectors
+        max_tokens: 4000,
       }),
-    });
+      },
+      45000
+    );
 
     if (!connectorResponse.ok) {
       const errorText = await connectorResponse.text();
@@ -865,6 +916,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
 
     const connectorData = await connectorResponse.json();
     console.log('✅ Pass 2 complete');
+    const pass2Duration = Date.now() - pass2Start;
+    console.log(`[TIMING] Pass 2 completed: ${new Date().toISOString()} (duration: ${pass2Duration}ms)`);
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
     
     // Log finish_reason to detect truncation
@@ -1880,6 +1933,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     if (strict && allElements.length >= 10) {
       console.log('[PROGRESS] self_critique | 0% | Starting self-critique...');
       console.log('AI self-critique: reviewing layout against reference (strict mode)...');
+      console.log(`[TIMING] Self-Critique started: ${new Date().toISOString()}`);
+      const critiqueStart = Date.now();
       
       try {
         // Phase 6: Simplified critique prompt to reduce tokens
@@ -1901,38 +1956,45 @@ Return JSON:
   "confidence": "high|medium|low"
 }`;
 
-        const critiqueResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: critiquePrompt },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+        const critiqueResponse = await callLovableAIWithTimeout(
+          'https://ai.gateway.lovable.dev/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${lovableApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [
+                { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: critiquePrompt },
+                    {
+                      type: 'image_url',
+                      image_url: {
+                        url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                      }
                     }
-                  }
-                ]
-              }
-            ],
-            response_format: { type: 'json_object' },
-            max_tokens: 400, // Phase 6: Reduced tokens for self-critique
-          }),
-        });
+                  ]
+                }
+              ],
+              response_format: { type: 'json_object' },
+              max_tokens: 2000,
+            }),
+          },
+          45000
+        );
 
         if (critiqueResponse.ok) {
           const critiqueData = await critiqueResponse.json();
           const critiqueTextRaw = critiqueData.choices?.[0]?.message?.content ?? '';
           const critiqueText = typeof critiqueTextRaw === 'string' ? critiqueTextRaw : '';
+          
+          const critiqueDuration = Date.now() - critiqueStart;
+          console.log(`[TIMING] Self-Critique completed: ${new Date().toISOString()} (duration: ${critiqueDuration}ms)`);
           
           // Check for refusal (safely)
           const lower = critiqueText.toLowerCase();
