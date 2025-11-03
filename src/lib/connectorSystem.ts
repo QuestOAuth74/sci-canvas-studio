@@ -109,6 +109,10 @@ export function createConnector(
     startY: number;
     endX: number;
     endY: number;
+    sourceShapeId?: string;
+    targetShapeId?: string;
+    sourcePort?: string;
+    targetPort?: string;
   }
 ): FabricObject {
   const {
@@ -122,6 +126,10 @@ export function createConnector(
     routingStyle = 'straight',
     strokeWidth = 2,
     strokeColor = '#000000',
+    sourceShapeId,
+    targetShapeId,
+    sourcePort,
+    targetPort,
   } = options;
 
   const start = new Point(startX, startY);
@@ -172,6 +180,10 @@ export function createConnector(
     routingStyle,
     strokeWidth,
     strokeColor,
+    sourceShapeId,
+    targetShapeId,
+    sourcePort,
+    targetPort,
   };
 
   (path as ShapeWithPorts).connectorData = connectorData;

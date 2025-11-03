@@ -1106,52 +1106,176 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       });
     }
 
-    // STEP 3: Generate Layout Deterministically (no LLM - more reliable)
+    // STEP 3: Generate Layout with DAG-based layering
     console.log('[PROGRESS] layout_generation | 0% | Generating layout...');
-    console.log('Generating layout deterministically from analyzed elements...');
+    console.log('Generating DAG-based layout for clean hierarchical positioning...');
     
-    // Build layout with both shapes and icons
     const allElements = [...shapeElements, ...iconElements];
+    const relationships = analysis.spatial_relationships || [];
     
-    // Detect if this is a hierarchical/flow diagram for better layout
-    const isHierarchical = analysis.overall_layout?.flow_direction?.includes('top_to_bottom') || 
-                          analysis.overall_layout?.diagram_type?.includes('hierarchy') ||
-                          analysis.overall_layout?.diagram_type?.includes('pathway');
-    
-    // Helper function to snap to grid
-    const snapToGrid = (value: number, gridSize: number = 5): number => {
+    // Helper: snap to grid
+    const snapToGrid = (value: number, gridSize: number = 2.5): number => {
       return Math.round(value / gridSize) * gridSize;
     };
-
-    // If hierarchical, organize elements by vertical position for proper alignment
-    const sortedElements = isHierarchical 
-      ? [...allElements].sort((a, b) => (a.element.position_y || 0) - (b.element.position_y || 0))
-      : allElements;
     
-    // First pass: Create objects with initial positions
-    let composedObjects = sortedElements.map((m) => {
-      let x = Math.max(0, Math.min(100, m.element.position_x));
-      let y = Math.max(0, Math.min(100, m.element.position_y));
+    // ===== DAG CONSTRUCTION =====
+    // Build adjacency list from relationships
+    const graph = new Map<number, Set<number>>();
+    const inDegree = new Map<number, number>();
+    const backEdges: Array<[number, number]> = [];
+    
+    // Initialize all nodes
+    allElements.forEach((_, idx) => {
+      graph.set(idx, new Set());
+      inDegree.set(idx, 0);
+    });
+    
+    // Build graph edges
+    relationships.forEach((rel: any) => {
+      const fromElem = allElements.find((m: any) => m.element_index === rel.from_element);
+      const toElem = allElements.find((m: any) => m.element_index === rel.to_element);
+      if (!fromElem || !toElem) return;
       
-      // For hierarchical layouts, snap Y positions to create clear tiers
-      if (isHierarchical && analysis.spatial_analysis?.alignment) {
-        const verticalGroups = analysis.spatial_analysis.alignment.horizontally_aligned || [];
-        for (const group of verticalGroups) {
-          if (group.includes(m.element_index)) {
-            // Find average Y position for this tier
-            const tierElements = allElements.filter(e => group.includes(e.element_index));
-            const avgY = tierElements.reduce((sum, e) => sum + (e.element.position_y || 0), 0) / tierElements.length;
-            y = snapToGrid(avgY);
-            break;
+      const fromIdx = allElements.indexOf(fromElem);
+      const toIdx = allElements.indexOf(toElem);
+      
+      graph.get(fromIdx)?.add(toIdx);
+      inDegree.set(toIdx, (inDegree.get(toIdx) || 0) + 1);
+    });
+    
+    // ===== KAHN'S ALGORITHM FOR LAYERING =====
+    const layers: number[][] = [];
+    const nodeLayer = new Map<number, number>();
+    const queue: number[] = [];
+    
+    // Start with nodes that have no incoming edges
+    inDegree.forEach((degree, node) => {
+      if (degree === 0) queue.push(node);
+    });
+    
+    // If no roots, pick nodes with minimal incoming edges
+    if (queue.length === 0) {
+      const minDegree = Math.min(...Array.from(inDegree.values()));
+      inDegree.forEach((degree, node) => {
+        if (degree === minDegree) queue.push(node);
+      });
+    }
+    
+    const tempInDegree = new Map(inDegree);
+    let currentLayer = 0;
+    
+    while (queue.length > 0) {
+      const layerNodes: number[] = [];
+      const nextQueue: number[] = [];
+      
+      queue.forEach(node => {
+        layerNodes.push(node);
+        nodeLayer.set(node, currentLayer);
+        
+        graph.get(node)?.forEach(neighbor => {
+          const newDegree = (tempInDegree.get(neighbor) || 0) - 1;
+          tempInDegree.set(neighbor, newDegree);
+          if (newDegree === 0) {
+            nextQueue.push(neighbor);
           }
-        }
+        });
+      });
+      
+      layers.push(layerNodes);
+      queue.length = 0;
+      queue.push(...nextQueue);
+      currentLayer++;
+    }
+    
+    // Handle any remaining nodes (disconnected or cycles)
+    allElements.forEach((_, idx) => {
+      if (!nodeLayer.has(idx)) {
+        nodeLayer.set(idx, layers.length);
+        layers.push([idx]);
+      }
+    });
+    
+    console.log(`📊 DAG layering complete: ${layers.length} layers`);
+    
+    // ===== BARYCENTER ORDERING (minimize crossings) =====
+    const orderInLayer = new Map<number, number[]>();
+    layers.forEach((layer, layerIdx) => {
+      orderInLayer.set(layerIdx, [...layer]);
+    });
+    
+    // Run 2 sweeps (down + up)
+    for (let sweep = 0; sweep < 2; sweep++) {
+      // Downward sweep
+      for (let l = 1; l < layers.length; l++) {
+        const currentLayer = orderInLayer.get(l)!;
+        const prevLayer = orderInLayer.get(l - 1)!;
+        
+        currentLayer.sort((a, b) => {
+          // Calculate barycenter (average position of neighbors in prev layer)
+          const getBarycenter = (node: number) => {
+            const neighbors: number[] = [];
+            relationships.forEach((rel: any) => {
+              const fromIdx = allElements.findIndex(m => m.element_index === rel.from_element);
+              const toIdx = allElements.findIndex(m => m.element_index === rel.to_element);
+              if (toIdx === node && prevLayer.includes(fromIdx)) {
+                neighbors.push(prevLayer.indexOf(fromIdx));
+              }
+            });
+            if (neighbors.length === 0) return prevLayer.length / 2;
+            return neighbors.reduce((sum, pos) => sum + pos, 0) / neighbors.length;
+          };
+          
+          return getBarycenter(a) - getBarycenter(b);
+        });
       }
       
-      // Apply grid snapping for cleaner layout
-      x = snapToGrid(x);
-      y = snapToGrid(y);
+      // Upward sweep
+      for (let l = layers.length - 2; l >= 0; l--) {
+        const currentLayer = orderInLayer.get(l)!;
+        const nextLayer = orderInLayer.get(l + 1)!;
+        
+        currentLayer.sort((a, b) => {
+          const getBarycenter = (node: number) => {
+            const neighbors: number[] = [];
+            graph.get(node)?.forEach(target => {
+              if (nextLayer.includes(target)) {
+                neighbors.push(nextLayer.indexOf(target));
+              }
+            });
+            if (neighbors.length === 0) return nextLayer.length / 2;
+            return neighbors.reduce((sum, pos) => sum + pos, 0) / neighbors.length;
+          };
+          
+          return getBarycenter(a) - getBarycenter(b);
+        });
+      }
+    }
+    
+    console.log(`✅ Node ordering optimized for minimal crossings`);
+    
+    // ===== COMPUTE POSITIONS =====
+    const Mx = 8, My = 8; // Margins
+    const layerHeight = 60;
+    const vGap = Math.max(18, layerHeight * 0.8);
+    
+    let composedObjects = allElements.map((m, idx) => {
+      const layerIdx = nodeLayer.get(idx) || 0;
+      const posInLayer = orderInLayer.get(layerIdx)?.indexOf(idx) || 0;
+      const layerSize = orderInLayer.get(layerIdx)?.length || 1;
       
-      // For shapes: create shape objects with text content
+      // Calculate Y position
+      const y = snapToGrid(My + layerIdx * (layerHeight + vGap));
+      
+      // Calculate X position (evenly distributed)
+      const availableWidth = 100 - 2 * Mx;
+      const hGap = layerSize > 1 ? availableWidth / (layerSize + 1) : availableWidth / 2;
+      const x = snapToGrid(Mx + hGap * (posInLayer + 1));
+      
+      // Clamp to canvas bounds
+      const clampedX = Math.max(5, Math.min(95, x));
+      const clampedY = Math.max(5, Math.min(95, y));
+      
+      // Create object based on type
       if (m.element.element_type === 'shape') {
         let width = 100, height = 60;
         if (m.element.bounding_box) {
@@ -1164,8 +1288,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           element_index: m.element_index,
           shape_type: m.element.shape_type || 'rectangle',
           shape_subtype: m.element.shape_subtype,
-          x,
-          y,
+          x: clampedX,
+          y: clampedY,
           width,
           height,
           rotation: m.element.rotation || 0,
@@ -1179,7 +1303,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         };
       }
       
-      // For icons: create icon objects
+      // For icons
       const chosenIcon = m.matches[0];
       let scale = 0.5;
       if (m.element.bounding_box?.width) {
@@ -1194,8 +1318,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         element_index: m.element_index,
         icon_id: chosenIcon.id,
         icon_name: chosenIcon.name,
-        x,
-        y,
+        x: clampedX,
+        y: clampedY,
         scale,
         rotation: m.element.rotation || 0,
         label: m.element.name,
@@ -1203,70 +1327,10 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       };
     });
     
-    // Second pass: Collision detection and resolution
-    console.log('🔍 Detecting and resolving collisions...');
-    const MIN_SPACING = 12; // Minimum distance between element centers (12% of canvas)
+    console.log(`✅ Layout positioning complete: ${layers.length} layers, ${composedObjects.length} nodes`);
     
-    for (let i = 0; i < composedObjects.length; i++) {
-      for (let j = i + 1; j < composedObjects.length; j++) {
-        const obj1 = composedObjects[i];
-        const obj2 = composedObjects[j];
-        
-        const dx = obj1.x - obj2.x;
-        const dy = obj1.y - obj2.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < MIN_SPACING) {
-          // Push elements apart along the line connecting them
-          const angle = Math.atan2(dy, dx);
-          const pushDistance = (MIN_SPACING - distance) / 2;
-          
-          obj1.x = snapToGrid(Math.max(5, Math.min(95, obj1.x + Math.cos(angle) * pushDistance)));
-          obj1.y = snapToGrid(Math.max(5, Math.min(95, obj1.y + Math.sin(angle) * pushDistance)));
-          obj2.x = snapToGrid(Math.max(5, Math.min(95, obj2.x - Math.cos(angle) * pushDistance)));
-          obj2.y = snapToGrid(Math.max(5, Math.min(95, obj2.y - Math.sin(angle) * pushDistance)));
-          
-          console.log(`  Resolved collision between elements ${obj1.element_index} and ${obj2.element_index}`);
-        }
-      }
-    }
-    
-    // Third pass: Ensure minimum spacing between hierarchical tiers
-    if (isHierarchical && analysis.spatial_analysis?.alignment) {
-      const MIN_TIER_SPACING = 18; // Minimum vertical spacing between tiers
-      const horizontalGroups = analysis.spatial_analysis.alignment.horizontally_aligned || [];
-      
-      // Calculate average Y for each tier
-      const tierYPositions = horizontalGroups.map((group: number[]) => {
-        const tierElements = composedObjects.filter(obj => group.includes(obj.element_index));
-        return tierElements.reduce((sum, obj) => sum + obj.y, 0) / tierElements.length;
-      }).sort((a: number, b: number) => a - b);
-      
-      // Adjust tiers if they're too close
-      for (let i = 1; i < tierYPositions.length; i++) {
-        const spacing = tierYPositions[i] - tierYPositions[i - 1];
-        if (spacing < MIN_TIER_SPACING) {
-          const adjustment = MIN_TIER_SPACING - spacing;
-          tierYPositions[i] += adjustment;
-          
-          // Apply adjustment to all elements in this tier and below
-          horizontalGroups.slice(i).forEach((group: number[]) => {
-            composedObjects.forEach(obj => {
-              if (group.includes(obj.element_index)) {
-                obj.y = snapToGrid(obj.y + adjustment);
-              }
-            });
-          });
-          
-          console.log(`  Adjusted tier ${i} spacing by ${adjustment.toFixed(1)}%`);
-        }
-      }
-    }
-    
-    console.log(`✅ Layout spacing optimized: ${composedObjects.length} elements positioned`);
-    
-    // Build connectors from spatial relationships
-    const composedConnectors = (analysis.spatial_relationships || []).map((rel: any) => {
+    // ===== BUILD CONNECTORS WITH PORT HINTS =====
+    const composedConnectors = relationships.map((rel: any) => {
       const fromElem = allElements.find((m: any) => m.element_index === rel.from_element);
       const toElem = allElements.find((m: any) => m.element_index === rel.to_element);
       
@@ -1275,19 +1339,42 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       const fromIdx = allElements.indexOf(fromElem);
       const toIdx = allElements.indexOf(toElem);
       
-      // Pass visual details to respect the actual line type from the reference image
+      const fromLayer = nodeLayer.get(fromIdx) || 0;
+      const toLayer = nodeLayer.get(toIdx) || 0;
+      
+      // Determine preferred ports based on layer relationship
+      let preferredPorts = { from: 'bottom', to: 'top' };
+      let routingStyle = 'orthogonal';
+      
+      if (toLayer > fromLayer) {
+        // Normal forward edge (down the hierarchy)
+        preferredPorts = { from: 'bottom', to: 'top' };
+      } else if (toLayer < fromLayer) {
+        // Back edge (should be curved to indicate feedback)
+        preferredPorts = { from: 'top', to: 'bottom' };
+        routingStyle = 'curved';
+      } else {
+        // Same layer (horizontal)
+        const fromPos = orderInLayer.get(fromLayer)?.indexOf(fromIdx) || 0;
+        const toPos = orderInLayer.get(toLayer)?.indexOf(toIdx) || 0;
+        preferredPorts = fromPos < toPos 
+          ? { from: 'right', to: 'left' }
+          : { from: 'left', to: 'right' };
+      }
+      
       const style = getConnectorStyle(rel.relationship_type, rel.visual_details);
       
       return {
         from: fromIdx,
         to: toIdx,
-        type: style.type,
+        type: routingStyle,
         style: style.style,
         strokeWidth: style.strokeWidth,
         color: style.color,
         endMarker: style.endMarker,
         startMarker: 'none',
-        label: rel.label || ''
+        label: rel.label || '',
+        preferredPorts
       };
     }).filter(Boolean);
     
@@ -1297,6 +1384,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     };
     
     console.log(`Layout composed: ${proposedLayout.objects.length} objects, ${proposedLayout.connectors.length} connectors`);
+    console.log(`  Layers: ${layers.length}, Nodes per layer: ${layers.map(l => l.length).join(', ')}`);
     console.log('[PROGRESS] layout_generation | 100% | Layout generation complete');
 
 

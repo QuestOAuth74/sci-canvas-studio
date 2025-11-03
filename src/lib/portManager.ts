@@ -123,3 +123,60 @@ export function getPortAngle(port: Port): number {
   };
   return angleMap[port.position] || 0;
 }
+
+// Choose best ports based on relative positions
+export function choosePortsByDirection(
+  fromShape: FabricObject,
+  toShape: FabricObject,
+  preferredPorts?: { from: string; to: string }
+): { sourcePort: Port; targetPort: Port } {
+  const fromPorts = calculateShapePorts(fromShape);
+  const toPorts = calculateShapePorts(toShape);
+  
+  // If preferred ports specified, try to use them
+  if (preferredPorts) {
+    const sourcePort = fromPorts.find(p => p.position === preferredPorts.from);
+    const targetPort = toPorts.find(p => p.position === preferredPorts.to);
+    if (sourcePort && targetPort) {
+      return { sourcePort, targetPort };
+    }
+  }
+  
+  // Otherwise, choose based on relative positions
+  const fromCenterX = (fromShape.left || 0) + ((fromShape.width || 0) * (fromShape.scaleX || 1)) / 2;
+  const fromCenterY = (fromShape.top || 0) + ((fromShape.height || 0) * (fromShape.scaleY || 1)) / 2;
+  const toCenterX = (toShape.left || 0) + ((toShape.width || 0) * (toShape.scaleX || 1)) / 2;
+  const toCenterY = (toShape.top || 0) + ((toShape.height || 0) * (toShape.scaleY || 1)) / 2;
+  
+  const dx = toCenterX - fromCenterX;
+  const dy = toCenterY - fromCenterY;
+  
+  // Determine primary direction
+  let sourcePortName: PortPosition;
+  let targetPortName: PortPosition;
+  
+  if (Math.abs(dy) > Math.abs(dx)) {
+    // Vertical connection
+    if (dy > 0) {
+      sourcePortName = 'bottom';
+      targetPortName = 'top';
+    } else {
+      sourcePortName = 'top';
+      targetPortName = 'bottom';
+    }
+  } else {
+    // Horizontal connection
+    if (dx > 0) {
+      sourcePortName = 'right';
+      targetPortName = 'left';
+    } else {
+      sourcePortName = 'left';
+      targetPortName = 'right';
+    }
+  }
+  
+  const sourcePort = fromPorts.find(p => p.position === sourcePortName) || fromPorts[1];
+  const targetPort = toPorts.find(p => p.position === targetPortName) || toPorts[3];
+  
+  return { sourcePort, targetPort };
+}

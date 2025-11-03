@@ -481,7 +481,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               left: x,
               top: y,
               angle: obj.rotation || 0,
-            });
+              id: `node-${i}`, // Predictable ID for connectivity
+            } as any);
             
             canvas.add(group);
             addedObjects.push(group);
@@ -492,7 +493,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               left: x,
               top: y,
               angle: obj.rotation || 0,
-            });
+              id: `node-${i}`, // Predictable ID for connectivity
+            } as any);
             
             canvas.add(shapeObj);
             addedObjects.push(shapeObj);
@@ -529,7 +531,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             scaleX: finalScale,
             scaleY: finalScale,
             angle: obj.rotation,
-          });
+            id: `node-${i}`, // Predictable ID for connectivity
+          } as any);
 
           canvas.add(group);
           addedObjects.push(group);
@@ -566,8 +569,28 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         const toObj = addedObjects[toAdded];
 
         if (fromObj && toObj) {
-          // Calculate edge intersection points for proper arrow positioning
-          const { startX, startY, endX, endY } = calculateEdgeIntersection(fromObj, toObj);
+          // Use port-aware routing if preferred ports are available
+          let startX, startY, endX, endY;
+          let sourcePort, targetPort;
+          
+          if ((conn as any).preferredPorts) {
+            // Import port manager functions
+            const { choosePortsByDirection } = await import('@/lib/portManager');
+            const ports = choosePortsByDirection(fromObj, toObj, (conn as any).preferredPorts);
+            sourcePort = ports.sourcePort;
+            targetPort = ports.targetPort;
+            startX = sourcePort.x;
+            startY = sourcePort.y;
+            endX = targetPort.x;
+            endY = targetPort.y;
+          } else {
+            // Fallback to edge intersection
+            const intersection = calculateEdgeIntersection(fromObj, toObj);
+            startX = intersection.startX;
+            startY = intersection.startY;
+            endX = intersection.endX;
+            endY = intersection.endY;
+          }
 
           createConnector(canvas, {
             startX,
@@ -577,9 +600,13 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             startMarker: (conn.startMarker || 'none') as any,
             endMarker: (conn.endMarker || 'arrow') as any,
             lineStyle: (conn.style === 'dashed' ? 'dashed' : 'solid') as any,
-            routingStyle: (conn.type === 'curved' ? 'curved' : 'straight') as any,
+            routingStyle: (conn.type === 'orthogonal' ? 'orthogonal' : conn.type === 'curved' ? 'curved' : 'straight') as any,
             strokeColor: conn.color || '#000000',
             strokeWidth: conn.strokeWidth || 2,
+            sourceShapeId: `node-${conn.from}`,
+            targetShapeId: `node-${conn.to}`,
+            sourcePort: sourcePort?.id,
+            targetPort: targetPort?.id,
           });
 
           if (conn.label) {
