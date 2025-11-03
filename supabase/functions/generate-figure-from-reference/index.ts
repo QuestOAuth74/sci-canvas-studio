@@ -1201,9 +1201,32 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     
     console.log(`📊 DAG layering complete: ${layers.length} layers`);
     
-    // ===== THREE-ZONE PATHWAY LAYOUT SYSTEM =====
-    console.log('Applying pathway-aware three-zone layout...');
+    // ===== PATTERN DETECTION =====
+    // Detect whether diagram is linear pathway or hub-and-spoke
+    const detectLayoutPattern = (): 'linear' | 'hub-spoke' => {
+      const outDegrees = new Map<number, number>();
+      
+      relationships.forEach((rel: any) => {
+        const fromIdx = allElements.findIndex((m: any) => m.element_index === rel.from_element);
+        if (fromIdx !== -1) {
+          outDegrees.set(fromIdx, (outDegrees.get(fromIdx) || 0) + 1);
+        }
+      });
+      
+      const maxOutDegree = Math.max(0, ...Array.from(outDegrees.values()));
+      
+      // If one node fans out to 3+ direct children, it's hub-and-spoke
+      if (maxOutDegree >= 3) {
+        return 'hub-spoke';
+      }
+      
+      return 'linear';
+    };
     
+    const layoutPattern = detectLayoutPattern();
+    console.log(`🎯 Detected layout pattern: ${layoutPattern}`);
+    
+    // ===== LAYOUT HELPERS =====
     // Helper: Find longest path (main pathway)
     const findLongestPath = (): number[] => {
       const allPaths: number[][] = [];
@@ -1250,14 +1273,70 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       return Array.from(neighbors).filter(n => !mainPathway.has(n));
     };
     
-    console.log(`✅ Three-zone layout system ready`);
+    // Helper: Find icon connected to a shape
+    const findIconConnectedTo = (shapeIdx: number): number | undefined => {
+      const shapeElementIndex = allElements[shapeIdx].element_index;
+      
+      for (let iconIdx = 0; iconIdx < allElements.length; iconIdx++) {
+        if (allElements[iconIdx].element.element_type === 'icon') {
+          const iconElementIndex = allElements[iconIdx].element_index;
+          const hasConnection = relationships.some((rel: any) =>
+            rel.from_element === iconElementIndex && rel.to_element === shapeElementIndex
+          );
+          if (hasConnection) return iconIdx;
+        }
+      }
+      return undefined;
+    };
     
-    // ===== COMPUTE POSITIONS WITH THREE-ZONE LAYOUT =====
-    const Mx = 8, My = 5; // Margins (reduced top margin)
-    const layerHeight = 60;
-    const vGap = Math.max(20, layerHeight * 0.9);
-    const maxLayer = layers.length - 1;
+    // Helper: Find vertical chain below a node
+    const findVerticalChain = (startIdx: number): number[] => {
+      const chain: number[] = [];
+      let currentIdx = startIdx;
+      const visited = new Set<number>();
+      
+      while (true) {
+        const children = Array.from(graph.get(currentIdx) || [])
+          .filter(child => !visited.has(child));
+        
+        if (children.length === 0) break;
+        
+        // Follow the first child (main chain)
+        currentIdx = children[0];
+        chain.push(currentIdx);
+        visited.add(currentIdx);
+      }
+      
+      return chain;
+    };
     
+    // Helper: Find convergence node (receives edges from multiple sources)
+    const findConvergenceNode = (sourceNodes: number[]): number | undefined => {
+      const inDegrees = new Map<number, Set<number>>();
+      
+      relationships.forEach((rel: any) => {
+        const fromIdx = allElements.findIndex((m: any) => m.element_index === rel.from_element);
+        const toIdx = allElements.findIndex((m: any) => m.element_index === rel.to_element);
+        
+        if (fromIdx !== -1 && toIdx !== -1) {
+          if (!inDegrees.has(toIdx)) {
+            inDegrees.set(toIdx, new Set());
+          }
+          inDegrees.get(toIdx)!.add(fromIdx);
+        }
+      });
+      
+      // Find node receiving from 2+ sources
+      for (const [nodeIdx, sources] of inDegrees.entries()) {
+        if (sources.size >= 2) {
+          return nodeIdx;
+        }
+      }
+      
+      return undefined;
+    };
+    
+    // ===== COMPUTE POSITIONS BASED ON DETECTED PATTERN =====
     const ICON_COLUMN_X = 10;
     const PATHWAY_COLUMN_X = 35;
     const BRANCH_START_X = 60;
@@ -1281,88 +1360,175 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       }
     });
     
-    // ZONE 1: Identify main pathway (longest chain)
-    const mainPathwayIndices = findLongestPath();
-    const mainPathwaySet = new Set(mainPathwayIndices);
+    let positionMap: Map<number, { x: number; y: number; column?: number }>;
     
-    // ZONE 2: Position main pathway vertically at X=35%
-    const positionMap = new Map<number, { x: number; y: number }>();
-    const startY = 10;
-    const verticalSpacing = 15;
-    
-    mainPathwayIndices.forEach((nodeIdx, i) => {
-      positionMap.set(nodeIdx, {
-        x: PATHWAY_COLUMN_X,
-        y: startY + (i * verticalSpacing)
+    if (layoutPattern === 'hub-spoke') {
+      // ===== HUB-AND-SPOKE LAYOUT =====
+      console.log('Applying hub-and-spoke multi-column layout...');
+      
+      positionMap = new Map();
+      
+      // Step 1: Find the hub (node with highest out-degree)
+      const outDegrees = new Map<number, number>();
+      relationships.forEach((rel: any) => {
+        const fromIdx = allElements.findIndex((m: any) => m.element_index === rel.from_element);
+        if (fromIdx !== -1) {
+          outDegrees.set(fromIdx, (outDegrees.get(fromIdx) || 0) + 1);
+        }
       });
-    });
-    
-    // ZONE 3: Position branches and effects
-    const processedBranches = new Set<number>();
-    
-    mainPathwayIndices.forEach(nodeIdx => {
-      const branches = findBranches(nodeIdx, mainPathwaySet);
       
-      if (branches.length > 0) {
-        const parentPos = positionMap.get(nodeIdx)!;
-        const spacing = branches.length > 1 ? (BRANCH_END_X - BRANCH_START_X) / (branches.length - 1) : 0;
+      const hubIdx = Array.from(outDegrees.entries())
+        .sort((a, b) => b[1] - a[1])[0]?.[0];
+      
+      if (hubIdx !== undefined) {
+        // Position hub at top center
+        positionMap.set(hubIdx, { x: 50, y: 10 });
         
-        branches.forEach((branchIdx, idx) => {
-          if (processedBranches.has(branchIdx)) return;
+        // Step 2: Find direct children of hub (spokes)
+        const spokes: number[] = [];
+        relationships.forEach((rel: any) => {
+          const fromIdx = allElements.findIndex((m: any) => m.element_index === rel.from_element);
+          if (fromIdx === hubIdx) {
+            const spokeIdx = allElements.findIndex((m: any) => m.element_index === rel.to_element);
+            if (spokeIdx !== -1 && !iconIndices.has(spokeIdx)) {
+              spokes.push(spokeIdx);
+            }
+          }
+        });
+        
+        // Step 3: Position spokes horizontally in columns
+        const numColumns = spokes.length;
+        const columnWidth = numColumns > 0 ? 80 / (numColumns + 1) : 20;
+        
+        spokes.forEach((spokeIdx, colIdx) => {
+          const columnX = 10 + ((colIdx + 1) * columnWidth);
+          positionMap.set(spokeIdx, { x: columnX, y: 25, column: colIdx });
           
-          const branchX = branches.length === 1 
-            ? (BRANCH_START_X + BRANCH_END_X) / 2 
-            : BRANCH_START_X + (idx * spacing);
+          // Step 4: Find icon connected to this spoke
+          const connectedIconIdx = findIconConnectedTo(spokeIdx);
+          if (connectedIconIdx !== undefined) {
+            positionMap.set(connectedIconIdx, { x: columnX, y: 17, column: colIdx });
+          }
           
-          positionMap.set(branchIdx, {
-            x: branchX,
-            y: parentPos.y
-          });
-          processedBranches.add(branchIdx);
-          
-          // Position effects below branch
-          const effects = findBranches(branchIdx, mainPathwaySet);
-          effects.forEach((effectIdx, effIdx) => {
-            positionMap.set(effectIdx, {
-              x: branchX,
-              y: parentPos.y + 10 + (effIdx * 12)
+          // Step 5: Find vertical chain below this spoke
+          const chain = findVerticalChain(spokeIdx);
+          chain.forEach((chainIdx, depth) => {
+            positionMap.set(chainIdx, {
+              x: columnX,
+              y: 35 + (depth * 10),
+              column: colIdx
             });
-            processedBranches.add(effectIdx);
           });
         });
-      }
-    });
-    
-    // Handle remaining unpositioned nodes
-    allElements.forEach((m, idx) => {
-      if (!iconIndices.has(idx) && !positionMap.has(idx)) {
-        positionMap.set(idx, {
-          x: 70,
-          y: 50 + (idx * 10)
-        });
-      }
-    });
-    
-    // Position icons aligned with their connected elements
-    iconIndices.forEach(iconIdx => {
-      const connectedShapeIdx = iconToConnectedShape.get(iconIdx);
-      let y = 50; // Default if no connection
-      
-      if (connectedShapeIdx !== undefined) {
-        const connectedPos = positionMap.get(connectedShapeIdx);
-        if (connectedPos) {
-          y = connectedPos.y; // Align Y with connected element
+        
+        // Step 6: Find convergence node at bottom
+        const convergenceIdx = findConvergenceNode(spokes);
+        if (convergenceIdx !== undefined) {
+          positionMap.set(convergenceIdx, { x: 50, y: 85 });
         }
       }
       
-      positionMap.set(iconIdx, { x: ICON_COLUMN_X, y });
-    });
-    
-    console.log('✅ Three-zone positioning complete:', {
-      mainPathway: mainPathwayIndices.length,
-      branches: processedBranches.size,
-      icons: iconIndices.size
-    });
+      // Handle any unpositioned nodes
+      allElements.forEach((m, idx) => {
+        if (!positionMap.has(idx)) {
+          positionMap.set(idx, { x: 50, y: 50 + (idx * 5) });
+        }
+      });
+      
+      console.log('✅ Hub-and-spoke layout complete:', {
+        hub: hubIdx !== undefined ? 1 : 0,
+        spokes: Array.from(positionMap.values()).filter(p => p.column !== undefined).length,
+        icons: iconIndices.size
+      });
+      
+    } else {
+      // ===== LINEAR PATHWAY LAYOUT (existing three-zone system) =====
+      console.log('Applying linear pathway layout...');
+      
+      positionMap = new Map();
+      
+      // ZONE 1: Identify main pathway (longest chain)
+      const mainPathwayIndices = findLongestPath();
+      const mainPathwaySet = new Set(mainPathwayIndices);
+      
+      // ZONE 2: Position main pathway vertically at X=35%
+      const startY = 10;
+      const verticalSpacing = 15;
+      
+      mainPathwayIndices.forEach((nodeIdx, i) => {
+        positionMap.set(nodeIdx, {
+          x: PATHWAY_COLUMN_X,
+          y: startY + (i * verticalSpacing)
+        });
+      });
+      
+      // ZONE 3: Position branches and effects
+      const processedBranches = new Set<number>();
+      
+      mainPathwayIndices.forEach(nodeIdx => {
+        const branches = findBranches(nodeIdx, mainPathwaySet);
+        
+        if (branches.length > 0) {
+          const parentPos = positionMap.get(nodeIdx)!;
+          const spacing = branches.length > 1 ? (BRANCH_END_X - BRANCH_START_X) / (branches.length - 1) : 0;
+          
+          branches.forEach((branchIdx, idx) => {
+            if (processedBranches.has(branchIdx)) return;
+            
+            const branchX = branches.length === 1 
+              ? (BRANCH_START_X + BRANCH_END_X) / 2 
+              : BRANCH_START_X + (idx * spacing);
+            
+            positionMap.set(branchIdx, {
+              x: branchX,
+              y: parentPos.y
+            });
+            processedBranches.add(branchIdx);
+            
+            // Position effects below branch
+            const effects = findBranches(branchIdx, mainPathwaySet);
+            effects.forEach((effectIdx, effIdx) => {
+              positionMap.set(effectIdx, {
+                x: branchX,
+                y: parentPos.y + 10 + (effIdx * 12)
+              });
+              processedBranches.add(effectIdx);
+            });
+          });
+        }
+      });
+      
+      // Handle remaining unpositioned nodes
+      allElements.forEach((m, idx) => {
+        if (!iconIndices.has(idx) && !positionMap.has(idx)) {
+          positionMap.set(idx, {
+            x: 70,
+            y: 50 + (idx * 10)
+          });
+        }
+      });
+      
+      // Position icons aligned with their connected elements
+      iconIndices.forEach(iconIdx => {
+        const connectedShapeIdx = iconToConnectedShape.get(iconIdx);
+        let y = 50; // Default if no connection
+        
+        if (connectedShapeIdx !== undefined) {
+          const connectedPos = positionMap.get(connectedShapeIdx);
+          if (connectedPos) {
+            y = connectedPos.y; // Align Y with connected element
+          }
+        }
+        
+        positionMap.set(iconIdx, { x: ICON_COLUMN_X, y });
+      });
+      
+      console.log('✅ Linear pathway layout complete:', {
+        mainPathway: mainPathwayIndices.length,
+        branches: processedBranches.size,
+        icons: iconIndices.size
+      });
+    }
     
     // Build composed objects with column-based positions
     let composedObjects = allElements.map((m, idx) => {
@@ -1385,8 +1551,18 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           height = Math.max(height, 40 + (lineCount - 1) * 20);
         }
         
-        // Detect shape styling from name/category (pathway-aware colors)
+        // Hub-and-spoke specific: smaller boxes for process labels
         const nameLower = (m.element.name || '').toLowerCase();
+        const isSmallLabel = layoutPattern === 'hub-spoke' && 
+                            textContent.length < 40 && 
+                            !nameLower.match(/metformin|hyperglycaemia|hypoglycemia/);
+        
+        if (isSmallLabel) {
+          width = Math.max(100, Math.min(150, textContent.length * 6));
+          height = lineCount > 1 ? 30 + (lineCount - 1) * 18 : 35;
+        }
+        
+        // Detect shape styling from name/category (pathway-aware colors)
         const categoryLower = (m.element.category || '').toLowerCase();
         
         let fillColor = '#F5F5F5'; // Default white/light
@@ -1486,40 +1662,71 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         const dx = toObj.x - fromObj.x;
         const dy = toObj.y - fromObj.y;
         
-        // ZONE-BASED PORT SELECTION
-        
-        // Icon to pathway: right → left, straight
-        if (fromIsIcon) {
-          preferredPorts = { from: 'right', to: 'left' };
-          routingStyle = 'straight';
-        }
-        // Main pathway vertical flow (small horizontal movement): bottom → top, straight
-        else if (Math.abs(dx) < 10 && dy > 5) {
-          preferredPorts = { from: 'bottom', to: 'top' };
-          routingStyle = 'straight';
-        }
-        // Branch to right (significant horizontal movement): right → left, curved
-        else if (dx > 15) {
-          preferredPorts = { from: 'right', to: 'left' };
-          routingStyle = 'curved';
-        }
-        // Downward flow (effects below receptors): bottom → top, straight
-        else if (dy > 5 && Math.abs(dx) < 5) {
-          preferredPorts = { from: 'bottom', to: 'top' };
-          routingStyle = 'straight';
-        }
-        // Default: calculate from positions
-        else {
-          if (Math.abs(dy) > Math.abs(dx)) {
-            preferredPorts = dy > 0 
-              ? { from: 'bottom', to: 'top' }
-              : { from: 'top', to: 'bottom' };
+        if (layoutPattern === 'hub-spoke') {
+          // HUB-AND-SPOKE PORT SELECTION
+          const fromPos = positionMap.get(fromIdx);
+          const toPos = positionMap.get(toIdx);
+          
+          // Hub to spoke: bottom → top
+          if (fromPos && toPos && fromPos.y < toPos.y && Math.abs(dx) < 20) {
+            preferredPorts = { from: 'bottom', to: 'top' };
             routingStyle = 'straight';
-          } else {
-            preferredPorts = dx > 0
-              ? { from: 'right', to: 'left' }
-              : { from: 'left', to: 'right' };
-            routingStyle = category === 'main_pathway' ? 'straight' : 'curved';
+          }
+          // Same column (spoke to process): bottom → top
+          else if (fromPos && toPos && fromPos.column !== undefined && fromPos.column === toPos.column) {
+            preferredPorts = { from: 'bottom', to: 'top' };
+            routingStyle = 'straight';
+          }
+          // Spoke to convergence (different columns): bottom → top, curved
+          else if (Math.abs(dx) > 10 && dy > 5) {
+            preferredPorts = { from: 'bottom', to: 'top' };
+            routingStyle = 'curved';
+          }
+          // Icon to spoke: bottom → left
+          else if (fromIsIcon) {
+            preferredPorts = { from: 'bottom', to: 'left' };
+            routingStyle = 'straight';
+          }
+          else {
+            preferredPorts = { from: 'bottom', to: 'top' };
+            routingStyle = 'straight';
+          }
+        } else {
+          // LINEAR PATHWAY PORT SELECTION (existing logic)
+          
+          // Icon to pathway: right → left, straight
+          if (fromIsIcon) {
+            preferredPorts = { from: 'right', to: 'left' };
+            routingStyle = 'straight';
+          }
+          // Main pathway vertical flow (small horizontal movement): bottom → top, straight
+          else if (Math.abs(dx) < 10 && dy > 5) {
+            preferredPorts = { from: 'bottom', to: 'top' };
+            routingStyle = 'straight';
+          }
+          // Branch to right (significant horizontal movement): right → left, curved
+          else if (dx > 15) {
+            preferredPorts = { from: 'right', to: 'left' };
+            routingStyle = 'curved';
+          }
+          // Downward flow (effects below receptors): bottom → top, straight
+          else if (dy > 5 && Math.abs(dx) < 5) {
+            preferredPorts = { from: 'bottom', to: 'top' };
+            routingStyle = 'straight';
+          }
+          // Default: calculate from positions
+          else {
+            if (Math.abs(dy) > Math.abs(dx)) {
+              preferredPorts = dy > 0 
+                ? { from: 'bottom', to: 'top' }
+                : { from: 'top', to: 'bottom' };
+              routingStyle = 'straight';
+            } else {
+              preferredPorts = dx > 0
+                ? { from: 'right', to: 'left' }
+                : { from: 'left', to: 'right' };
+              routingStyle = category === 'main_pathway' ? 'straight' : 'curved';
+            }
           }
         }
       }
