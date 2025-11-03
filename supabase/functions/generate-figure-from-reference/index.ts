@@ -811,8 +811,15 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     console.log('[PROGRESS] search_term_generation | 0% | Generating search terms...');
     console.log('Generating search terms deterministically...');
     
-    function generateSearchTerms(name: string, category: string = ''): string[] {
+    function generateSearchTerms(name: string | undefined, category: string | undefined = ''): string[] {
       const terms: string[] = [];
+      
+      // Safety check: handle undefined or null values
+      if (!name || typeof name !== 'string') {
+        console.log('⚠️ Invalid name for search term generation:', name);
+        return category && typeof category === 'string' ? [category.toLowerCase()] : ['unknown'];
+      }
+      
       const nameLower = name.toLowerCase();
       
       // Add the original name
@@ -842,7 +849,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       }
       
       // Add category if provided
-      if (category) {
+      if (category && typeof category === 'string') {
         terms.push(category.toLowerCase());
       }
       
@@ -968,7 +975,13 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     console.log('[PROGRESS] icon_verification | 0% | Verifying icon matches...');
     console.log('Verifying icon matches with score-based ranking...');
     
-    function calculateMatchScore(iconName: string, iconCategory: string, elementName: string, searchTerms: string[]): number {
+    function calculateMatchScore(iconName: string | undefined, iconCategory: string | undefined, elementName: string | undefined, searchTerms: string[] | undefined): number {
+      // Safety checks for undefined values
+      if (!iconName || typeof iconName !== 'string') return 0;
+      if (!iconCategory || typeof iconCategory !== 'string') iconCategory = '';
+      if (!elementName || typeof elementName !== 'string') return 0;
+      if (!searchTerms || !Array.isArray(searchTerms)) searchTerms = [];
+      
       const iconNameLower = iconName.toLowerCase();
       const iconCategoryLower = iconCategory.toLowerCase();
       const elementNameLower = elementName.toLowerCase();
@@ -985,6 +998,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       // Search term matches
       let termMatches = 0;
       for (const term of searchTerms) {
+        if (!term || typeof term !== 'string') continue; // Skip invalid terms
         const termLower = term.toLowerCase();
         if (iconNameLower.includes(termLower)) {
           termMatches++;
@@ -997,12 +1011,12 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       }
       
       // Bonus for matching all terms
-      if (termMatches >= searchTerms.length) {
+      if (searchTerms.length > 0 && termMatches >= searchTerms.length) {
         score += 20;
       }
       
       // Category match bonus
-      if (iconCategoryLower === elementNameLower) {
+      if (iconCategoryLower && iconCategoryLower === elementNameLower) {
         score += 30;
       }
       
