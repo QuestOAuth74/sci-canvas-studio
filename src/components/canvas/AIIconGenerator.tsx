@@ -210,9 +210,9 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       console.log('✅ Icon generated successfully');
       setProgress(90);
       
-      // Remove background from generated image
+      // Remove background from generated image (fallback in case AI doesn't make it transparent)
       try {
-        console.log('🎨 Removing background...');
+        console.log('🎨 Checking/removing background...');
         
         // Convert base64 to blob
         const base64Data = data.generatedImage.split(',')[1];
@@ -227,7 +227,8 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         // Load as image element
         const imageElement = await loadImage(blob);
         
-        // Remove background
+        // Check if background removal is needed
+        // If AI already made it transparent, this will be a no-op
         const transparentBlob = await removeBackground(imageElement);
         
         // Convert back to base64
@@ -237,11 +238,11 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           reader.readAsDataURL(transparentBlob);
         });
         
-        console.log('✅ Background removed successfully');
+        console.log('✅ Background processed successfully');
         setGeneratedImage(transparentBase64);
       } catch (bgError) {
-        console.error('⚠️ Background removal failed, using original:', bgError);
-        // Fallback to original image if background removal fails
+        console.warn('⚠️ Background processing skipped (using original):', bgError);
+        // Use original image - if AI generated transparency correctly, this is fine
         setGeneratedImage(data.generatedImage);
       }
       

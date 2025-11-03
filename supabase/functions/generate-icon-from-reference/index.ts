@@ -7,18 +7,18 @@ const corsHeaders = {
 };
 
 const stylePrompts = {
-  medical: "Professional medical illustration icon, anatomical accuracy, clean lines, textbook quality, white background, simple and clear, high contrast",
-  biochemical: "Biochemical pathway icon, molecular structure, scientific diagram style, clear symbols, white background, professional quality",
-  cellular: "Cellular biology icon, microscopic detail, scientific illustration, clean and professional, white background",
-  simple: "Simple icon design, minimal details, clear silhouette, professional scientific style, white background, easy to recognize",
-  detailed: "Detailed scientific illustration icon, high accuracy, educational quality, clear features, white background, professional"
+  medical: "Professional medical illustration icon, anatomical accuracy, clean lines, textbook quality, transparent background, simple and clear, high contrast",
+  biochemical: "Biochemical pathway icon, molecular structure, scientific diagram style, clear symbols, transparent background, professional quality",
+  cellular: "Cellular biology icon, microscopic detail, scientific illustration, clean and professional, transparent background",
+  simple: "Simple icon design, minimal details, clear silhouette, professional scientific style, transparent background, easy to recognize",
+  detailed: "Detailed scientific illustration icon, high accuracy, educational quality, clear features, transparent background, professional"
 };
 
 function buildEnhancedPrompt(userPrompt: string, style: keyof typeof stylePrompts): string {
   const basePrompt = stylePrompts[style];
   return `${basePrompt}. Transform this reference image to create: ${userPrompt}. 
 Maintain scientific accuracy, use clean lines, ensure high contrast for visibility at small sizes, 
-remove background clutter, optimize for use as an icon. Output should be clear, professional, and suitable for scientific diagrams.`;
+remove all background elements, use transparent background only, optimize for use as an icon. Output should be clear, professional, and suitable for scientific diagrams.`;
 }
 
 serve(async (req) => {
