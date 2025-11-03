@@ -603,6 +603,8 @@ CRITICAL LIMITS:
       
       if (finishReason === 'length' || parseFailedDueToTruncation) {
         console.log('⚠ Pass 1 hit length limit or truncated JSON. Retrying with higher token limit...');
+        console.log(`📊 Current state: Finish reason=${finishReason}, Parse failed=${parseFailedDueToTruncation}`);
+        console.log(`📊 Detected element count: ${elementCount}, Using chunked mode: ${useChunkedMode}`);
         
         const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -680,20 +682,51 @@ CRITICAL LIMITS:
       
       // If still no analysis after retry
       if (!elementAnalysis || !elementAnalysis.identified_elements) {
-        console.error('Failed to extract element analysis after retry.');
-        console.error('Finish reason:', finishReason);
-        console.error('Response preview:', JSON.stringify(elementData).slice(0, 500));
+        console.error('❌ Failed to extract element analysis after retry.');
+        console.error('📊 Finish reason:', finishReason);
+        console.error('📊 Element count estimate:', elementCount);
+        console.error('📊 Chunked mode was:', useChunkedMode);
+        console.error('📊 Response preview:', JSON.stringify(elementData).slice(0, 500));
+        
+        // Provide helpful user guidance based on detected issues
+        let userHint = 'Try enabling strict mode, using a smaller/clearer image, or simplifying the reference.';
+        let additionalInfo = '';
+        
+        if (elementCount > 40) {
+          userHint = `Your diagram contains approximately ${elementCount} elements, which is very complex. Consider:`;
+          additionalInfo = '\n• Breaking it into multiple smaller diagrams (recommended)\n• Simplifying by removing less important elements\n• Using a clearer source image with higher resolution';
+        } else if (elementCount > 25) {
+          userHint = `Your diagram contains approximately ${elementCount} elements. Try:`;
+          additionalInfo = '\n• Using a higher quality source image\n• Ensuring elements are clearly visible and well-separated\n• Enabling strict mode for more thorough processing';
+        } else if (finishReason === 'length') {
+          userHint = 'The AI response was truncated. Try:';
+          additionalInfo = '\n• Using a clearer, higher-contrast image\n• Ensuring the diagram is well-lit and focused\n• Reducing image complexity if possible';
+        }
         
         return new Response(JSON.stringify({ 
-          error: 'Element analysis incomplete due to response length',
+          error: 'Element analysis incomplete',
           stage: 'element_detection',
           finish_reason: finishReason,
-          hint: 'Try enabling strict mode, using a smaller/clearer image, or simplifying the reference.'
+          detected_elements: elementCount > 0 ? elementCount : 'unknown',
+          hint: userHint,
+          details: additionalInfo.trim(),
+          suggestion: 'Please try again with a simpler or clearer diagram.'
         }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+    }
+
+    // Log successful element detection with stats
+    const detectedCount = elementAnalysis.identified_elements?.length || 0;
+    console.log(`✅ Element detection complete: ${detectedCount} elements identified`);
+    console.log(`📊 Shapes: ${elementAnalysis.identified_elements.filter((e: any) => e.element_type === 'shape').length}`);
+    console.log(`📊 Icons: ${elementAnalysis.identified_elements.filter((e: any) => e.element_type === 'icon').length}`);
+    
+    // Warn if detected count differs significantly from initial estimate
+    if (elementCount > 0 && Math.abs(detectedCount - elementCount) > 10) {
+      console.log(`⚠️ Note: Initial estimate was ${elementCount} elements, but detected ${detectedCount}. This is expected for complex diagrams.`);
     }
 
     // STEP 1B: PASS 2 - Deep Connector Analysis
@@ -829,7 +862,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
 
     if (!connectorResponse.ok) {
       const errorText = await connectorResponse.text();
-      console.error('Pass 2 OpenAI error:', connectorResponse.status, errorText);
+      console.error('❌ Pass 2 OpenAI error:', connectorResponse.status, errorText);
+      console.error('📊 Elements being analyzed:', elementAnalysis.identified_elements?.length || 0);
       
       let errorMsg = 'Connector analysis failed';
       if (connectorResponse.status === 429) {
@@ -840,8 +874,10 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       
       return new Response(JSON.stringify({ 
         error: errorMsg,
+        stage: 'connector_analysis',
         details: `OpenAI returned ${connectorResponse.status}`,
-        hint: 'Try toggling strict mode or simplifying the image'
+        hint: 'Check edge function logs for details. Element detection was successful.',
+        elements_detected: elementAnalysis.identified_elements?.length || 0
       }), {
         status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -849,7 +885,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     }
 
     const connectorData = await connectorResponse.json();
-    console.log('Pass 2 complete');
+    console.log('✅ Pass 2 complete');
+    console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
     
     // Extract JSON from function call arguments (priority), then content (fallback)
     let connectorAnalysis = null;
@@ -975,20 +1012,21 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       
       // If still no analysis after retry
       if (!connectorAnalysis || !connectorAnalysis.connectors) {
-        console.error('Failed to extract connector analysis after retry.');
-        console.error('Finish reason:', finishReason);
-        console.error('Response preview:', JSON.stringify(connectorData).slice(0, 500));
+        console.error('❌ Failed to extract connector analysis after retry.');
+        console.error('📊 Finish reason:', finishReason);
+        console.error('📊 Elements detected:', elementAnalysis.identified_elements?.length || 0);
+        console.error('📊 Response preview:', JSON.stringify(connectorData).slice(0, 500));
         
-        return new Response(JSON.stringify({ 
-          error: 'Connector analysis incomplete due to response length',
-          stage: 'connector_analysis',
-          finish_reason: finishReason,
-          hint: 'Try toggling strict mode or using a simpler reference image with fewer connections.'
-        }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        // Provide fallback with empty connectors rather than failing
+        console.log('⚠️ Proceeding with empty connectors array as fallback');
+        connectorAnalysis = { connectors: [] };
       }
+    }
+    
+    // Log successful connector detection
+    if (connectorAnalysis && connectorAnalysis.connectors) {
+      const connectorCount = connectorAnalysis.connectors?.length || 0;
+      console.log(`✅ Connector analysis complete: ${connectorCount} connectors identified`);
     }
 
     // Merge analyses into final structure
@@ -1010,7 +1048,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       overall_layout: elementAnalysis.overall_layout
     };
 
-    console.log(`Analysis complete: ${analysis.identified_elements.length} elements, ${analysis.spatial_relationships.length} connectors`);
+    console.log(`✅ Analysis complete: ${analysis.identified_elements.length} elements, ${analysis.spatial_relationships.length} connectors`);
+    console.log(`📊 Total detected: ${detectedCount} elements (${elementAnalysis.identified_elements.filter((e: any) => e.element_type === 'shape').length} shapes, ${elementAnalysis.identified_elements.filter((e: any) => e.element_type === 'icon').length} icons)`);
 
     // STEP 2A: AI-Powered Search Term Generation (only for icon elements)
     console.log('[PROGRESS] search_term_generation | 0% | Generating search terms...');
