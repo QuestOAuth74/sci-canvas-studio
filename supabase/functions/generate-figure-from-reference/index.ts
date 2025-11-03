@@ -142,20 +142,7 @@ serve(async (req) => {
       });
     }
 
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .single();
-
-    if (roleError || !roleData) {
-      console.log('Admin check failed:', roleError);
-      return new Response(JSON.stringify({ error: 'Admin access required' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    // User is authenticated, proceed with generation
 
     const { image, description, canvasWidth, canvasHeight, strict = false } = await req.json();
 
@@ -327,16 +314,25 @@ SPATIAL ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-        max_completion_tokens: 4000,
+        max_completion_tokens: 1500,
       }),
     });
 
     if (!elementResponse.ok) {
       const errorText = await elementResponse.text();
       console.error('Pass 1 OpenAI error:', elementResponse.status, errorText);
+      
+      let errorMsg = 'Element analysis failed';
+      if (elementResponse.status === 429) {
+        errorMsg = 'Rate limit exceeded. Please try again in a moment.';
+      } else if (elementResponse.status === 401) {
+        errorMsg = 'OpenAI API key is invalid or missing';
+      }
+      
       return new Response(JSON.stringify({ 
-        error: 'Failed to analyze elements', 
-        details: `OpenAI returned ${elementResponse.status}` 
+        error: errorMsg,
+        details: `OpenAI returned ${elementResponse.status}`,
+        hint: 'Check edge function logs for details'
       }), {
         status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -382,10 +378,20 @@ SPATIAL ANALYSIS REQUIREMENTS:
     console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
 
     if (!elementAnalysis || !elementAnalysis.identified_elements) {
-      console.error('Failed to extract element analysis. Response:', JSON.stringify(elementData).slice(0, 1500));
+      const finishReason = elementData.choices?.[0]?.finish_reason;
+      console.error('Failed to extract element analysis.');
+      console.error('Finish reason:', finishReason);
+      console.error('Response preview:', JSON.stringify(elementData).slice(0, 500));
+      
+      let errorMsg = 'Failed to parse element analysis';
+      if (finishReason === 'length') {
+        errorMsg = 'Analysis incomplete - response too large. Try a simpler image or enable strict mode.';
+      }
+      
       return new Response(JSON.stringify({ 
-        error: 'Failed to parse element analysis - no valid data from GPT-5',
-        hint: 'Check edge function logs for details'
+        error: errorMsg,
+        finish_reason: finishReason,
+        hint: 'Try uploading a clearer or simpler reference image'
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -519,16 +525,25 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
-        max_completion_tokens: 3000,
+        max_completion_tokens: 1200,
       }),
     });
 
     if (!connectorResponse.ok) {
       const errorText = await connectorResponse.text();
       console.error('Pass 2 OpenAI error:', connectorResponse.status, errorText);
+      
+      let errorMsg = 'Connector analysis failed';
+      if (connectorResponse.status === 429) {
+        errorMsg = 'Rate limit exceeded. Please try again in a moment.';
+      } else if (connectorResponse.status === 401) {
+        errorMsg = 'OpenAI API key is invalid or missing';
+      }
+      
       return new Response(JSON.stringify({ 
-        error: 'Failed to analyze connectors',
-        details: `OpenAI returned ${connectorResponse.status}` 
+        error: errorMsg,
+        details: `OpenAI returned ${connectorResponse.status}`,
+        hint: 'Try toggling strict mode or simplifying the image'
       }), {
         status: 502,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -574,10 +589,20 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
 
     if (!connectorAnalysis || !connectorAnalysis.connectors) {
-      console.error('Failed to extract connector analysis. Response:', JSON.stringify(connectorData).slice(0, 1500));
+      const finishReason = connectorData.choices?.[0]?.finish_reason;
+      console.error('Failed to extract connector analysis.');
+      console.error('Finish reason:', finishReason);
+      console.error('Response preview:', JSON.stringify(connectorData).slice(0, 500));
+      
+      let errorMsg = 'Failed to parse connector analysis';
+      if (finishReason === 'length') {
+        errorMsg = 'Connector analysis incomplete - response too large. Try a simpler image.';
+      }
+      
       return new Response(JSON.stringify({ 
-        error: 'Failed to parse connector analysis - no valid data from GPT-5',
-        hint: 'Check edge function logs for details'
+        error: errorMsg,
+        finish_reason: finishReason,
+        hint: 'Try toggling strict mode or using a simpler reference image'
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -642,7 +667,7 @@ Return ONLY JSON:
                 { role: 'system', content: 'You are a scientific terminology expert. Always return valid JSON only.' },
                 { role: 'user', content: searchTermPrompt }
               ],
-              max_tokens: 300,
+              max_tokens: 150,
             }),
           });
 
@@ -810,7 +835,7 @@ Return ONLY JSON:
                 { role: 'system', content: 'You are a scientific illustration expert specializing in biological icon selection.' },
                 { role: 'user', content: verificationPrompt }
               ],
-              max_tokens: 200,
+              max_tokens: 150,
             }),
           });
 
@@ -1062,7 +1087,7 @@ Return ONLY JSON:
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-5',
+            model: 'gpt-5-2025-08-07',
             messages: [
               { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
               {
@@ -1079,7 +1104,7 @@ Return ONLY JSON:
               }
             ],
             response_format: { type: 'json_object' },
-            max_completion_tokens: 2000,
+            max_completion_tokens: 1000,
           }),
         });
 
