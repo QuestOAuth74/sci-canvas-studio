@@ -62,9 +62,25 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
       throw new Error('Invalid segmentation result');
     }
     
-    // Find the mask with the highest average value (likely the subject)
+    // DEBUG: Log all segments for debugging
+    if (import.meta.env.DEV) {
+      console.group('🔍 Segmentation Debug');
+      result.forEach((seg, idx) => {
+        if (seg.mask) {
+          let sum = 0;
+          for (let i = 0; i < seg.mask.data.length; i++) {
+            sum += seg.mask.data[i];
+          }
+          const coverage = (sum / seg.mask.data.length) * 100;
+          console.log(`[${idx}] ${seg.label}: ${coverage.toFixed(2)}%`);
+        }
+      });
+      console.groupEnd();
+    }
+    
+    // Find the mask most likely to be the subject (not background or artifacts)
     let bestMask = result[0];
-    let maxAverage = 0;
+    let bestScore = -1;
 
     for (const segment of result) {
       if (!segment.mask) continue;
@@ -74,17 +90,47 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
       for (let i = 0; i < segment.mask.data.length; i++) {
         sum += segment.mask.data[i];
       }
-      const average = sum / segment.mask.data.length;
+      const coverage = (sum / segment.mask.data.length) * 100;
       
-      console.log(`Segment "${segment.label}": average coverage = ${(average * 100).toFixed(2)}%`);
+      // Score the mask: prefer coverage between 20-80% (likely subject, not background)
+      let score = 0;
+      if (coverage >= 20 && coverage <= 80) {
+        // Prefer masks in the "sweet spot"
+        score = 100 - Math.abs(50 - coverage); // Peak score at 50% coverage
+      } else if (coverage > 80) {
+        // Penalize high coverage (likely background)
+        score = Math.max(0, 20 - (coverage - 80)); // Low score for backgrounds
+      } else {
+        // Penalize low coverage (likely artifacts)
+        score = coverage; // Very low score
+      }
       
-      if (average > maxAverage) {
-        maxAverage = average;
+      // Bonus for subject-like labels
+      const subjectLabels = ['person', 'object', 'shape', 'figure', 'entity', 'item'];
+      const backgroundLabels = ['wall', 'floor', 'ceiling', 'sky', 'background', 'ground'];
+
+      if (subjectLabels.some(label => segment.label?.toLowerCase().includes(label))) {
+        score += 20; // Bonus for subject labels
+      }
+      if (backgroundLabels.some(label => segment.label?.toLowerCase().includes(label))) {
+        score -= 30; // Penalty for background labels
+      }
+      
+      console.log(`Segment "${segment.label}": coverage = ${coverage.toFixed(2)}%, score = ${score.toFixed(2)}`);
+      
+      if (score > bestScore) {
+        bestScore = score;
         bestMask = segment;
       }
     }
+    
+    // Fallback: if no mask scored well, use the first one
+    if (bestScore < 10) {
+      console.warn('No good mask found, falling back to first segment');
+      bestMask = result[0];
+    }
 
-    console.log(`Selected mask: "${bestMask.label}" with ${(maxAverage * 100).toFixed(2)}% coverage`);
+    console.log(`Selected mask: "${bestMask.label}" with score ${bestScore.toFixed(2)}`);
 
     if (!bestMask.mask) {
       throw new Error('No valid mask found in segmentation result');
