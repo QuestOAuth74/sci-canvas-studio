@@ -130,13 +130,21 @@ function tryRepairJsonString(input: string): any | null {
     return JSON.parse(input);
   } catch {}
 
+  // Enhanced repair logic for connector-specific truncation patterns
+  let repaired = input.trim();
+  
+  // Remove incomplete property at the end (common truncation pattern)
+  // Example: {"connectors":[{...},{...},{"from_element":5,"to_el
+  repaired = repaired.replace(/,?\s*"[^"]*$/, ''); // Remove incomplete string key
+  repaired = repaired.replace(/,?\s*[^,\}\]]*$/, ''); // Remove incomplete value
+  
   // Balance brackets/braces using a simple stack
   const stack: string[] = [];
   const openers = new Set(['{', '[']);
   const pairs: Record<string, string> = { '{': '}', '[': ']' };
 
-  for (let i = 0; i < input.length; i++) {
-    const ch = input[i];
+  for (let i = 0; i < repaired.length; i++) {
+    const ch = repaired[i];
     if (openers.has(ch)) {
       stack.push(ch);
     } else if (ch === '}' || ch === ']') {
@@ -144,8 +152,8 @@ function tryRepairJsonString(input: string): any | null {
     }
   }
 
-  let repaired = removeTrailingCommas(input.trim());
-  // Remove trailing dangling characters that often appear after truncation
+  // Remove trailing dangling characters
+  repaired = removeTrailingCommas(repaired);
   repaired = repaired.replace(/[,\s]*$/, '');
 
   // Append missing closers in reverse order
@@ -157,7 +165,13 @@ function tryRepairJsonString(input: string): any | null {
   // Final cleanup and parse attempt
   repaired = removeTrailingCommas(repaired);
   try {
-    return JSON.parse(repaired);
+    const parsed = JSON.parse(repaired);
+    // Validate that we have a connectors array
+    if (parsed && parsed.connectors && Array.isArray(parsed.connectors)) {
+      console.log(`✓ Successfully repaired JSON with ${parsed.connectors.length} connectors`);
+      return parsed;
+    }
+    return null;
   } catch {
     return null;
   }
@@ -712,7 +726,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
-        max_tokens: 800, // Phase 4: Reduced token limit for connectors
+        max_tokens: 1500, // Increased from 800 to handle complex diagrams with many connectors
       }),
     });
 
@@ -744,6 +758,13 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     console.log('✅ Pass 2 complete');
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
     
+    // Log finish_reason to detect truncation
+    const finishReason = connectorData.choices?.[0]?.finish_reason;
+    console.log(`🔍 Finish reason: ${finishReason}`);
+    if (finishReason === 'length') {
+      console.log('⚠️ WARNING: Response was truncated due to token limit. Attempting to salvage partial data...');
+    }
+    
     // Phase 4: Simplified connector extraction (no retry logic)
     let connectorAnalysis = null;
     
@@ -755,12 +776,16 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from tool_calls');
       } catch (e) {
         console.log('Failed to parse tool_calls arguments:', e);
-        // Try repair
+        // Log preview of truncated JSON for debugging
         const argStr = connectorData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
+        if (typeof argStr === 'string') {
+          console.log(`📝 Truncated JSON preview (last 200 chars): ...${argStr.slice(-200)}`);
+        }
+        // Try repair with enhanced logic
         const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
         if (repaired && repaired.connectors) {
           connectorAnalysis = repaired;
-          console.log('✓ Repaired truncated JSON from tool_calls');
+          console.log(`✓ Repaired truncated JSON from tool_calls - salvaged ${repaired.connectors.length} connectors`);
         }
       }
     }
