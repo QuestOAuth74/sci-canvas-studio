@@ -66,7 +66,7 @@ function getConnectorStyle(relType: string | undefined, visualDetails?: any): an
   let routingType = 'straight'; // Default to straight for cleaner layouts
   
   if (visualDetails?.line_type) {
-    const lineType = visualDetails.line_type.toLowerCase();
+    const lineType = String(visualDetails.line_type).toLowerCase();
     if (lineType.includes('curved') || lineType.includes('bezier')) {
       routingType = 'curved';
     } else if (lineType.includes('orthogonal') || lineType.includes('elbow')) {
@@ -883,15 +883,15 @@ CONNECTOR ANALYSIS REQUIREMENTS:
             matches: [] // No icon matches for shapes
           };
         }
-        const searchTerms = element.ai_search_terms || element.search_terms || [element.name];
-        const isReceptor = element.name.toLowerCase().includes('receptor') || 
-                          element.category.toLowerCase().includes('receptor') ||
-                          searchTerms.some((term: string) => 
-                            term.toLowerCase().includes('receptor') ||
-                            term.toLowerCase().includes('gpcr') ||
-                            term.toLowerCase().includes('membrane') ||
-                            term.toLowerCase().includes('channel')
-                          );
+        const searchTerms = element.ai_search_terms || element.search_terms || [element.name || ''];
+        const safeName = (element.name || '').toString().toLowerCase();
+        const safeCategory = (element.category || '').toString().toLowerCase();
+        const isReceptor = safeName.includes('receptor') || 
+                          safeCategory.includes('receptor') ||
+                          searchTerms.some((term: string) => {
+                            const t = (term || '').toString().toLowerCase();
+                            return t.includes('receptor') || t.includes('gpcr') || t.includes('membrane') || t.includes('channel');
+                          });
         
         console.log(`[${idx}] Searching: ${element.name} (${isReceptor ? 'RECEPTOR' : 'standard'})`);
         console.log(`  AI-generated search terms: ${searchTerms.join(', ')}`);
@@ -1261,12 +1261,12 @@ Return JSON:
 
         if (critiqueResponse.ok) {
           const critiqueData = await critiqueResponse.json();
-          const critiqueText = critiqueData.choices[0].message.content;
+          const critiqueTextRaw = critiqueData.choices?.[0]?.message?.content ?? '';
+          const critiqueText = typeof critiqueTextRaw === 'string' ? critiqueTextRaw : '';
           
-          // Check for refusal
-          if (critiqueText.toLowerCase().includes("i'm sorry") || 
-              critiqueText.toLowerCase().includes("i can't") ||
-              critiqueText.toLowerCase().includes("cannot assist")) {
+          // Check for refusal (safely)
+          const lower = critiqueText.toLowerCase();
+          if (lower.includes("i'm sorry") || lower.includes("i can't") || lower.includes('cannot assist')) {
             console.log('Critique refused by AI, skipping critique step');
           } else {
             const critiqueJsonMatch = critiqueText.match(/\{[\s\S]*\}/);
