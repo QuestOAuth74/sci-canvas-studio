@@ -48,8 +48,8 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     const wasResized = resizeImageIfNeeded(canvas, ctx, imageElement);
     console.log(`Image ${wasResized ? 'was' : 'was not'} resized. Final dimensions: ${canvas.width}x${canvas.height}`);
     
-    // Get image data as base64
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    // Get image data as base64 (PNG for lossless quality)
+    const imageData = canvas.toDataURL('image/png');
     console.log('Image converted to base64');
     
     // Process the image with the segmentation model
@@ -58,8 +58,36 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     
     console.log('Segmentation result:', result);
     
-    if (!result || !Array.isArray(result) || result.length === 0 || !result[0].mask) {
+    if (!result || !Array.isArray(result) || result.length === 0) {
       throw new Error('Invalid segmentation result');
+    }
+    
+    // Find the mask with the highest average value (likely the subject)
+    let bestMask = result[0];
+    let maxAverage = 0;
+
+    for (const segment of result) {
+      if (!segment.mask) continue;
+      
+      // Calculate average mask value
+      let sum = 0;
+      for (let i = 0; i < segment.mask.data.length; i++) {
+        sum += segment.mask.data[i];
+      }
+      const average = sum / segment.mask.data.length;
+      
+      console.log(`Segment "${segment.label}": average coverage = ${(average * 100).toFixed(2)}%`);
+      
+      if (average > maxAverage) {
+        maxAverage = average;
+        bestMask = segment;
+      }
+    }
+
+    console.log(`Selected mask: "${bestMask.label}" with ${(maxAverage * 100).toFixed(2)}% coverage`);
+
+    if (!bestMask.mask) {
+      throw new Error('No valid mask found in segmentation result');
     }
     
     // Create a new canvas for the masked image
@@ -81,11 +109,35 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     );
     const data = outputImageData.data;
     
-    // Apply inverted mask to alpha channel
-    for (let i = 0; i < result[0].mask.data.length; i++) {
-      // Invert the mask value (1 - value) to keep the subject instead of the background
-      const alpha = Math.round((1 - result[0].mask.data[i]) * 255);
-      data[i * 4 + 3] = alpha;
+    // Apply inverted mask to alpha channel with anti-aliasing
+    for (let i = 0; i < bestMask.mask.data.length; i++) {
+      // Get the mask value (0 to 1)
+      const maskValue = bestMask.mask.data[i];
+      
+      // Invert to keep subject instead of background
+      let alpha = 1 - maskValue;
+      
+      // Apply smoothing curve for better edge quality
+      // Use a cubic easing function for smoother transitions
+      alpha = alpha * alpha * (3 - 2 * alpha);
+      
+      // Add edge feathering - expand the alpha range slightly
+      alpha = Math.max(0, Math.min(1, alpha * 1.1 - 0.05));
+      
+      // Convert to 0-255 range
+      data[i * 4 + 3] = Math.floor(alpha * 255);
+    }
+    
+    // Fix white edges by premultiplying alpha
+    for (let i = 0; i < data.length; i += 4) {
+      const alpha = data[i + 3] / 255;
+      
+      if (alpha > 0 && alpha < 1) {
+        // Only process semi-transparent pixels to remove white fringing
+        data[i] = Math.round(data[i] * alpha);     // Red
+        data[i + 1] = Math.round(data[i + 1] * alpha); // Green
+        data[i + 2] = Math.round(data[i + 2] * alpha); // Blue
+      }
     }
     
     outputCtx.putImageData(outputImageData, 0, 0);
