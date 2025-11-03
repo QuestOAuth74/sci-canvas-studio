@@ -1118,12 +1118,18 @@ CONNECTOR ANALYSIS REQUIREMENTS:
                           analysis.overall_layout?.diagram_type?.includes('hierarchy') ||
                           analysis.overall_layout?.diagram_type?.includes('pathway');
     
+    // Helper function to snap to grid
+    const snapToGrid = (value: number, gridSize: number = 5): number => {
+      return Math.round(value / gridSize) * gridSize;
+    };
+
     // If hierarchical, organize elements by vertical position for proper alignment
     const sortedElements = isHierarchical 
       ? [...allElements].sort((a, b) => (a.element.position_y || 0) - (b.element.position_y || 0))
       : allElements;
     
-    const composedObjects = sortedElements.map((m) => {
+    // First pass: Create objects with initial positions
+    let composedObjects = sortedElements.map((m) => {
       let x = Math.max(0, Math.min(100, m.element.position_x));
       let y = Math.max(0, Math.min(100, m.element.position_y));
       
@@ -1135,11 +1141,15 @@ CONNECTOR ANALYSIS REQUIREMENTS:
             // Find average Y position for this tier
             const tierElements = allElements.filter(e => group.includes(e.element_index));
             const avgY = tierElements.reduce((sum, e) => sum + (e.element.position_y || 0), 0) / tierElements.length;
-            y = Math.round(avgY);
+            y = snapToGrid(avgY);
             break;
           }
         }
       }
+      
+      // Apply grid snapping for cleaner layout
+      x = snapToGrid(x);
+      y = snapToGrid(y);
       
       // For shapes: create shape objects with text content
       if (m.element.element_type === 'shape') {
@@ -1192,6 +1202,68 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         labelPosition: 'bottom'
       };
     });
+    
+    // Second pass: Collision detection and resolution
+    console.log('🔍 Detecting and resolving collisions...');
+    const MIN_SPACING = 12; // Minimum distance between element centers (12% of canvas)
+    
+    for (let i = 0; i < composedObjects.length; i++) {
+      for (let j = i + 1; j < composedObjects.length; j++) {
+        const obj1 = composedObjects[i];
+        const obj2 = composedObjects[j];
+        
+        const dx = obj1.x - obj2.x;
+        const dy = obj1.y - obj2.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < MIN_SPACING) {
+          // Push elements apart along the line connecting them
+          const angle = Math.atan2(dy, dx);
+          const pushDistance = (MIN_SPACING - distance) / 2;
+          
+          obj1.x = snapToGrid(Math.max(5, Math.min(95, obj1.x + Math.cos(angle) * pushDistance)));
+          obj1.y = snapToGrid(Math.max(5, Math.min(95, obj1.y + Math.sin(angle) * pushDistance)));
+          obj2.x = snapToGrid(Math.max(5, Math.min(95, obj2.x - Math.cos(angle) * pushDistance)));
+          obj2.y = snapToGrid(Math.max(5, Math.min(95, obj2.y - Math.sin(angle) * pushDistance)));
+          
+          console.log(`  Resolved collision between elements ${obj1.element_index} and ${obj2.element_index}`);
+        }
+      }
+    }
+    
+    // Third pass: Ensure minimum spacing between hierarchical tiers
+    if (isHierarchical && analysis.spatial_analysis?.alignment) {
+      const MIN_TIER_SPACING = 18; // Minimum vertical spacing between tiers
+      const horizontalGroups = analysis.spatial_analysis.alignment.horizontally_aligned || [];
+      
+      // Calculate average Y for each tier
+      const tierYPositions = horizontalGroups.map((group: number[]) => {
+        const tierElements = composedObjects.filter(obj => group.includes(obj.element_index));
+        return tierElements.reduce((sum, obj) => sum + obj.y, 0) / tierElements.length;
+      }).sort((a: number, b: number) => a - b);
+      
+      // Adjust tiers if they're too close
+      for (let i = 1; i < tierYPositions.length; i++) {
+        const spacing = tierYPositions[i] - tierYPositions[i - 1];
+        if (spacing < MIN_TIER_SPACING) {
+          const adjustment = MIN_TIER_SPACING - spacing;
+          tierYPositions[i] += adjustment;
+          
+          // Apply adjustment to all elements in this tier and below
+          horizontalGroups.slice(i).forEach((group: number[]) => {
+            composedObjects.forEach(obj => {
+              if (group.includes(obj.element_index)) {
+                obj.y = snapToGrid(obj.y + adjustment);
+              }
+            });
+          });
+          
+          console.log(`  Adjusted tier ${i} spacing by ${adjustment.toFixed(1)}%`);
+        }
+      }
+    }
+    
+    console.log(`✅ Layout spacing optimized: ${composedObjects.length} elements positioned`);
     
     // Build connectors from spatial relationships
     const composedConnectors = (analysis.spatial_relationships || []).map((rel: any) => {

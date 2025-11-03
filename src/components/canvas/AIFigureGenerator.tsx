@@ -314,6 +314,60 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
     return colorMap[category || 'default'] || colorMap['default'];
   };
 
+  // Calculate edge intersection point for arrow connections
+  const calculateEdgeIntersection = (
+    fromObj: any,
+    toObj: any
+  ): { startX: number; startY: number; endX: number; endY: number } => {
+    // Calculate centers
+    const fromCenterX = (fromObj.left || 0) + ((fromObj.width || 0) * (fromObj.scaleX || 1)) / 2;
+    const fromCenterY = (fromObj.top || 0) + ((fromObj.height || 0) * (fromObj.scaleY || 1)) / 2;
+    const toCenterX = (toObj.left || 0) + ((toObj.width || 0) * (toObj.scaleX || 1)) / 2;
+    const toCenterY = (toObj.top || 0) + ((toObj.height || 0) * (toObj.scaleY || 1)) / 2;
+
+    // Calculate dimensions
+    const fromWidth = (fromObj.width || 0) * (fromObj.scaleX || 1);
+    const fromHeight = (fromObj.height || 0) * (fromObj.scaleY || 1);
+    const toWidth = (toObj.width || 0) * (toObj.scaleX || 1);
+    const toHeight = (toObj.height || 0) * (toObj.scaleY || 1);
+
+    // Calculate direction angle
+    const dx = toCenterX - fromCenterX;
+    const dy = toCenterY - fromCenterY;
+    const angle = Math.atan2(dy, dx);
+
+    // Calculate intersection points at shape edges
+    // Use aspect ratio to determine actual edge intersection
+    const fromAspectRatio = Math.abs(Math.tan(angle)) * (fromWidth / fromHeight);
+    const toAspectRatio = Math.abs(Math.tan(angle)) * (toWidth / toHeight);
+
+    let startX, startY, endX, endY;
+
+    // From shape edge calculation
+    if (fromAspectRatio > 1) {
+      // Horizontal edge intersection
+      startX = fromCenterX + Math.sign(Math.cos(angle)) * fromWidth / 2;
+      startY = fromCenterY + Math.tan(angle) * Math.sign(Math.cos(angle)) * fromWidth / 2;
+    } else {
+      // Vertical edge intersection
+      startX = fromCenterX + (fromHeight / 2) / Math.tan(angle) * Math.sign(Math.sin(angle));
+      startY = fromCenterY + Math.sign(Math.sin(angle)) * fromHeight / 2;
+    }
+
+    // To shape edge calculation
+    if (toAspectRatio > 1) {
+      // Horizontal edge intersection
+      endX = toCenterX - Math.sign(Math.cos(angle)) * toWidth / 2;
+      endY = toCenterY - Math.tan(angle) * Math.sign(Math.cos(angle)) * toWidth / 2;
+    } else {
+      // Vertical edge intersection
+      endX = toCenterX - (toHeight / 2) / Math.tan(angle) * Math.sign(Math.sin(angle));
+      endY = toCenterY - Math.sign(Math.sin(angle)) * toHeight / 2;
+    }
+
+    return { startX, startY, endX, endY };
+  };
+
   const applyLayout = async (useProposed = false) => {
     if (!response || !canvas) return;
 
@@ -512,10 +566,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         const toObj = addedObjects[toAdded];
 
         if (fromObj && toObj) {
-          const startX = (fromObj.left || 0) + ((fromObj.width || 0) * (fromObj.scaleX || 1)) / 2;
-          const startY = (fromObj.top || 0) + ((fromObj.height || 0) * (fromObj.scaleY || 1)) / 2;
-          const endX = (toObj.left || 0) + ((toObj.width || 0) * (toObj.scaleX || 1)) / 2;
-          const endY = (toObj.top || 0) + ((toObj.height || 0) * (toObj.scaleY || 1)) / 2;
+          // Calculate edge intersection points for proper arrow positioning
+          const { startX, startY, endX, endY } = calculateEdgeIntersection(fromObj, toObj);
 
           createConnector(canvas, {
             startX,
