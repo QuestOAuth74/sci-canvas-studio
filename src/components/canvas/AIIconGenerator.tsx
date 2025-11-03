@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
 import { removeBackground, loadImage } from '@/lib/backgroundRemoval';
+import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
 
 interface AIIconGeneratorProps {
   open: boolean;
@@ -37,6 +38,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const { user } = useAuth();
   const { submitIcon } = useIconSubmissions();
   const { uploadAsset } = useUserAssets();
+  const { usage, isLoading: usageLoading, refetch: refetchUsage } = useAIGenerationUsage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
@@ -237,6 +239,9 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       
       setProgress(100);
       setStage('complete');
+      
+      // Refetch usage after successful generation
+      await refetchUsage();
 
       // Auto-suggest icon name from prompt
       if (!iconName) {
@@ -339,6 +344,9 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         title: 'Icon saved to your library!',
         description: `"${iconName}" is now available in your personal assets.`,
       });
+      
+      // Refetch usage after saving
+      await refetchUsage();
 
       // Reset and close
       handleReset();
@@ -438,6 +446,9 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         title: 'Icon submitted for review!',
         description: `"${iconName}" will be reviewed by our team before being added to the public library.`,
       });
+      
+      // Refetch usage after submission
+      await refetchUsage();
 
       // Reset and close
       handleReset();
@@ -490,12 +501,35 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            AI Icon Generator
+          <DialogTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI Icon Generator
+            </span>
+            {!usageLoading && usage && !usage.isAdmin && (
+              <span className="text-sm font-normal text-muted-foreground">
+                {usage.remaining === 0 ? (
+                  <span className="text-destructive flex items-center gap-1">
+                    <span className="inline-block w-2 h-2 rounded-full bg-destructive"></span>
+                    Limit reached
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block w-2 h-2 rounded-full bg-green-500"></span>
+                    {usage.remaining} generation{usage.remaining === 1 ? '' : 's'} remaining
+                  </span>
+                )}
+              </span>
+            )}
           </DialogTitle>
           <DialogDescription>
             Upload a reference image and describe how you want to transform it into an icon
+            {!usageLoading && usage && !usage.isAdmin && usage.remaining === 0 && (
+              <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive">
+                You've reached your monthly limit of {usage.limit} free generations. 
+                Limit resets on {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -563,23 +597,31 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
             </div>
 
             {!generatedImage && (
-              <Button
-                onClick={handleGenerate}
-                disabled={!canGenerate}
-                className="w-full"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Generate Icon
-                  </>
+              <>
+                <Button
+                  onClick={handleGenerate}
+                  disabled={!canGenerate || (usage && !usage.canGenerate)}
+                  className="w-full"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      {usage && !usage.canGenerate ? 'Limit Reached' : 'Generate Icon'}
+                    </>
+                  )}
+                </Button>
+                
+                {!usageLoading && usage && !usage.canGenerate && !usage.isAdmin && (
+                  <p className="text-xs text-center text-muted-foreground mt-2">
+                    Monthly limit: {usage.used}/{usage.limit} used
+                  </p>
                 )}
-              </Button>
+              </>
             )}
           </div>
 

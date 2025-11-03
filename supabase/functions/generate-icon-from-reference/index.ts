@@ -62,6 +62,44 @@ serve(async (req) => {
 
     console.log('✅ User authenticated successfully:', user.id);
 
+    // Check if user is admin
+    console.log('🔍 Checking user permissions...');
+    const { data: userRole } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    const isAdmin = !!userRole;
+    console.log('👤 User is admin:', isAdmin);
+
+    // If not admin, check rate limits
+    if (!isAdmin) {
+      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+      
+      console.log('📊 Checking rate limits for month:', currentMonth);
+      
+      const { data: usageData, error: usageError } = await supabaseClient
+        .from('ai_generation_usage')
+        .select('id', { count: 'exact', head: false })
+        .eq('user_id', user.id)
+        .eq('month_year', currentMonth);
+      
+      if (usageError) {
+        console.error('❌ Error checking usage:', usageError);
+        throw new Error('Failed to check usage limits');
+      }
+      
+      const usageCount = usageData?.length || 0;
+      console.log('📈 Current usage count:', usageCount, '/ 2');
+      
+      if (usageCount >= 2) {
+        console.log('⛔ Rate limit exceeded for user:', user.id);
+        throw new Error('RATE_LIMIT_EXCEEDED');
+      }
+    }
+
     const { image, prompt, style = 'simple', size = '512x512' } = await req.json();
 
     if (!image || !prompt) {
@@ -149,6 +187,33 @@ serve(async (req) => {
     console.log('✅ Icon generated successfully');
     console.log('📦 Image size:', generatedImageUrl.length, 'bytes (base64)');
 
+    // Track usage (only for non-admins)
+    if (!isAdmin) {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      
+      const supabaseAdminClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+      
+      const { error: trackingError } = await supabaseAdminClient
+        .from('ai_generation_usage')
+        .insert({
+          user_id: user.id,
+          month_year: currentMonth,
+          prompt: prompt,
+          style: style,
+          generated_at: new Date().toISOString()
+        });
+      
+      if (trackingError) {
+        console.error('⚠️ Failed to track usage:', trackingError);
+        // Don't fail the request if tracking fails
+      } else {
+        console.log('✅ Usage tracked successfully');
+      }
+    }
+
     // Return the generated image
     // Frontend will handle upload to storage and database insertion
     return new Response(JSON.stringify({
@@ -169,6 +234,10 @@ serve(async (req) => {
     if (errorMessage === 'RATE_LIMITED') {
       statusCode = 429;
       errorMessage = 'Rate limits exceeded. Please try again later.';
+    } else if (errorMessage === 'RATE_LIMIT_EXCEEDED') {
+      statusCode = 429;
+      errorMessage = 'Monthly generation limit reached';
+      errorContext = 'You have used your 2 free AI icon generations for this month. Limit resets on the 1st of next month.';
     } else if (errorMessage === 'CREDITS_DEPLETED') {
       statusCode = 402;
       errorMessage = 'AI credits depleted. Please add credits in Settings → Workspace → Usage.';

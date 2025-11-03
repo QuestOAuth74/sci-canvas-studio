@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_generation_usage: {
+        Row: {
+          created_at: string | null
+          generated_at: string
+          id: string
+          month_year: string
+          prompt: string | null
+          style: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          generated_at?: string
+          id?: string
+          month_year: string
+          prompt?: string | null
+          style?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          generated_at?: string
+          id?: string
+          month_year?: string
+          prompt?: string | null
+          style?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       blog_categories: {
         Row: {
           color: string | null
@@ -719,6 +749,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_user_generate: { Args: { _user_id: string }; Returns: Json }
       clone_project: {
         Args: { new_project_name: string; source_project_id: string }
         Returns: string
@@ -737,6 +768,10 @@ export type Database = {
           slug: string
           title: string
         }[]
+      }
+      get_user_generation_count: {
+        Args: { _month_year: string; _user_id: string }
+        Returns: number
       }
       has_role: {
         Args: {
