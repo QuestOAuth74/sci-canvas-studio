@@ -13,6 +13,7 @@ import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, Refresh
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
+import { removeBackground, loadImage } from '@/lib/backgroundRemoval';
 
 interface AIIconGeneratorProps {
   open: boolean;
@@ -197,8 +198,44 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       }
 
       console.log('✅ Icon generated successfully');
+      setProgress(90);
+      
+      // Remove background from generated image
+      try {
+        console.log('🎨 Removing background...');
+        
+        // Convert base64 to blob
+        const base64Data = data.generatedImage.split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        
+        // Load as image element
+        const imageElement = await loadImage(blob);
+        
+        // Remove background
+        const transparentBlob = await removeBackground(imageElement);
+        
+        // Convert back to base64
+        const reader = new FileReader();
+        const transparentBase64 = await new Promise<string>((resolve) => {
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(transparentBlob);
+        });
+        
+        console.log('✅ Background removed successfully');
+        setGeneratedImage(transparentBase64);
+      } catch (bgError) {
+        console.error('⚠️ Background removal failed, using original:', bgError);
+        // Fallback to original image if background removal fails
+        setGeneratedImage(data.generatedImage);
+      }
+      
       setProgress(100);
-      setGeneratedImage(data.generatedImage);
       setStage('complete');
 
       // Auto-suggest icon name from prompt
