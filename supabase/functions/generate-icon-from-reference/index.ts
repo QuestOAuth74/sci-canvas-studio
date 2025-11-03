@@ -28,7 +28,14 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get('Authorization');
+    
+    // Detailed logging
+    console.log('🔐 Request received');
+    console.log('🔐 Auth header present:', !!authHeader);
+    console.log('🔐 Auth header format:', authHeader ? authHeader.substring(0, 20) + '...' : 'none');
+    
     if (!authHeader) {
+      console.error('❌ No authorization header provided');
       throw new Error('No authorization header');
     }
 
@@ -38,10 +45,20 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
+    console.log('🔑 Attempting to validate user...');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
-      throw new Error('Unauthorized');
+    
+    if (userError) {
+      console.error('❌ Auth validation failed:', userError.message);
+      throw new Error(`Authentication failed: ${userError.message}`);
     }
+    
+    if (!user) {
+      console.error('❌ No user found in valid token');
+      throw new Error('User not found');
+    }
+
+    console.log('✅ User authenticated successfully:', user.id);
 
     const { image, prompt, style = 'simple', size = '512x512' } = await req.json();
 
@@ -49,10 +66,16 @@ serve(async (req) => {
       throw new Error('Missing required fields: image and prompt');
     }
 
+    // Log request details
+    console.log('📊 Request details:');
+    console.log('  - Image size:', Math.round(image.length / 1024), 'KB');
+    console.log('  - Prompt length:', prompt.length, 'chars');
+    console.log('  - Style:', style);
+    console.log('  - Target size:', size);
+
     console.log('🎨 Starting icon generation for user:', user.id);
     console.log('📝 Prompt:', prompt);
     console.log('🎭 Style:', style);
-    console.log('📏 Size:', size);
 
     // Validate image format
     if (!image.startsWith('data:image/')) {
@@ -134,11 +157,12 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error in generate-icon-from-reference:', error);
     
     let statusCode = 500;
     let errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    let errorContext = '';
     
     if (errorMessage === 'RATE_LIMITED') {
       statusCode = 429;
@@ -149,11 +173,20 @@ serve(async (req) => {
     } else if (errorMessage === 'Unauthorized' || errorMessage === 'No authorization header') {
       statusCode = 401;
       errorMessage = 'Authentication required';
+      errorContext = 'Please sign in again. Your session may have expired.';
+    } else if (errorMessage.includes('Authentication failed')) {
+      statusCode = 401;
+      errorContext = 'Token validation failed. Please refresh the page and try again.';
+    } else if (errorMessage === 'User not found') {
+      statusCode = 401;
+      errorContext = 'User session invalid. Please sign in again.';
     }
     
     return new Response(JSON.stringify({
       success: false,
-      error: errorMessage
+      error: errorMessage,
+      context: errorContext,
+      timestamp: new Date().toISOString()
     }), {
       status: statusCode,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

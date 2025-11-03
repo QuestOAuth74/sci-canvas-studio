@@ -117,22 +117,67 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       return;
     }
 
+    let progressInterval: NodeJS.Timeout | null = null;
+
     try {
       setStage('generating');
       setProgress(10);
 
+      // Explicitly get session and validate
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (!session || sessionError) {
+        console.error('Session error:', sessionError);
+        toast({
+          title: 'Session expired',
+          description: 'Please sign in again to generate icons',
+          variant: 'destructive',
+        });
+        setStage('idle');
+        return;
+      }
+
       console.log('🎨 Starting icon generation...');
       console.log('📝 Prompt:', prompt);
       console.log('🎭 Style:', style);
+      console.log('🔐 Session valid:', !!session.access_token);
 
-      // Call edge function
-      const { data, error } = await supabase.functions.invoke('generate-icon-from-reference', {
+      // Start progress timer
+      const startTime = Date.now();
+      progressInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const newProgress = Math.min(90, 10 + (elapsed / 60) * 80);
+        setProgress(newProgress);
+        console.log(`⏱️ Generating... ${elapsed}s elapsed (${Math.round(newProgress)}%)`);
+      }, 1000);
+
+      // Add timeout (2 minutes)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('TIMEOUT')), 120000)
+      );
+
+      const invokePromise = supabase.functions.invoke('generate-icon-from-reference', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        },
         body: {
           image: referenceImage,
           prompt: prompt.trim(),
           style,
         }
       });
+
+      // Race between generation and timeout
+      const { data, error } = await Promise.race([
+        invokePromise,
+        timeoutPromise
+      ]) as any;
+
+      // Clear progress timer
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
 
       if (error) {
         console.error('Edge function error:', error);
@@ -165,15 +210,24 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       });
 
     } catch (error: any) {
+      // Clear progress timer on error
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
+
       console.error('Generation error:', error);
       setStage('error');
       
       let errorMessage = 'Failed to generate icon. Please try again.';
       
-      if (error.message?.includes('RATE_LIMITED') || error.message?.includes('429')) {
+      if (error.message === 'TIMEOUT') {
+        errorMessage = 'AI generation took too long. Please try with a smaller image or simpler prompt.';
+      } else if (error.message?.includes('RATE_LIMITED') || error.message?.includes('429')) {
         errorMessage = 'Rate limit reached. Please wait a moment and try again.';
       } else if (error.message?.includes('CREDITS_DEPLETED') || error.message?.includes('402')) {
         errorMessage = 'AI credits depleted. Add credits in Settings → Workspace → Usage.';
+      } else if (error.message?.includes('session') || error.message?.includes('auth')) {
+        errorMessage = 'Session expired. Please refresh the page and try again.';
       }
       
       toast({
