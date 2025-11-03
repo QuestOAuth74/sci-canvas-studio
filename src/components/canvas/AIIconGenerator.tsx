@@ -6,10 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIconSubmissions } from '@/hooks/useIconSubmissions';
+import { useUserAssets } from '@/hooks/useUserAssets';
 
 interface AIIconGeneratorProps {
   open: boolean;
@@ -31,6 +34,8 @@ const styleDescriptions: Record<StylePreset, string> = {
 export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconGeneratorProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { submitIcon } = useIconSubmissions();
+  const { uploadAsset } = useUserAssets();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
@@ -40,6 +45,9 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const [iconName, setIconName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('General');
   const [categories, setCategories] = useState<string[]>([]);
+  const [description, setDescription] = useState('');
+  const [usageRights, setUsageRights] = useState<'free_to_share' | 'own_rights' | 'licensed' | 'public_domain'>('own_rights');
+  const [usageRightsDetails, setUsageRightsDetails] = useState('');
   
   const [stage, setStage] = useState<GenerationStage>('idle');
   const [progress, setProgress] = useState(0);
@@ -238,7 +246,8 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     }
   };
 
-  const handleSaveIcon = async () => {
+  // Save to personal library (user_assets)
+  const handleSaveToMyLibrary = async () => {
     if (!generatedImage || !iconName.trim()) {
       toast({
         title: 'Missing information',
@@ -270,54 +279,28 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       }
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: 'image/png' });
-
-      // Upload to storage
-      const filename = `ai-icon-${user.id}-${Date.now()}.png`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('user-assets')
-        .upload(filename, blob, {
-          contentType: 'image/png',
-          cacheControl: '3600'
-        });
-
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError);
-        throw uploadError;
-      }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('user-assets')
-        .getPublicUrl(filename);
+      const file = new File([blob], `${iconName}.png`, { type: 'image/png' });
 
       setProgress(75);
 
-      // Create SVG wrapper for the PNG (icons table expects svg_content)
-      const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
-  <image href="${publicUrl}" width="512" height="512"/>
-</svg>`;
+      // Upload to user_assets
+      const asset = await uploadAsset({
+        file,
+        category: selectedCategory,
+        tags: ['ai-generated'],
+        description: description.trim() || `AI-generated icon from prompt: "${prompt}"`,
+        isShared: false // Private to user
+      });
 
-      // Insert into icons table
-      const { error: insertError } = await supabase
-        .from('icons')
-        .insert({
-          name: iconName.trim(),
-          category: selectedCategory,
-          svg_content: svgContent,
-          thumbnail: publicUrl,
-          uploaded_by: user.id
-        });
-
-      if (insertError) {
-        console.error('Database insert error:', insertError);
-        throw insertError;
+      if (!asset) {
+        throw new Error('Failed to save to library');
       }
 
       setProgress(100);
       
       toast({
-        title: 'Icon saved!',
-        description: `"${iconName}" has been added to your icon library`,
+        title: 'Icon saved to your library!',
+        description: `"${iconName}" is now available in your personal assets.`,
       });
 
       // Reset and close
@@ -337,6 +320,105 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     }
   };
 
+  // Submit to public library for admin review
+  const handleSubmitToPublic = async () => {
+    if (!generatedImage || !iconName.trim()) {
+      toast({
+        title: 'Missing information',
+        description: 'Please provide an icon name',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: 'Authentication required',
+        description: 'Please sign in to submit icons',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setStage('saving');
+      setProgress(50);
+
+      // Convert base64 to blob for thumbnail
+      const base64Data = generatedImage.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/png' });
+
+      // Upload thumbnail to storage
+      const filename = `ai-icon-${user.id}-${Date.now()}.png`;
+      const { error: uploadError } = await supabase.storage
+        .from('user-assets')
+        .upload(filename, blob, {
+          contentType: 'image/png',
+          cacheControl: '3600'
+        });
+
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('user-assets')
+        .getPublicUrl(filename);
+
+      setProgress(75);
+
+      // Create SVG wrapper for the PNG
+      const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+  <image href="${publicUrl}" width="512" height="512"/>
+</svg>`;
+
+      // Submit to icon_submissions table for review
+      const submission = await submitIcon({
+        name: iconName.trim(),
+        category: selectedCategory,
+        svg_content: svgContent,
+        thumbnail: publicUrl,
+        description: description.trim() || `AI-generated icon from prompt: "${prompt}"`,
+        usage_rights: usageRights,
+        usage_rights_details: usageRightsDetails.trim() || undefined,
+      });
+
+      if (!submission) {
+        throw new Error('Failed to submit icon');
+      }
+
+      setProgress(100);
+      
+      toast({
+        title: 'Icon submitted for review!',
+        description: `"${iconName}" will be reviewed by our team before being added to the public library.`,
+      });
+
+      // Reset and close
+      handleReset();
+      onOpenChange(false);
+      onIconGenerated?.();
+
+    } catch (error: any) {
+      console.error('Submit error:', error);
+      setStage('error');
+      
+      toast({
+        title: 'Submission failed',
+        description: 'Failed to submit icon for review. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleReset = () => {
     setReferenceImage(null);
     setReferenceFile(null);
@@ -344,6 +426,9 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setStyle('simple');
     setIconName('');
     setSelectedCategory('General');
+    setDescription('');
+    setUsageRights('own_rights');
+    setUsageRightsDetails('');
     setGeneratedImage(null);
     setStage('idle');
     setProgress(0);
@@ -509,32 +594,115 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                   </Select>
                 </div>
 
-                <div className="flex gap-2">
+                <div>
+                  <Label htmlFor="description">Description (Optional)</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Brief description of this icon"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    disabled={isSaving}
+                    className="mt-2 min-h-[60px]"
+                    rows={2}
+                  />
+                </div>
+
+                {/* Public submission options */}
+                <div className="p-3 bg-muted/30 rounded-lg border space-y-3">
+                  <p className="text-sm font-medium">Public Submission Options</p>
+                  <div>
+                    <Label htmlFor="usageRights" className="text-xs">Usage Rights</Label>
+                    <Select value={usageRights} onValueChange={(v: any) => setUsageRights(v)} disabled={isSaving}>
+                      <SelectTrigger id="usageRights" className="mt-1.5 h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="own_rights">I created this / I own the rights</SelectItem>
+                        <SelectItem value="free_to_share">Free to share (e.g., Creative Commons)</SelectItem>
+                        <SelectItem value="licensed">Licensed (specify below)</SelectItem>
+                        <SelectItem value="public_domain">Public domain</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {(usageRights === 'licensed' || usageRights === 'free_to_share') && (
+                    <div>
+                      <Label htmlFor="usageRightsDetails" className="text-xs">License Details</Label>
+                      <Input
+                        id="usageRightsDetails"
+                        placeholder="Specify license or source"
+                        value={usageRightsDetails}
+                        onChange={(e) => setUsageRightsDetails(e.target.value)}
+                        disabled={isSaving}
+                        className="mt-1.5 h-9"
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Required only if submitting to public library
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Choose where to save your icon:</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={handleSaveToMyLibrary}
+                      disabled={!canSave}
+                      className="w-full justify-start"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          <div className="text-left">
+                            <div className="font-medium">Save to My Library</div>
+                            <div className="text-xs text-muted-foreground font-normal">
+                              Private - Only you can use this icon
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      onClick={handleSubmitToPublic}
+                      disabled={!canSave}
+                      className="w-full justify-start"
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          <div className="text-left">
+                            <div className="font-medium">Submit to Public Library</div>
+                            <div className="text-xs opacity-80 font-normal">
+                              Pending review - Will be available to all users if approved
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={handleRegenerate}
                     disabled={isSaving}
-                    className="flex-1"
+                    className="w-full"
+                    size="sm"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Regenerate
-                  </Button>
-                  <Button
-                    onClick={handleSaveIcon}
-                    disabled={!canSave}
-                    className="flex-1"
-                  >
-                    {isSaving ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4 mr-2" />
-                        Save to Library
-                      </>
-                    )}
+                    Regenerate Icon
                   </Button>
                 </div>
               </>
