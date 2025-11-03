@@ -314,7 +314,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-        max_tokens: 900,
+        max_tokens: 1500,
       }),
     });
 
@@ -344,6 +344,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
     
     // Extract JSON from function call arguments (priority), then content (fallback)
     let elementAnalysis = null;
+    let parseFailedDueToTruncation = false;
     
     // Strategy 1: Extract from tool_calls (primary for function calling)
     if (elementData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
@@ -353,6 +354,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from tool_calls');
       } catch (e) {
         console.log('Failed to parse tool_calls arguments:', e);
+        parseFailedDueToTruncation = true; // Likely truncated JSON
       }
     }
     
@@ -364,6 +366,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from function_call');
       } catch (e) {
         console.log('Failed to parse function_call arguments:', e);
+        parseFailedDueToTruncation = true;
       }
     }
     
@@ -377,12 +380,12 @@ SPATIAL ANALYSIS REQUIREMENTS:
     
     console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
 
-    // Retry logic for PASS 1 if finish_reason is 'length' and no tool_calls
+    // Retry logic for PASS 1 if we failed to extract valid JSON
     if (!elementAnalysis || !elementAnalysis.identified_elements) {
       const finishReason = elementData.choices?.[0]?.finish_reason;
       
-      if (finishReason === 'length' && !elementData.choices[0]?.message?.tool_calls) {
-        console.log('⚠ Pass 1 hit length limit without tool call. Retrying with condensed prompt...');
+      if (finishReason === 'length' || parseFailedDueToTruncation) {
+        console.log('⚠ Pass 1 hit length limit or truncated JSON. Retrying with higher token limit...');
         
         const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -429,7 +432,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
               }
             ],
             tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-            max_tokens: 675,
+            max_tokens: 2000,
           }),
         });
         
@@ -592,7 +595,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
-        max_tokens: 700,
+        max_tokens: 1200,
       }),
     });
 
@@ -622,6 +625,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     
     // Extract JSON from function call arguments (priority), then content (fallback)
     let connectorAnalysis = null;
+    let connectorParseFailedDueToTruncation = false;
     
     // Strategy 1: Extract from tool_calls (primary for function calling)
     if (connectorData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
@@ -631,6 +635,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from tool_calls');
       } catch (e) {
         console.log('Failed to parse tool_calls arguments:', e);
+        connectorParseFailedDueToTruncation = true;
       }
     }
     
@@ -642,6 +647,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from function_call');
       } catch (e) {
         console.log('Failed to parse function_call arguments:', e);
+        connectorParseFailedDueToTruncation = true;
       }
     }
     
@@ -655,12 +661,12 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
 
-    // Retry logic for PASS 2 if finish_reason is 'length' and no tool_calls
+    // Retry logic for PASS 2 if we failed to extract valid JSON
     if (!connectorAnalysis || !connectorAnalysis.connectors) {
       const finishReason = connectorData.choices?.[0]?.finish_reason;
       
-      if (finishReason === 'length' && !connectorData.choices[0]?.message?.tool_calls) {
-        console.log('⚠ Pass 2 hit length limit without tool call. Retrying with condensed prompt...');
+      if (finishReason === 'length' || connectorParseFailedDueToTruncation) {
+        console.log('⚠ Pass 2 hit length limit or truncated JSON. Retrying with higher token limit...');
         
         const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -705,7 +711,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
               }
             ],
             tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
-            max_tokens: 525,
+            max_tokens: 1500,
           }),
         });
         
