@@ -108,7 +108,7 @@ const Index = () => {
             {/* Badge */}
             <div className="frosted-glass inline-flex items-center gap-2 px-4 py-2 rounded-full animate-scale-in">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="font-medium">Free for Scientists</span>
+              <span className="font-medium">Free for Scientists 🔬</span>
             </div>
             
             {/* Logo and Title */}
@@ -184,11 +184,76 @@ const Index = () => {
                   Suggest an Icon
                 </Button>
               )}
+          </div>
+        </div>
+
+        {/* AI Icon Generator Announcement */}
+        <div className="relative animate-fade-in [animation-delay:200ms]">
+          <style>{`
+            @keyframes gradient-shift {
+              0%, 100% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+            }
+            .animate-gradient-shift {
+              background-size: 200% 200%;
+              animation: gradient-shift 5s ease infinite;
+            }
+          `}</style>
+          
+          <div className="glass-card p-8 md:p-10 border-2 border-primary/50 relative overflow-hidden group hover:border-primary/80 transition-all">
+            {/* Animated background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 animate-gradient-shift" />
+            
+            {/* Glow effect */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-secondary opacity-20 blur-xl group-hover:opacity-30 transition-opacity" />
+            
+            <div className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8">
+              {/* Icon section */}
+              <div className="flex-shrink-0">
+                <div className="relative">
+                  <div className="p-5 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-xl">
+                    <Sparkles className="h-12 w-12 md:h-16 md:w-16 text-white animate-pulse" />
+                  </div>
+                  {/* NEW badge */}
+                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-accent to-secondary text-white text-xs font-black px-3 py-1 rounded-full shadow-lg animate-bounce">
+                    NEW ✨
+                  </div>
+                </div>
+              </div>
+              
+              {/* Content section */}
+              <div className="flex-1 text-center md:text-left space-y-3">
+                <h3 className="text-2xl md:text-3xl font-black tracking-tight">
+                  🎨 AI Icon Generator Now Available! 🚀
+                </h3>
+                <p className="text-base md:text-lg font-medium text-foreground/80 leading-relaxed">
+                  Transform your ideas into professional scientific icons using AI. Upload a reference image or describe what you need, and watch the magic happen! ✨
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start text-sm font-semibold">
+                  <span className="px-3 py-1 bg-primary/20 rounded-full">🧬 Medical</span>
+                  <span className="px-3 py-1 bg-accent/20 rounded-full">🔬 Biochemical</span>
+                  <span className="px-3 py-1 bg-secondary/20 rounded-full">🦠 Cellular</span>
+                  <span className="px-3 py-1 bg-primary/20 rounded-full">💡 & More!</span>
+                </div>
+              </div>
+              
+              {/* CTA section */}
+              <div className="flex-shrink-0">
+                <Button 
+                  size="lg"
+                  onClick={() => navigate(user ? "/projects" : "/auth")}
+                  className="min-w-[200px] h-12 text-base font-bold shadow-xl hover:shadow-2xl transition-all group/btn"
+                >
+                  <Sparkles className="h-5 w-5 mr-2 group-hover/btn:rotate-180 transition-transform duration-500" />
+                  Try AI Generator
+                </Button>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Institution Logos Carousel */}
-          <InstitutionCarousel />
+        {/* Institution Logos Carousel */}
+        <InstitutionCarousel />
 
           {/* Carousel Section */}
           <div className="py-12 animate-fade-in [animation-delay:300ms]">
@@ -232,7 +297,7 @@ const Index = () => {
                 <div className="inline-flex p-4 bg-gradient-to-br from-primary to-primary/80 rounded-2xl border border-white/20 shadow-lg mb-6 group-hover:scale-110 transition-transform">
                   <Palette className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 tracking-tight">Drag & Drop</h3>
+                <h3 className="text-2xl font-bold mb-3 tracking-tight">Drag & Drop ✨</h3>
                 <p className="text-base font-medium leading-relaxed text-foreground/70">
                   Intuitive interface lets you arrange vector icons effortlessly on your canvas
                 </p>
@@ -245,7 +310,7 @@ const Index = () => {
                 <div className="inline-flex p-4 bg-gradient-to-br from-secondary to-secondary/80 rounded-2xl border border-white/20 shadow-lg mb-6 group-hover:scale-110 transition-transform">
                   <Microscope className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 tracking-tight">Organized Library</h3>
+                <h3 className="text-2xl font-bold mb-3 tracking-tight">Organized Library 📚</h3>
                 <p className="text-base font-medium leading-relaxed text-foreground/70">
                   Scientific icons categorized for quick access and seamless workflow
                 </p>
@@ -258,7 +323,7 @@ const Index = () => {
                 <div className="inline-flex p-4 bg-gradient-to-br from-accent to-accent/80 rounded-2xl border border-white/20 shadow-lg mb-6 group-hover:scale-110 transition-transform">
                   <Zap className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3 tracking-tight">Export Ready</h3>
+                <h3 className="text-2xl font-bold mb-3 tracking-tight">Export Ready 🚀</h3>
                 <p className="text-base font-medium leading-relaxed text-foreground/70">
                   High-quality exports optimized for publications and presentations
                 </p>
@@ -275,7 +340,7 @@ const Index = () => {
                   <div className="inline-flex p-3 bg-gradient-to-br from-primary to-primary/80 rounded-xl border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
                     <Shield className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold">Open Source & Free</h3>
+                  <h3 className="text-2xl font-bold">Open Source & Free 💚</h3>
                 </div>
                 <p className="text-base font-medium leading-relaxed text-foreground/70">
                   Built for the scientific community. No paywalls, no subscriptions. 
@@ -291,7 +356,7 @@ const Index = () => {
                   <div className="inline-flex p-3 bg-gradient-to-br from-secondary to-secondary/80 rounded-xl border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
                     <Sparkles className="h-7 w-7 text-white" />
                   </div>
-                  <h3 className="text-2xl font-bold">Professional Quality</h3>
+                  <h3 className="text-2xl font-bold">Professional Quality ⭐</h3>
                 </div>
                 <p className="text-base font-medium leading-relaxed text-foreground/70">
                   Export publication-ready graphics in multiple formats. 
@@ -343,7 +408,7 @@ const Index = () => {
                 <div className="p-2 bg-gradient-to-br from-secondary to-secondary/80 rounded-xl shadow-md">
                   <Share2 className="h-6 w-6 text-white" />
                 </div>
-                Share BioSketch
+                Share BioSketch 💌
               </h3>
               <p className="text-base md:text-lg font-medium leading-relaxed mb-6 text-foreground/70">
                 The best way to support BioSketch is by sharing it with colleagues, students, 
