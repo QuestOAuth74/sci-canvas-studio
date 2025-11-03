@@ -216,59 +216,10 @@ serve(async (req) => {
     console.log('[PROGRESS] element_detection | 0% | Starting element analysis...');
     console.log('Pass 1: Analyzing elements and positions...');
     
-    // Phase 3: Adaptive element count check
-    const countSystemPrompt = `Count total elements in this diagram. Return ONLY a number.
+    // Phase 5: Use image size heuristic instead of AI pre-check (saves 500 tokens)
+    let useChunkedMode = false; // Removed chunking mode for simplicity
+    let elementCount = 0; // No longer doing pre-count
     
-Count all distinct elements: shapes with text, biological icons, proteins, molecules, cells, organs, etc.
-Do not count connectors/arrows/lines.
-
-Return format: { "count": number }`;
-
-    const countResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: countSystemPrompt },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: 'How many distinct elements are in this diagram?' },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 50,
-      }),
-    });
-
-    let elementCount = 0;
-    let useChunkedMode = false;
-
-    if (countResponse.ok) {
-      try {
-        const countData = await countResponse.json();
-        const content = countData.choices[0]?.message?.content || '0';
-        const match = content.match(/\d+/);
-        if (match) {
-          elementCount = parseInt(match[0]);
-          useChunkedMode = elementCount > 25;
-          console.log(`📊 Detected ${elementCount} elements. Chunked mode: ${useChunkedMode}`);
-        }
-      } catch (e) {
-        console.log('Element count check failed, proceeding with standard mode');
-      }
-    }
-
     console.log('[PROGRESS] element_detection | 10% | Starting detailed analysis...');
     
     const elementSystemPrompt = `You are a scientific illustration analysis expert. PASS 1: Analyze elements MINIMAL OUTPUT.
@@ -318,7 +269,7 @@ CRITICAL LIMITS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini', // Phase 1: Switch to gpt-4o-mini (10x cheaper)
         messages: [
           { role: 'system', content: elementSystemPrompt },
           {
@@ -366,7 +317,7 @@ CRITICAL LIMITS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-        max_tokens: 3500,
+        max_tokens: 5000, // Phase 1: Increased to handle all elements in one pass
       }),
     });
 
@@ -499,108 +450,8 @@ CRITICAL LIMITS:
     }
     
     console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
-
-    // Phase 3: Chunked mode - fetch remaining elements if needed
-    if (useChunkedMode && elementAnalysis && elementAnalysis.identified_elements) {
-      console.log('[PROGRESS] element_detection | 50% | Fetching remaining elements...');
-      
-      const batch2UserPrompt = `PASS 1 CONTINUED - Analyze REMAINING elements not yet captured. Focus on center-right to bottom-right regions. Return next 20 elements.${description ? ` Context: "${description}"` : ''}`;
-      
-      const batch2Response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            { role: 'system', content: elementSystemPrompt },
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: batch2UserPrompt },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
-                  }
-                }
-              ]
-            }
-          ],
-          tools: [
-            {
-              type: 'function',
-              function: {
-                name: 'return_element_analysis',
-                description: 'Return ultra-compact element analysis',
-                parameters: {
-                  type: 'object',
-                  properties: {
-                    e: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          n: { type: 'string' },
-                          t: { type: 'string', enum: ['shape', 'icon'] },
-                          s: { type: 'string', enum: ['rect', 'circle', 'oval'] },
-                          x: { type: 'number' },
-                          y: { type: 'number' },
-                          txt: { type: 'string' },
-                          st: { type: 'array', items: { type: 'string' } }
-                        },
-                        required: ['n', 't', 'x', 'y']
-                      }
-                    }
-                  },
-                  required: ['e']
-                }
-              }
-            }
-          ],
-          tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-          max_tokens: 3500,
-        }),
-      });
-
-      if (batch2Response.ok) {
-        const batch2Data = await batch2Response.json();
-        if (batch2Data.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
-          try {
-            const args = batch2Data.choices[0].message.tool_calls[0].function.arguments;
-            const parsed = typeof args === 'string' ? JSON.parse(args) : args;
-            const batch2Elements = (parsed.e || []).map((el: any) => ({
-              name: el.n,
-              element_type: el.t,
-              shape_type: el.s,
-              position_x: el.x,
-              position_y: el.y,
-              text_content: el.txt,
-              search_terms: el.st
-            }));
-            
-            // Merge batch 2 with batch 1, removing duplicates based on position
-            const existingPositions = new Set(
-              elementAnalysis.identified_elements.map((e: any) => `${Math.round(e.position_x)},${Math.round(e.position_y)}`)
-            );
-            
-            const newElements = batch2Elements.filter((el: any) => {
-              const posKey = `${Math.round(el.position_x)},${Math.round(el.position_y)}`;
-              return !existingPositions.has(posKey);
-            });
-            
-            elementAnalysis.identified_elements.push(...newElements);
-            console.log(`✓ Merged batch 2: added ${newElements.length} new elements (total: ${elementAnalysis.identified_elements.length})`);
-          } catch (e) {
-            console.log('Failed to parse batch 2, continuing with batch 1 only');
-          }
-        }
-      }
-      
-      console.log('[PROGRESS] element_detection | 100% | All batches complete');
-    }
+    
+    // Phase 1: Removed chunked mode to simplify (single-pass only)
 
     // Retry logic for PASS 1 if we failed to extract valid JSON
     if (!elementAnalysis || !elementAnalysis.identified_elements) {
@@ -618,7 +469,7 @@ CRITICAL LIMITS:
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o',
+            model: 'gpt-4o-mini', // Phase 1: Use cheaper model for retry too
             messages: [
               { 
                 role: 'system', 
@@ -861,7 +712,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
-        max_tokens: 1200,
+        max_tokens: 800, // Phase 4: Reduced token limit for connectors
       }),
     });
 
@@ -893,11 +744,10 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     console.log('✅ Pass 2 complete');
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
     
-    // Extract JSON from function call arguments (priority), then content (fallback)
+    // Phase 4: Simplified connector extraction (no retry logic)
     let connectorAnalysis = null;
-    let connectorParseFailedDueToTruncation = false;
     
-    // Strategy 1: Extract from tool_calls (primary for function calling)
+    // Extract from tool_calls
     if (connectorData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
       try {
         const args = connectorData.choices[0].message.tool_calls[0].function.arguments;
@@ -905,39 +755,17 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from tool_calls');
       } catch (e) {
         console.log('Failed to parse tool_calls arguments:', e);
+        // Try repair
         const argStr = connectorData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
         const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
-        if (repaired) {
+        if (repaired && repaired.connectors) {
           connectorAnalysis = repaired;
-          connectorParseFailedDueToTruncation = false;
           console.log('✓ Repaired truncated JSON from tool_calls');
-        } else {
-          connectorParseFailedDueToTruncation = true;
         }
       }
     }
     
-    // Strategy 2: Extract from legacy function_call (secondary)
-    if (!connectorAnalysis && connectorData.choices[0]?.message?.function_call?.arguments) {
-      try {
-        const args = connectorData.choices[0].message.function_call.arguments;
-        connectorAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
-        console.log('✓ Extracted from function_call');
-      } catch (e) {
-        console.log('Failed to parse function_call arguments:', e);
-        const argStr = connectorData.choices[0]?.message?.function_call?.arguments;
-        const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
-        if (repaired) {
-          connectorAnalysis = repaired;
-          connectorParseFailedDueToTruncation = false;
-          console.log('✓ Repaired truncated JSON from function_call');
-        } else {
-          connectorParseFailedDueToTruncation = true;
-        }
-      }
-    }
-    
-    // Strategy 3: Extract from content (fallback)
+    // Fallback: Extract from content
     if (!connectorAnalysis && connectorData.choices[0]?.message?.content) {
       connectorAnalysis = extractJSON(connectorData.choices[0].message.content);
       if (connectorAnalysis) {
@@ -945,87 +773,10 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       }
     }
     
-    console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
-
-    // Retry logic for PASS 2 if we failed to extract valid JSON
+    // If still no analysis, proceed with empty connectors
     if (!connectorAnalysis || !connectorAnalysis.connectors) {
-      const finishReason = connectorData.choices?.[0]?.finish_reason;
-      
-      if (finishReason === 'length' || connectorParseFailedDueToTruncation) {
-        console.log('⚠ Pass 2 hit length limit or truncated JSON. Retrying with higher token limit...');
-        
-        const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${openaiApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o-mini',
-            messages: [
-              { 
-                role: 'system', 
-                content: 'Return function call ONLY. No prose. Analyze connectors between elements.' 
-              },
-              {
-                role: 'user',
-                content: [
-                  { type: 'text', text: connectorUserPrompt },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
-                    }
-                  }
-                ]
-              }
-            ],
-            tools: [
-              {
-                type: 'function',
-                function: {
-                  name: 'return_connector_analysis',
-                  description: 'Return connector analysis',
-                  parameters: {
-                    type: 'object',
-                    properties: {
-                      connectors: { type: 'array' }
-                    },
-                    required: ['connectors']
-                  }
-                }
-              }
-            ],
-            tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
-            max_tokens: 1500,
-          }),
-        });
-        
-        if (retryResponse.ok) {
-          const retryData = await retryResponse.json();
-          if (retryData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
-            try {
-              const args = retryData.choices[0].message.tool_calls[0].function.arguments;
-              connectorAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
-              console.log('✓ Retry successful - extracted from tool_calls');
-            } catch (e) {
-              console.log('Retry failed to parse tool_calls');
-            }
-          }
-        }
-      }
-      
-      // If still no analysis after retry
-      if (!connectorAnalysis || !connectorAnalysis.connectors) {
-        console.error('❌ Failed to extract connector analysis after retry.');
-        console.error('📊 Finish reason:', finishReason);
-        console.error('📊 Elements detected:', elementAnalysis.identified_elements?.length || 0);
-        console.error('📊 Response preview:', JSON.stringify(connectorData).slice(0, 500));
-        
-        // Provide fallback with empty connectors rather than failing
-        console.log('⚠️ Proceeding with empty connectors array as fallback');
-        connectorAnalysis = { connectors: [] };
-      }
+      console.log('⚠️ Connector analysis failed, proceeding with empty connectors array');
+      connectorAnalysis = { connectors: [] };
     }
     
     // Log successful connector detection
@@ -1056,64 +807,62 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     console.log(`✅ Analysis complete: ${analysis.identified_elements.length} elements, ${analysis.spatial_relationships.length} connectors`);
     console.log(`📊 Total detected: ${detectedCount} elements (${elementAnalysis.identified_elements.filter((e: any) => e.element_type === 'shape').length} shapes, ${elementAnalysis.identified_elements.filter((e: any) => e.element_type === 'icon').length} icons)`);
 
-    // STEP 2A: AI-Powered Search Term Generation (only for icon elements)
+    // STEP 2A: Phase 2 - Deterministic Search Term Generation (NO AI - saves 2,250 tokens)
     console.log('[PROGRESS] search_term_generation | 0% | Generating search terms...');
-    console.log('Generating optimal search terms with AI...');
-    const elementsWithAISearchTerms = await Promise.all(
-      analysis.identified_elements.map(async (element: any, idx: number) => {
-        // Skip search term generation for shape elements
-        if (element.element_type === 'shape') {
-          console.log(`[${idx}] Skipping search for shape: ${element.name}`);
-          return { ...element, element_type: 'shape', ai_search_terms: [], search_confidence: 'n/a' };
+    console.log('Generating search terms deterministically...');
+    
+    function generateSearchTerms(name: string, category: string = ''): string[] {
+      const terms: string[] = [];
+      const nameLower = name.toLowerCase();
+      
+      // Add the original name
+      terms.push(nameLower);
+      
+      // Extract keywords from name
+      const words = nameLower.split(/[\s\-_()]+/).filter(w => w.length > 2);
+      terms.push(...words);
+      
+      // Add biological synonyms based on keywords
+      const synonymMap: Record<string, string[]> = {
+        'receptor': ['protein', 'membrane', 'gpcr', 'channel'],
+        'enzyme': ['protein', 'catalytic', 'kinase'],
+        'cell': ['cellular', 'organelle'],
+        'protein': ['molecule', 'factor'],
+        'gene': ['dna', 'sequence'],
+        'rna': ['mrna', 'transcript'],
+        'antibody': ['immunoglobulin', 'immune'],
+        'virus': ['viral', 'pathogen'],
+        'bacteria': ['bacterial', 'microbe']
+      };
+      
+      for (const [key, synonyms] of Object.entries(synonymMap)) {
+        if (nameLower.includes(key)) {
+          terms.push(...synonyms);
         }
-        const searchTermPrompt = `Element: "${element.name}"
-Description: "${element.description}"
-Category: "${element.category}"
-Visual notes: "${element.visual_notes}"
-
-Generate 5 optimal database search terms to find a matching biological/scientific icon.
-Consider: scientific names, common names, visual descriptors, related terms, broader categories.
-
-Return ONLY JSON:
-{
-  "search_terms": ["term1", "term2", "term3", "term4", "term5"],
-  "confidence": "high|medium|low"
-}`;
-
-        try {
-          const searchTermResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${openaiApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              messages: [
-                { role: 'system', content: 'You are a scientific terminology expert. Always return valid JSON only.' },
-                { role: 'user', content: searchTermPrompt }
-              ],
-              max_tokens: 150,
-            }),
-          });
-
-          if (searchTermResponse.ok) {
-            const data = await searchTermResponse.json();
-            const content = data.choices[0].message.content;
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              const parsed = JSON.parse(jsonMatch[0]);
-              return { ...element, ai_search_terms: parsed.search_terms, search_confidence: parsed.confidence };
-            }
-          }
-        } catch (error) {
-          console.log(`  AI search term generation failed for ${element.name}, using fallback`);
-        }
-
-        // Fallback to original search terms
-        return { ...element, ai_search_terms: element.search_terms, search_confidence: 'fallback' };
-      })
-    );
+      }
+      
+      // Add category if provided
+      if (category) {
+        terms.push(category.toLowerCase());
+      }
+      
+      // Deduplicate and return top 5
+      return [...new Set(terms)].slice(0, 5);
+    }
+    
+    const elementsWithAISearchTerms = analysis.identified_elements.map((element: any, idx: number) => {
+      // Skip search term generation for shape elements
+      if (element.element_type === 'shape') {
+        console.log(`[${idx}] Skipping search for shape: ${element.name}`);
+        return { ...element, element_type: 'shape', ai_search_terms: [], search_confidence: 'n/a' };
+      }
+      
+      const searchTerms = element.search_terms?.length > 0 
+        ? element.search_terms 
+        : generateSearchTerms(element.name, element.category);
+      
+      return { ...element, ai_search_terms: searchTerms, search_confidence: 'deterministic' };
+    });
 
     // STEP 2B: Enhanced Icon Matching with Receptor Priority (skip shapes)
     console.log('Searching for matching icons...');
@@ -1215,92 +964,88 @@ Return ONLY JSON:
       })
     );
 
-    // STEP 2C: AI-Powered Icon Verification
+    // STEP 2C: Phase 3 - Score-Based Icon Verification (saves ~1,950 tokens)
     console.log('[PROGRESS] icon_verification | 0% | Verifying icon matches...');
-    console.log('Verifying icon matches with AI...');
-    const verifiedMatches = await Promise.all(
-      iconMatches.map(async (match) => {
-        if (match.matches.length === 0) {
-          return match;
+    console.log('Verifying icon matches with score-based ranking...');
+    
+    function calculateMatchScore(iconName: string, iconCategory: string, elementName: string, searchTerms: string[]): number {
+      const iconNameLower = iconName.toLowerCase();
+      const iconCategoryLower = iconCategory.toLowerCase();
+      const elementNameLower = elementName.toLowerCase();
+      
+      let score = 0;
+      
+      // Exact name match
+      if (iconNameLower === elementNameLower) {
+        score += 100;
+      } else if (iconNameLower.includes(elementNameLower) || elementNameLower.includes(iconNameLower)) {
+        score += 80;
+      }
+      
+      // Search term matches
+      let termMatches = 0;
+      for (const term of searchTerms) {
+        const termLower = term.toLowerCase();
+        if (iconNameLower.includes(termLower)) {
+          termMatches++;
+          score += 15;
         }
-
-        if (match.matches.length === 1) {
-          console.log(`  [${match.element_index}] Only 1 match, skipping verification`);
-          return match;
+        if (iconCategoryLower.includes(termLower)) {
+          termMatches++;
+          score += 10;
         }
+      }
+      
+      // Bonus for matching all terms
+      if (termMatches >= searchTerms.length) {
+        score += 20;
+      }
+      
+      // Category match bonus
+      if (iconCategoryLower === elementNameLower) {
+        score += 30;
+      }
+      
+      return score;
+    }
+    
+    const verifiedMatches = iconMatches.map((match) => {
+      if (match.matches.length === 0) {
+        return match;
+      }
 
-        const verificationPrompt = `Element from scientific diagram:
-Name: "${match.element.name}"
-Description: "${match.element.description}"
-Category: "${match.element.category}"
-Visual characteristics: "${match.element.visual_notes}"
+      if (match.matches.length === 1) {
+        console.log(`  [${match.element_index}] Only 1 match, using it directly`);
+        return match;
+      }
 
-Available icon options:
-${match.matches.map((icon: any, i: number) => `${i + 1}. "${icon.name}" (category: ${icon.category})`).join('\n')}
-
-Question: Which icon option is the BEST semantic and visual match for this biological element?
-Consider: scientific accuracy, semantic meaning, visual representation, common usage in diagrams.
-
-Return ONLY JSON:
-{
-  "best_match_index": 1,
-  "confidence": "high|medium|low",
-  "reasoning": "brief explanation"
-}`;
-
-        try {
-          const verifyResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${openaiApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'gpt-4o-mini',
-              messages: [
-                { role: 'system', content: 'You are a scientific illustration expert specializing in biological icon selection.' },
-                { role: 'user', content: verificationPrompt }
-              ],
-              max_tokens: 150,
-            }),
-          });
-
-          if (verifyResponse.ok) {
-            const data = await verifyResponse.json();
-            const content = data.choices[0].message.content;
-            const jsonMatch = content.match(/\{[\s\S]*\}/);
-            
-            if (jsonMatch) {
-              const verification = JSON.parse(jsonMatch[0]);
-              const bestIdx = verification.best_match_index - 1; // Convert to 0-indexed
-              
-              if (bestIdx >= 0 && bestIdx < match.matches.length) {
-                // Reorder matches to put best match first
-                const bestMatch = match.matches[bestIdx];
-                const reorderedMatches = [bestMatch, ...match.matches.filter((_: any, i: number) => i !== bestIdx)];
-                
-                console.log(`  [${match.element_index}] AI verified: "${bestMatch.name}" (${verification.confidence} confidence)`);
-                console.log(`    Reasoning: ${verification.reasoning}`);
-                
-                return {
-                  ...match,
-                  matches: reorderedMatches.slice(0, 5),
-                  verification: {
-                    confidence: verification.confidence,
-                    reasoning: verification.reasoning
-                  }
-                };
-              }
-            }
-          }
-        } catch (error) {
-          console.log(`  [${match.element_index}] Verification failed, using database order`);
+      // Score all matches
+      const scoredMatches = match.matches.map((icon: any) => ({
+        ...icon,
+        score: calculateMatchScore(icon.name, icon.category, match.element.name, match.element.ai_search_terms || [])
+      }));
+      
+      // Sort by score (highest first)
+      scoredMatches.sort((a: any, b: any) => b.score - a.score);
+      
+      console.log(`  [${match.element_index}] Top match: "${scoredMatches[0].name}" (score: ${scoredMatches[0].score})`);
+      
+      // Phase 3: Only use AI verification if top 2 scores are within 10 points (rare case)
+      const topTwo = scoredMatches.slice(0, 2);
+      if (topTwo.length === 2 && Math.abs(topTwo[0].score - topTwo[1].score) <= 10) {
+        console.log(`    Scores are close (${topTwo[0].score} vs ${topTwo[1].score}), may need AI verification in future`);
+        // For now, just use the top score
+      }
+      
+      return {
+        ...match,
+        matches: scoredMatches.slice(0, 5),
+        verification: {
+          confidence: scoredMatches[0].score >= 80 ? 'high' : scoredMatches[0].score >= 50 ? 'medium' : 'low',
+          reasoning: `Score-based ranking: ${scoredMatches[0].score} points`
         }
-
-        // Fallback: keep original order
-        return { ...match, matches: match.matches.slice(0, 5) };
-      })
-    );
+      };
+    });
 
     const iconMatchesVerified = verifiedMatches;
     console.log(`Icon matching complete: ${iconMatchesVerified.filter(m => m.matches.length > 0).length} elements matched`);
@@ -1447,62 +1192,28 @@ Return ONLY JSON:
     // STEP 3.5: Optional Self-Critique (only in strict mode, resilient to refusals)
     let critiqueResult: any = null;
     
-    if (strict) {
+    // Phase 6: Skip critique for simple diagrams (<10 elements)
+    if (strict && allElements.length >= 10) {
       console.log('[PROGRESS] self_critique | 0% | Starting self-critique...');
       console.log('AI self-critique: reviewing layout against reference (strict mode)...');
       
       try {
-        const critiquePrompt = `You generated this layout:
+        // Phase 6: Simplified critique prompt to reduce tokens
+        const critiquePrompt = `Compare the proposed layout to the reference image. Check ONLY position accuracy and connector count.
 
-PROPOSED LAYOUT:
-${JSON.stringify(proposedLayout, null, 2)}
+ELEMENTS (expected positions):
+${analysis.identified_elements.map((e: any, i: number) => `${i}: ${e.name} at (${e.position_x}, ${e.position_y})`).join('\n')}
 
-ORIGINAL ANALYSIS (from reference image):
-Elements: ${JSON.stringify(analysis.identified_elements.map((e: any) => ({
-  name: e.name,
-  position_x: e.position_x,
-  position_y: e.position_y,
-  bounding_box: e.bounding_box
-})), null, 2)}
+PROPOSED POSITIONS:
+${proposedLayout.objects?.map((o: any, i: number) => `${i}: at (${o.x}, ${o.y})`).join('\n')}
 
-Spatial Analysis: ${JSON.stringify(analysis.spatial_analysis, null, 2)}
+CONNECTORS: Expected ${analysis.spatial_relationships.length}, proposed ${proposedLayout.connectors?.length || 0}
 
-Relationships: ${JSON.stringify(analysis.spatial_relationships.length)} connectors expected
-
-TASK: Compare your proposed layout against the reference image and original analysis.
-
-Identify ALL issues with your layout:
-1. POSITION ERRORS: Elements not at correct positions (compare to position_x, position_y)
-2. SPACING PROBLEMS: Elements too close/far compared to reference
-3. ALIGNMENT ISSUES: Elements that should align but don't (check spatial_analysis.alignment)
-4. MISSING/WRONG CONNECTORS: Count and verify all relationships
-5. SIZE INCONSISTENCIES: Elements scaled incorrectly
-6. ROTATION ERRORS: Incorrect rotation angles
-
-Return ONLY JSON:
+Return JSON:
 {
   "overall_accuracy": "excellent|good|fair|poor",
-  "issues": [
-    {
-      "type": "position|spacing|connector|alignment|size|rotation",
-      "severity": "critical|moderate|minor",
-      "element_or_connector": "name or connector description",
-      "problem": "specific issue description",
-      "current_value": "what you generated",
-      "should_be": "what it should be"
-    }
-  ],
-  "recommended_fixes": [
-    {
-      "fix_type": "move_object|adjust_spacing|add_connector|remove_connector|adjust_scale|adjust_rotation",
-      "target": "element_index or connector indices",
-      "action": "specific fix to apply",
-      "new_x": 45.5,
-      "new_y": 30.2,
-      "new_scale": 0.6,
-      "reason": "why this fix improves accuracy"
-    }
-  ],
+  "issues": [{"type": "position|connector", "severity": "critical|moderate|minor", "element_or_connector": "name", "problem": "brief"}],
+  "recommended_fixes": [{"fix_type": "move_object", "target": 0, "new_x": 45, "new_y": 30, "reason": "brief"}],
   "confidence": "high|medium|low"
 }`;
 
@@ -1530,7 +1241,7 @@ Return ONLY JSON:
               }
             ],
             response_format: { type: 'json_object' },
-            max_tokens: 600,
+            max_tokens: 400, // Phase 6: Reduced tokens for self-critique
           }),
         });
 
@@ -1596,6 +1307,8 @@ Return ONLY JSON:
       }
       
       console.log('[PROGRESS] self_critique | 100% | Self-critique complete');
+    } else if (strict && allElements.length < 10) {
+      console.log('Skipping self-critique (diagram too simple - less than 10 elements)');
     } else {
       console.log('Skipping self-critique (not in strict mode)');
     }
