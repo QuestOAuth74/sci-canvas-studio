@@ -299,7 +299,7 @@ OUTPUT LIMITS (CRITICAL):
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: elementSystemPrompt },
           {
@@ -366,7 +366,7 @@ OUTPUT LIMITS (CRITICAL):
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-        max_tokens: 2000,
+        max_tokens: 3500,
       }),
     });
 
@@ -463,7 +463,7 @@ OUTPUT LIMITS (CRITICAL):
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'gpt-4o',
             messages: [
               { 
                 role: 'system', 
@@ -501,7 +501,7 @@ OUTPUT LIMITS (CRITICAL):
               }
             ],
             tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-            max_tokens: 2500,
+            max_tokens: 4500,
           }),
         });
         
