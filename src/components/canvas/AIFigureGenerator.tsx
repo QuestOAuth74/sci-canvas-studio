@@ -433,7 +433,11 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const x = (obj.x / 100) * canvasWidth;
           const y = (obj.y / 100) * canvasHeight;
           const width = obj.width || 100;
-          const height = obj.height || 60;
+          
+          // Use backend's estimated height for multi-line text, or calculate it
+          const objTextContent = obj.text_content || obj.label || '';
+          const lineCount = (objTextContent.match(/\n/g) || []).length + 1;
+          const height = (obj as any).estimatedHeight || (lineCount > 1 ? 40 + (lineCount - 1) * 20 : obj.height || 60);
           
           // Use suggested style from backend or determine from category
           const fillColor = obj.fill_color || getCategoryColor(obj.shape_subtype, (obj as any).suggestedStyle?.fill);
@@ -490,6 +494,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               id: `node-${i}`, // Predictable ID for connectivity
             } as any);
             
+            // Set z-index for shapes
+            (group as any).set('z-index', 5);
+            
             canvas.add(group);
             addedObjects.push(group);
             indexMap[i] = addedObjects.length - 1;
@@ -501,6 +508,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               angle: obj.rotation || 0,
               id: `node-${i}`, // Predictable ID for connectivity
             } as any);
+            
+            // Set z-index for shapes
+            (shapeObj as any).set('z-index', 5);
             
             canvas.add(shapeObj);
             addedObjects.push(shapeObj);
@@ -539,6 +549,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             angle: obj.rotation,
             id: `node-${i}`, // Predictable ID for connectivity
           } as any);
+
+          // Set z-index for icons (higher than shapes)
+          (group as any).set('z-index', 10);
 
           canvas.add(group);
           addedObjects.push(group);
@@ -579,19 +592,22 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const category = (conn as any).relationship_category || 'main_pathway';
           let routingStyle: 'straight' | 'curved' | 'orthogonal' = 'straight';
           
-          // Use straight routing for biological pathways (cleaner, more accurate)
-          if (category === 'main_pathway' || category === 'source' || category === 'receptor_binding') {
-            routingStyle = 'straight';
-          } else if (category === 'effect' && conn.type === 'curved') {
+          // Use backend's routing preference if specified
+          if (conn.type === 'curved') {
             routingStyle = 'curved';
+          } else if (conn.type === 'orthogonal') {
+            routingStyle = 'orthogonal';
+          } else {
+            // Default: straight for main pathways and sources, curved for effects
+            routingStyle = (category === 'effect') ? 'curved' : 'straight';
           }
           
-          // Use port-aware routing if preferred ports are available
+          // STRICTLY use backend's preferred ports if available
           let startX, startY, endX, endY;
           let sourcePort, targetPort;
           
           if ((conn as any).preferredPorts) {
-            // Import port manager functions
+            // Import port manager functions for port calculation
             const { choosePortsByDirection } = await import('@/lib/portManager');
             const ports = choosePortsByDirection(fromObj, toObj, (conn as any).preferredPorts);
             sourcePort = ports.sourcePort;
@@ -601,7 +617,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             endX = targetPort.x;
             endY = targetPort.y;
           } else {
-            // Fallback to edge intersection
+            // Fallback to edge intersection only if no preferred ports
             const intersection = calculateEdgeIntersection(fromObj, toObj);
             startX = intersection.startX;
             startY = intersection.startY;

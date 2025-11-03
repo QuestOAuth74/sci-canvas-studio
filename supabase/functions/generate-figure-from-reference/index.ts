@@ -1257,16 +1257,40 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     
     console.log(`✅ Node ordering optimized for minimal crossings`);
     
-    // ===== COMPUTE POSITIONS =====
+    // ===== COMPUTE POSITIONS WITH COLUMN-BASED LAYOUT =====
     const Mx = 8, My = 5; // Margins (reduced top margin)
     const layerHeight = 60;
     const vGap = Math.max(20, layerHeight * 0.9);
     const maxLayer = layers.length - 1;
     
-    // Separate icons and shapes for positioning
-    const iconIndices = new Set(allElements.map((m, idx) => 
-      m.element.element_type === 'icon' ? idx : null
-    ).filter(idx => idx !== null));
+    // COLUMN LAYOUT STRATEGY:
+    // Column 1 (X=10%): All icons (organ sources)
+    // Column 2 (X=35%): Main pathway (single nodes)
+    // Column 3 (X=60-85%): Branch targets (multiple nodes)
+    
+    const ICON_COLUMN_X = 10;
+    const PATHWAY_COLUMN_X = 35;
+    const BRANCH_START_X = 60;
+    const BRANCH_END_X = 85;
+    
+    // Separate icons and shapes
+    const iconIndices = new Set<number>();
+    const iconToConnectedShape = new Map<number, number>(); // icon idx -> first connected shape idx
+    
+    allElements.forEach((m, idx) => {
+      if (m.element.element_type === 'icon') {
+        iconIndices.add(idx);
+        // Find first connected pathway element
+        relationships.forEach((rel: any) => {
+          if (rel.from_element === m.element_index) {
+            const targetIdx = allElements.findIndex(el => el.element_index === rel.to_element);
+            if (targetIdx !== -1 && !iconToConnectedShape.has(idx)) {
+              iconToConnectedShape.set(idx, targetIdx);
+            }
+          }
+        });
+      }
+    });
     
     // Detect branch points (nodes with out-degree > 1)
     const branchPoints = new Set<number>();
@@ -1276,7 +1300,12 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       }
     });
     
-    let composedObjects = allElements.map((m, idx) => {
+    // First pass: position non-icon elements
+    const positionMap = new Map<number, { x: number; y: number }>();
+    
+    allElements.forEach((m, idx) => {
+      if (iconIndices.has(idx)) return; // Skip icons for now
+      
       const layerIdx = nodeLayer.get(idx) || 0;
       const posInLayer = orderInLayer.get(layerIdx)?.indexOf(idx) || 0;
       const layerSize = orderInLayer.get(layerIdx)?.length || 1;
@@ -1287,30 +1316,39 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       
       let x: number;
       
-      // Icon column anchoring: force icons to left
-      if (iconIndices.has(idx)) {
-        x = snapToGrid(10); // Fixed left column for icons
+      // Column-based X positioning
+      if (layerSize === 1) {
+        // Single element in layer: main pathway column
+        x = snapToGrid(PATHWAY_COLUMN_X);
       } else {
-        // Main pathway elements: centered or with branch offsets
-        const availableWidth = 100 - 2 * Mx - 15; // Leave room for icon column
-        const centerStart = 25; // Start after icon column
-        
-        if (branchPoints.has(idx)) {
-          // Branch point: center it
-          x = snapToGrid(50);
-        } else if (layerSize > 1) {
-          // Multiple elements in layer: distribute horizontally
-          const spacing = Math.min(30, availableWidth / (layerSize + 1));
-          x = snapToGrid(centerStart + spacing * (posInLayer + 1));
-        } else {
-          // Single element: center it
-          x = snapToGrid(50);
+        // Multiple elements: distribute in branch column
+        const spacing = (BRANCH_END_X - BRANCH_START_X) / (layerSize - 1);
+        x = snapToGrid(BRANCH_START_X + (posInLayer * spacing));
+      }
+      
+      positionMap.set(idx, { x, y });
+    });
+    
+    // Second pass: position icons aligned with their connected elements
+    iconIndices.forEach(iconIdx => {
+      const connectedShapeIdx = iconToConnectedShape.get(iconIdx);
+      let y = My; // Default to top if no connection
+      
+      if (connectedShapeIdx !== undefined) {
+        const connectedPos = positionMap.get(connectedShapeIdx);
+        if (connectedPos) {
+          y = connectedPos.y; // Align Y with connected element
         }
       }
       
-      // Clamp to canvas bounds
-      const clampedX = Math.max(5, Math.min(95, x));
-      const clampedY = Math.max(5, Math.min(90, y));
+      positionMap.set(iconIdx, { x: ICON_COLUMN_X, y });
+    });
+    
+    // Build composed objects with column-based positions
+    let composedObjects = allElements.map((m, idx) => {
+      const pos = positionMap.get(idx) || { x: 50, y: 50 };
+      const clampedX = Math.max(5, Math.min(95, pos.x));
+      const clampedY = Math.max(5, Math.min(90, pos.y));
       
       // Create object based on type
       if (m.element.element_type === 'shape') {
@@ -1318,6 +1356,13 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         if (m.element.bounding_box) {
           width = m.element.bounding_box.width || 100;
           height = m.element.bounding_box.height || 60;
+        }
+        
+        // Detect multi-line text and adjust height
+        const textContent = m.element.text_content || m.element.name || '';
+        const lineCount = (textContent.match(/\n/g) || []).length + 1;
+        if (lineCount > 1) {
+          height = Math.max(height, 40 + (lineCount - 1) * 20);
         }
         
         // Detect shape styling from name/category (pathway-aware colors)
@@ -1360,7 +1405,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           fill_color: m.element.fill_color || fillColor,
           stroke_color: m.element.stroke_color || strokeColor,
           stroke_width: 2,
-          suggestedStyle: { fill: fillColor, stroke: strokeColor, shape: m.element.shape_type || 'rectangle' }
+          suggestedStyle: { fill: fillColor, stroke: strokeColor, shape: m.element.shape_type || 'rectangle' },
+          estimatedHeight: height
         };
       }
       
@@ -1408,44 +1454,68 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       const style = getConnectorStyle(rel.relationship_type, rel.visual_details);
       const category = style.relationship_category || 'main_pathway';
       
-      // Determine preferred ports and routing based on category and positions
+      // Get actual positions for smart port selection
+      const fromObj = composedObjects.find((o: any) => o.element_index === rel.from_element);
+      const toObj = composedObjects.find((o: any) => o.element_index === rel.to_element);
+      
+      // Determine preferred ports and routing based on category and actual positions
       let preferredPorts = { from: 'bottom', to: 'top' };
       let routingStyle = 'straight'; // Default to straight for biological pathways
       
-      // Source category: icon to molecule (horizontal)
-      if (category === 'source' || fromIsIcon) {
-        preferredPorts = { from: 'right', to: 'left' };
-        routingStyle = 'straight';
-      }
-      // Main pathway: vertical flow (inverted coordinates mean higher layer = top)
-      else if (category === 'main_pathway') {
-        if (toLayer > fromLayer) {
-          // Forward edge (top to bottom in visual)
-          preferredPorts = { from: 'bottom', to: 'top' };
-          routingStyle = 'straight';
-        } else if (toLayer < fromLayer) {
-          // Back edge (feedback loop)
-          preferredPorts = { from: 'top', to: 'bottom' };
-          routingStyle = 'curved';
-        } else {
-          // Same layer
-          const fromPos = orderInLayer.get(fromLayer)?.indexOf(fromIdx) || 0;
-          const toPos = orderInLayer.get(toLayer)?.indexOf(toIdx) || 0;
-          preferredPorts = fromPos < toPos 
-            ? { from: 'right', to: 'left' }
-            : { from: 'left', to: 'right' };
+      if (fromObj && toObj) {
+        const dx = toObj.x - fromObj.x;
+        const dy = toObj.y - fromObj.y;
+        
+        // Source category: icon to molecule (always horizontal left-to-right)
+        if (category === 'source' || fromIsIcon) {
+          preferredPorts = { from: 'right', to: 'left' };
           routingStyle = 'straight';
         }
-      }
-      // Effect/branch: might skip layers
-      else if (category === 'effect' && Math.abs(toLayer - fromLayer) > 1) {
-        preferredPorts = { from: 'bottom', to: 'top' };
-        routingStyle = 'straight';
-      }
-      // Receptor binding
-      else if (category === 'receptor_binding') {
-        preferredPorts = { from: 'bottom', to: 'top' };
-        routingStyle = 'straight';
+        // Main pathway: vertical flow with straight lines
+        else if (category === 'main_pathway') {
+          if (Math.abs(dx) < 10) {
+            // Vertical alignment: use bottom->top for downward flow
+            preferredPorts = { from: 'bottom', to: 'top' };
+            routingStyle = 'straight';
+          } else if (dx > 10) {
+            // Moving right: horizontal connection
+            preferredPorts = { from: 'right', to: 'left' };
+            routingStyle = 'straight';
+          } else {
+            // Moving left: feedback
+            preferredPorts = { from: 'left', to: 'right' };
+            routingStyle = 'curved';
+          }
+        }
+        // Effect/branch: to right side targets, use curved
+        else if (category === 'effect' || category === 'receptor_binding') {
+          if (dx > 15) {
+            // Branch to right: use bottom-right -> left or top-left
+            preferredPorts = dy > 0 
+              ? { from: 'bottom-right', to: 'left' }
+              : { from: 'right', to: 'top-left' };
+            routingStyle = 'curved';
+          } else {
+            // Vertical effect
+            preferredPorts = { from: 'bottom', to: 'top' };
+            routingStyle = 'straight';
+          }
+        }
+        // Default fallback based on relative position
+        else {
+          if (Math.abs(dy) > Math.abs(dx)) {
+            // Primarily vertical
+            preferredPorts = dy > 0 
+              ? { from: 'bottom', to: 'top' }
+              : { from: 'top', to: 'bottom' };
+          } else {
+            // Primarily horizontal
+            preferredPorts = dx > 0 
+              ? { from: 'right', to: 'left' }
+              : { from: 'left', to: 'right' };
+          }
+          routingStyle = Math.abs(dx) > 15 ? 'curved' : 'straight';
+        }
       }
       
       return {
