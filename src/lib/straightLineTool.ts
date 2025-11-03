@@ -44,12 +44,40 @@ export class StraightLineTool {
     };
   }
 
+  private disableObjectInteraction(): void {
+    this.canvas.skipTargetFind = true;
+    this.canvas.selection = false;
+    this.canvas.forEachObject((obj) => {
+      if (!(obj as any).isTemp) {
+        obj.set({
+          selectable: false,
+          evented: false
+        });
+      }
+    });
+    this.canvas.renderAll();
+  }
+
+  private enableObjectInteraction(): void {
+    this.canvas.skipTargetFind = false;
+    this.canvas.selection = true;
+    this.canvas.forEachObject((obj) => {
+      if (!(obj as any).isTemp) {
+        obj.set({
+          selectable: true,
+          evented: true
+        });
+      }
+    });
+    this.canvas.renderAll();
+  }
+
   start(): void {
     this.isDrawing = true;
     this.points = [];
     this.handles = [];
     this.tempMarkers = [];
-    this.canvas.selection = false;
+    this.disableObjectInteraction();
     this.canvas.defaultCursor = 'crosshair';
   }
 
@@ -84,7 +112,7 @@ export class StraightLineTool {
   startDragLine(x: number, y: number): void {
     this.isDrawing = true;
     this.isDragging = true;
-    this.canvas.selection = false;
+    this.disableObjectInteraction();
     this.canvas.defaultCursor = 'crosshair';
     
     const snappedPoint = this.snapToGrid(x, y);
@@ -462,7 +490,7 @@ export class StraightLineTool {
 
     this.canvas.add(finalObject);
     this.canvas.setActiveObject(finalObject);
-    this.canvas.selection = true;
+    this.enableObjectInteraction();
     this.canvas.defaultCursor = 'default';
     this.canvas.renderAll();
 
@@ -476,7 +504,7 @@ export class StraightLineTool {
     if (this.isFinishing) return; // Don't cancel while finishing
     
     this.cleanup();
-    this.canvas.selection = true;
+    this.enableObjectInteraction();
     this.canvas.defaultCursor = 'default';
     this.isDrawing = false;
     this.points = [];

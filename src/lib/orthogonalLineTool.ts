@@ -48,13 +48,41 @@ export class OrthogonalLineTool {
     };
   }
 
+  private disableObjectInteraction(): void {
+    this.canvas.skipTargetFind = true;
+    this.canvas.selection = false;
+    this.canvas.forEachObject((obj) => {
+      if (!(obj as any).isTemp) {
+        obj.set({
+          selectable: false,
+          evented: false
+        });
+      }
+    });
+    this.canvas.renderAll();
+  }
+
+  private enableObjectInteraction(): void {
+    this.canvas.skipTargetFind = false;
+    this.canvas.selection = true;
+    this.canvas.forEachObject((obj) => {
+      if (!(obj as any).isTemp) {
+        obj.set({
+          selectable: true,
+          evented: true
+        });
+      }
+    });
+    this.canvas.renderAll();
+  }
+
   start(): void {
     this.isDrawing = true;
     this.waypoints = [];
     this.currentPoint = null;
     this.handles = [];
     this.tempMarkers = [];
-    this.canvas.selection = false;
+    this.disableObjectInteraction();
     this.canvas.defaultCursor = 'crosshair';
   }
 
@@ -546,7 +574,7 @@ export class OrthogonalLineTool {
 
     this.canvas.add(finalObject);
     this.canvas.setActiveObject(finalObject);
-    this.canvas.selection = true;
+    this.enableObjectInteraction();
     this.canvas.defaultCursor = 'default';
     this.canvas.renderAll();
 
@@ -561,7 +589,7 @@ export class OrthogonalLineTool {
     if (this.isFinishing) return;
     
     this.cleanup();
-    this.canvas.selection = true;
+    this.enableObjectInteraction();
     this.canvas.defaultCursor = 'default';
     this.isDrawing = false;
     this.waypoints = [];

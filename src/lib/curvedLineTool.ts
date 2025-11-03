@@ -39,10 +39,39 @@ export class CurvedLineTool {
     };
   }
 
+  private disableObjectInteraction(): void {
+    this.canvas.skipTargetFind = true;
+    this.canvas.selection = false;
+    this.canvas.forEachObject((obj) => {
+      if (!(obj as any).isTemp && !(obj as any).isControlHandle && !(obj as any).isHandleLine) {
+        obj.set({
+          selectable: false,
+          evented: false
+        });
+      }
+    });
+    this.canvas.renderAll();
+  }
+
+  private enableObjectInteraction(): void {
+    this.canvas.skipTargetFind = false;
+    this.canvas.selection = true;
+    this.canvas.forEachObject((obj) => {
+      if (!(obj as any).isTemp && !(obj as any).isControlHandle && !(obj as any).isHandleLine) {
+        obj.set({
+          selectable: true,
+          evented: true
+        });
+      }
+    });
+    this.canvas.renderAll();
+  }
+
   start(): void {
     this.startPoint = null;
     this.controlPoint = null;
     this.cleanup();
+    this.disableObjectInteraction();
   }
 
   setStartPoint(x: number, y: number): void {
@@ -194,6 +223,7 @@ export class CurvedLineTool {
 
     this.canvas.add(group);
     this.canvas.setActiveObject(group);
+    this.enableObjectInteraction();
     this.canvas.renderAll();
 
     return group;
@@ -201,6 +231,7 @@ export class CurvedLineTool {
 
   cancel(): void {
     this.cleanup();
+    this.enableObjectInteraction();
     this.startPoint = null;
     this.controlPoint = null;
   }

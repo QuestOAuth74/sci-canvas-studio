@@ -24,11 +24,40 @@ export class EnhancedBezierTool {
     if (options?.snap !== undefined) this.snapEnabled = options.snap;
   }
 
+  private disableObjectInteraction(): void {
+    this.canvas.skipTargetFind = true;
+    this.canvas.selection = false;
+    this.canvas.forEachObject((obj) => {
+      if (!(obj as any).isTemp) {
+        obj.set({
+          selectable: false,
+          evented: false
+        });
+      }
+    });
+    this.canvas.renderAll();
+  }
+
+  private enableObjectInteraction(): void {
+    this.canvas.skipTargetFind = false;
+    this.canvas.selection = true;
+    this.canvas.forEachObject((obj) => {
+      if (!(obj as any).isTemp) {
+        obj.set({
+          selectable: true,
+          evented: true
+        });
+      }
+    });
+    this.canvas.renderAll();
+  }
+
   // Start drawing mode
   start() {
     this.isDrawing = true;
     this.points = [];
     this.clearTemporaryObjects();
+    this.disableObjectInteraction();
   }
 
   // Add point on click
@@ -271,6 +300,7 @@ export class EnhancedBezierTool {
     this.clearTemporaryObjects();
     this.canvas.add(finalPath);
     this.canvas.setActiveObject(finalPath);
+    this.enableObjectInteraction();
 
     return finalPath;
   }
@@ -280,6 +310,7 @@ export class EnhancedBezierTool {
     this.isDrawing = false;
     this.points = [];
     this.clearTemporaryObjects();
+    this.enableObjectInteraction();
   }
 
   // Get current state

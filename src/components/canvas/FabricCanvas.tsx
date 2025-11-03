@@ -1025,6 +1025,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Drag-to-draw handlers
     const handleMouseDown = (e: any) => {
       e.e?.stopImmediatePropagation?.();
+      e.e?.preventDefault?.();
       const pointer = canvas.getPointer(e.e);
       straightLineToolRef.current?.startDragLine(pointer.x, pointer.y);
     };
@@ -1138,6 +1139,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     // Click to add waypoints
     const handleMouseDown = (e: any) => {
+      e.e?.stopImmediatePropagation?.();
+      e.e?.preventDefault?.();
       const pointer = canvas.getPointer(e.e);
       orthogonalLineToolRef.current?.addPoint(pointer.x, pointer.y);
     };
@@ -1237,6 +1240,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     let hasStartPoint = false;
 
     const handleMouseDown = (e: any) => {
+      e.e?.stopImmediatePropagation?.();
+      e.e?.preventDefault?.();
       const pointer = canvas.getPointer(e.e);
       if (!hasStartPoint) {
         curvedLineToolRef.current?.setStartPoint(pointer.x, pointer.y);
