@@ -8,7 +8,12 @@ const corsHeaders = {
 };
 
 // Normalize relationship types to canonical forms
-function normalizeRelationship(relType: string): string {
+function normalizeRelationship(relType: string | undefined): string {
+  if (!relType || typeof relType !== 'string') {
+    console.log('⚠️ Invalid relationship type:', relType, '- defaulting to "source"');
+    return 'source'; // Safe default
+  }
+  
   const normalized = relType.toLowerCase().trim();
   
   // Synonym mapping
@@ -40,7 +45,7 @@ function normalizeRelationship(relType: string): string {
 }
 
 // Get connector style based on relationship type and visual analysis
-function getConnectorStyle(relType: string, visualDetails?: any): any {
+function getConnectorStyle(relType: string | undefined, visualDetails?: any): any {
   const normalized = normalizeRelationship(relType);
   
   // Base style map (provides colors and markers based on semantic relationship)
@@ -1035,14 +1040,14 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       spatial_relationships: connectorAnalysis.connectors.map((c: any) => ({
         from_element: c.from_element,
         to_element: c.to_element,
-        relationship_type: c.relationship_type,
+        relationship_type: c.relationship_type || 'source', // Default to 'source' if undefined
         connector_style: c.visual_style?.line_style || 'solid',
-        directionality: c.directionality,
+        directionality: c.directionality || 'unidirectional',
         label: c.label || '',
         justification: c.justification || '',
-        visual_details: c.visual_style,
-        markers: c.markers,
-        routing: c.routing
+        visual_details: c.visual_style || {},
+        markers: c.markers || { start: 'none', end: 'arrow' },
+        routing: c.routing || { path_description: 'direct' }
       })),
       spatial_analysis: elementAnalysis.spatial_analysis,
       overall_layout: elementAnalysis.overall_layout
