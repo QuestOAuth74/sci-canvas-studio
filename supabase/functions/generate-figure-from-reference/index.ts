@@ -211,82 +211,39 @@ serve(async (req) => {
     console.log('[PROGRESS] element_detection | 0% | Starting element analysis...');
     console.log('Pass 1: Analyzing elements and positions...');
     
-    const elementSystemPrompt = `You are a scientific illustration analysis expert. PASS 1: Analyze elements and their precise positions.
+    const elementSystemPrompt = `You are a scientific illustration analysis expert. PASS 1: Analyze elements MINIMAL OUTPUT.
 
-CRITICAL: Distinguish between simple geometric shapes with labels vs. biological/scientific elements:
-- Simple shapes: rectangles, circles, ovals with text labels → mark as "shape" type
-- Biological elements: proteins, organs, cells, molecules → mark as "icon" type
+ULTRA-COMPACT JSON REQUIRED. Use SHORT property names:
 
-For shapes with text, extract the ACTUAL TEXT CONTENT visible inside the shape.
-
-Return valid JSON ONLY:
 {
-  "identified_elements": [
+  "e": [
     {
-      "name": "precise element name or label text",
-      "element_type": "shape|icon",
-      "shape_type": "rectangle|circle|oval|none",
-      "shape_subtype": "text_label|simple_shape|complex_shape",
-      "category": "biology|chemistry|physics|anatomy|protein|enzyme|receptor|organ|cell|molecule|signal|text_label",
-      "description": "detailed description including visual characteristics",
-      "position_x": 45.5,
-      "position_y": 30.2,
-      "bounding_box": { "width": 120, "height": 80 },
-      "estimated_size": "large|medium|small",
-      "rotation": 0,
-      "visual_notes": "color, shape, distinguishing features",
-      "fill_color": "#RRGGBB if colored shape",
-      "stroke_color": "#RRGGBB if bordered",
-      "text_content": "the actual text visible inside or on the shape (for shapes only)",
-      "text_properties": {
-        "font_size": "small|medium|large",
-        "text_alignment": "center|left|right",
-        "multiline": true|false
-      },
-      "rounded_corners": true|false,
-      "search_terms": ["most_specific_term", "broader_term", "category_term", "alternative_name"]
+      "n": "name",
+      "t": "shape|icon",
+      "s": "rect|circle|oval",
+      "x": 45.5,
+      "y": 30.2,
+      "txt": "text visible inside shape (shapes only)",
+      "st": ["search", "terms"]
     }
-  ],
-  "spatial_analysis": {
-    "alignment": {
-      "horizontally_aligned": [[0, 1], [2, 3]],
-      "vertically_aligned": [[0, 2], [1, 3]]
-    },
-    "spacing": [
-      { "from": 0, "to": 1, "distance_pixels": 150, "distance_percent": 15.0 }
-    ],
-    "layout_pattern": "grid|vertical_flow|horizontal_flow|branching|circular|free_form"
-  },
-  "overall_layout": {
-    "flow_direction": "left_to_right|top_to_bottom|circular|radial|hierarchical|network",
-    "complexity": "simple|moderate|complex",
-    "diagram_type": "pathway|cycle|network|hierarchy|process_flow"
-  }
+  ]
 }
 
-ELEMENT TYPE DETECTION:
-- If element is a simple rectangle/circle/oval with text → element_type: "shape"
-- If element is a biological/scientific icon/illustration → element_type: "icon"
-- Shapes should have fill_color and stroke_color if visible
-- Icons need search_terms for database matching
+RULES:
+- "n" (name): Element name or label text
+- "t" (type): "shape" for geometric shapes with text, "icon" for biological/scientific elements
+- "s" (shape): ONLY if t="shape". Values: "rect", "circle", "oval"
+- "x" (position_x): Horizontal position 0-100%
+- "y" (position_y): Vertical position 0-100%
+- "txt" (text): ONLY for shapes - actual visible text content
+- "st" (search_terms): ONLY for icons - ["specific", "broader", "category"]
 
-SPATIAL ANALYSIS REQUIREMENTS:
-- Provide pixel coordinates if measurable, AND precise percentages (0-100)
-- Measure distances between adjacent elements in pixels AND percentages
-- Identify which elements are aligned (share x or y coordinates within ±2%)
-- Note spacing consistency: evenly spaced or clustered?
-- Detect layout patterns: grid, hierarchy, pathway, etc.
-- Bounding box: estimate width and height in pixels if visible
-- Search terms: HIGHLY SPECIFIC first, then broader ["ACE2", "angiotensin converting enzyme 2", "enzyme", "biology"]
-- Position accuracy within ±2% is CRITICAL
-
-OUTPUT LIMITS (CRITICAL):
-- Return at MOST 40 elements (choose the most salient/central to the diagram)
-- Use MINIMAL KEYS ONLY for each element: { "name", "element_type", "position_x", "position_y" }
-- Include "shape_type" ONLY when element_type is "shape"
-- Keep strings short. DO NOT include description, visual_notes, colors, text properties, or bounding_box unless obvious and compact
-- Keep spatial_analysis and overall_layout MINIMAL (empty objects are acceptable)
-- Prefer fewer, higher-confidence elements over exhaustive lists`;
+CRITICAL LIMITS:
+- MAX 40 elements total
+- OMIT all optional fields
+- NO descriptions, colors, bounding boxes, or extra metadata
+- Position accuracy ±2% is critical
+- Search terms: most specific first, max 4 terms per icon`;
 
     const elementUserPrompt = description 
       ? `PASS 1 - Analyze elements and positions in this diagram. User description: "${description}"`
@@ -320,47 +277,28 @@ OUTPUT LIMITS (CRITICAL):
             type: 'function',
             function: {
               name: 'return_element_analysis',
-              description: 'Return the element analysis with identified elements, spatial analysis, and overall layout',
+              description: 'Return ultra-compact element analysis',
               parameters: {
                 type: 'object',
                 properties: {
-                  identified_elements: {
+                  e: {
                     type: 'array',
                     items: {
                       type: 'object',
                       properties: {
-                        name: { type: 'string' },
-                        element_type: { type: 'string', enum: ['shape', 'icon'] },
-                        shape_type: { type: 'string' },
-                        shape_subtype: { type: 'string' },
-                        category: { type: 'string' },
-                        description: { type: 'string' },
-                        position_x: { type: 'number' },
-                        position_y: { type: 'number' },
-                        bounding_box: {
-                          type: 'object',
-                          properties: {
-                            width: { type: 'number' },
-                            height: { type: 'number' }
-                          }
-                        },
-                        estimated_size: { type: 'string' },
-                        rotation: { type: 'number' },
-                        visual_notes: { type: 'string' },
-                        fill_color: { type: 'string' },
-                        stroke_color: { type: 'string' },
-                        text_content: { type: 'string' },
-                        text_properties: { type: 'object' },
-                        rounded_corners: { type: 'boolean' },
-                        search_terms: { type: 'array', items: { type: 'string' } }
+                        n: { type: 'string' },
+                        t: { type: 'string', enum: ['shape', 'icon'] },
+                        s: { type: 'string', enum: ['rect', 'circle', 'oval'] },
+                        x: { type: 'number' },
+                        y: { type: 'number' },
+                        txt: { type: 'string' },
+                        st: { type: 'array', items: { type: 'string' } }
                       },
-                      required: ['name', 'element_type', 'position_x', 'position_y']
+                      required: ['n', 't', 'x', 'y']
                     }
-                  },
-                  spatial_analysis: { type: 'object' },
-                  overall_layout: { type: 'object' }
+                  }
                 },
-                required: ['identified_elements', 'spatial_analysis', 'overall_layout']
+                required: ['e']
               }
             }
           }
@@ -402,15 +340,41 @@ OUTPUT LIMITS (CRITICAL):
     if (elementData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
       try {
         const args = elementData.choices[0].message.tool_calls[0].function.arguments;
-        elementAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
-        console.log('✓ Extracted from tool_calls');
+        const parsed = typeof args === 'string' ? JSON.parse(args) : args;
+        // Normalize ultra-compact format to standard format
+        elementAnalysis = {
+          identified_elements: (parsed.e || []).map((el: any) => ({
+            name: el.n,
+            element_type: el.t,
+            shape_type: el.s,
+            position_x: el.x,
+            position_y: el.y,
+            text_content: el.txt,
+            search_terms: el.st
+          })),
+          spatial_analysis: {},
+          overall_layout: {}
+        };
+        console.log('✓ Extracted from tool_calls (ultra-compact)');
       } catch (e) {
         console.log('Failed to parse tool_calls arguments:', e);
         // Attempt repair of truncated JSON from tool_calls
         const argStr = elementData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
         const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
-        if (repaired) {
-          elementAnalysis = repaired;
+        if (repaired && repaired.e) {
+          elementAnalysis = {
+            identified_elements: (repaired.e || []).map((el: any) => ({
+              name: el.n,
+              element_type: el.t,
+              shape_type: el.s,
+              position_x: el.x,
+              position_y: el.y,
+              text_content: el.txt,
+              search_terms: el.st
+            })),
+            spatial_analysis: {},
+            overall_layout: {}
+          };
           parseFailedDueToTruncation = false;
           console.log('✓ Repaired truncated JSON from tool_calls');
         } else {
@@ -423,14 +387,39 @@ OUTPUT LIMITS (CRITICAL):
     if (!elementAnalysis && elementData.choices[0]?.message?.function_call?.arguments) {
       try {
         const args = elementData.choices[0].message.function_call.arguments;
-        elementAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
-        console.log('✓ Extracted from function_call');
+        const parsed = typeof args === 'string' ? JSON.parse(args) : args;
+        elementAnalysis = {
+          identified_elements: (parsed.e || []).map((el: any) => ({
+            name: el.n,
+            element_type: el.t,
+            shape_type: el.s,
+            position_x: el.x,
+            position_y: el.y,
+            text_content: el.txt,
+            search_terms: el.st
+          })),
+          spatial_analysis: {},
+          overall_layout: {}
+        };
+        console.log('✓ Extracted from function_call (ultra-compact)');
       } catch (e) {
         console.log('Failed to parse function_call arguments:', e);
         const argStr = elementData.choices[0]?.message?.function_call?.arguments;
         const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
-        if (repaired) {
-          elementAnalysis = repaired;
+        if (repaired && repaired.e) {
+          elementAnalysis = {
+            identified_elements: (repaired.e || []).map((el: any) => ({
+              name: el.n,
+              element_type: el.t,
+              shape_type: el.s,
+              position_x: el.x,
+              position_y: el.y,
+              text_content: el.txt,
+              search_terms: el.st
+            })),
+            spatial_analysis: {},
+            overall_layout: {}
+          };
           parseFailedDueToTruncation = false;
           console.log('✓ Repaired truncated JSON from function_call');
         } else {
@@ -487,15 +476,13 @@ OUTPUT LIMITS (CRITICAL):
                 type: 'function',
                 function: {
                   name: 'return_element_analysis',
-                  description: 'Return element analysis',
+                  description: 'Return ultra-compact element analysis',
                   parameters: {
                     type: 'object',
                     properties: {
-                      identified_elements: { type: 'array' },
-                      spatial_analysis: { type: 'object' },
-                      overall_layout: { type: 'object' }
+                      e: { type: 'array' }
                     },
-                    required: ['identified_elements']
+                    required: ['e']
                   }
                 }
               }
@@ -510,8 +497,21 @@ OUTPUT LIMITS (CRITICAL):
           if (retryData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
             try {
               const args = retryData.choices[0].message.tool_calls[0].function.arguments;
-              elementAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
-              console.log('✓ Retry successful - extracted from tool_calls');
+              const parsed = typeof args === 'string' ? JSON.parse(args) : args;
+              elementAnalysis = {
+                identified_elements: (parsed.e || []).map((el: any) => ({
+                  name: el.n,
+                  element_type: el.t,
+                  shape_type: el.s,
+                  position_x: el.x,
+                  position_y: el.y,
+                  text_content: el.txt,
+                  search_terms: el.st
+                })),
+                spatial_analysis: {},
+                overall_layout: {}
+              };
+              console.log('✓ Retry successful - extracted from tool_calls (ultra-compact)');
             } catch (e) {
               console.log('Retry failed to parse tool_calls');
             }
