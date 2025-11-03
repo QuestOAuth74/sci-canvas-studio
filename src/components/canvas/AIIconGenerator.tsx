@@ -333,6 +333,14 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
 
       setProgress(75);
 
+      console.log('[SAVE] Attempting upload:', {
+        userId: user.id,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        category: selectedCategory
+      });
+
       // Upload to user_assets
       const asset = await uploadAsset({
         file,
@@ -414,8 +422,14 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       const byteArray = new Uint8Array(byteNumbers);
       const blob = new Blob([byteArray], { type: 'image/png' });
 
-      // Upload thumbnail to storage
-      const filename = `ai-icon-${user.id}-${Date.now()}.png`;
+      console.log('[SUBMIT] Attempting upload:', {
+        userId: user.id,
+        blobSize: blob.size,
+        blobType: blob.type
+      });
+
+      // Upload thumbnail to storage with proper folder structure
+      const filename = `${user.id}/submissions/ai-icon-${Date.now()}.png`;
       const { error: uploadError } = await supabase.storage
         .from('user-assets')
         .upload(filename, blob, {
@@ -425,6 +439,16 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
+        
+        // Provide helpful error messages
+        if (uploadError.message.includes('mime_type')) {
+          throw new Error('File type not supported by storage bucket');
+        } else if (uploadError.message.includes('size')) {
+          throw new Error('File size exceeds bucket limit');
+        } else if (uploadError.message.includes('policy')) {
+          throw new Error('Storage permission denied - check bucket policies');
+        }
+        
         throw uploadError;
       }
 
