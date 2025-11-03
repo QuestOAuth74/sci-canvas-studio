@@ -222,9 +222,9 @@ serve(async (req) => {
 
     console.log('Starting AI analysis...');
 
-    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiApiKey) {
-      return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -282,14 +282,14 @@ Return a clear, detailed description that will help subsequent analysis passes u
     let diagramDescription = '';
     
     try {
-      const descriptionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      const descriptionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${openaiApiKey}`,
+          'Authorization': `Bearer ${lovableApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'google/gemini-2.5-flash',
           messages: [
             { role: 'system', content: descriptionSystemPrompt },
             {
@@ -312,7 +312,7 @@ Return a clear, detailed description that will help subsequent analysis passes u
 
       if (!descriptionResponse.ok) {
         const errorText = await descriptionResponse.text();
-        console.error('❌ Pass 0 OpenAI error:', descriptionResponse.status, errorText);
+        console.error('❌ Pass 0 Lovable AI error:', descriptionResponse.status, errorText);
         console.log('⚠️ Proceeding without diagram description');
       } else {
         const descriptionData = await descriptionResponse.json();
@@ -378,14 +378,14 @@ CRITICAL LIMITS:
 
     console.log('[PROGRESS] element_detection | 20% | Analyzing batch 1...');
 
-    const elementResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const elementResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini', // Phase 1: Switch to gpt-4o-mini (10x cheaper)
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: elementSystemPrompt },
           {
@@ -439,18 +439,20 @@ CRITICAL LIMITS:
 
     if (!elementResponse.ok) {
       const errorText = await elementResponse.text();
-      console.error('Pass 1 OpenAI error:', elementResponse.status, errorText);
+      console.error('Pass 1 Lovable AI error:', elementResponse.status, errorText);
       
       let errorMsg = 'Element analysis failed';
       if (elementResponse.status === 429) {
-        errorMsg = 'Rate limit exceeded. Please try again in a moment.';
+        errorMsg = 'Rate limit exceeded. Please try again later or add credits to your Lovable AI workspace.';
+      } else if (elementResponse.status === 402) {
+        errorMsg = 'AI credits depleted. Please add credits in Settings → Workspace → Usage.';
       } else if (elementResponse.status === 401) {
-        errorMsg = 'OpenAI API key is invalid or missing';
+        errorMsg = 'Lovable API key is invalid or missing';
       }
       
       return new Response(JSON.stringify({ 
         error: errorMsg,
-        details: `OpenAI returned ${elementResponse.status}`,
+        details: `Lovable AI returned ${elementResponse.status}`,
         hint: 'Check edge function logs for details'
       }), {
         status: 502,
@@ -578,14 +580,14 @@ CRITICAL LIMITS:
         console.log(`📊 Current state: Finish reason=${finishReason}, Parse failed=${parseFailedDueToTruncation}`);
         console.log(`📊 Detected element count: ${elementCount}, Using chunked mode: ${useChunkedMode}`);
         
-        const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        const retryResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openaiApiKey}`,
+            'Authorization': `Bearer ${lovableApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini', // Phase 1: Use cheaper model for retry too
+            model: 'google/gemini-2.5-flash',
             messages: [
               { 
                 role: 'system', 
@@ -759,14 +761,14 @@ CONNECTOR ANALYSIS REQUIREMENTS:
 
     const connectorUserPrompt = "PASS 2 - Analyze ALL connectors, arrows, and lines in detail.";
 
-    const connectorResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    const connectorResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: connectorSystemPrompt },
           {
@@ -837,20 +839,22 @@ CONNECTOR ANALYSIS REQUIREMENTS:
 
     if (!connectorResponse.ok) {
       const errorText = await connectorResponse.text();
-      console.error('❌ Pass 2 OpenAI error:', connectorResponse.status, errorText);
+      console.error('❌ Pass 2 Lovable AI error:', connectorResponse.status, errorText);
       console.error('📊 Elements being analyzed:', elementAnalysis.identified_elements?.length || 0);
       
       let errorMsg = 'Connector analysis failed';
       if (connectorResponse.status === 429) {
-        errorMsg = 'Rate limit exceeded. Please try again in a moment.';
+        errorMsg = 'Rate limit exceeded. Please try again later or add credits to your Lovable AI workspace.';
+      } else if (connectorResponse.status === 402) {
+        errorMsg = 'AI credits depleted. Please add credits in Settings → Workspace → Usage.';
       } else if (connectorResponse.status === 401) {
-        errorMsg = 'OpenAI API key is invalid or missing';
+        errorMsg = 'Lovable API key is invalid or missing';
       }
       
       return new Response(JSON.stringify({ 
         error: errorMsg,
         stage: 'connector_analysis',
-        details: `OpenAI returned ${connectorResponse.status}`,
+        details: `Lovable AI returned ${connectorResponse.status}`,
         hint: 'Check edge function logs for details. Element detection was successful.',
         elements_detected: elementAnalysis.identified_elements?.length || 0
       }), {
@@ -1897,14 +1901,14 @@ Return JSON:
   "confidence": "high|medium|low"
 }`;
 
-        const critiqueResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        const critiqueResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${openaiApiKey}`,
+            'Authorization': `Bearer ${lovableApiKey}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini',
+            model: 'google/gemini-2.5-flash',
             messages: [
               { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
               {
