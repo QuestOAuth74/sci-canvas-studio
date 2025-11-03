@@ -9,8 +9,10 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle, XCircle, Eye, Clock, User } from 'lucide-react';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { IconSubmissionWithUser } from '@/types/iconSubmission';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const IconSubmissionManager = () => {
+  const { isAdmin, loading: authLoading } = useAuth();
   const { loading, submissions, fetchAllSubmissions, approveSubmission, rejectSubmission } = useIconSubmissions();
   const [activeTab, setActiveTab] = useState('pending');
   const [selectedSubmission, setSelectedSubmission] = useState<IconSubmissionWithUser | null>(null);
@@ -20,8 +22,11 @@ export const IconSubmissionManager = () => {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    fetchAllSubmissions();
-  }, []);
+    // Only fetch submissions after auth is confirmed
+    if (!authLoading && isAdmin) {
+      fetchAllSubmissions();
+    }
+  }, [authLoading, isAdmin, fetchAllSubmissions]);
 
   const handleApprove = async (id: string) => {
     setProcessing(true);
@@ -73,9 +78,18 @@ export const IconSubmissionManager = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Icon Submissions</h2>
-        <p className="text-muted-foreground">Review and manage community icon submissions</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold mb-2">Icon Submissions</h2>
+          <p className="text-muted-foreground">Review and manage community icon submissions</p>
+        </div>
+        <Button 
+          onClick={() => fetchAllSubmissions()} 
+          variant="outline"
+          disabled={loading || authLoading}
+        >
+          {loading ? 'Loading...' : 'Refresh'}
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -91,12 +105,14 @@ export const IconSubmissionManager = () => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="mt-6">
-          {loading ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading submissions...</p>
-            </div>
-          ) : filteredSubmissions.length === 0 ? (
+          <TabsContent value={activeTab} className="mt-6">
+            {(loading || authLoading) ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">
+                  {authLoading ? 'Verifying admin access...' : 'Loading submissions...'}
+                </p>
+              </div>
+            ) : filteredSubmissions.length === 0 ? (
             <Card className="p-12 text-center">
               <p className="text-muted-foreground">No {activeTab} submissions</p>
             </Card>

@@ -36,6 +36,8 @@ export const useIconSubmissions = () => {
   const fetchAllSubmissions = useCallback(async (status?: string) => {
     setLoading(true);
     try {
+      console.log('[fetchAllSubmissions] Starting fetch...', { status });
+      
       let query = supabase
         .from('icon_submissions')
         .select(`
@@ -49,6 +51,11 @@ export const useIconSubmissions = () => {
       }
 
       const { data, error } = await query;
+      
+      console.log('[fetchAllSubmissions] Query result:', { 
+        dataCount: data?.length || 0, 
+        error: error?.message 
+      });
 
       if (error) throw error;
       
@@ -57,10 +64,11 @@ export const useIconSubmissions = () => {
         submitter: item.submitter
       }));
       
+      console.log('[fetchAllSubmissions] Setting submissions:', formatted.length);
       setSubmissions(formatted);
       return formatted;
     } catch (error: any) {
-      console.error('Error fetching all submissions:', error);
+      console.error('[fetchAllSubmissions] Error:', error);
       toast.error('Failed to load submissions');
       return [];
     } finally {
