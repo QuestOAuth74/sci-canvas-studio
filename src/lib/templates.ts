@@ -108,7 +108,7 @@ export const TEMPLATES: Template[] = [
           subTargetCheck: false,
           objects: [
             { type: 'line', x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#333333', strokeWidth: 3, selectable: false, evented: false },
-            { type: 'polygon', left: 100, top: 0, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333', selectable: false, evented: false }
+            { type: 'polygon', points: [{x:100,y:0},{x:90,y:-5},{x:90,y:5}], fill: '#333333', stroke: '#333333', strokeWidth: 1, selectable: false, evented: false }
           ]
         },
         
@@ -124,7 +124,7 @@ export const TEMPLATES: Template[] = [
           subTargetCheck: false,
           objects: [
             { type: 'line', x1: 0, y1: 0, x2: 100, y2: 0, stroke: '#333333', strokeWidth: 3, selectable: false, evented: false },
-            { type: 'polygon', left: 100, top: 0, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333', selectable: false, evented: false }
+            { type: 'polygon', points: [{x:100,y:0},{x:90,y:-5},{x:90,y:5}], fill: '#333333', stroke: '#333333', strokeWidth: 1, selectable: false, evented: false }
           ]
         },
         
@@ -200,7 +200,7 @@ export const TEMPLATES: Template[] = [
           subTargetCheck: false,
           objects: [
             { type: 'line', x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
-            { type: 'polygon', left: 0, top: 40, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+            { type: 'polygon', points: [{x:0,y:40},{x:-5,y:30},{x:5,y:30}], fill: '#333333', stroke: '#333333', strokeWidth: 1, selectable: false, evented: false }
           ]
         },
         
@@ -216,7 +216,7 @@ export const TEMPLATES: Template[] = [
           subTargetCheck: false,
           objects: [
             { type: 'line', x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
-            { type: 'polygon', left: 0, top: 40, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+            { type: 'polygon', points: [{x:0,y:40},{x:-5,y:30},{x:5,y:30}], fill: '#333333', stroke: '#333333', strokeWidth: 1, selectable: false, evented: false }
           ]
         },
         
@@ -232,7 +232,7 @@ export const TEMPLATES: Template[] = [
           subTargetCheck: false,
           objects: [
             { type: 'line', x1: 0, y1: 0, x2: 60, y2: 0, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
-            { type: 'polygon', left: 60, top: 0, points: [{x:0,y:0},{x:-10,y:-5},{x:-10,y:5}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+            { type: 'polygon', points: [{x:60,y:0},{x:50,y:-5},{x:50,y:5}], fill: '#333333', stroke: '#333333', strokeWidth: 1, selectable: false, evented: false }
           ]
         },
         { type: 'textbox', left: 460, top: 255, width: 30, text: 'Yes', fontSize: 12, fontFamily: 'Inter' },
@@ -249,7 +249,7 @@ export const TEMPLATES: Template[] = [
           subTargetCheck: false,
           objects: [
             { type: 'line', x1: 0, y1: 0, x2: 0, y2: 40, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
-            { type: 'polygon', left: 0, top: 40, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+            { type: 'polygon', points: [{x:0,y:40},{x:-5,y:30},{x:5,y:30}], fill: '#333333', stroke: '#333333', strokeWidth: 1, selectable: false, evented: false }
           ]
         },
         { type: 'textbox', left: 405, top: 330, width: 30, text: 'No', fontSize: 12, fontFamily: 'Inter' },
@@ -266,7 +266,7 @@ export const TEMPLATES: Template[] = [
           subTargetCheck: false,
           objects: [
             { type: 'line', x1: 0, y1: 0, x2: 0, y2: 135, stroke: '#333333', strokeWidth: 2, selectable: false, evented: false },
-            { type: 'polygon', left: 0, top: 135, points: [{x:0,y:0},{x:-5,y:-10},{x:5,y:-10}], fill: '#333333', originX: 'center', originY: 'center', selectable: false, evented: false }
+            { type: 'polygon', points: [{x:0,y:135},{x:-5,y:125},{x:5,y:125}], fill: '#333333', stroke: '#333333', strokeWidth: 1, selectable: false, evented: false }
           ]
         },
         { type: 'line', left: 400, top: 420, x1: 0, y1: 0, x2: 170, y2: 0, stroke: '#333333', strokeWidth: 2 },
@@ -531,12 +531,10 @@ export const TEMPLATES: Template[] = [
             },
             {
               type: "polygon",
-              left: 0,
-              top: 30,
-              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              points: [{ x: 0, y: 30 }, { x: -5, y: 22 }, { x: 5, y: 22 }],
               fill: "#000000",
-              originX: "center",
-              originY: "center",
+              stroke: "#000000",
+              strokeWidth: 1,
               selectable: false,
               evented: false,
             },
@@ -609,12 +607,10 @@ export const TEMPLATES: Template[] = [
             },
             {
               type: "polygon",
-              left: 0,
-              top: 30,
-              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              points: [{ x: 0, y: 30 }, { x: -5, y: 22 }, { x: 5, y: 22 }],
               fill: "#000000",
-              originX: "center",
-              originY: "center",
+              stroke: "#000000",
+              strokeWidth: 1,
               selectable: false,
               evented: false,
             },
@@ -739,12 +735,10 @@ export const TEMPLATES: Template[] = [
             },
             {
               type: "polygon",
-              left: 0,
-              top: 30,
-              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              points: [{ x: 0, y: 30 }, { x: -5, y: 22 }, { x: 5, y: 22 }],
               fill: "#000000",
-              originX: "center",
-              originY: "center",
+              stroke: "#000000",
+              strokeWidth: 1,
               selectable: false,
               evented: false,
             },
@@ -769,12 +763,10 @@ export const TEMPLATES: Template[] = [
             },
             {
               type: "polygon",
-              left: 0,
-              top: 30,
-              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              points: [{ x: 0, y: 30 }, { x: -5, y: 22 }, { x: 5, y: 22 }],
               fill: "#000000",
-              originX: "center",
-              originY: "center",
+              stroke: "#000000",
+              strokeWidth: 1,
               selectable: false,
               evented: false,
             },
@@ -875,12 +867,10 @@ export const TEMPLATES: Template[] = [
             },
             {
               type: "polygon",
-              left: 0,
-              top: 30,
-              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              points: [{ x: 0, y: 30 }, { x: -5, y: 22 }, { x: 5, y: 22 }],
               fill: "#000000",
-              originX: "center",
-              originY: "center",
+              stroke: "#000000",
+              strokeWidth: 1,
               selectable: false,
               evented: false,
             },
@@ -905,12 +895,10 @@ export const TEMPLATES: Template[] = [
             },
             {
               type: "polygon",
-              left: 0,
-              top: 30,
-              points: [{ x: 0, y: 0 }, { x: -5, y: -8 }, { x: 5, y: -8 }],
+              points: [{ x: 0, y: 30 }, { x: -5, y: 22 }, { x: 5, y: 22 }],
               fill: "#000000",
-              originX: "center",
-              originY: "center",
+              stroke: "#000000",
+              strokeWidth: 1,
               selectable: false,
               evented: false,
             },
