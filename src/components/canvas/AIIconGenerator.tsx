@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +46,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<StylePreset>('simple');
   const [iconName, setIconName] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('General');
+  const [selectedCategory, setSelectedCategory] = useState('Laboratory');
   const [categories, setCategories] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [usageRights, setUsageRights] = useState<'free_to_share' | 'own_rights' | 'licensed' | 'public_domain'>('own_rights');
@@ -63,17 +63,25 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       .select('name')
       .order('name');
     
-    if (data) {
-      setCategories(data.map(c => c.name));
+    if (data && data.length > 0) {
+      const categoryNames = data.map(c => c.name);
+      setCategories(categoryNames);
+      // Set first category as default if current selection is invalid
+      if (!categoryNames.includes(selectedCategory)) {
+        setSelectedCategory(categoryNames[0]);
+      }
+    } else {
+      // Fallback categories if database is empty
+      setCategories(['Laboratory', 'Anatomy', 'General']);
     }
-  }, []);
+  }, [selectedCategory]);
 
   // Load categories when dialog opens
-  useState(() => {
+  useEffect(() => {
     if (open) {
       loadCategories();
     }
-  });
+  }, [open, loadCategories]);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -355,11 +363,18 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
 
     } catch (error: any) {
       console.error('Save error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       setStage('error');
       
       toast({
         title: 'Save failed',
-        description: 'Failed to save icon to library. Please try again.',
+        description: error.message || 'Failed to save icon to library. Please try again.',
         variant: 'destructive',
       });
     }
@@ -457,11 +472,18 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
 
     } catch (error: any) {
       console.error('Submit error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        status: error.status,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       setStage('error');
       
       toast({
         title: 'Submission failed',
-        description: 'Failed to submit icon for review. Please try again.',
+        description: error.message || 'Failed to submit icon for review. Please try again.',
         variant: 'destructive',
       });
     }
@@ -532,6 +554,14 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
             )}
           </DialogDescription>
         </DialogHeader>
+
+        {!user && (
+          <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+            <p className="text-sm text-amber-600 dark:text-amber-400">
+              ⚠️ You must be signed in to save or submit icons
+            </p>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column - Input */}
