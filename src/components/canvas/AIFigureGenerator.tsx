@@ -300,15 +300,20 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
     }
   };
 
-  // Helper function to get category-based colors
-  const getCategoryColor = (category?: string): string => {
+  // Helper function to get category-based colors (mapped to design system)
+  const getCategoryColor = (category?: string, suggestedFill?: string): string => {
+    // If backend provided suggested style, use it
+    if (suggestedFill) return suggestedFill;
+    
+    // Otherwise use category mapping
     const colorMap: Record<string, string> = {
       'protein': '#FFE5CC',
       'enzyme': '#FFE5CC',
       'signal': '#FFE5CC',
       'receptor': '#C8E6C9',
-      'molecule': '#BBDEFB',
+      'molecule': '#F5F5F5',
       'complex': '#E1BEE7',
+      'effect': '#BBDEFB',
       'default': '#F5F5F5'
     };
     return colorMap[category || 'default'] || colorMap['default'];
@@ -430,8 +435,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const width = obj.width || 100;
           const height = obj.height || 60;
           
-          // Determine fill color based on category if not specified
-          const fillColor = obj.fill_color || getCategoryColor(obj.shape_subtype);
+          // Use suggested style from backend or determine from category
+          const fillColor = obj.fill_color || getCategoryColor(obj.shape_subtype, (obj as any).suggestedStyle?.fill);
+          const strokeColor = obj.stroke_color || (obj as any).suggestedStyle?.stroke || '#333333';
           
           // Create the shape
           let shapeObj;
@@ -441,7 +447,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               top: 0,
               radius: Math.min(width, height) / 2,
               fill: fillColor,
-              stroke: obj.stroke_color || '#333333',
+              stroke: strokeColor,
               strokeWidth: obj.stroke_width || 2,
             });
           } else {
@@ -452,7 +458,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               width,
               height,
               fill: fillColor,
-              stroke: obj.stroke_color || '#333333',
+              stroke: strokeColor,
               strokeWidth: obj.stroke_width || 2,
               rx: obj.rounded_corners ? 10 : 0,
               ry: obj.rounded_corners ? 10 : 0,
@@ -569,6 +575,17 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         const toObj = addedObjects[toAdded];
 
         if (fromObj && toObj) {
+          // Determine routing style based on relationship category
+          const category = (conn as any).relationship_category || 'main_pathway';
+          let routingStyle: 'straight' | 'curved' | 'orthogonal' = 'straight';
+          
+          // Use straight routing for biological pathways (cleaner, more accurate)
+          if (category === 'main_pathway' || category === 'source' || category === 'receptor_binding') {
+            routingStyle = 'straight';
+          } else if (category === 'effect' && conn.type === 'curved') {
+            routingStyle = 'curved';
+          }
+          
           // Use port-aware routing if preferred ports are available
           let startX, startY, endX, endY;
           let sourcePort, targetPort;
@@ -600,7 +617,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             startMarker: (conn.startMarker || 'none') as any,
             endMarker: (conn.endMarker || 'arrow') as any,
             lineStyle: (conn.style === 'dashed' ? 'dashed' : 'solid') as any,
-            routingStyle: (conn.type === 'orthogonal' ? 'orthogonal' : conn.type === 'curved' ? 'curved' : 'straight') as any,
+            routingStyle: routingStyle as any,
             strokeColor: conn.color || '#000000',
             strokeWidth: conn.strokeWidth || 2,
             sourceShapeId: `node-${conn.from}`,

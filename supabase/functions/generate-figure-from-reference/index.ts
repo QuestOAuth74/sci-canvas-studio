@@ -44,41 +44,45 @@ function normalizeRelationship(relType: string | undefined): string {
   return synonyms[normalized] || normalized;
 }
 
-// Get connector style based on relationship type and visual analysis
-function getConnectorStyle(relType: string | undefined, visualDetails?: any): any {
+// Categorize relationship for pathway-aware styling
+function categorizeRelationship(relType: string | undefined): string {
   const normalized = normalizeRelationship(relType);
   
-  // Base style map (provides colors and markers based on semantic relationship)
+  // Category mapping
+  if (['produces', 'converts'].includes(normalized)) return 'main_pathway';
+  if (['source'].includes(normalized)) return 'source';
+  if (['binds_to'].includes(normalized)) return 'receptor_binding';
+  if (['activates', 'inhibits', 'signals'].includes(normalized)) return 'effect';
+  
+  return 'main_pathway'; // Default
+}
+
+// Get connector style based on relationship type and category
+function getConnectorStyle(relType: string | undefined, visualDetails?: any): any {
+  const normalized = normalizeRelationship(relType);
+  const category = categorizeRelationship(relType);
+  
+  // Base style map with pathway-aware styling
   const styleMap: Record<string, any> = {
-    'activates': { style: 'solid', color: '#00AA00', endMarker: 'arrow', strokeWidth: 2 },
-    'inhibits': { style: 'dashed', color: '#FF0000', endMarker: 'tee', strokeWidth: 2 },
-    'produces': { style: 'solid', color: '#0066CC', endMarker: 'arrow', strokeWidth: 3 },
-    'converts': { style: 'solid', color: '#333333', endMarker: 'arrow', strokeWidth: 2 },
-    'binds_to': { style: 'dashed', color: '#666666', endMarker: 'circle', strokeWidth: 1 },
-    'flows_to': { style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2 },
-    'signals': { style: 'dashed', color: '#FF6600', endMarker: 'arrow', strokeWidth: 1 },
-    'source': { style: 'solid', color: '#999999', endMarker: 'open-arrow', strokeWidth: 1 },
+    'activates': { style: 'solid', color: '#00AA00', endMarker: 'arrow', strokeWidth: 2, category: 'effect' },
+    'inhibits': { style: 'dashed', color: '#FF0000', endMarker: 'tee', strokeWidth: 2, category: 'effect' },
+    'produces': { style: 'solid', color: '#333333', endMarker: 'arrow', strokeWidth: 2, category: 'main_pathway' },
+    'converts': { style: 'solid', color: '#333333', endMarker: 'arrow', strokeWidth: 2, category: 'main_pathway' },
+    'binds_to': { style: 'solid', color: '#666666', endMarker: 'diamond', strokeWidth: 2, category: 'receptor_binding' },
+    'flows_to': { style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2, category: 'main_pathway' },
+    'signals': { style: 'solid', color: '#FF6600', endMarker: 'arrow', strokeWidth: 1.5, category: 'effect' },
+    'source': { style: 'dashed', color: '#666666', endMarker: 'arrow', strokeWidth: 1, category: 'source' },
   };
   
-  const baseStyle = styleMap[normalized] || { style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2 };
+  const baseStyle = styleMap[normalized] || { style: 'solid', color: '#000000', endMarker: 'arrow', strokeWidth: 2, category: 'main_pathway' };
   
-  // Determine routing type from visual analysis (prefer straight lines for cleaner diagrams)
-  let routingType = 'straight'; // Default to straight for cleaner layouts
-  
-  if (visualDetails?.line_type) {
-    const lineType = String(visualDetails.line_type).toLowerCase();
-    if (lineType.includes('curved') || lineType.includes('bezier')) {
-      routingType = 'curved';
-    } else if (lineType.includes('orthogonal') || lineType.includes('elbow')) {
-      routingType = 'elbow';
-    } else {
-      routingType = 'straight';
-    }
-  }
+  // Use straight routing for biological pathways (cleaner, more accurate)
+  let routingType = 'straight';
   
   return {
     type: routingType,
-    ...baseStyle
+    ...baseStyle,
+    relationship_category: category
   };
 }
 
@@ -1254,26 +1258,59 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     console.log(`✅ Node ordering optimized for minimal crossings`);
     
     // ===== COMPUTE POSITIONS =====
-    const Mx = 8, My = 8; // Margins
+    const Mx = 8, My = 5; // Margins (reduced top margin)
     const layerHeight = 60;
-    const vGap = Math.max(18, layerHeight * 0.8);
+    const vGap = Math.max(20, layerHeight * 0.9);
+    const maxLayer = layers.length - 1;
+    
+    // Separate icons and shapes for positioning
+    const iconIndices = new Set(allElements.map((m, idx) => 
+      m.element.element_type === 'icon' ? idx : null
+    ).filter(idx => idx !== null));
+    
+    // Detect branch points (nodes with out-degree > 1)
+    const branchPoints = new Set<number>();
+    graph.forEach((neighbors, node) => {
+      if (neighbors.size > 1) {
+        branchPoints.add(node);
+      }
+    });
     
     let composedObjects = allElements.map((m, idx) => {
       const layerIdx = nodeLayer.get(idx) || 0;
       const posInLayer = orderInLayer.get(layerIdx)?.indexOf(idx) || 0;
       const layerSize = orderInLayer.get(layerIdx)?.length || 1;
       
-      // Calculate Y position
-      const y = snapToGrid(My + layerIdx * (layerHeight + vGap));
+      // INVERTED Y: top-to-bottom flow (layer 0 at top)
+      const invertedLayerIdx = maxLayer - layerIdx;
+      const y = snapToGrid(My + invertedLayerIdx * (layerHeight + vGap));
       
-      // Calculate X position (evenly distributed)
-      const availableWidth = 100 - 2 * Mx;
-      const hGap = layerSize > 1 ? availableWidth / (layerSize + 1) : availableWidth / 2;
-      const x = snapToGrid(Mx + hGap * (posInLayer + 1));
+      let x: number;
+      
+      // Icon column anchoring: force icons to left
+      if (iconIndices.has(idx)) {
+        x = snapToGrid(10); // Fixed left column for icons
+      } else {
+        // Main pathway elements: centered or with branch offsets
+        const availableWidth = 100 - 2 * Mx - 15; // Leave room for icon column
+        const centerStart = 25; // Start after icon column
+        
+        if (branchPoints.has(idx)) {
+          // Branch point: center it
+          x = snapToGrid(50);
+        } else if (layerSize > 1) {
+          // Multiple elements in layer: distribute horizontally
+          const spacing = Math.min(30, availableWidth / (layerSize + 1));
+          x = snapToGrid(centerStart + spacing * (posInLayer + 1));
+        } else {
+          // Single element: center it
+          x = snapToGrid(50);
+        }
+      }
       
       // Clamp to canvas bounds
       const clampedX = Math.max(5, Math.min(95, x));
-      const clampedY = Math.max(5, Math.min(95, y));
+      const clampedY = Math.max(5, Math.min(90, y));
       
       // Create object based on type
       if (m.element.element_type === 'shape') {
@@ -1281,6 +1318,29 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         if (m.element.bounding_box) {
           width = m.element.bounding_box.width || 100;
           height = m.element.bounding_box.height || 60;
+        }
+        
+        // Detect shape styling from name/category (pathway-aware colors)
+        const nameLower = (m.element.name || '').toLowerCase();
+        const categoryLower = (m.element.category || '').toLowerCase();
+        
+        let fillColor = '#F5F5F5'; // Default white/light
+        let strokeColor = '#333333';
+        
+        // Orange/amber for enzymes/converters
+        if (nameLower.match(/enzyme|kinase|ace|renin|convert/i)) {
+          fillColor = '#FFE5CC';
+          strokeColor = '#FF8C00';
+        }
+        // Green/teal for receptors
+        else if (nameLower.match(/receptor|at1r|at2r|mas/i) || categoryLower.includes('receptor')) {
+          fillColor = '#C8E6C9';
+          strokeColor = '#2E7D32';
+        }
+        // Blue/cyan for effects/outcomes
+        else if (nameLower.match(/vasoconstrict|cell growth|proliferat|effect/i)) {
+          fillColor = '#BBDEFB';
+          strokeColor = '#1565C0';
         }
         
         return {
@@ -1297,9 +1357,10 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           text_content: m.element.text_content,
           text_properties: m.element.text_properties,
           rounded_corners: m.element.rounded_corners || (m.element.shape_type === 'rectangle'),
-          fill_color: m.element.fill_color || '#E8F5E9',
-          stroke_color: m.element.stroke_color || '#2E7D32',
-          stroke_width: 2
+          fill_color: m.element.fill_color || fillColor,
+          stroke_color: m.element.stroke_color || strokeColor,
+          stroke_width: 2,
+          suggestedStyle: { fill: fillColor, stroke: strokeColor, shape: m.element.shape_type || 'rectangle' }
         };
       }
       
@@ -1341,28 +1402,51 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       
       const fromLayer = nodeLayer.get(fromIdx) || 0;
       const toLayer = nodeLayer.get(toIdx) || 0;
-      
-      // Determine preferred ports based on layer relationship
-      let preferredPorts = { from: 'bottom', to: 'top' };
-      let routingStyle = 'orthogonal';
-      
-      if (toLayer > fromLayer) {
-        // Normal forward edge (down the hierarchy)
-        preferredPorts = { from: 'bottom', to: 'top' };
-      } else if (toLayer < fromLayer) {
-        // Back edge (should be curved to indicate feedback)
-        preferredPorts = { from: 'top', to: 'bottom' };
-        routingStyle = 'curved';
-      } else {
-        // Same layer (horizontal)
-        const fromPos = orderInLayer.get(fromLayer)?.indexOf(fromIdx) || 0;
-        const toPos = orderInLayer.get(toLayer)?.indexOf(toIdx) || 0;
-        preferredPorts = fromPos < toPos 
-          ? { from: 'right', to: 'left' }
-          : { from: 'left', to: 'right' };
-      }
+      const fromIsIcon = fromElem.element.element_type === 'icon';
+      const toIsIcon = toElem.element.element_type === 'icon';
       
       const style = getConnectorStyle(rel.relationship_type, rel.visual_details);
+      const category = style.relationship_category || 'main_pathway';
+      
+      // Determine preferred ports and routing based on category and positions
+      let preferredPorts = { from: 'bottom', to: 'top' };
+      let routingStyle = 'straight'; // Default to straight for biological pathways
+      
+      // Source category: icon to molecule (horizontal)
+      if (category === 'source' || fromIsIcon) {
+        preferredPorts = { from: 'right', to: 'left' };
+        routingStyle = 'straight';
+      }
+      // Main pathway: vertical flow (inverted coordinates mean higher layer = top)
+      else if (category === 'main_pathway') {
+        if (toLayer > fromLayer) {
+          // Forward edge (top to bottom in visual)
+          preferredPorts = { from: 'bottom', to: 'top' };
+          routingStyle = 'straight';
+        } else if (toLayer < fromLayer) {
+          // Back edge (feedback loop)
+          preferredPorts = { from: 'top', to: 'bottom' };
+          routingStyle = 'curved';
+        } else {
+          // Same layer
+          const fromPos = orderInLayer.get(fromLayer)?.indexOf(fromIdx) || 0;
+          const toPos = orderInLayer.get(toLayer)?.indexOf(toIdx) || 0;
+          preferredPorts = fromPos < toPos 
+            ? { from: 'right', to: 'left' }
+            : { from: 'left', to: 'right' };
+          routingStyle = 'straight';
+        }
+      }
+      // Effect/branch: might skip layers
+      else if (category === 'effect' && Math.abs(toLayer - fromLayer) > 1) {
+        preferredPorts = { from: 'bottom', to: 'top' };
+        routingStyle = 'straight';
+      }
+      // Receptor binding
+      else if (category === 'receptor_binding') {
+        preferredPorts = { from: 'bottom', to: 'top' };
+        routingStyle = 'straight';
+      }
       
       return {
         from: fromIdx,
@@ -1374,7 +1458,8 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         endMarker: style.endMarker,
         startMarker: 'none',
         label: rel.label || '',
-        preferredPorts
+        preferredPorts,
+        relationship_category: category
       };
     }).filter(Boolean);
     
