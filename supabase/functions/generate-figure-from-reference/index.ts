@@ -114,6 +114,50 @@ function extractJSON(text: string): any {
   return null;
 }
 
+// Attempt to repair truncated JSON by balancing brackets/braces and removing trailing commas
+function tryRepairJsonString(input: string): any | null {
+  // Quick bailouts
+  if (!input || typeof input !== 'string') return null;
+
+  const removeTrailingCommas = (s: string) => s.replace(/,\s*(?=[}\]])/g, '');
+
+  try {
+    return JSON.parse(input);
+  } catch {}
+
+  // Balance brackets/braces using a simple stack
+  const stack: string[] = [];
+  const openers = new Set(['{', '[']);
+  const pairs: Record<string, string> = { '{': '}', '[': ']' };
+
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    if (openers.has(ch)) {
+      stack.push(ch);
+    } else if (ch === '}' || ch === ']') {
+      if (stack.length > 0) stack.pop();
+    }
+  }
+
+  let repaired = removeTrailingCommas(input.trim());
+  // Remove trailing dangling characters that often appear after truncation
+  repaired = repaired.replace(/[,\s]*$/, '');
+
+  // Append missing closers in reverse order
+  while (stack.length > 0) {
+    const opener = stack.pop()!;
+    repaired += pairs[opener];
+  }
+
+  // Final cleanup and parse attempt
+  repaired = removeTrailingCommas(repaired);
+  try {
+    return JSON.parse(repaired);
+  } catch {
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -234,7 +278,15 @@ SPATIAL ANALYSIS REQUIREMENTS:
 - Detect layout patterns: grid, hierarchy, pathway, etc.
 - Bounding box: estimate width and height in pixels if visible
 - Search terms: HIGHLY SPECIFIC first, then broader ["ACE2", "angiotensin converting enzyme 2", "enzyme", "biology"]
-- Position accuracy within ±2% is CRITICAL`;
+- Position accuracy within ±2% is CRITICAL
+
+OUTPUT LIMITS (CRITICAL):
+- Return at MOST 40 elements (choose the most salient/central to the diagram)
+- Use MINIMAL KEYS ONLY for each element: { "name", "element_type", "position_x", "position_y" }
+- Include "shape_type" ONLY when element_type is "shape"
+- Keep strings short. DO NOT include description, visual_notes, colors, text properties, or bounding_box unless obvious and compact
+- Keep spatial_analysis and overall_layout MINIMAL (empty objects are acceptable)
+- Prefer fewer, higher-confidence elements over exhaustive lists`;
 
     const elementUserPrompt = description 
       ? `PASS 1 - Analyze elements and positions in this diagram. User description: "${description}"`
@@ -314,7 +366,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-        max_tokens: 1500,
+        max_tokens: 2000,
       }),
     });
 
@@ -354,7 +406,16 @@ SPATIAL ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from tool_calls');
       } catch (e) {
         console.log('Failed to parse tool_calls arguments:', e);
-        parseFailedDueToTruncation = true; // Likely truncated JSON
+        // Attempt repair of truncated JSON from tool_calls
+        const argStr = elementData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
+        const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
+        if (repaired) {
+          elementAnalysis = repaired;
+          parseFailedDueToTruncation = false;
+          console.log('✓ Repaired truncated JSON from tool_calls');
+        } else {
+          parseFailedDueToTruncation = true; // Likely truncated JSON
+        }
       }
     }
     
@@ -366,7 +427,15 @@ SPATIAL ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from function_call');
       } catch (e) {
         console.log('Failed to parse function_call arguments:', e);
-        parseFailedDueToTruncation = true;
+        const argStr = elementData.choices[0]?.message?.function_call?.arguments;
+        const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
+        if (repaired) {
+          elementAnalysis = repaired;
+          parseFailedDueToTruncation = false;
+          console.log('✓ Repaired truncated JSON from function_call');
+        } else {
+          parseFailedDueToTruncation = true;
+        }
       }
     }
     
@@ -432,7 +501,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
               }
             ],
             tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-            max_tokens: 2000,
+            max_tokens: 2500,
           }),
         });
         
@@ -635,7 +704,15 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from tool_calls');
       } catch (e) {
         console.log('Failed to parse tool_calls arguments:', e);
-        connectorParseFailedDueToTruncation = true;
+        const argStr = connectorData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
+        const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
+        if (repaired) {
+          connectorAnalysis = repaired;
+          connectorParseFailedDueToTruncation = false;
+          console.log('✓ Repaired truncated JSON from tool_calls');
+        } else {
+          connectorParseFailedDueToTruncation = true;
+        }
       }
     }
     
@@ -647,7 +724,15 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         console.log('✓ Extracted from function_call');
       } catch (e) {
         console.log('Failed to parse function_call arguments:', e);
-        connectorParseFailedDueToTruncation = true;
+        const argStr = connectorData.choices[0]?.message?.function_call?.arguments;
+        const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
+        if (repaired) {
+          connectorAnalysis = repaired;
+          connectorParseFailedDueToTruncation = false;
+          console.log('✓ Repaired truncated JSON from function_call');
+        } else {
+          connectorParseFailedDueToTruncation = true;
+        }
       }
     }
     
