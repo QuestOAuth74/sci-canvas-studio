@@ -434,50 +434,47 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const y = (obj.y / 100) * canvasHeight;
           const width = obj.width || 100;
           
-          // Use backend's estimated height for multi-line text, or calculate it
+          // Use backend-provided dimensions or calculate from content
           const objTextContent = obj.text_content || obj.label || '';
           const lineCount = (objTextContent.match(/\n/g) || []).length + 1;
-          const height = (obj as any).estimatedHeight || (lineCount > 1 ? 40 + (lineCount - 1) * 20 : obj.height || 60);
+          const shapeWidth = width;
+          const shapeHeight = (obj as any).estimatedHeight || (40 + Math.max(0, lineCount - 1) * 20);
           
           // Use suggested style from backend or determine from category
           const fillColor = obj.fill_color || getCategoryColor(obj.shape_subtype, (obj as any).suggestedStyle?.fill);
           const strokeColor = obj.stroke_color || (obj as any).suggestedStyle?.stroke || '#333333';
           
-          // Create the shape
-          let shapeObj;
-          if (obj.shape_type === 'circle' || obj.shape_type === 'oval') {
-            shapeObj = new Circle({
-              left: 0,
-              top: 0,
-              radius: Math.min(width, height) / 2,
-              fill: fillColor,
-              stroke: strokeColor,
-              strokeWidth: obj.stroke_width || 2,
-            });
-          } else {
-            // Rectangle with optional rounded corners
-            shapeObj = new Rect({
-              left: 0,
-              top: 0,
-              width,
-              height,
-              fill: fillColor,
-              stroke: strokeColor,
-              strokeWidth: obj.stroke_width || 2,
-              rx: obj.rounded_corners ? 10 : 0,
-              ry: obj.rounded_corners ? 10 : 0,
-            });
-          }
+          // Create shape using exact backend positions
+          const shapeObj = obj.shape_type === 'circle' || obj.shape_type === 'oval'
+            ? new Circle({
+                left: 0,
+                top: 0,
+                radius: Math.min(shapeWidth, shapeHeight) / 2,
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth: obj.stroke_width || 2,
+              })
+            : new Rect({
+                left: 0,
+                top: 0,
+                width: shapeWidth,
+                height: shapeHeight,
+                fill: fillColor,
+                stroke: strokeColor,
+                strokeWidth: obj.stroke_width || 2,
+                rx: obj.rounded_corners ? 10 : 0,
+                ry: obj.rounded_corners ? 10 : 0,
+              });
           
           // Create text if there's text content
-          const textContent = obj.text_content || obj.label || '';
+          const textContent = objTextContent;
           if (textContent) {
             const fontSize = obj.text_properties?.font_size === 'large' ? 16 : 
                            obj.text_properties?.font_size === 'small' ? 10 : 13;
             
             const textObj = new FabricText(textContent, {
-              left: width / 2,
-              top: height / 2,
+              left: shapeWidth / 2,
+              top: shapeHeight / 2,
               fontSize,
               fill: '#000000',
               fontFamily: 'Arial',

@@ -192,3 +192,39 @@ export function smoothOrthogonalPath(points: Point[], cornerRadius: number = 10)
   
   return path;
 }
+
+// Straight line with port stubs for clean connections
+export function routeStraightWithStubs(
+  start: Point,
+  end: Point,
+  startPort?: Port,
+  endPort?: Port
+): Point[] {
+  const points: Point[] = [start];
+  const stubLength = 8;
+  
+  // Add start stub based on port angle
+  if (startPort && startPort.angle !== undefined) {
+    const angle = startPort.angle * (Math.PI / 180);
+    points.push(new Point(
+      start.x + Math.cos(angle) * stubLength,
+      start.y + Math.sin(angle) * stubLength
+    ));
+  }
+  
+  // Add end stub based on port angle
+  if (endPort && endPort.angle !== undefined) {
+    const angle = (endPort.angle + 180) * (Math.PI / 180); // Opposite direction
+    points.push(new Point(
+      end.x + Math.cos(angle) * stubLength,
+      end.y + Math.sin(angle) * stubLength
+    ));
+  }
+  
+  points.push(end);
+  
+  // Remove duplicate consecutive points
+  return points.filter((p, i) => 
+    i === 0 || p.x !== points[i-1].x || p.y !== points[i-1].y
+  );
+}

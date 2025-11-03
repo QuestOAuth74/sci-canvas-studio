@@ -1201,86 +1201,75 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     
     console.log(`📊 DAG layering complete: ${layers.length} layers`);
     
-    // ===== BARYCENTER ORDERING (minimize crossings) =====
-    const orderInLayer = new Map<number, number[]>();
-    layers.forEach((layer, layerIdx) => {
-      orderInLayer.set(layerIdx, [...layer]);
-    });
+    // ===== THREE-ZONE PATHWAY LAYOUT SYSTEM =====
+    console.log('Applying pathway-aware three-zone layout...');
     
-    // Run 2 sweeps (down + up)
-    for (let sweep = 0; sweep < 2; sweep++) {
-      // Downward sweep
-      for (let l = 1; l < layers.length; l++) {
-        const currentLayer = orderInLayer.get(l)!;
-        const prevLayer = orderInLayer.get(l - 1)!;
-        
-        currentLayer.sort((a, b) => {
-          // Calculate barycenter (average position of neighbors in prev layer)
-          const getBarycenter = (node: number) => {
-            const neighbors: number[] = [];
-            relationships.forEach((rel: any) => {
-              const fromIdx = allElements.findIndex(m => m.element_index === rel.from_element);
-              const toIdx = allElements.findIndex(m => m.element_index === rel.to_element);
-              if (toIdx === node && prevLayer.includes(fromIdx)) {
-                neighbors.push(prevLayer.indexOf(fromIdx));
-              }
-            });
-            if (neighbors.length === 0) return prevLayer.length / 2;
-            return neighbors.reduce((sum, pos) => sum + pos, 0) / neighbors.length;
-          };
-          
-          return getBarycenter(a) - getBarycenter(b);
-        });
-      }
+    // Helper: Find longest path (main pathway)
+    const findLongestPath = (): number[] => {
+      const allPaths: number[][] = [];
+      const visited = new Set<number>();
       
-      // Upward sweep
-      for (let l = layers.length - 2; l >= 0; l--) {
-        const currentLayer = orderInLayer.get(l)!;
-        const nextLayer = orderInLayer.get(l + 1)!;
+      const dfs = (node: number, path: number[]) => {
+        path.push(node);
+        visited.add(node);
         
-        currentLayer.sort((a, b) => {
-          const getBarycenter = (node: number) => {
-            const neighbors: number[] = [];
-            graph.get(node)?.forEach(target => {
-              if (nextLayer.includes(target)) {
-                neighbors.push(nextLayer.indexOf(target));
-              }
-            });
-            if (neighbors.length === 0) return nextLayer.length / 2;
-            return neighbors.reduce((sum, pos) => sum + pos, 0) / neighbors.length;
-          };
-          
-          return getBarycenter(a) - getBarycenter(b);
+        const neighbors = graph.get(node) || new Set();
+        if (neighbors.size === 0) {
+          allPaths.push([...path]);
+        } else {
+          for (const neighbor of neighbors) {
+            if (!visited.has(neighbor)) {
+              dfs(neighbor, path);
+            }
+          }
+        }
+        
+        path.pop();
+        visited.delete(node);
+      };
+      
+      // Start from nodes with no incoming edges (sources)
+      allElements.forEach((_, idx) => {
+        const hasIncoming = relationships.some((rel: any) => {
+          const toIdx = allElements.findIndex(m => m.element_index === rel.to_element);
+          return toIdx === idx;
         });
-      }
-    }
+        if (!hasIncoming) {
+          dfs(idx, []);
+        }
+      });
+      
+      return allPaths.reduce((longest, current) => 
+        current.length > longest.length ? current : longest, []
+      );
+    };
     
-    console.log(`✅ Node ordering optimized for minimal crossings`);
+    // Helper: Find branches from a node (excluding main pathway)
+    const findBranches = (nodeIdx: number, mainPathway: Set<number>): number[] => {
+      const neighbors = graph.get(nodeIdx) || new Set();
+      return Array.from(neighbors).filter(n => !mainPathway.has(n));
+    };
     
-    // ===== COMPUTE POSITIONS WITH COLUMN-BASED LAYOUT =====
+    console.log(`✅ Three-zone layout system ready`);
+    
+    // ===== COMPUTE POSITIONS WITH THREE-ZONE LAYOUT =====
     const Mx = 8, My = 5; // Margins (reduced top margin)
     const layerHeight = 60;
     const vGap = Math.max(20, layerHeight * 0.9);
     const maxLayer = layers.length - 1;
-    
-    // COLUMN LAYOUT STRATEGY:
-    // Column 1 (X=10%): All icons (organ sources)
-    // Column 2 (X=35%): Main pathway (single nodes)
-    // Column 3 (X=60-85%): Branch targets (multiple nodes)
     
     const ICON_COLUMN_X = 10;
     const PATHWAY_COLUMN_X = 35;
     const BRANCH_START_X = 60;
     const BRANCH_END_X = 85;
     
-    // Separate icons and shapes
+    // Separate icons
     const iconIndices = new Set<number>();
-    const iconToConnectedShape = new Map<number, number>(); // icon idx -> first connected shape idx
+    const iconToConnectedShape = new Map<number, number>();
     
     allElements.forEach((m, idx) => {
       if (m.element.element_type === 'icon') {
         iconIndices.add(idx);
-        // Find first connected pathway element
         relationships.forEach((rel: any) => {
           if (rel.from_element === m.element_index) {
             const targetIdx = allElements.findIndex(el => el.element_index === rel.to_element);
@@ -1292,47 +1281,72 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       }
     });
     
-    // Detect branch points (nodes with out-degree > 1)
-    const branchPoints = new Set<number>();
-    graph.forEach((neighbors, node) => {
-      if (neighbors.size > 1) {
-        branchPoints.add(node);
-      }
-    });
+    // ZONE 1: Identify main pathway (longest chain)
+    const mainPathwayIndices = findLongestPath();
+    const mainPathwaySet = new Set(mainPathwayIndices);
     
-    // First pass: position non-icon elements
+    // ZONE 2: Position main pathway vertically at X=35%
     const positionMap = new Map<number, { x: number; y: number }>();
+    const startY = 10;
+    const verticalSpacing = 15;
     
-    allElements.forEach((m, idx) => {
-      if (iconIndices.has(idx)) return; // Skip icons for now
-      
-      const layerIdx = nodeLayer.get(idx) || 0;
-      const posInLayer = orderInLayer.get(layerIdx)?.indexOf(idx) || 0;
-      const layerSize = orderInLayer.get(layerIdx)?.length || 1;
-      
-      // INVERTED Y: top-to-bottom flow (layer 0 at top)
-      const invertedLayerIdx = maxLayer - layerIdx;
-      const y = snapToGrid(My + invertedLayerIdx * (layerHeight + vGap));
-      
-      let x: number;
-      
-      // Column-based X positioning
-      if (layerSize === 1) {
-        // Single element in layer: main pathway column
-        x = snapToGrid(PATHWAY_COLUMN_X);
-      } else {
-        // Multiple elements: distribute in branch column
-        const spacing = (BRANCH_END_X - BRANCH_START_X) / (layerSize - 1);
-        x = snapToGrid(BRANCH_START_X + (posInLayer * spacing));
-      }
-      
-      positionMap.set(idx, { x, y });
+    mainPathwayIndices.forEach((nodeIdx, i) => {
+      positionMap.set(nodeIdx, {
+        x: PATHWAY_COLUMN_X,
+        y: startY + (i * verticalSpacing)
+      });
     });
     
-    // Second pass: position icons aligned with their connected elements
+    // ZONE 3: Position branches and effects
+    const processedBranches = new Set<number>();
+    
+    mainPathwayIndices.forEach(nodeIdx => {
+      const branches = findBranches(nodeIdx, mainPathwaySet);
+      
+      if (branches.length > 0) {
+        const parentPos = positionMap.get(nodeIdx)!;
+        const spacing = branches.length > 1 ? (BRANCH_END_X - BRANCH_START_X) / (branches.length - 1) : 0;
+        
+        branches.forEach((branchIdx, idx) => {
+          if (processedBranches.has(branchIdx)) return;
+          
+          const branchX = branches.length === 1 
+            ? (BRANCH_START_X + BRANCH_END_X) / 2 
+            : BRANCH_START_X + (idx * spacing);
+          
+          positionMap.set(branchIdx, {
+            x: branchX,
+            y: parentPos.y
+          });
+          processedBranches.add(branchIdx);
+          
+          // Position effects below branch
+          const effects = findBranches(branchIdx, mainPathwaySet);
+          effects.forEach((effectIdx, effIdx) => {
+            positionMap.set(effectIdx, {
+              x: branchX,
+              y: parentPos.y + 10 + (effIdx * 12)
+            });
+            processedBranches.add(effectIdx);
+          });
+        });
+      }
+    });
+    
+    // Handle remaining unpositioned nodes
+    allElements.forEach((m, idx) => {
+      if (!iconIndices.has(idx) && !positionMap.has(idx)) {
+        positionMap.set(idx, {
+          x: 70,
+          y: 50 + (idx * 10)
+        });
+      }
+    });
+    
+    // Position icons aligned with their connected elements
     iconIndices.forEach(iconIdx => {
       const connectedShapeIdx = iconToConnectedShape.get(iconIdx);
-      let y = My; // Default to top if no connection
+      let y = 50; // Default if no connection
       
       if (connectedShapeIdx !== undefined) {
         const connectedPos = positionMap.get(connectedShapeIdx);
@@ -1342,6 +1356,12 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       }
       
       positionMap.set(iconIdx, { x: ICON_COLUMN_X, y });
+    });
+    
+    console.log('✅ Three-zone positioning complete:', {
+      mainPathway: mainPathwayIndices.length,
+      branches: processedBranches.size,
+      icons: iconIndices.size
     });
     
     // Build composed objects with column-based positions
@@ -1458,63 +1478,49 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       const fromObj = composedObjects.find((o: any) => o.element_index === rel.from_element);
       const toObj = composedObjects.find((o: any) => o.element_index === rel.to_element);
       
-      // Determine preferred ports and routing based on category and actual positions
-      let preferredPorts = { from: 'bottom', to: 'top' };
-      let routingStyle = 'straight'; // Default to straight for biological pathways
+      // Determine preferred ports and routing based on layout zones
+      let preferredPorts = { from: '', to: '' };
+      let routingStyle: 'straight' | 'curved' | 'orthogonal' = 'straight';
       
       if (fromObj && toObj) {
         const dx = toObj.x - fromObj.x;
         const dy = toObj.y - fromObj.y;
         
-        // Source category: icon to molecule (always horizontal left-to-right)
-        if (category === 'source' || fromIsIcon) {
+        // ZONE-BASED PORT SELECTION
+        
+        // Icon to pathway: right → left, straight
+        if (fromIsIcon) {
           preferredPorts = { from: 'right', to: 'left' };
           routingStyle = 'straight';
         }
-        // Main pathway: vertical flow with straight lines
-        else if (category === 'main_pathway') {
-          if (Math.abs(dx) < 10) {
-            // Vertical alignment: use bottom->top for downward flow
-            preferredPorts = { from: 'bottom', to: 'top' };
-            routingStyle = 'straight';
-          } else if (dx > 10) {
-            // Moving right: horizontal connection
-            preferredPorts = { from: 'right', to: 'left' };
-            routingStyle = 'straight';
-          } else {
-            // Moving left: feedback
-            preferredPorts = { from: 'left', to: 'right' };
-            routingStyle = 'curved';
-          }
+        // Main pathway vertical flow (small horizontal movement): bottom → top, straight
+        else if (Math.abs(dx) < 10 && dy > 5) {
+          preferredPorts = { from: 'bottom', to: 'top' };
+          routingStyle = 'straight';
         }
-        // Effect/branch: to right side targets, use curved
-        else if (category === 'effect' || category === 'receptor_binding') {
-          if (dx > 15) {
-            // Branch to right: use bottom-right -> left or top-left
-            preferredPorts = dy > 0 
-              ? { from: 'bottom-right', to: 'left' }
-              : { from: 'right', to: 'top-left' };
-            routingStyle = 'curved';
-          } else {
-            // Vertical effect
-            preferredPorts = { from: 'bottom', to: 'top' };
-            routingStyle = 'straight';
-          }
+        // Branch to right (significant horizontal movement): right → left, curved
+        else if (dx > 15) {
+          preferredPorts = { from: 'right', to: 'left' };
+          routingStyle = 'curved';
         }
-        // Default fallback based on relative position
+        // Downward flow (effects below receptors): bottom → top, straight
+        else if (dy > 5 && Math.abs(dx) < 5) {
+          preferredPorts = { from: 'bottom', to: 'top' };
+          routingStyle = 'straight';
+        }
+        // Default: calculate from positions
         else {
           if (Math.abs(dy) > Math.abs(dx)) {
-            // Primarily vertical
             preferredPorts = dy > 0 
               ? { from: 'bottom', to: 'top' }
               : { from: 'top', to: 'bottom' };
+            routingStyle = 'straight';
           } else {
-            // Primarily horizontal
-            preferredPorts = dx > 0 
+            preferredPorts = dx > 0
               ? { from: 'right', to: 'left' }
               : { from: 'left', to: 'right' };
+            routingStyle = category === 'main_pathway' ? 'straight' : 'curved';
           }
-          routingStyle = Math.abs(dx) > 15 ? 'curved' : 'straight';
         }
       }
       

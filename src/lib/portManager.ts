@@ -180,3 +180,21 @@ export function choosePortsByDirection(
   
   return { sourcePort, targetPort };
 }
+
+// Find specific port position by name
+export function findPortPosition(shape: FabricObject, portName: string): { x: number; y: number } {
+  const ports = calculateShapePorts(shape);
+  const port = ports.find(p => p.position === portName);
+  
+  if (!port) {
+    console.warn(`Port ${portName} not found on shape, using center`);
+    const width = (shape.width || 100) * (shape.scaleX || 1);
+    const height = (shape.height || 100) * (shape.scaleY || 1);
+    return {
+      x: (shape.left || 0) + width / 2,
+      y: (shape.top || 0) + height / 2
+    };
+  }
+  
+  return { x: port.x, y: port.y };
+}
