@@ -247,7 +247,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: elementSystemPrompt },
           {
@@ -314,7 +314,7 @@ SPATIAL ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
-        max_completion_tokens: 1500,
+        max_tokens: 900,
       }),
     });
 
@@ -377,25 +377,92 @@ SPATIAL ANALYSIS REQUIREMENTS:
     
     console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
 
+    // Retry logic for PASS 1 if finish_reason is 'length' and no tool_calls
     if (!elementAnalysis || !elementAnalysis.identified_elements) {
       const finishReason = elementData.choices?.[0]?.finish_reason;
-      console.error('Failed to extract element analysis.');
-      console.error('Finish reason:', finishReason);
-      console.error('Response preview:', JSON.stringify(elementData).slice(0, 500));
       
-      let errorMsg = 'Failed to parse element analysis';
-      if (finishReason === 'length') {
-        errorMsg = 'Analysis incomplete - response too large. Try a simpler image or enable strict mode.';
+      if (finishReason === 'length' && !elementData.choices[0]?.message?.tool_calls) {
+        console.log('⚠ Pass 1 hit length limit without tool call. Retrying with condensed prompt...');
+        
+        const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { 
+                role: 'system', 
+                content: 'Return function call ONLY. No prose. Strictly minimal JSON. Analyze elements and positions precisely.' 
+              },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: elementUserPrompt },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                    }
+                  }
+                ]
+              }
+            ],
+            tools: [
+              {
+                type: 'function',
+                function: {
+                  name: 'return_element_analysis',
+                  description: 'Return element analysis',
+                  parameters: {
+                    type: 'object',
+                    properties: {
+                      identified_elements: { type: 'array' },
+                      spatial_analysis: { type: 'object' },
+                      overall_layout: { type: 'object' }
+                    },
+                    required: ['identified_elements']
+                  }
+                }
+              }
+            ],
+            tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
+            max_tokens: 675,
+          }),
+        });
+        
+        if (retryResponse.ok) {
+          const retryData = await retryResponse.json();
+          if (retryData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
+            try {
+              const args = retryData.choices[0].message.tool_calls[0].function.arguments;
+              elementAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
+              console.log('✓ Retry successful - extracted from tool_calls');
+            } catch (e) {
+              console.log('Retry failed to parse tool_calls');
+            }
+          }
+        }
       }
       
-      return new Response(JSON.stringify({ 
-        error: errorMsg,
-        finish_reason: finishReason,
-        hint: 'Try uploading a clearer or simpler reference image'
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // If still no analysis after retry
+      if (!elementAnalysis || !elementAnalysis.identified_elements) {
+        console.error('Failed to extract element analysis after retry.');
+        console.error('Finish reason:', finishReason);
+        console.error('Response preview:', JSON.stringify(elementData).slice(0, 500));
+        
+        return new Response(JSON.stringify({ 
+          error: 'Element analysis incomplete due to response length',
+          stage: 'element_detection',
+          finish_reason: finishReason,
+          hint: 'Try enabling strict mode, using a smaller/clearer image, or simplifying the reference.'
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // STEP 1B: PASS 2 - Deep Connector Analysis
@@ -460,7 +527,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: connectorSystemPrompt },
           {
@@ -525,7 +592,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           }
         ],
         tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
-        max_completion_tokens: 1200,
+        max_tokens: 700,
       }),
     });
 
@@ -588,25 +655,90 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
 
+    // Retry logic for PASS 2 if finish_reason is 'length' and no tool_calls
     if (!connectorAnalysis || !connectorAnalysis.connectors) {
       const finishReason = connectorData.choices?.[0]?.finish_reason;
-      console.error('Failed to extract connector analysis.');
-      console.error('Finish reason:', finishReason);
-      console.error('Response preview:', JSON.stringify(connectorData).slice(0, 500));
       
-      let errorMsg = 'Failed to parse connector analysis';
-      if (finishReason === 'length') {
-        errorMsg = 'Connector analysis incomplete - response too large. Try a simpler image.';
+      if (finishReason === 'length' && !connectorData.choices[0]?.message?.tool_calls) {
+        console.log('⚠ Pass 2 hit length limit without tool call. Retrying with condensed prompt...');
+        
+        const retryResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { 
+                role: 'system', 
+                content: 'Return function call ONLY. No prose. Analyze connectors between elements.' 
+              },
+              {
+                role: 'user',
+                content: [
+                  { type: 'text', text: connectorUserPrompt },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                    }
+                  }
+                ]
+              }
+            ],
+            tools: [
+              {
+                type: 'function',
+                function: {
+                  name: 'return_connector_analysis',
+                  description: 'Return connector analysis',
+                  parameters: {
+                    type: 'object',
+                    properties: {
+                      connectors: { type: 'array' }
+                    },
+                    required: ['connectors']
+                  }
+                }
+              }
+            ],
+            tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
+            max_tokens: 525,
+          }),
+        });
+        
+        if (retryResponse.ok) {
+          const retryData = await retryResponse.json();
+          if (retryData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
+            try {
+              const args = retryData.choices[0].message.tool_calls[0].function.arguments;
+              connectorAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
+              console.log('✓ Retry successful - extracted from tool_calls');
+            } catch (e) {
+              console.log('Retry failed to parse tool_calls');
+            }
+          }
+        }
       }
       
-      return new Response(JSON.stringify({ 
-        error: errorMsg,
-        finish_reason: finishReason,
-        hint: 'Try toggling strict mode or using a simpler reference image'
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // If still no analysis after retry
+      if (!connectorAnalysis || !connectorAnalysis.connectors) {
+        console.error('Failed to extract connector analysis after retry.');
+        console.error('Finish reason:', finishReason);
+        console.error('Response preview:', JSON.stringify(connectorData).slice(0, 500));
+        
+        return new Response(JSON.stringify({ 
+          error: 'Connector analysis incomplete due to response length',
+          stage: 'connector_analysis',
+          finish_reason: finishReason,
+          hint: 'Try toggling strict mode or using a simpler reference image with fewer connections.'
+        }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // Merge analyses into final structure
@@ -1087,7 +1219,7 @@ Return ONLY JSON:
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-5-2025-08-07',
+            model: 'gpt-4o-mini',
             messages: [
               { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
               {
@@ -1104,7 +1236,7 @@ Return ONLY JSON:
               }
             ],
             response_format: { type: 'json_object' },
-            max_completion_tokens: 1000,
+            max_tokens: 600,
           }),
         });
 
