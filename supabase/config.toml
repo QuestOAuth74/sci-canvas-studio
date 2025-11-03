@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.generate-figure-from-reference]
 verify_jwt = true
+
+[functions.generate-icon-from-reference]
+verify_jwt = true

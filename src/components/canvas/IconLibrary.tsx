@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft, ChevronRight, Search, X, Star } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X, Star, Sparkles } from "lucide-react";
 import { usePinnedCategories } from "@/hooks/usePinnedCategories";
 import { toast } from "sonner";
 import noPreview from "@/assets/no_preview.png";
@@ -29,6 +29,7 @@ interface IconLibraryProps {
   onCategoryChange: (category: string) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  onAIIconGenerate?: () => void;
 }
 
 const ICONS_PER_PAGE = 20;
@@ -77,7 +78,7 @@ const svgToDataUrl = (svg: string): string => {
   return `data:image/svg+xml;charset=utf-8,${encoded}`;
 };
 
-export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, onToggleCollapse }: IconLibraryProps) => {
+export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, onToggleCollapse, onAIIconGenerate }: IconLibraryProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [iconsByCategory, setIconsByCategory] = useState<Record<string, Icon[]>>({});
   const [loading, setLoading] = useState(true);
@@ -416,9 +417,22 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       {!isCollapsed && (
         <>
           <div className="p-4 border-b space-y-3">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
-              <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
+                <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
+              </div>
+              {onAIIconGenerate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onAIIconGenerate}
+                  className="h-8 gap-1.5"
+                >
+                  <Sparkles className="h-3 w-3" />
+                  <span className="text-xs">AI</span>
+                </Button>
+              )}
             </div>
             
             <div className="relative">

@@ -22,6 +22,7 @@ import { MobileWarningDialog } from "@/components/canvas/MobileWarningDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
+import { AIIconGenerator } from "@/components/canvas/AIIconGenerator";
 import { CommandPalette } from "@/components/canvas/CommandPalette";
 import { AlignmentGuides } from "@/components/canvas/AlignmentGuides";
 import { CropTool } from "@/components/canvas/CropTool";
@@ -45,6 +46,7 @@ const CanvasContent = () => {
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "layers">("properties");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
+  const [aiIconGeneratorOpen, setAiIconGeneratorOpen] = useState(false);
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [templatesDialogOpen, setTemplatesDialogOpen] = useState(false);
@@ -492,6 +494,16 @@ const CanvasContent = () => {
         onOpenChange={setAiGeneratorOpen} 
       />
       
+      {/* AI Icon Generator */}
+      <AIIconGenerator
+        open={aiIconGeneratorOpen}
+        onOpenChange={setAiIconGeneratorOpen}
+        onIconGenerated={() => {
+          // Refresh icon library if needed
+          toast.success("Icon added to library!");
+        }}
+      />
+      
       {/* Export Dialog */}
       <ExportDialog
         open={exportDialogOpen}
@@ -671,6 +683,7 @@ const CanvasContent = () => {
                       onCategoryChange={setSelectedIconCategory}
                       isCollapsed={false}
                       onToggleCollapse={() => {}}
+                      onAIIconGenerate={() => setAiIconGeneratorOpen(true)}
                     />
                   ) : (
                     <UserAssetsLibrary 
