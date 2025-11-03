@@ -211,6 +211,61 @@ serve(async (req) => {
     console.log('[PROGRESS] element_detection | 0% | Starting element analysis...');
     console.log('Pass 1: Analyzing elements and positions...');
     
+    // Phase 3: Adaptive element count check
+    const countSystemPrompt = `Count total elements in this diagram. Return ONLY a number.
+    
+Count all distinct elements: shapes with text, biological icons, proteins, molecules, cells, organs, etc.
+Do not count connectors/arrows/lines.
+
+Return format: { "count": number }`;
+
+    const countResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: countSystemPrompt },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'How many distinct elements are in this diagram?' },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 50,
+      }),
+    });
+
+    let elementCount = 0;
+    let useChunkedMode = false;
+
+    if (countResponse.ok) {
+      try {
+        const countData = await countResponse.json();
+        const content = countData.choices[0]?.message?.content || '0';
+        const match = content.match(/\d+/);
+        if (match) {
+          elementCount = parseInt(match[0]);
+          useChunkedMode = elementCount > 25;
+          console.log(`📊 Detected ${elementCount} elements. Chunked mode: ${useChunkedMode}`);
+        }
+      } catch (e) {
+        console.log('Element count check failed, proceeding with standard mode');
+      }
+    }
+
+    console.log('[PROGRESS] element_detection | 10% | Starting detailed analysis...');
+    
     const elementSystemPrompt = `You are a scientific illustration analysis expert. PASS 1: Analyze elements MINIMAL OUTPUT.
 
 ULTRA-COMPACT JSON REQUIRED. Use SHORT property names:
@@ -239,15 +294,17 @@ RULES:
 - "st" (search_terms): ONLY for icons - ["specific", "broader", "category"]
 
 CRITICAL LIMITS:
-- MAX 40 elements total
+- MAX ${useChunkedMode ? '20' : '40'} elements ${useChunkedMode ? 'in this batch' : 'total'}
 - OMIT all optional fields
 - NO descriptions, colors, bounding boxes, or extra metadata
 - Position accuracy ±2% is critical
 - Search terms: most specific first, max 4 terms per icon`;
 
     const elementUserPrompt = description 
-      ? `PASS 1 - Analyze elements and positions in this diagram. User description: "${description}"`
-      : "PASS 1 - Analyze all elements and their precise positions.";
+      ? `PASS 1 - Analyze elements and positions in this diagram. User description: "${description}"${useChunkedMode ? ' Return first 20 elements (top-left to center region).' : ''}`
+      : `PASS 1 - Analyze all elements and their precise positions.${useChunkedMode ? ' Return first 20 elements (top-left to center region).' : ''}`;
+
+    console.log('[PROGRESS] element_detection | 20% | Analyzing batch 1...');
 
     const elementResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -437,6 +494,108 @@ CRITICAL LIMITS:
     }
     
     console.log('[PROGRESS] element_detection | 100% | Element analysis complete');
+
+    // Phase 3: Chunked mode - fetch remaining elements if needed
+    if (useChunkedMode && elementAnalysis && elementAnalysis.identified_elements) {
+      console.log('[PROGRESS] element_detection | 50% | Fetching remaining elements...');
+      
+      const batch2UserPrompt = `PASS 1 CONTINUED - Analyze REMAINING elements not yet captured. Focus on center-right to bottom-right regions. Return next 20 elements.${description ? ` Context: "${description}"` : ''}`;
+      
+      const batch2Response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: elementSystemPrompt },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: batch2UserPrompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                  }
+                }
+              ]
+            }
+          ],
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: 'return_element_analysis',
+                description: 'Return ultra-compact element analysis',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    e: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          n: { type: 'string' },
+                          t: { type: 'string', enum: ['shape', 'icon'] },
+                          s: { type: 'string', enum: ['rect', 'circle', 'oval'] },
+                          x: { type: 'number' },
+                          y: { type: 'number' },
+                          txt: { type: 'string' },
+                          st: { type: 'array', items: { type: 'string' } }
+                        },
+                        required: ['n', 't', 'x', 'y']
+                      }
+                    }
+                  },
+                  required: ['e']
+                }
+              }
+            }
+          ],
+          tool_choice: { type: 'function', function: { name: 'return_element_analysis' } },
+          max_tokens: 3500,
+        }),
+      });
+
+      if (batch2Response.ok) {
+        const batch2Data = await batch2Response.json();
+        if (batch2Data.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
+          try {
+            const args = batch2Data.choices[0].message.tool_calls[0].function.arguments;
+            const parsed = typeof args === 'string' ? JSON.parse(args) : args;
+            const batch2Elements = (parsed.e || []).map((el: any) => ({
+              name: el.n,
+              element_type: el.t,
+              shape_type: el.s,
+              position_x: el.x,
+              position_y: el.y,
+              text_content: el.txt,
+              search_terms: el.st
+            }));
+            
+            // Merge batch 2 with batch 1, removing duplicates based on position
+            const existingPositions = new Set(
+              elementAnalysis.identified_elements.map((e: any) => `${Math.round(e.position_x)},${Math.round(e.position_y)}`)
+            );
+            
+            const newElements = batch2Elements.filter((el: any) => {
+              const posKey = `${Math.round(el.position_x)},${Math.round(el.position_y)}`;
+              return !existingPositions.has(posKey);
+            });
+            
+            elementAnalysis.identified_elements.push(...newElements);
+            console.log(`✓ Merged batch 2: added ${newElements.length} new elements (total: ${elementAnalysis.identified_elements.length})`);
+          } catch (e) {
+            console.log('Failed to parse batch 2, continuing with batch 1 only');
+          }
+        }
+      }
+      
+      console.log('[PROGRESS] element_detection | 100% | All batches complete');
+    }
 
     // Retry logic for PASS 1 if we failed to extract valid JSON
     if (!elementAnalysis || !elementAnalysis.identified_elements) {
