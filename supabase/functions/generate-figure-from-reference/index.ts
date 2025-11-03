@@ -230,6 +230,101 @@ serve(async (req) => {
       });
     }
 
+    // STEP 0: PASS 0 - High-Level Diagram Description
+    console.log('[PROGRESS] diagram_description | 0% | Analyzing overall diagram structure...');
+    
+    const descriptionSystemPrompt = `You are a scientific diagram analysis expert. PASS 0: Generate a comprehensive textual description of this diagram.
+
+Analyze the diagram and provide a structured description covering:
+
+1. DIAGRAM TYPE: Identify the structural pattern
+   - Linear pathway (A→B→C)
+   - Hub-and-spoke (central node with multiple branches)
+   - Cyclic/feedback loop
+   - Hierarchical tree
+   - Matrix/grid layout
+   - Multi-column comparison
+   - Other (describe)
+
+2. MAIN CONCEPT: What biological/scientific process is being illustrated?
+
+3. ELEMENT COUNT: Approximate number of:
+   - Text boxes/shapes with labels
+   - Icons/symbols
+   - Arrows/connectors
+
+4. STRUCTURAL PATTERNS:
+   - Flow direction (top-down, left-right, radial, etc.)
+   - Grouping (columns, rows, clusters)
+   - Visual hierarchy (which elements are primary/secondary)
+
+5. CONNECTOR PATTERNS:
+   - Main pathway description
+   - Branch/side-effect patterns
+   - Convergence/divergence points
+   - Any feedback loops
+
+6. KEY ELEMENTS (in order of importance):
+   - List the 5-10 most important labeled elements
+   - Note their approximate positions (top-left, center, bottom-right, etc.)
+
+7. SPECIAL FEATURES:
+   - Any unusual visual elements
+   - Color coding patterns
+   - Label placement conventions
+
+Return a clear, detailed description that will help subsequent analysis passes understand the diagram's intent and structure.`;
+
+    const descriptionUserPrompt = description 
+      ? `PASS 0 - Describe this scientific diagram in detail. User context: "${description}"`
+      : `PASS 0 - Describe this scientific diagram in detail, focusing on structure and key elements.`;
+
+    let diagramDescription = '';
+    
+    try {
+      const descriptionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: descriptionSystemPrompt },
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: descriptionUserPrompt },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 800,
+          temperature: 0.3,
+        }),
+      });
+
+      if (!descriptionResponse.ok) {
+        const errorText = await descriptionResponse.text();
+        console.error('❌ Pass 0 OpenAI error:', descriptionResponse.status, errorText);
+        console.log('⚠️ Proceeding without diagram description');
+      } else {
+        const descriptionData = await descriptionResponse.json();
+        diagramDescription = descriptionData.choices?.[0]?.message?.content || '';
+        console.log('[PROGRESS] diagram_description | 100% | Description complete');
+        console.log('📝 Diagram Description:\n', diagramDescription);
+      }
+    } catch (error) {
+      console.error('❌ Pass 0 failed:', error);
+      console.log('⚠️ Proceeding without diagram description');
+    }
+
     // STEP 1A: PASS 1 - Element Detection & Precise Positioning
     console.log('[PROGRESS] element_detection | 0% | Starting element analysis...');
     console.log('Pass 1: Analyzing elements and positions...');
@@ -241,6 +336,9 @@ serve(async (req) => {
     console.log('[PROGRESS] element_detection | 10% | Starting detailed analysis...');
     
     const elementSystemPrompt = `You are a scientific illustration analysis expert. PASS 1: Analyze elements MINIMAL OUTPUT.
+
+CONTEXT FROM PREVIOUS ANALYSIS:
+${diagramDescription ? `\n${diagramDescription}\n` : 'No prior context available.'}
 
 ULTRA-COMPACT JSON REQUIRED. Use SHORT property names:
 
@@ -608,6 +706,9 @@ CRITICAL LIMITS:
     console.log('Pass 2: Analyzing connectors in detail...');
     
     const connectorSystemPrompt = `You are a connector analysis expert. PASS 2: Analyze ONLY the connectors/arrows/lines between elements.
+
+DIAGRAM CONTEXT:
+${diagramDescription ? `\n${diagramDescription}\n` : 'No prior context available.'}
 
 Elements identified (for reference):
 ${elementAnalysis.identified_elements.map((e: any, i: number) => `${i}: ${e.name} at (${e.position_x}, ${e.position_y})`).join('\n')}
@@ -1204,6 +1305,17 @@ CONNECTOR ANALYSIS REQUIREMENTS:
     // ===== PATTERN DETECTION =====
     // Detect whether diagram is linear pathway or hub-and-spoke
     const detectLayoutPattern = (): 'linear' | 'hub-spoke' => {
+      // Check if description mentions hub-and-spoke or multi-column patterns
+      const descLower = diagramDescription.toLowerCase();
+      if (descLower.includes('hub-and-spoke') || 
+          descLower.includes('central node') ||
+          descLower.includes('multiple branches') ||
+          descLower.includes('multi-column') ||
+          descLower.includes('three columns')) {
+        console.log('🎯 Description indicates hub-and-spoke pattern');
+        return 'hub-spoke';
+      }
+      
       const outDegrees = new Map<number, number>();
       
       relationships.forEach((rel: any) => {
@@ -1217,6 +1329,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
       
       // If one node fans out to 3+ direct children, it's hub-and-spoke
       if (maxOutDegree >= 3) {
+        console.log('🎯 Topology indicates hub-and-spoke pattern (max out-degree:', maxOutDegree, ')');
         return 'hub-spoke';
       }
       
@@ -2038,6 +2151,8 @@ Return JSON:
       checks_corrected: checks.filter(c => c.status === 'corrected').length,
       checks_missing: checks.filter(c => c.status === 'missing').length,
       layout_source: 'deterministic',
+      layout_pattern: layoutPattern,
+      description: diagramDescription,
       self_critique: critiqueResult ? {
         overall_accuracy: critiqueResult.overall_accuracy,
         issues_found: critiqueResult.issues?.length || 0,
@@ -2054,6 +2169,7 @@ Return JSON:
 
     return new Response(
       JSON.stringify({
+        diagramDescription,
         analysis,
         proposed_layout: proposedLayout,
         layout: finalLayout,

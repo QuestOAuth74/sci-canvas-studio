@@ -99,6 +99,7 @@ interface Critique {
 }
 
 interface GenerationResponse {
+  diagramDescription?: string;
   analysis: any;
   proposed_layout: GeneratedLayout;
   layout: GeneratedLayout;
@@ -117,6 +118,13 @@ interface ProgressStage {
 }
 
 const initialProgressStages: ProgressStage[] = [
+  {
+    id: 'diagram_description',
+    name: 'Analyzing Structure',
+    description: 'Understanding diagram layout and patterns',
+    status: 'pending',
+    progress: 0
+  },
   {
     id: 'element_detection',
     name: 'Analyzing Elements',
@@ -862,8 +870,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           {/* Preview & Checks */}
           {response && (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="reference">Reference</TabsTrigger>
+                <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="checks">
                   Checks ({response.metadata.checks_passed}/{response.checks.length})
                 </TabsTrigger>
@@ -872,6 +881,18 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
 
               <TabsContent value="reference" className="space-y-2">
                 <img src={image!} alt="Reference" className="w-full rounded-lg max-h-96 object-contain border" />
+              </TabsContent>
+
+              <TabsContent value="description" className="space-y-2">
+                <Card className="p-4 bg-muted/30 max-h-96 overflow-y-auto">
+                  <h3 className="font-semibold mb-3 text-sm">AI-Generated Diagram Analysis</h3>
+                  <div className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
+                    {response.diagramDescription || response.metadata?.description || 'No description available'}
+                  </div>
+                </Card>
+                <p className="text-xs text-muted-foreground text-center">
+                  This contextual analysis helps guide element detection and layout generation
+                </p>
               </TabsContent>
 
               <TabsContent value="checks" className="space-y-2">
