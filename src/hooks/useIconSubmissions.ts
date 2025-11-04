@@ -57,6 +57,25 @@ export const useIconSubmissions = () => {
         error: error?.message 
       });
 
+      // If the join fails, fetch without submitter info as fallback
+      if (error && error.message.includes('relationship')) {
+        console.warn('[fetchAllSubmissions] Foreign key missing, fetching without submitter info');
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('icon_submissions')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (fallbackError) throw fallbackError;
+        
+        const formatted = (fallbackData || []).map((item: any) => ({
+          ...item,
+          submitter: undefined
+        }));
+        
+        setSubmissions(formatted);
+        return formatted;
+      }
+
       if (error) throw error;
       
       const formatted = (data || []).map((item: any) => ({
