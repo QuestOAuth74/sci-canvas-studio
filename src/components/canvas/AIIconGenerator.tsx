@@ -33,6 +33,69 @@ const styleDescriptions: Record<StylePreset, string> = {
   detailed: 'High detail scientific illustration'
 };
 
+// Helper functions for image processing
+const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
+  const res = await fetch(dataUrl);
+  return await res.blob();
+};
+
+const blobToDataUrl = (blob: Blob): Promise<string> =>
+  new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.readAsDataURL(blob);
+  });
+
+const drawToPngDataUrl = (img: HTMLImageElement): string => {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const ctx = c.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+  return c.toDataURL('image/png');
+};
+
+const detectHasTransparency = (img: HTMLImageElement): boolean => {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const ctx = c.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+  const { data } = ctx.getImageData(0, 0, c.width, c.height);
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] < 250) return true; // anything not fully opaque
+  }
+  return false;
+};
+
+const detectIsLikelyWhiteBackground = (img: HTMLImageElement): boolean => {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const ctx = c.getContext('2d')!;
+  ctx.drawImage(img, 0, 0);
+  const { width, height } = c;
+  const { data } = ctx.getImageData(0, 0, width, height);
+  const sample = (x: number, y: number) => {
+    const i = (y * width + x) * 4;
+    const r = data[i], g = data[i + 1], b = data[i + 2];
+    return (255 - r) + (255 - g) + (255 - b) < 45; // near-white threshold
+  };
+  let whiteCount = 0, total = 0;
+  const step = Math.max(1, Math.floor(Math.min(width, height) / 64));
+  for (let x = 0; x < width; x += step) {
+    whiteCount += sample(x, 0) ? 1 : 0;
+    whiteCount += sample(x, height - 1) ? 1 : 0;
+    total += 2;
+  }
+  for (let y = 0; y < height; y += step) {
+    whiteCount += sample(0, y) ? 1 : 0;
+    whiteCount += sample(width - 1, y) ? 1 : 0;
+    total += 2;
+  }
+  return total > 0 && whiteCount / total > 0.7; // 70% of border near white
+};
+
 export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconGeneratorProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -210,40 +273,47 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       console.log('✅ Icon generated successfully');
       setProgress(90);
       
-      // Remove background from generated image (fallback in case AI doesn't make it transparent)
+      // Normalize to PNG with transparent background
       try {
-        console.log('🎨 Checking/removing background...');
-        
-        // Convert base64 to blob
-        const base64Data = data.generatedImage.split(',')[1];
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        console.log('🎨 Normalizing to PNG with transparent background...');
+        const isJpegLike = data.generatedImage.startsWith('data:image/jpeg') ||
+                           data.generatedImage.startsWith('data:image/jpg') ||
+                           data.generatedImage.startsWith('data:image/webp');
+
+        // Load the returned image
+        const srcBlob = await dataUrlToBlob(data.generatedImage);
+        const imgEl = await loadImage(srcBlob);
+
+        const hasAlpha = detectHasTransparency(imgEl);
+        const looksWhiteBG = !hasAlpha && detectIsLikelyWhiteBackground(imgEl);
+
+        // Decide if we must remove background
+        let finalBlob: Blob;
+
+        if (isJpegLike || looksWhiteBG) {
+          console.log('🧹 Making background transparent (removal path)...');
+          finalBlob = await removeBackground(imgEl);
+        } else {
+          console.log('✅ Image already has transparency or no white background detected');
+          // Standardize to PNG
+          const pngDataUrl = drawToPngDataUrl(imgEl);
+          finalBlob = await dataUrlToBlob(pngDataUrl);
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'image/png' });
-        
-        // Load as image element
-        const imageElement = await loadImage(blob);
-        
-        // Check if background removal is needed
-        // If AI already made it transparent, this will be a no-op
-        const transparentBlob = await removeBackground(imageElement);
-        
-        // Convert back to base64
-        const reader = new FileReader();
-        const transparentBase64 = await new Promise<string>((resolve) => {
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(transparentBlob);
-        });
-        
-        console.log('✅ Background processed successfully');
-        setGeneratedImage(transparentBase64);
-      } catch (bgError) {
-        console.warn('⚠️ Background processing skipped (using original):', bgError);
-        // Use original image - if AI generated transparency correctly, this is fine
-        setGeneratedImage(data.generatedImage);
+
+        const pngDataUrl = await blobToDataUrl(finalBlob);
+        setGeneratedImage(pngDataUrl);
+        console.log('✅ Final image is PNG with transparent background');
+      } catch (procErr) {
+        console.error('❌ Unable to ensure transparency automatically:', procErr);
+        // Last resort: convert to PNG (may remain opaque)
+        try {
+          const fallbackBlob = await dataUrlToBlob(data.generatedImage);
+          const fallbackImg = await loadImage(fallbackBlob);
+          const fallbackDataUrl = drawToPngDataUrl(fallbackImg);
+          setGeneratedImage(fallbackDataUrl);
+        } catch {
+          setGeneratedImage(data.generatedImage);
+        }
       }
       
       setProgress(100);

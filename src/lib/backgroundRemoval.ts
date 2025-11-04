@@ -2,7 +2,7 @@ import { pipeline, env } from '@huggingface/transformers';
 
 // Configure transformers.js to always download models
 env.allowLocalModels = false;
-env.useBrowserCache = false;
+env.useBrowserCache = true;
 
 const MAX_IMAGE_DIMENSION = 1024;
 
@@ -35,7 +35,7 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
   try {
     console.log('Starting background removal process...');
     const segmenter = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
-      device: 'webgpu',
+      device: 'auto',
     });
     
     // Convert HTMLImageElement to canvas
@@ -206,9 +206,93 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     });
   } catch (error) {
     console.error('Error removing background:', error);
-    throw error;
+    console.warn('Segmentation failed, using fast white removal fallback');
+    try {
+      return await removeWhiteByFloodFill(imageElement, { tolerance: 20 });
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
+      throw error;
+    }
   }
 };
+
+function removeWhiteByFloodFill(image: HTMLImageElement, { tolerance = 20 } = {}): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('No canvas context');
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      ctx.drawImage(image, 0, 0);
+
+      const { width, height } = canvas;
+      const imgData = ctx.getImageData(0, 0, width, height);
+      const data = imgData.data;
+      const visited = new Uint8Array(width * height);
+
+      const nearWhite = (r: number, g: number, b: number) =>
+        (255 - r) <= tolerance && (255 - g) <= tolerance && (255 - b) <= tolerance;
+
+      const q: number[] = [];
+
+      const pushIfWhite = (x: number, y: number) => {
+        if (x < 0 || y < 0 || x >= width || y >= height) return;
+        const i = (y * width + x);
+        if (visited[i]) return;
+        const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
+        if (nearWhite(r, g, b)) {
+          visited[i] = 1;
+          q.push(i);
+        }
+      };
+
+      // Seed from all borders
+      for (let x = 0; x < width; x++) {
+        pushIfWhite(x, 0);
+        pushIfWhite(x, height - 1);
+      }
+      for (let y = 0; y < height; y++) {
+        pushIfWhite(0, y);
+        pushIfWhite(width - 1, y);
+      }
+
+      // Flood fill
+      while (q.length) {
+        const i = q.pop()!;
+        const x = i % width;
+        const y = (i - x) / width;
+
+        // Set alpha to 0 for background
+        data[i * 4 + 3] = 0;
+
+        // Neighbors
+        pushIfWhite(x + 1, y);
+        pushIfWhite(x - 1, y);
+        pushIfWhite(x, y + 1);
+        pushIfWhite(x, y - 1);
+      }
+
+      // Premultiply edges to reduce white halo
+      for (let p = 0; p < data.length; p += 4) {
+        const a = data[p + 3] / 255;
+        if (a > 0 && a < 1) {
+          data[p] = Math.round(data[p] * a);
+          data[p + 1] = Math.round(data[p + 1] * a);
+          data[p + 2] = Math.round(data[p + 2] * a);
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Failed to create blob'));
+      }, 'image/png', 1.0);
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
 
 export const loadImage = (file: Blob): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
