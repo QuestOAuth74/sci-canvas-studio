@@ -10,8 +10,7 @@ import { format } from "date-fns";
 import { useState, useMemo } from "react";
 import { UserProjectsDialog } from "@/components/admin/UserProjectsDialog";
 import { UserProfileDialog } from "@/components/admin/UserProfileDialog";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 interface UserAnalytics {
   id: string;
@@ -268,9 +267,13 @@ const Analytics = () => {
                   <BarChart data={countryDistribution} layout="vertical">
                     <XAxis type="number" />
                     <YAxis dataKey="country" type="category" width={100} />
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />}
+                    <Tooltip 
                       cursor={{ fill: 'hsl(var(--muted))' }}
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '2px solid hsl(var(--foreground))',
+                        borderRadius: '8px'
+                      }}
                     />
                     <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
                   </BarChart>
@@ -304,7 +307,13 @@ const Analytics = () => {
                         <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                       ))}
                     </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '2px solid hsl(var(--foreground))',
+                        borderRadius: '8px'
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
