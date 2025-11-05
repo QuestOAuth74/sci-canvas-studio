@@ -176,6 +176,16 @@ const Analytics = () => {
     user.project_count > max.project_count ? user : max
   , { project_count: 0, full_name: "N/A" });
 
+  // Debug logging
+  console.log('Analytics Debug:', {
+    hasAnalyticsData: !!analyticsData,
+    totalUsers,
+    countryDistributionLength: countryDistribution.length,
+    fieldDistributionLength: fieldDistribution.length,
+    countryDistribution: countryDistribution.slice(0, 3),
+    fieldDistribution: fieldDistribution.slice(0, 3)
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -258,26 +268,32 @@ const Analytics = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" />
-                Users by Country (Top 10)
+                Users by Country ({countryDistribution.length} countries)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={countryDistribution} layout="vertical">
-                    <XAxis type="number" />
-                    <YAxis dataKey="country" type="category" width={100} />
-                    <Tooltip 
-                      cursor={{ fill: 'hsl(var(--muted))' }}
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '2px solid hsl(var(--foreground))',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {countryDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={countryDistribution} layout="vertical">
+                      <XAxis type="number" />
+                      <YAxis dataKey="country" type="category" width={120} />
+                      <Tooltip 
+                        cursor={{ fill: 'hsl(var(--muted))' }}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '2px solid hsl(var(--foreground))',
+                          borderRadius: '8px'
+                        }}
+                      />
+                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    No country data available
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -287,26 +303,32 @@ const Analytics = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <GraduationCap className="h-5 w-5 text-primary" />
-                Users by Field of Study
+                Users by Field of Study ({fieldDistribution.length} fields)
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={fieldDistribution} layout="vertical">
-                    <XAxis type="number" />
-                    <YAxis dataKey="field" type="category" width={150} />
-                    <Tooltip 
-                      cursor={{ fill: 'hsl(var(--muted))' }}
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))',
-                        border: '2px solid hsl(var(--foreground))',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Bar dataKey="count" fill="hsl(var(--secondary))" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {fieldDistribution.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={fieldDistribution} layout="vertical">
+                      <XAxis type="number" />
+                      <YAxis dataKey="field" type="category" width={180} />
+                      <Tooltip 
+                        cursor={{ fill: 'hsl(var(--muted))' }}
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--background))',
+                          border: '2px solid hsl(var(--foreground))',
+                          borderRadius: '8px'
+                        }}
+                      />
+                      <Bar dataKey="count" fill="hsl(var(--secondary))" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    No field of study data available
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
