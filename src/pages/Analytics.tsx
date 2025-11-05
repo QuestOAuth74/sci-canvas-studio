@@ -3,18 +3,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye } from "lucide-react";
+import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye, User, Globe, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { UserProjectsDialog } from "@/components/admin/UserProjectsDialog";
+import { UserProfileDialog } from "@/components/admin/UserProfileDialog";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
 interface UserAnalytics {
   id: string;
   email: string;
   full_name: string;
   country: string | null;
+  field_of_study: string | null;
+  avatar_url: string | null;
+  quote: string | null;
   created_at: string;
   project_count: number;
 }
@@ -25,6 +31,8 @@ const Analytics = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isProjectsDialogOpen, setIsProjectsDialogOpen] = useState(false);
+  const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserAnalytics | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
 
@@ -34,7 +42,7 @@ const Analytics = () => {
       // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, full_name, country, created_at');
+        .select('id, email, full_name, country, field_of_study, avatar_url, quote, created_at');
       
       if (profilesError) throw profilesError;
 
@@ -110,6 +118,57 @@ const Analytics = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedData = sortedData.slice(startIndex, endIndex);
+
+  // Calculate distribution data
+  const countryDistribution = useMemo(() => {
+    if (!analyticsData) return [];
+    const countryCounts = analyticsData.reduce((acc, user) => {
+      const country = user.country || 'Unknown';
+      acc[country] = (acc[country] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const sorted = Object.entries(countryCounts)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count);
+    
+    // Show top 10 and group rest as "Others"
+    if (sorted.length > 10) {
+      const top10 = sorted.slice(0, 10);
+      const othersCount = sorted.slice(10).reduce((sum, item) => sum + item.count, 0);
+      return [...top10, { country: 'Others', count: othersCount }];
+    }
+    return sorted;
+  }, [analyticsData]);
+
+  const fieldDistribution = useMemo(() => {
+    if (!analyticsData) return [];
+    const fieldCounts = analyticsData.reduce((acc, user) => {
+      const field = user.field_of_study || 'Not specified';
+      acc[field] = (acc[field] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const total = analyticsData.length;
+    return Object.entries(fieldCounts)
+      .map(([field, count]) => ({ 
+        field, 
+        count, 
+        percentage: ((count / total) * 100).toFixed(1)
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [analyticsData]);
+
+  const CHART_COLORS = [
+    'hsl(var(--primary))',
+    'hsl(var(--secondary))',
+    'hsl(var(--accent))',
+    'hsl(var(--destructive))',
+    'hsl(142, 76%, 36%)',
+    'hsl(262, 83%, 58%)',
+    'hsl(346, 87%, 47%)',
+    'hsl(39, 96%, 47%)',
+  ];
 
   const totalUsers = analyticsData?.length || 0;
   const totalProjects = analyticsData?.reduce((sum, user) => sum + user.project_count, 0) || 0;
@@ -193,6 +252,66 @@ const Analytics = () => {
           </Card>
         </div>
 
+        {/* Distribution Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Country Distribution */}
+          <Card className="border-[3px] border-foreground neo-shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                Users by Country (Top 10)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={countryDistribution} layout="vertical">
+                    <XAxis type="number" />
+                    <YAxis dataKey="country" type="category" width={100} />
+                    <ChartTooltip 
+                      content={<ChartTooltipContent />}
+                      cursor={{ fill: 'hsl(var(--muted))' }}
+                    />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Field of Study Distribution */}
+          <Card className="border-[3px] border-foreground neo-shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-primary" />
+                Users by Field of Study
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={fieldDistribution}
+                      dataKey="count"
+                      nameKey="field"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      label={(entry) => `${entry.field}: ${entry.count}`}
+                    >
+                      {fieldDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Data Table */}
         <Card>
           <CardHeader>
@@ -268,18 +387,31 @@ const Analytics = () => {
                         {format(new Date(user.created_at), 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedUserId(user.id);
-                            setIsProjectsDialogOpen(true);
-                          }}
-                          disabled={user.project_count === 0}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Projects ({user.project_count})
-                        </Button>
+                        <div className="flex gap-2 justify-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setIsProfileDialogOpen(true);
+                            }}
+                          >
+                            <User className="h-4 w-4 mr-1" />
+                            Profile
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedUserId(user.id);
+                              setIsProjectsDialogOpen(true);
+                            }}
+                            disabled={user.project_count === 0}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            Projects
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -323,6 +455,23 @@ const Analytics = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* User Profile Dialog */}
+        <UserProfileDialog
+          isOpen={isProfileDialogOpen}
+          onClose={() => {
+            setIsProfileDialogOpen(false);
+            setSelectedUser(null);
+          }}
+          user={selectedUser}
+          onViewProjects={() => {
+            setIsProfileDialogOpen(false);
+            if (selectedUser) {
+              setSelectedUserId(selectedUser.id);
+              setIsProjectsDialogOpen(true);
+            }
+          }}
+        />
 
         {/* User Projects Dialog */}
         <UserProjectsDialog
