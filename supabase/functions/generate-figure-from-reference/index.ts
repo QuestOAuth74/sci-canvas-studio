@@ -1058,11 +1058,131 @@ For EACH connector, carefully analyze its PATH trajectory:
     }
     
     // Final validation and fallback
-    if (!connectorAnalysis || !connectorAnalysis.connectors) {
-      console.log('❌ All extraction strategies failed');
-      console.log('⚠️ Proceeding with empty connectors array');
-      console.log('📊 Final connectorAnalysis state:', connectorAnalysis);
-      connectorAnalysis = { connectors: [] };
+    if (!connectorAnalysis || !connectorAnalysis.connectors || connectorAnalysis.connectors.length === 0) {
+      console.log('❌ All extraction strategies failed or 0 connectors found');
+      console.log('⚠️ Attempting fallback with google/gemini-2.5-flash...');
+      
+      // Fallback: Retry Pass 2 with flash model (known to work with tool calling)
+      try {
+        const fallbackResponse = await callLovableAIWithTimeout(
+          'https://ai.gateway.lovable.dev/v1/chat/completions',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${lovableApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [
+                { role: 'system', content: connectorSystemPrompt },
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: connectorUserPrompt },
+                    {
+                      type: 'image_url',
+                      image_url: {
+                        url: image.startsWith('data:') ? image : `data:image/jpeg;base64,${image}`
+                      }
+                    }
+                  ]
+                }
+              ],
+              tools: [
+                {
+                  type: 'function',
+                  function: {
+                    name: 'return_connector_analysis',
+                    description: 'Return the connector analysis with all connectors and their properties',
+                    parameters: {
+                      type: 'object',
+                      properties: {
+                        connectors: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              from_element: { type: 'number' },
+                              to_element: { type: 'number' },
+                              relationship_type: { type: 'string' },
+                              visual_style: {
+                                type: 'object',
+                                properties: {
+                                  line_type: { type: 'string' },
+                                  line_style: { type: 'string' },
+                                  thickness: { type: 'string' },
+                                  color: { type: 'string' }
+                                }
+                              },
+                              markers: {
+                                type: 'object',
+                                properties: {
+                                  start: { type: 'string' },
+                                  end: { type: 'string' }
+                                }
+                              },
+                              routing: {
+                                type: 'object',
+                                properties: {
+                                  path_description: { type: 'string' },
+                                  approximate_waypoints: {
+                                    type: 'array',
+                                    items: {
+                                      type: 'array',
+                                      items: { type: 'number' },
+                                      minItems: 2,
+                                      maxItems: 2
+                                    }
+                                  }
+                                }
+                              },
+                              label: { type: 'string' },
+                              label_position: { type: 'string' },
+                              directionality: { type: 'string' },
+                              justification: { type: 'string' }
+                            },
+                            required: ['from_element', 'to_element', 'relationship_type']
+                          }
+                        }
+                      },
+                      required: ['connectors']
+                    }
+                  }
+                }
+              ],
+              tool_choice: { type: 'function', function: { name: 'return_connector_analysis' } },
+              max_tokens: 4000,
+            }),
+          },
+          45000
+        );
+        
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          console.log('📦 Fallback response received, attempting extraction...');
+          
+          // Try tool_calls extraction
+          if (fallbackData.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments) {
+            const args = fallbackData.choices[0].message.tool_calls[0].function.arguments;
+            const parsed = typeof args === 'string' ? JSON.parse(args) : args;
+            if (parsed?.connectors?.length > 0) {
+              connectorAnalysis = parsed;
+              console.log(`✅ Fallback success: ${parsed.connectors.length} connectors extracted with flash model`);
+            }
+          }
+        } else {
+          console.log('❌ Fallback request failed:', fallbackResponse.status);
+        }
+      } catch (fallbackErr) {
+        console.log('❌ Fallback error:', fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr));
+      }
+      
+      // Final check after fallback
+      if (!connectorAnalysis || !connectorAnalysis.connectors || connectorAnalysis.connectors.length === 0) {
+        console.log('⚠️ Proceeding with empty connectors array');
+        connectorAnalysis = { connectors: [] };
+      }
     } else {
       console.log(`✅ Successfully extracted ${connectorAnalysis.connectors.length} connectors`);
       // Log first connector for validation

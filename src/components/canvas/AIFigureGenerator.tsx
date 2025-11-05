@@ -407,7 +407,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       objects.forEach((obj, i) => {
         if (obj.type === 'shape') {
           shapeIdxs.push(i);
-        } else if (obj.type === 'icon' && obj.icon_id && isValidUuid(obj.icon_id)) {
+        } else if (obj.type === 'icon' && obj.icon_id) {
+          // Accept any non-empty icon_id (not just UUIDs)
           iconIdxs.push(i);
           iconIds.push(obj.icon_id);
         }
@@ -443,6 +444,31 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const x = (obj.x / 100) * canvasWidth;
           const y = (obj.y / 100) * canvasHeight;
           const width = obj.width || 100;
+          
+          // Check if this is a text-only label (no box)
+          if (obj.shape_subtype === 'text_label') {
+            const textContent = obj.text_content || obj.label || '';
+            const fontSize = obj.text_properties?.font_size === 'large' ? 16 : 
+                           obj.text_properties?.font_size === 'small' ? 10 : 13;
+            
+            const textObj = new FabricText(textContent, {
+              left: x,
+              top: y,
+              fontSize,
+              fill: '#000000',
+              fontFamily: 'Arial',
+              textAlign: obj.text_properties?.text_alignment || 'left',
+              id: `node-${i}`, // Predictable ID for connectivity
+            } as any);
+            
+            // Set z-index for text labels
+            (textObj as any).set('z-index', 5);
+            
+            canvas.add(textObj);
+            addedObjects.push(textObj);
+            indexMap[i] = addedObjects.length - 1;
+            continue;
+          }
           
           // Use backend-provided dimensions or calculate from content
           const objTextContent = obj.text_content || obj.label || '';
