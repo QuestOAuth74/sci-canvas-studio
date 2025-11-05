@@ -569,7 +569,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const TARGET_SIZE = 200;
           const maxDimension = Math.max(originalWidth, originalHeight);
           const normalizationScale = TARGET_SIZE / maxDimension;
-          const finalScale = normalizationScale * obj.scale;
+          const finalScale = normalizationScale * (obj.scale ?? 0.5);
 
           const x = (obj.x / 100) * canvasWidth;
           const y = (obj.y / 100) * canvasHeight;
@@ -621,41 +621,47 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         const toObj = addedObjects[toAdded];
 
         if (fromObj && toObj) {
-          // Determine routing style based on relationship category
-          const category = (conn as any).relationship_category || 'main_pathway';
-          let routingStyle: 'straight' | 'curved' | 'orthogonal' = 'straight';
+          // Import port manager functions
+          const { choosePortsByDirection } = await import('@/lib/portManager');
           
-          // Use backend's routing preference if specified
-          if (conn.type === 'curved') {
-            routingStyle = 'curved';
-          } else if (conn.type === 'orthogonal') {
-            routingStyle = 'orthogonal';
-          } else {
-            // Default: straight for main pathways and sources, curved for effects
-            routingStyle = (category === 'effect') ? 'curved' : 'straight';
-          }
-          
-          // STRICTLY use backend's preferred ports if available
-          let startX, startY, endX, endY;
+          // Always use port-based connections for clean routing
           let sourcePort, targetPort;
-          
           if ((conn as any).preferredPorts) {
-            // Import port manager functions for port calculation
-            const { choosePortsByDirection } = await import('@/lib/portManager');
             const ports = choosePortsByDirection(fromObj, toObj, (conn as any).preferredPorts);
             sourcePort = ports.sourcePort;
             targetPort = ports.targetPort;
-            startX = sourcePort.x;
-            startY = sourcePort.y;
-            endX = targetPort.x;
-            endY = targetPort.y;
           } else {
-            // Fallback to edge intersection only if no preferred ports
-            const intersection = calculateEdgeIntersection(fromObj, toObj);
-            startX = intersection.startX;
-            startY = intersection.startY;
-            endX = intersection.endX;
-            endY = intersection.endY;
+            const ports = choosePortsByDirection(fromObj, toObj);
+            sourcePort = ports.sourcePort;
+            targetPort = ports.targetPort;
+          }
+          
+          const startX = sourcePort.x;
+          const startY = sourcePort.y;
+          const endX = targetPort.x;
+          const endY = targetPort.y;
+          
+          // Determine routing style with improved logic
+          let routingStyle: 'straight' | 'curved' | 'orthogonal' = 'straight';
+          
+          if (conn.type) {
+            // Trust backend's routing type
+            routingStyle = conn.type as any;
+          } else {
+            // Compute based on port positions
+            const dx = Math.abs(endX - startX);
+            const dy = Math.abs(endY - startY);
+            const category = (conn as any).relationship_category || 'main_pathway';
+            
+            // Vertical pairs with horizontal offset need orthogonal routing
+            if ((sourcePort.position === 'bottom' && targetPort.position === 'top') ||
+                (sourcePort.position === 'top' && targetPort.position === 'bottom')) {
+              routingStyle = dx > 10 ? 'orthogonal' : 'straight';
+            } else if (category === 'effect') {
+              routingStyle = 'curved';
+            } else {
+              routingStyle = 'straight';
+            }
           }
 
           createConnector(canvas, {

@@ -2343,12 +2343,15 @@ Return JSON:
           type: 'shape',
           element_index: m.element_index,
           shape_type: m.element.shape_type || 'rectangle',
+          shape_subtype: proposedObj?.shape_subtype || m.element.shape_subtype,
           x,
           y,
           width,
           height,
           rotation: m.element.rotation || 0,
           label: m.element.name,
+          text_content: m.element.text_content,
+          text_properties: m.element.text_properties,
           fill_color: m.element.fill_color || '#E8F5E9',
           stroke_color: m.element.stroke_color || '#2E7D32',
           stroke_width: 2
@@ -2416,6 +2419,46 @@ Return JSON:
         c.from === fromIdx && c.to === toIdx
       );
 
+      // Compute preferredPorts and routing type based on layout pattern
+      let preferredPorts: { from: string; to: string };
+      let routingType = strictStyle.type;
+      
+      const fromX = fromObj.x;
+      const fromY = fromObj.y;
+      const toX = toObj.x;
+      const toY = toObj.y;
+      const dx = toX - fromX;
+      const dy = toY - fromY;
+      
+      // Use proposed ports if available, otherwise compute
+      if (proposedConn?.preferredPorts) {
+        preferredPorts = proposedConn.preferredPorts;
+        routingType = proposedConn.type || routingType;
+      } else {
+        // Compute ports based on relative positions
+        if (Math.abs(dy) > Math.abs(dx)) {
+          // Vertical flow
+          if (dy > 0) {
+            preferredPorts = { from: 'bottom', to: 'top' };
+            routingType = Math.abs(dx) > 10 ? 'orthogonal' : 'straight';
+          } else {
+            preferredPorts = { from: 'top', to: 'bottom' };
+            routingType = Math.abs(dx) > 10 ? 'orthogonal' : 'straight';
+          }
+        } else {
+          // Horizontal flow
+          if (dx > 0) {
+            preferredPorts = { from: 'right', to: 'left' };
+            routingType = Math.abs(dy) > 10 ? 'orthogonal' : (relType === 'effect' ? 'curved' : 'straight');
+          } else {
+            preferredPorts = { from: 'left', to: 'right' };
+            routingType = Math.abs(dy) > 10 ? 'orthogonal' : (relType === 'effect' ? 'curved' : 'straight');
+          }
+        }
+      }
+      
+      console.log(`Connector ${finalConnectors.length}: ${fromObj.label} → ${toObj.label}, ports ${preferredPorts.from}→${preferredPorts.to}, type ${routingType}`);
+
       // Check if AI got it right
       let styleIssues: string[] = [];
       if (proposedConn) {
@@ -2441,14 +2484,15 @@ Return JSON:
       finalConnectors.push({
         from: fromIdx,
         to: toIdx,
-        type: strictStyle.type,
+        type: routingType,
         style: strictStyle.style,
         strokeWidth: strictStyle.strokeWidth,
         color: strictStyle.color,
         endMarker: strictStyle.endMarker,
         startMarker: 'none',
         label: rel.label || '',
-        waypoints
+        waypoints,
+        preferredPorts
       });
     }
 
