@@ -1962,8 +1962,8 @@ For EACH connector, carefully analyze its PATH trajectory:
       const critiqueStart = Date.now();
       
       try {
-        // Phase 6: Simplified critique prompt to reduce tokens
-        const critiquePrompt = `Compare the proposed layout to the reference image. Check ONLY position accuracy and connector count.
+        // Phase 6: Enhanced critique prompt with connector path validation
+        const critiquePrompt = `Compare the proposed layout to the reference image. Check position accuracy, connector count, AND connector paths.
 
 ELEMENTS (expected positions):
 ${analysis.identified_elements.map((e: any, i: number) => `${i}: ${e.name} at (${e.position_x}, ${e.position_y})`).join('\n')}
@@ -1973,11 +1973,35 @@ ${proposedLayout.objects?.map((o: any, i: number) => `${i}: at (${o.x}, ${o.y})`
 
 CONNECTORS: Expected ${analysis.spatial_relationships.length}, proposed ${proposedLayout.connectors?.length || 0}
 
+For EACH connector, verify:
+- Does the arrow follow the correct path from the reference?
+- Are curves/bends preserved?
+- Should it be straight, curved, or orthogonal?
+- Are there missing waypoints for complex paths?
+- Does the trajectory match the visual path in the reference image?
+
 Return JSON:
 {
   "overall_accuracy": "excellent|good|fair|poor",
-  "issues": [{"type": "position|connector", "severity": "critical|moderate|minor", "element_or_connector": "name", "problem": "brief"}],
-  "recommended_fixes": [{"fix_type": "move_object", "target": 0, "new_x": 45, "new_y": 30, "reason": "brief"}],
+  "issues": [
+    {
+      "type": "position|connector|connector_path",
+      "severity": "critical|moderate|minor",
+      "element_or_connector": "name or connector index",
+      "problem": "brief description"
+    }
+  ],
+  "recommended_fixes": [
+    {
+      "fix_type": "move_object|adjust_connector_path|adjust_scale|adjust_rotation",
+      "target": 0,
+      "new_x": 45,
+      "new_y": 30,
+      "waypoints": [[x1,y1], [x2,y2]],
+      "routing_type": "straight|curved|orthogonal",
+      "reason": "brief explanation"
+    }
+  ],
   "confidence": "high|medium|low"
 }`;
 
@@ -1990,7 +2014,7 @@ Return JSON:
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: 'google/gemini-2.5-flash',
+              model: 'google/gemini-2.5-pro',
               messages: [
                 { role: 'system', content: 'You are a scientific diagram layout critic. Compare layouts to reference images and identify all discrepancies. Always return valid JSON.' },
                 {
@@ -2047,6 +2071,22 @@ Return JSON:
                         if (fix.new_y !== undefined) proposedLayout.objects[objIdx].y = fix.new_y;
                         fixesApplied++;
                         console.log(`    Applied fix: moved element ${fix.target} to (${fix.new_x}, ${fix.new_y})`);
+                      }
+                    } else if (fix.fix_type === 'adjust_connector_path' && fix.target !== undefined) {
+                      const connIdx = proposedLayout.connectors?.findIndex((c: any, i: number) => i === fix.target);
+                      if (connIdx >= 0 && proposedLayout.connectors[connIdx]) {
+                        if (fix.waypoints && Array.isArray(fix.waypoints)) {
+                          proposedLayout.connectors[connIdx].waypoints = fix.waypoints.map((wp: number[]) => ({
+                            x: wp[0],
+                            y: wp[1]
+                          }));
+                          fixesApplied++;
+                          console.log(`    Applied fix: adjusted connector ${fix.target} path with ${fix.waypoints.length} waypoints`);
+                        }
+                        if (fix.routing_type) {
+                          proposedLayout.connectors[connIdx].type = fix.routing_type;
+                          console.log(`    Applied fix: changed connector ${fix.target} routing to ${fix.routing_type}`);
+                        }
                       }
                     } else if (fix.fix_type === 'adjust_scale' && fix.target !== undefined) {
                       const objIdx = proposedLayout.objects?.findIndex((o: any) => o.element_index === fix.target);
