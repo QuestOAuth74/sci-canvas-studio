@@ -128,15 +128,15 @@ const initialProgressStages: ProgressStage[] = [
   },
   {
     id: 'element_detection',
-    name: 'Analyzing Elements',
-    description: 'Identifying biological elements and their positions',
+    name: 'Detecting Elements',
+    description: 'Precisely locating biological elements and positions',
     status: 'pending',
     progress: 0
   },
   {
     id: 'connector_analysis',
-    name: 'Analyzing Connectors',
-    description: 'Detecting arrows and relationships',
+    name: 'Analyzing Connector Paths',
+    description: 'Detecting arrows, waypoints, and trajectories (Enhanced AI)',
     status: 'pending',
     progress: 0
   },
@@ -157,21 +157,21 @@ const initialProgressStages: ProgressStage[] = [
   {
     id: 'layout_generation',
     name: 'Generating Layout',
-    description: 'Creating diagram layout with visual reference',
+    description: 'Building spatial layout with visual reference',
     status: 'pending',
     progress: 0
   },
   {
     id: 'self_critique',
-    name: 'Self-Critique & Refinement',
-    description: 'AI reviewing and correcting layout accuracy',
+    name: 'Validating & Refining',
+    description: 'AI verifying positions and connector paths (Enhanced AI)',
     status: 'pending',
     progress: 0
   },
   {
     id: 'final_processing',
     name: 'Final Processing',
-    description: 'Building final layout and running checks',
+    description: 'Building final layout and running validation checks',
     status: 'pending',
     progress: 0
   }
@@ -219,14 +219,15 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       progress: 0 
     })));
 
-    // Simulate progress tracking based on estimated timings
+    // Simulate progress tracking based on estimated timings (adjusted for pro models)
     const stageTimings = [
+      { id: 'diagram_description', duration: 5000 },
       { id: 'element_detection', duration: 7000 },
-      { id: 'connector_analysis', duration: 7000 },
+      { id: 'connector_analysis', duration: 10000 }, // Increased for pro model + waypoint detection
       { id: 'search_term_generation', duration: 12000 },
       { id: 'icon_verification', duration: 12000 },
       { id: 'layout_generation', duration: 9000 },
-      { id: 'self_critique', duration: 9000 },
+      { id: 'self_critique', duration: 12000 }, // Increased for pro model + path validation
       { id: 'final_processing', duration: 2500 }
     ];
 
@@ -939,6 +940,17 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
 
               <TabsContent value="metadata" className="space-y-2">
                 <Card className="p-4 bg-accent/50">
+                  {/* Enhancement Badge */}
+                  <div className="mb-4 pb-3 border-b">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Enhanced AI Active
+                    </Badge>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Using advanced spatial reasoning for precise waypoint detection and connector path validation
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <span className="text-muted-foreground">Elements identified:</span>
