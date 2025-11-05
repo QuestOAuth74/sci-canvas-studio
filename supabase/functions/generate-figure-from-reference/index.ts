@@ -804,7 +804,18 @@ CONNECTOR ANALYSIS REQUIREMENTS:
 - Labels: any text written on or near the connector
 - Relationship type: use ONLY activates|inhibits|produces|converts|binds_to|flows_to|signals|source
 - Color: if not black, specify hex color
-- IMPORTANT: Be precise about line_type - this determines visual routing in the final diagram`;
+- IMPORTANT: Be precise about line_type - this determines visual routing in the final diagram
+
+WAYPOINT DETECTION (CRITICAL FOR SPATIAL ACCURACY):
+For EACH connector, carefully analyze its PATH trajectory:
+- Does it curve or bend? If yes, identify approximate intermediate coordinates (waypoints)
+- For curved paths: detect 2-4 waypoints along the curve to preserve the shape
+- For orthogonal paths with 90° bends: identify the bend points as waypoints
+- For complex multi-segment arrows: capture all major turning points
+- Provide waypoints as percentage coordinates [x, y] where 0-100 represents position on canvas
+- Example: A connector curving around an obstacle might have waypoints [[30, 20], [45, 25], [60, 30]]
+- If the path is perfectly straight with no curves/bends, set approximate_waypoints to empty array []
+- SPATIAL PRECISION: Waypoints are CRITICAL for matching the reference diagram's arrow trajectories`;
 
     const connectorUserPrompt = "PASS 2 - Analyze ALL connectors, arrows, and lines in detail.";
 
@@ -817,7 +828,7 @@ CONNECTOR ANALYSIS REQUIREMENTS:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: 'google/gemini-2.5-pro',
         messages: [
           { role: 'system', content: connectorSystemPrompt },
           {
@@ -866,7 +877,21 @@ CONNECTOR ANALYSIS REQUIREMENTS:
                             end: { type: 'string' }
                           }
                         },
-                        routing: { type: 'object' },
+                        routing: {
+                          type: 'object',
+                          properties: {
+                            path_description: { type: 'string' },
+                            approximate_waypoints: {
+                              type: 'array',
+                              items: {
+                                type: 'array',
+                                items: { type: 'number' },
+                                minItems: 2,
+                                maxItems: 2
+                              }
+                            }
+                          }
+                        },
                         label: { type: 'string' },
                         label_position: { type: 'string' },
                         directionality: { type: 'string' },
