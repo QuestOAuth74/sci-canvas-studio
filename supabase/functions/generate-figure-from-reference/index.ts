@@ -750,6 +750,9 @@ CRITICAL LIMITS:
 
     // STEP 1B: PASS 2 - Deep Connector Analysis
     console.log('[PROGRESS] connector_analysis | 0% | Starting connector analysis...');
+    console.log(`📊 Shapes: ${elementAnalysis.identified_elements.filter((e: any) => e.element_type === 'shape').length}`);
+    console.log(`📊 Icons: ${elementAnalysis.identified_elements.filter((e: any) => e.element_type === 'icon').length}`);
+    console.log(`📊 Spatial relationships: ${elementAnalysis.spatial_relationships?.length || 0}`);
     console.log('Pass 2: Analyzing connectors in detail...');
     console.log(`[TIMING] Pass 2 started: ${new Date().toISOString()}`);
     const pass2Start = Date.now();
@@ -828,7 +831,8 @@ For EACH connector, carefully analyze its PATH trajectory:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-pro',
+          model: 'google/gemini-2.5-flash',
+          temperature: 0.1,
         messages: [
           { role: 'system', content: connectorSystemPrompt },
           {
@@ -969,6 +973,13 @@ For EACH connector, carefully analyze its PATH trajectory:
     // Log finish_reason to detect truncation
     const finishReason = connectorData.choices?.[0]?.finish_reason;
     console.log(`🔍 Finish reason: ${finishReason}`);
+    
+    if (!finishReason || finishReason === null) {
+      console.log('⚠️ Incomplete response detected (finish_reason is null/missing)');
+      console.log('Response snippet:', JSON.stringify(connectorData).substring(0, 500));
+      throw new Error('Incomplete AI response for connector analysis');
+    }
+    
     if (finishReason === 'length') {
       console.log('⚠️ WARNING: Response was truncated due to token limit. Attempting to salvage partial data...');
     }
@@ -1060,10 +1071,26 @@ For EACH connector, carefully analyze its PATH trajectory:
     // Final validation and fallback
     if (!connectorAnalysis || !connectorAnalysis.connectors || connectorAnalysis.connectors.length === 0) {
       console.log('❌ All extraction strategies failed or 0 connectors found');
-      console.log('⚠️ Attempting fallback with google/gemini-2.5-flash...');
       
-      // Fallback: Retry Pass 2 with flash model (known to work with tool calling)
-      try {
+      // Last resort: create basic connectors from spatial_relationships (if Pass 1 detected them)
+      if (elementAnalysis.spatial_relationships && elementAnalysis.spatial_relationships.length > 0) {
+        console.log(`📦 Creating ${elementAnalysis.spatial_relationships.length} fallback connectors from spatial_relationships`);
+        connectorAnalysis = {
+          connectors: elementAnalysis.spatial_relationships.map((rel: any) => ({
+            from_element: rel.from_element,
+            to_element: rel.to_element,
+            relationship_type: rel.relationship_type || 'arrow',
+            visual_style: { line_style: 'solid', line_type: 'straight' },
+            markers: { start: 'none', end: 'arrow' },
+            routing: { approximate_waypoints: [] }
+          }))
+        };
+        console.log(`✅ Created ${connectorAnalysis.connectors.length} fallback connectors`);
+      } else {
+        console.log('⚠️ Attempting fallback with google/gemini-2.5-flash...');
+        
+        // Fallback: Retry Pass 2 with flash model (known to work with tool calling)
+        try {
         const fallbackResponse = await callLovableAIWithTimeout(
           'https://ai.gateway.lovable.dev/v1/chat/completions',
           {
@@ -1178,10 +1205,11 @@ For EACH connector, carefully analyze its PATH trajectory:
         console.log('❌ Fallback error:', fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr));
       }
       
-      // Final check after fallback
-      if (!connectorAnalysis || !connectorAnalysis.connectors || connectorAnalysis.connectors.length === 0) {
-        console.log('⚠️ Proceeding with empty connectors array');
-        connectorAnalysis = { connectors: [] };
+        // Final check after fallback
+        if (!connectorAnalysis || !connectorAnalysis.connectors || connectorAnalysis.connectors.length === 0) {
+          console.log('⚠️ Proceeding with empty connectors array');
+          connectorAnalysis = { connectors: [] };
+        }
       }
     } else {
       console.log(`✅ Successfully extracted ${connectorAnalysis.connectors.length} connectors`);
@@ -2457,7 +2485,7 @@ Return JSON:
         }
       }
       
-      console.log(`Connector ${finalConnectors.length}: ${fromObj.label} → ${toObj.label}, ports ${preferredPorts.from}→${preferredPorts.to}, type ${routingType}`);
+      console.log(`🔗 Connector ${finalConnectors.length}: ${fromObj.label}→${toObj.label}, ports {${preferredPorts.from}→${preferredPorts.to}}, type ${routingType}`);
 
       // Check if AI got it right
       let styleIssues: string[] = [];

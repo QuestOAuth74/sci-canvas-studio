@@ -614,13 +614,29 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       }
 
       for (const conn of layoutToApply.connectors) {
+        // Skip invalid connectors
+        if ((!conn.from && conn.from !== 0) || (!conn.to && conn.to !== 0) || conn.from === conn.to) {
+          console.warn('Skipping invalid connector:', conn);
+          continue;
+        }
+        
         const fromAdded = indexMap[conn.from];
         const toAdded = indexMap[conn.to];
+        
+        if (fromAdded === undefined || toAdded === undefined) {
+          console.warn(`Connector references invalid objects: ${conn.from} -> ${conn.to}`);
+          continue;
+        }
 
         const fromObj = addedObjects[fromAdded];
         const toObj = addedObjects[toAdded];
+        
+        if (!fromObj || !toObj) {
+          console.warn(`Skipping connector ${conn.from}→${conn.to}: objects not found`);
+          continue;
+        }
 
-        if (fromObj && toObj) {
+        try {
           // Import port manager functions
           const { choosePortsByDirection } = await import('@/lib/portManager');
           
@@ -664,6 +680,16 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             }
           }
 
+          // Validate and normalize styles
+          const validLineStyles = ['solid', 'dashed', 'dotted'];
+          const validRoutingStyles = ['straight', 'curved', 'orthogonal'];
+          const normalizedLineStyle = validLineStyles.includes(conn.style) ? conn.style : 'solid';
+          const normalizedRoutingStyle = validRoutingStyles.includes(routingStyle) ? routingStyle : 'straight';
+          const normalizedColor = (conn.color && /^#[0-9A-Fa-f]{6}$/.test(conn.color)) ? conn.color : '#22c55e';
+          const normalizedStrokeWidth = Math.max(1, Math.min(5, conn.strokeWidth || 2));
+
+          console.log(`Creating connector: ${conn.from}→${conn.to}, style=${normalizedLineStyle}, routing=${normalizedRoutingStyle}, color=${normalizedColor}`);
+
           createConnector(canvas, {
             startX,
             startY,
@@ -671,10 +697,10 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             endY,
             startMarker: (conn.startMarker || 'none') as any,
             endMarker: (conn.endMarker || 'arrow') as any,
-            lineStyle: (conn.style === 'dashed' ? 'dashed' : 'solid') as any,
-            routingStyle: routingStyle as any,
-            strokeColor: conn.color || '#000000',
-            strokeWidth: conn.strokeWidth || 2,
+            lineStyle: normalizedLineStyle as any,
+            routingStyle: normalizedRoutingStyle as any,
+            strokeColor: normalizedColor,
+            strokeWidth: normalizedStrokeWidth,
             sourceShapeId: `node-${conn.from}`,
             targetShapeId: `node-${conn.to}`,
             sourcePort: sourcePort?.id,
@@ -696,6 +722,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             });
             canvas.add(text);
           }
+        } catch (err) {
+          console.error(`Failed to create connector ${conn.from}→${conn.to}:`, err);
         }
       }
 
