@@ -457,22 +457,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Prevent default context menu on canvas
-  useEffect(() => {
-    const canvasElement = canvasRef.current;
-    if (!canvasElement) return;
-
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
-    canvasElement.addEventListener('contextmenu', handleContextMenu);
-
-    return () => {
-      canvasElement.removeEventListener('contextmenu', handleContextMenu);
-    };
-  }, []);
-
   // Handle canvas dimension changes
   useEffect(() => {
     if (!canvas || !canvas.lowerCanvasEl) return;
