@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import { useState, useMemo } from "react";
 import { UserProjectsDialog } from "@/components/admin/UserProjectsDialog";
 import { UserProfileDialog } from "@/components/admin/UserProfileDialog";
-import { BarChart, Bar, XAxis, YAxis, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 
 interface UserAnalytics {
   id: string;
@@ -293,28 +293,19 @@ const Analytics = () => {
             <CardContent>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={fieldDistribution}
-                      dataKey="count"
-                      nameKey="field"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={(entry) => `${entry.field}: ${entry.count}`}
-                    >
-                      {fieldDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
+                  <BarChart data={fieldDistribution} layout="vertical">
+                    <XAxis type="number" />
+                    <YAxis dataKey="field" type="category" width={150} />
                     <Tooltip 
+                      cursor={{ fill: 'hsl(var(--muted))' }}
                       contentStyle={{ 
                         backgroundColor: 'hsl(var(--background))',
                         border: '2px solid hsl(var(--foreground))',
                         borderRadius: '8px'
                       }}
                     />
-                  </PieChart>
+                    <Bar dataKey="count" fill="hsl(var(--secondary))" radius={[0, 4, 4, 0]} />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
