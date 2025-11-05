@@ -2166,6 +2166,12 @@ Return JSON:
       const relType = normalizeRelationship(rel.relationship_type);
       const strictStyle = getConnectorStyle(relType, rel.visual_details);
 
+      // Extract waypoints from routing data
+      const waypoints = rel.routing?.approximate_waypoints?.map((wp: number[]) => ({
+        x: wp[0],
+        y: wp[1]
+      })) || undefined;
+
       const proposedConn = proposedLayout.connectors?.find((c: any) => 
         c.from === fromIdx && c.to === toIdx
       );
@@ -2201,7 +2207,8 @@ Return JSON:
         color: strictStyle.color,
         endMarker: strictStyle.endMarker,
         startMarker: 'none',
-        label: rel.label || ''
+        label: rel.label || '',
+        waypoints
       });
     }
 

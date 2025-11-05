@@ -60,6 +60,7 @@ interface GeneratedLayout {
     startMarker?: string;
     endMarker?: string;
     label?: string;
+    waypoints?: Array<{ x: number; y: number }>;
   }>;
 }
 
@@ -645,6 +646,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             targetShapeId: `node-${conn.to}`,
             sourcePort: sourcePort?.id,
             targetPort: targetPort?.id,
+            waypoints: conn.waypoints,
           });
 
           if (conn.label) {

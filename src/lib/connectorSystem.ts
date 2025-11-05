@@ -101,6 +101,50 @@ function getStrokeDashArray(lineStyle: LineStyle): number[] | undefined {
   }
 }
 
+// Create smooth Bezier path through waypoints
+function createBezierThroughWaypoints(points: Point[]): string {
+  if (points.length < 2) return '';
+  
+  let path = `M ${points[0].x} ${points[0].y}`;
+  
+  if (points.length === 2) {
+    // Simple straight line for just two points
+    path += ` L ${points[1].x} ${points[1].y}`;
+    return path;
+  }
+  
+  // For multiple waypoints, create smooth curves
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1];
+    const curr = points[i];
+    const next = points[i + 1];
+    
+    if (i === 1 && !next) {
+      // Only two points total, use line
+      path += ` L ${curr.x} ${curr.y}`;
+    } else if (i === points.length - 1) {
+      // Last point: create smooth curve to end
+      const prevPrev = i > 1 ? points[i - 2] : prev;
+      const cp1x = prev.x + (curr.x - prevPrev.x) * 0.3;
+      const cp1y = prev.y + (curr.y - prevPrev.y) * 0.3;
+      const cp2x = curr.x - (curr.x - prev.x) * 0.3;
+      const cp2y = curr.y - (curr.y - prev.y) * 0.3;
+      
+      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`;
+    } else {
+      // Middle waypoints: smooth Bezier curves
+      const cp1x = prev.x + (curr.x - prev.x) * 0.5;
+      const cp1y = prev.y + (curr.y - prev.y) * 0.5;
+      const cp2x = curr.x - (next.x - prev.x) * 0.2;
+      const cp2y = curr.y - (next.y - prev.y) * 0.2;
+      
+      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`;
+    }
+  }
+  
+  return path;
+}
+
 // Create a connector line between two points or shapes
 export function createConnector(
   canvas: FabricCanvas,
@@ -113,6 +157,7 @@ export function createConnector(
     targetShapeId?: string;
     sourcePort?: string;
     targetPort?: string;
+    waypoints?: Array<{ x: number; y: number }>;
   }
 ): FabricObject {
   const {
@@ -130,6 +175,7 @@ export function createConnector(
     targetShapeId,
     sourcePort,
     targetPort,
+    waypoints,
   } = options;
 
   const start = new Point(startX, startY);
@@ -137,17 +183,27 @@ export function createConnector(
 
   let pathData: string;
   
-  // Generate path based on routing style
-  switch (routingStyle) {
-    case 'curved':
-      pathData = routeCurved(start, end, 0.3);
-      break;
-    case 'orthogonal':
-      const orthPoints = routeOrthogonal(start, end);
-      pathData = smoothOrthogonalPath(orthPoints, 8);
-      break;
-    default:
-      pathData = pointsToPath(routeStraight(start, end));
+  // Use waypoints for precise path reconstruction if provided
+  if (waypoints && waypoints.length > 0) {
+    const allPoints = [
+      start,
+      ...waypoints.map(wp => new Point(wp.x, wp.y)),
+      end
+    ];
+    pathData = createBezierThroughWaypoints(allPoints);
+  } else {
+    // Generate path based on routing style
+    switch (routingStyle) {
+      case 'curved':
+        pathData = routeCurved(start, end, 0.3);
+        break;
+      case 'orthogonal':
+        const orthPoints = routeOrthogonal(start, end);
+        pathData = smoothOrthogonalPath(orthPoints, 8);
+        break;
+      default:
+        pathData = pointsToPath(routeStraight(start, end));
+    }
   }
 
   // Create the main path
@@ -184,6 +240,7 @@ export function createConnector(
     targetShapeId,
     sourcePort,
     targetPort,
+    waypoints,
   };
 
   (path as ShapeWithPorts).connectorData = connectorData;
@@ -244,16 +301,28 @@ export function updateConnector(
   const end = new Point(targetPort.x, targetPort.y);
 
   let pathData: string;
-  switch (data.routingStyle) {
-    case 'curved':
-      pathData = routeCurved(start, end, 0.3);
-      break;
-    case 'orthogonal':
-      const orthPoints = routeOrthogonal(start, end, sourcePort, targetPort);
-      pathData = smoothOrthogonalPath(orthPoints, 8);
-      break;
-    default:
-      pathData = pointsToPath(routeStraight(start, end));
+  
+  // Use waypoints if available
+  if (data.waypoints && data.waypoints.length > 0) {
+    const allPoints = [
+      start,
+      ...data.waypoints.map(wp => new Point(wp.x, wp.y)),
+      end
+    ];
+    pathData = createBezierThroughWaypoints(allPoints);
+  } else {
+    // Generate path based on routing style
+    switch (data.routingStyle) {
+      case 'curved':
+        pathData = routeCurved(start, end, 0.3);
+        break;
+      case 'orthogonal':
+        const orthPoints = routeOrthogonal(start, end, sourcePort, targetPort);
+        pathData = smoothOrthogonalPath(orthPoints, 8);
+        break;
+      default:
+        pathData = pointsToPath(routeStraight(start, end));
+    }
   }
 
   // Update the path within the group
