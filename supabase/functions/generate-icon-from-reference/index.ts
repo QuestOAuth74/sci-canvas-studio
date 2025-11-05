@@ -14,12 +14,22 @@ const stylePrompts = {
   detailed: "Detailed scientific illustration icon, high accuracy, educational quality, clear features, transparent background, professional"
 };
 
-function buildEnhancedPrompt(userPrompt: string, style: keyof typeof stylePrompts): string {
+function buildEnhancedPrompt(
+  userPrompt: string, 
+  style: keyof typeof stylePrompts,
+  backgroundType: 'transparent' | 'white' = 'transparent'
+): string {
   const basePrompt = stylePrompts[style];
+  
+  const backgroundInstruction = backgroundType === 'transparent'
+    ? `Output MUST be a PNG with a fully transparent background (RGBA, alpha channel).
+Do not include any white or colored background, shadows, borders, glow, or backdrop layers of any kind.`
+    : `Output MUST be a PNG with a clean, solid white background (#FFFFFF).
+Ensure the subject has clear edges against the white background.`;
+  
   return `${basePrompt}. Transform this reference image to create: ${userPrompt}.
 Ensure scientific accuracy, clean edges, and high contrast at small sizes.
-Output MUST be a PNG with a fully transparent background (RGBA, alpha channel).
-Do not include any white or colored background, shadows, borders, glow, or backdrop layers of any kind.
+${backgroundInstruction}
 Optimize for use as a small scientific icon.`;
 }
 
@@ -102,7 +112,7 @@ serve(async (req) => {
       }
     }
 
-    const { image, prompt, style = 'simple', size = '512x512' } = await req.json();
+    const { image, prompt, style = 'simple', size = '512x512', backgroundType = 'transparent' } = await req.json();
 
     if (!image || !prompt) {
       throw new Error('Missing required fields: image and prompt');
@@ -118,6 +128,7 @@ serve(async (req) => {
     console.log('🎨 Starting icon generation for user:', user.id);
     console.log('📝 Prompt:', prompt);
     console.log('🎭 Style:', style);
+    console.log('🖼️ Background type:', backgroundType);
 
     // Validate image format
     if (!image.startsWith('data:image/')) {
@@ -125,7 +136,11 @@ serve(async (req) => {
     }
 
     // Build enhanced prompt
-    const enhancedPrompt = buildEnhancedPrompt(prompt, style as keyof typeof stylePrompts);
+    const enhancedPrompt = buildEnhancedPrompt(
+      prompt, 
+      style as keyof typeof stylePrompts,
+      backgroundType as 'transparent' | 'white'
+    );
     console.log('✨ Enhanced prompt:', enhancedPrompt);
 
     // Call Lovable AI Gateway for image transformation

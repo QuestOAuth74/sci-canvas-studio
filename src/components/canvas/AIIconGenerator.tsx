@@ -108,6 +108,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<StylePreset>('simple');
+  const [backgroundType, setBackgroundType] = useState<'transparent' | 'white'>('transparent');
   const [iconName, setIconName] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Laboratory');
   const [categories, setCategories] = useState<string[]>([]);
@@ -246,6 +247,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           image: referenceImage,
           prompt: prompt.trim(),
           style,
+          backgroundType,
         }
       });
 
@@ -273,38 +275,48 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       console.log('✅ Icon generated successfully');
       setProgress(90);
       
-      // Normalize to PNG with transparent background
+      // Normalize to PNG
       try {
-        console.log('🎨 Normalizing to PNG with transparent background...');
-        const isJpegLike = data.generatedImage.startsWith('data:image/jpeg') ||
-                           data.generatedImage.startsWith('data:image/jpg') ||
-                           data.generatedImage.startsWith('data:image/webp');
-
-        // Load the returned image
-        const srcBlob = await dataUrlToBlob(data.generatedImage);
-        const imgEl = await loadImage(srcBlob);
-
-        const hasAlpha = detectHasTransparency(imgEl);
-        const looksWhiteBG = !hasAlpha && detectIsLikelyWhiteBackground(imgEl);
-
-        // Decide if we must remove background
-        let finalBlob: Blob;
-
-        if (isJpegLike || looksWhiteBG) {
-          console.log('🧹 Making background transparent (removal path)...');
-          finalBlob = await removeBackground(imgEl);
-        } else {
-          console.log('✅ Image already has transparency or no white background detected');
-          // Standardize to PNG
+        console.log('🎨 Normalizing to PNG...');
+        
+        if (backgroundType === 'white') {
+          // User wants white background - skip removal, just convert to PNG
+          console.log('⬜ User requested white background, skipping removal');
+          const srcBlob = await dataUrlToBlob(data.generatedImage);
+          const imgEl = await loadImage(srcBlob);
           const pngDataUrl = drawToPngDataUrl(imgEl);
-          finalBlob = await dataUrlToBlob(pngDataUrl);
-        }
+          setGeneratedImage(pngDataUrl);
+          console.log('✅ Converted to PNG with white background');
+        } else {
+          // User wants transparent background - existing logic
+          console.log('🔍 Processing for transparent background...');
+          const isJpegLike = data.generatedImage.startsWith('data:image/jpeg') ||
+                             data.generatedImage.startsWith('data:image/jpg') ||
+                             data.generatedImage.startsWith('data:image/webp');
 
-        const pngDataUrl = await blobToDataUrl(finalBlob);
-        setGeneratedImage(pngDataUrl);
-        console.log('✅ Final image is PNG with transparent background');
+          const srcBlob = await dataUrlToBlob(data.generatedImage);
+          const imgEl = await loadImage(srcBlob);
+
+          const hasAlpha = detectHasTransparency(imgEl);
+          const looksWhiteBG = !hasAlpha && detectIsLikelyWhiteBackground(imgEl);
+
+          let finalBlob: Blob;
+
+          if (isJpegLike || looksWhiteBG) {
+            console.log('🧹 Making background transparent (removal path)...');
+            finalBlob = await removeBackground(imgEl);
+          } else {
+            console.log('✅ Image already has transparency');
+            const pngDataUrl = drawToPngDataUrl(imgEl);
+            finalBlob = await dataUrlToBlob(pngDataUrl);
+          }
+
+          const pngDataUrl = await blobToDataUrl(finalBlob);
+          setGeneratedImage(pngDataUrl);
+          console.log('✅ Final image is PNG with transparent background');
+        }
       } catch (procErr) {
-        console.error('❌ Unable to ensure transparency automatically:', procErr);
+        console.error('❌ Unable to process image:', procErr);
         // Last resort: convert to PNG (may remain opaque)
         try {
           const fallbackBlob = await dataUrlToBlob(data.generatedImage);
@@ -717,6 +729,29 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                       </div>
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="background">Background Type</Label>
+              <Select value={backgroundType} onValueChange={(v) => setBackgroundType(v as 'transparent' | 'white')} disabled={isGenerating || isSaving}>
+                <SelectTrigger id="background" className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="transparent">
+                    <div>
+                      <div className="font-medium">Transparent (PNG)</div>
+                      <div className="text-xs text-muted-foreground">No background, ideal for overlays</div>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="white">
+                    <div>
+                      <div className="font-medium">White Background (PNG)</div>
+                      <div className="text-xs text-muted-foreground">Solid white background</div>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
