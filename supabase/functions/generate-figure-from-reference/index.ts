@@ -945,6 +945,27 @@ For EACH connector, carefully analyze its PATH trajectory:
     console.log(`[TIMING] Pass 2 completed: ${new Date().toISOString()} (duration: ${pass2Duration}ms)`);
     console.log('[PROGRESS] connector_analysis | 100% | Connector analysis complete');
     
+    // Debug: Log full response structure
+    console.log('🔍 Full connector response structure:', JSON.stringify({
+      has_choices: !!connectorData.choices,
+      choices_length: connectorData.choices?.length,
+      has_message: !!connectorData.choices?.[0]?.message,
+      has_tool_calls: !!connectorData.choices?.[0]?.message?.tool_calls,
+      tool_calls_length: connectorData.choices?.[0]?.message?.tool_calls?.length,
+      tool_calls_preview: connectorData.choices?.[0]?.message?.tool_calls?.[0] ? {
+        type: connectorData.choices[0].message.tool_calls[0].type,
+        function_name: connectorData.choices[0].message.tool_calls[0].function?.name,
+        has_arguments: !!connectorData.choices[0].message.tool_calls[0].function?.arguments,
+        arguments_length: typeof connectorData.choices[0].message.tool_calls[0].function?.arguments === 'string' 
+          ? connectorData.choices[0].message.tool_calls[0].function.arguments.length 
+          : 'not-string'
+      } : null,
+      has_content: !!connectorData.choices?.[0]?.message?.content,
+      content_length: connectorData.choices?.[0]?.message?.content?.length,
+      content_preview: connectorData.choices?.[0]?.message?.content?.substring(0, 200),
+      finish_reason: connectorData.choices?.[0]?.finish_reason
+    }, null, 2));
+    
     // Log finish_reason to detect truncation
     const finishReason = connectorData.choices?.[0]?.finish_reason;
     console.log(`🔍 Finish reason: ${finishReason}`);
@@ -952,43 +973,102 @@ For EACH connector, carefully analyze its PATH trajectory:
       console.log('⚠️ WARNING: Response was truncated due to token limit. Attempting to salvage partial data...');
     }
     
-    // Phase 4: Simplified connector extraction (no retry logic)
+    // Phase 4: Enhanced connector extraction with multiple strategies
     let connectorAnalysis = null;
     
-    // Extract from tool_calls
-    if (connectorData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments) {
+    console.log('🔍 Attempting connector extraction with multiple strategies...');
+    
+    // Strategy 1: Tool calls (standard format)
+    if (connectorData.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments) {
       try {
         const args = connectorData.choices[0].message.tool_calls[0].function.arguments;
+        console.log('📦 Strategy 1: Attempting tool_calls extraction...');
+        console.log('   - Argument type:', typeof args);
+        console.log('   - Argument length:', typeof args === 'string' ? args.length : 'N/A');
+        
         connectorAnalysis = typeof args === 'string' ? JSON.parse(args) : args;
-        console.log('✓ Extracted from tool_calls');
+        console.log('✓ Extracted from tool_calls (standard format)');
+        console.log('   - Connectors found:', connectorAnalysis?.connectors?.length || 0);
       } catch (e) {
-        console.log('Failed to parse tool_calls arguments:', e);
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        console.log('❌ Failed to parse tool_calls:', errorMsg);
+        
         // Log preview of truncated JSON for debugging
         const argStr = connectorData.choices[0]?.message?.tool_calls?.[0]?.function?.arguments;
         if (typeof argStr === 'string') {
-          console.log(`📝 Truncated JSON preview (last 200 chars): ...${argStr.slice(-200)}`);
+          console.log(`📝 JSON preview (first 200 chars): ${argStr.substring(0, 200)}`);
+          console.log(`📝 JSON preview (last 200 chars): ...${argStr.slice(-200)}`);
         }
+        
         // Try repair with enhanced logic
+        console.log('🔧 Attempting JSON repair...');
         const repaired = typeof argStr === 'string' ? tryRepairJsonString(argStr) : null;
         if (repaired && repaired.connectors) {
           connectorAnalysis = repaired;
           console.log(`✓ Repaired truncated JSON from tool_calls - salvaged ${repaired.connectors.length} connectors`);
+        } else {
+          console.log('❌ JSON repair failed');
         }
       }
+    } else {
+      console.log('⚠️ Strategy 1 skipped: No tool_calls found in response');
     }
     
-    // Fallback: Extract from content
-    if (!connectorAnalysis && connectorData.choices[0]?.message?.content) {
-      connectorAnalysis = extractJSON(connectorData.choices[0].message.content);
-      if (connectorAnalysis) {
-        console.log('✓ Extracted from content');
+    // Strategy 2: Direct message content with JSON
+    if (!connectorAnalysis && connectorData.choices?.[0]?.message?.content) {
+      const content = connectorData.choices[0].message.content;
+      console.log('📦 Strategy 2: Attempting content extraction...');
+      console.log('   - Content length:', content.length);
+      console.log('   - Content preview:', content.substring(0, 200));
+      
+      try {
+        // Try direct JSON parse
+        connectorAnalysis = JSON.parse(content);
+        console.log('✓ Extracted from content (direct JSON parse)');
+        console.log('   - Connectors found:', connectorAnalysis?.connectors?.length || 0);
+      } catch (e) {
+        const errorMsg = e instanceof Error ? e.message : String(e);
+        console.log('❌ Direct JSON parse failed:', errorMsg);
+        
+        // Try extractJSON helper
+        console.log('🔧 Attempting extractJSON helper...');
+        connectorAnalysis = extractJSON(content);
+        if (connectorAnalysis) {
+          console.log('✓ Extracted from content (extractJSON helper)');
+          console.log('   - Connectors found:', connectorAnalysis?.connectors?.length || 0);
+        } else {
+          console.log('❌ extractJSON helper failed');
+        }
+      }
+    } else if (!connectorAnalysis) {
+      console.log('⚠️ Strategy 2 skipped: No content found in response');
+    }
+    
+    // Strategy 3: Check for alternative response structures
+    if (!connectorAnalysis) {
+      console.log('📦 Strategy 3: Checking for alternative response structures...');
+      console.log('   - Response keys:', Object.keys(connectorData));
+      console.log('   - Message keys:', Object.keys(connectorData.choices?.[0]?.message || {}));
+      
+      // Check if data is at root level
+      if (connectorData.connectors) {
+        console.log('✓ Found connectors at root level');
+        connectorAnalysis = connectorData;
       }
     }
     
-    // If still no analysis, proceed with empty connectors
+    // Final validation and fallback
     if (!connectorAnalysis || !connectorAnalysis.connectors) {
-      console.log('⚠️ Connector analysis failed, proceeding with empty connectors array');
+      console.log('❌ All extraction strategies failed');
+      console.log('⚠️ Proceeding with empty connectors array');
+      console.log('📊 Final connectorAnalysis state:', connectorAnalysis);
       connectorAnalysis = { connectors: [] };
+    } else {
+      console.log(`✅ Successfully extracted ${connectorAnalysis.connectors.length} connectors`);
+      // Log first connector for validation
+      if (connectorAnalysis.connectors.length > 0) {
+        console.log('📋 First connector sample:', JSON.stringify(connectorAnalysis.connectors[0], null, 2));
+      }
     }
     
     // Log successful connector detection
