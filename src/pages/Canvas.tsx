@@ -32,6 +32,7 @@ import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
 import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -704,7 +705,7 @@ const CanvasContent = () => {
           <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
         {/* Canvas */}
-        <div className="flex-1 relative min-h-0">
+        <ScrollArea className="flex-1 relative min-h-0">
           <CanvasContextMenu
             selectedObject={selectedObject}
             hasClipboard={hasClipboard}
@@ -742,7 +743,9 @@ const CanvasContent = () => {
             <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
           </CanvasContextMenu>
           <AlignmentGuides />
-        </div>
+          <ScrollBar orientation="horizontal" />
+          <ScrollBar orientation="vertical" />
+        </ScrollArea>
 
         {/* Right Sidebar - Properties & Layers */}
         <div className={`glass-effect border-l flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
