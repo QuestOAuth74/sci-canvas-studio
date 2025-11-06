@@ -86,6 +86,7 @@ const CanvasContent = () => {
     exportAsPNG,
     exportAsPNGTransparent,
     exportAsJPG,
+    cleanExport,
     canvasDimensions,
     checkForRecovery,
     recoverCanvas,
@@ -312,6 +313,13 @@ const CanvasContent = () => {
         canvas?.renderAll();
         
         toast.success(`Selected: ${nextObject.type}`, { duration: 800 });
+        return;
+      }
+
+      // Clean Export (Cmd/Ctrl + E)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'e') {
+        e.preventDefault();
+        cleanExport();
         return;
       }
 

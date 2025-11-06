@@ -74,6 +74,7 @@ interface CanvasContextType {
   exportAsPNGTransparent: (dpi?: 150 | 300 | 600, selectionOnly?: boolean) => void;
   exportAsJPG: (dpi?: 150 | 300 | 600, selectionOnly?: boolean) => void;
   exportAsSVG: (selectionOnly?: boolean) => void;
+  cleanExport: () => void;
   
   // Recent colors
   recentColors: string[];
@@ -948,6 +949,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     toast.success(`Exported as SVG`, { duration: 1500, className: 'animate-fade-in' });
   }, [canvas]);
 
+  // Clean Export - One-click optimal export with transparent background
+  const cleanExport = useCallback(() => {
+    exportAsPNGTransparent(300, false);
+  }, [exportAsPNGTransparent]);
+
   // Pin/Lock operations
   const pinObject = useCallback(() => {
     if (!canvas || !selectedObject) return;
@@ -1707,6 +1713,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     exportAsPNGTransparent,
     exportAsJPG,
     exportAsSVG,
+    cleanExport,
     exportDialogOpen,
     setExportDialogOpen,
     textFont,

@@ -32,6 +32,7 @@ export const KeyboardShortcutsDialog = ({
         { keys: [`${modKey}`, "Z"], description: "Undo last action" },
         { keys: [`${modKey}`, "Shift", "Z"], description: "Redo last action" },
         { keys: [`${modKey}`, "S"], description: "Save project" },
+        { keys: [`${modKey}`, "E"], description: "Clean Export (300 DPI, transparent)" },
         { keys: [`${modKey}`, "K"], description: "Open Command Palette" },
         { keys: ["?"], description: "Show keyboard shortcuts" },
       ],
