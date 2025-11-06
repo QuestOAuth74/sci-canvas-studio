@@ -163,11 +163,73 @@ serve(async (req) => {
       }
     }
     
+    // Parse relationships file to map rId to media files
+    const relsFile = zip.file('word/_rels/document.xml.rels');
+    const relsXml = relsFile ? await relsFile.async('string') : '';
+    const relIdToFile = new Map<string, string>();
+    const relMatches = relsXml.matchAll(/<Relationship Id="(rId\d+)"[^>]*Target="media\/([^"]+)"/g);
+    for (const match of relMatches) {
+      relIdToFile.set(match[1], match[2]);
+    }
+    
     // Parse XML to extract structured content with formatting
     let cleanOutline = '';
-    const paragraphs = docXml.split('</w:p>');
+    const allParagraphs = docXml.split('</w:p>');
     
-    for (const para of paragraphs) {
+    // Build image position map with context
+    const imagePositionMap = new Map<string, {
+      paragraphIndex: number;
+      relId: string;
+      beforeParagraphs: string[];
+      afterParagraphs: string[];
+      caption?: string;
+    }>();
+    
+    allParagraphs.forEach((para, index) => {
+      // Check for embedded image (drawing or pict)
+      const drawingMatch = para.match(/<a:blip r:embed="(rId\d+)"/);
+      const pictMatch = para.match(/<v:imagedata r:id="(rId\d+)"/);
+      
+      const relId = drawingMatch?.[1] || pictMatch?.[1];
+      if (!relId) return;
+      
+      const filename = relIdToFile.get(relId);
+      if (!filename) return;
+      
+      // Extract surrounding context (3 paragraphs before and after)
+      const beforeParagraphs = allParagraphs.slice(Math.max(0, index - 3), index)
+        .map(p => {
+          const textMatches = p.match(/<w:t[^>]*>([^<]+)<\/w:t>/g);
+          return textMatches?.map(m => m.replace(/<w:t[^>]*>([^<]+)<\/w:t>/, '$1')).join(' ');
+        })
+        .filter(Boolean) as string[];
+      
+      const afterParagraphs = allParagraphs.slice(index + 1, index + 4)
+        .map(p => {
+          const textMatches = p.match(/<w:t[^>]*>([^<]+)<\/w:t>/g);
+          return textMatches?.map(m => m.replace(/<w:t[^>]*>([^<]+)<\/w:t>/, '$1')).join(' ');
+        })
+        .filter(Boolean) as string[];
+      
+      // Try to extract caption (often immediately after image)
+      const captionCandidate = afterParagraphs[0];
+      const isCaption = captionCandidate && captionCandidate.length < 150 && 
+                        (captionCandidate.toLowerCase().includes('figure') || 
+                         captionCandidate.toLowerCase().includes('image') ||
+                         captionCandidate.toLowerCase().includes('caption'));
+      
+      imagePositionMap.set(filename, {
+        paragraphIndex: index,
+        relId,
+        beforeParagraphs,
+        afterParagraphs,
+        caption: isCaption ? captionCandidate : undefined
+      });
+    });
+    
+    console.log(`Mapped ${imagePositionMap.size} images to document positions`);
+    
+    for (const para of allParagraphs) {
       if (!para.includes('<w:t>')) continue;
       
       // Check for heading styles
@@ -246,6 +308,22 @@ serve(async (req) => {
     
     console.log('Extracted outline (first 400 chars):', cleanOutline.substring(0, 400));
 
+    // Build image context for AI
+    const imageContexts = extractedImages.map((img, idx) => {
+      const position = imagePositionMap.get(img.filename);
+      if (!position) {
+        return `Image ${idx + 1}: ${img.filename} (position unknown)`;
+      }
+      
+      const beforeText = position.beforeParagraphs.slice(-2).join(' | ').substring(0, 150);
+      const afterText = position.afterParagraphs.slice(0, 2).join(' | ').substring(0, 150);
+      
+      return `Image ${idx + 1}: "${img.filename}"
+  - Position: Paragraph ${position.paragraphIndex} of ${allParagraphs.length}
+  - Before: ${beforeText}
+  - After: ${afterText}${position.caption ? `\n  - Caption: ${position.caption}` : ''}`;
+    }).join('\n\n');
+
     // Call Lovable AI to structure content
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -275,16 +353,29 @@ serve(async (req) => {
 - Text with **bold**, *italic*, or __underline__ should preserve that formatting
 - Plain paragraphs may be quotes, descriptions, or content
 
-${extractedImages.length > 0 ? `\nIMPORTANT: This document contains ${extractedImages.length} embedded images. Create slides with image layouts to utilize them effectively.\n` : ''}
+${extractedImages.length > 0 ? `
+CRITICAL: This document contains ${extractedImages.length} embedded images with context:
+
+${imageContexts}
+
+INSTRUCTIONS FOR IMAGE PLACEMENT:
+1. Create "image-left" or "image-right" slides for EVERY image
+2. Use the "Before" and "After" context to determine relevant content for each image slide
+3. Place text content that discusses or relates to the image on the same slide
+4. Use extracted captions when available in imageCaption field
+5. If multiple images appear near the same content, consider "image-grid" layout
+6. Prioritize two-column layouts (image + text side-by-side) over other layouts
+7. Set preferredImageIndex (0-based) to specify which image to use
+` : ''}
 
 Create diverse slide types:
-- "bullets": Standard content with 3-5 bullet points (preserve formatting and list types)
-- "two-column": Split bullets into two columns
+- "image-left" or "image-right": **PRIMARY CHOICE** when images available - image on one side, related text on other
+- "bullets": Standard content with 3-5 bullet points (use only when no related images)
+- "two-column": Split bullets into two columns (use when no images available)
 - "quote": For memorable statements, key messages (provide quote + attribution)
-- "image-left" or "image-right": Content with image on one side${extractedImages.length > 0 ? ' (PREFER THESE when images available)' : ''}
-- "image-grid": Multiple images in a grid${extractedImages.length > 1 ? ' (USE THIS for multiple related images)' : ''}
+- "image-grid": Multiple images in a grid${extractedImages.length > 1 ? ' (USE for multiple related images)' : ''}
 - "image-top": Image above content
-- "image-full": Full-slide image with minimal text overlay${extractedImages.length > 0 ? ' (USE for impactful visuals)' : ''}
+- "image-full": Full-slide image with minimal text overlay
 
 IMPORTANT: Preserve text formatting (bold, italic, underline), numbered vs bulleted lists, and indentation levels from the source document.
 
@@ -502,12 +593,12 @@ ${cleanOutline.substring(0, 8000)}`,
       }
     };
 
-    const renderImageSideSlide = (contentSlide: any, slide: any, spacing: any, side: 'left' | 'right', availableImages: typeof extractedImages, imageIndex: number) => {
-      const imageW = 3.8;
-      const imageH = 4.0;
-      const imageX = side === 'left' ? 0.5 : 5.7;
-      const contentX = side === 'left' ? 4.8 : 0.5;
-      const contentW = 4.7;
+    const renderImageSideSlide = (contentSlide: any, slide: any, spacing: any, side: 'left' | 'right', availableImages: typeof extractedImages, imageIndex: number, imageCaption?: string) => {
+      const imageW = 4.0;
+      const imageH = 4.2;
+      const imageX = side === 'left' ? 0.5 : 5.5;
+      const contentX = side === 'left' ? 5.0 : 0.5;
+      const contentW = 4.5;
       
       // Image or placeholder
       if (availableImages[imageIndex]) {
@@ -517,6 +608,21 @@ ${cleanOutline.substring(0, 8000)}`,
           x: imageX, y: spacing.contentY, w: imageW, h: imageH,
           sizing: { type: 'contain', w: imageW, h: imageH }
         });
+        
+        // Add caption below image if available
+        if (imageCaption) {
+          contentSlide.addText(imageCaption, {
+            x: imageX,
+            y: spacing.contentY + imageH + 0.1,
+            w: imageW,
+            h: 0.3,
+            fontSize: 10,
+            fontFace: fonts.body,
+            color: '666666',
+            align: 'center',
+            italic: true
+          });
+        }
       } else {
         contentSlide.addShape(pptx.ShapeType.rect, {
           x: imageX, y: spacing.contentY, w: imageW, h: imageH,
@@ -562,6 +668,7 @@ ${cleanOutline.substring(0, 8000)}`,
           fontSize: fonts.bodySize * 0.95,
           fontFace: fonts.body,
           color: colors.text,
+          lineSpacing: 20
         });
       }
     };
@@ -607,14 +714,26 @@ ${cleanOutline.substring(0, 8000)}`,
           break;
           
         case 'image-left':
-          renderImageSideSlide(contentSlide, slide, spacing, 'left', extractedImages, imageIndex);
-          if (extractedImages[imageIndex]) imageIndex++;
-          break;
+        case 'image-right': {
+          const targetIndex = slide.preferredImageIndex !== undefined ? slide.preferredImageIndex : imageIndex;
+          const imageToUse = extractedImages[targetIndex];
+          const position = imageToUse ? imagePositionMap.get(imageToUse.filename) : undefined;
           
-        case 'image-right':
-          renderImageSideSlide(contentSlide, slide, spacing, 'right', extractedImages, imageIndex);
-          if (extractedImages[imageIndex]) imageIndex++;
+          renderImageSideSlide(
+            contentSlide, 
+            slide, 
+            spacing, 
+            slideType === 'image-left' ? 'left' : 'right', 
+            extractedImages, 
+            targetIndex,
+            slide.imageCaption || position?.caption
+          );
+          
+          if (imageToUse && slide.preferredImageIndex === undefined) {
+            imageIndex++;
+          }
           break;
+        }
           
         case 'image-top':
           // Image or placeholder on top
