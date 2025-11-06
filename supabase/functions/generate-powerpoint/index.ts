@@ -310,20 +310,8 @@ serve(async (req) => {
     
     console.log('Extracted outline (first 400 chars):', cleanOutline.substring(0, 400));
 
-    // Fetch real icons from database for bullet points
-    const { data: bulletIcons } = await supabaseClient
-      .from('icons')
-      .select('id, name, svg_content, category')
-      .eq('category', 'general-items')
-      .limit(8);
-    
-    console.log(`Fetched ${bulletIcons?.length || 0} bullet icons from database`);
-    
-    // Convert SVG icons to base64 data URLs
-    const iconDataUrls = bulletIcons?.map(icon => {
-      const svgBase64 = btoa(icon.svg_content);
-      return `data:image/svg+xml;base64,${svgBase64}`;
-    }) || [];
+    // Note: Using unicode icons instead of SVG for PptxGenJS compatibility
+    const iconDataUrls: string[] = [];
 
     // Icon sets for enhanced bullets (fallback to simple shapes if no DB icons)
     const ICON_SETS: Record<string, string[]> = {
@@ -367,7 +355,7 @@ serve(async (req) => {
       });
     }
 
-    // Helper: Render circular icon bullet with real SVG icon
+    // Helper: Render circular icon bullet with unicode icon
     function renderIconBullet(
       slide: any,
       text: string,
@@ -376,8 +364,7 @@ serve(async (req) => {
       iconIndex: number,
       colors: any,
       fonts: any,
-      config: any,
-      iconDataUrls: string[]
+      config: any
     ) {
       const circleSize = config?.circleSize || 0.35;
       const circleColor = (config?.circleColor || colors.primary).replace('#', '');
@@ -392,48 +379,19 @@ serve(async (req) => {
         line: { type: 'none' }
       });
       
-      // Add real SVG icon from database (if available)
-      if (iconDataUrls && iconDataUrls.length > 0) {
-        const iconUrl = iconDataUrls[iconIndex % iconDataUrls.length];
-        try {
-          slide.addImage({
-            data: iconUrl,
-            x: x + 0.06,
-            y: y + 0.06,
-            w: circleSize - 0.12,
-            h: circleSize - 0.12,
-            sizing: { type: 'contain', w: circleSize - 0.12, h: circleSize - 0.12 }
-          });
-        } catch (e) {
-          // Fallback to unicode if image fails
-          const icons = ICON_SETS[config?.iconSet || 'default'] || ICON_SETS.default;
-          const icon = icons[iconIndex % icons.length];
-          slide.addText(icon, {
-            x: x,
-            y: y,
-            w: circleSize,
-            h: circleSize,
-            fontSize: 14,
-            color: 'FFFFFF',
-            align: 'center',
-            valign: 'middle'
-          });
-        }
-      } else {
-        // Fallback to unicode if no database icons
-        const icons = ICON_SETS[config?.iconSet || 'default'] || ICON_SETS.default;
-        const icon = icons[iconIndex % icons.length];
-        slide.addText(icon, {
-          x: x,
-          y: y,
-          w: circleSize,
-          h: circleSize,
-          fontSize: 14,
-          color: 'FFFFFF',
-          align: 'center',
-          valign: 'middle'
-        });
-      }
+      // Use unicode icons (PptxGenJS doesn't support SVG in Deno runtime)
+      const icons = ICON_SETS[config?.iconSet || 'default'] || ICON_SETS.default;
+      const icon = icons[iconIndex % icons.length];
+      slide.addText(icon, {
+        x: x,
+        y: y,
+        w: circleSize,
+        h: circleSize,
+        fontSize: 14,
+        color: 'FFFFFF',
+        align: 'center',
+        valign: 'middle'
+      });
       
       // Add text next to icon
       slide.addText(text, {
@@ -1426,7 +1384,7 @@ ${docOutline.substring(0, 8000)}`,
           let currentY = spacing.contentY + 0.2;
           bullets.forEach((b: any, index: number) => {
             const text = typeof b === 'string' ? b : b.text;
-            renderIconBullet(contentSlide, text, contentX + 0.2, currentY, index, colors, fonts, bulletConfig, iconDataUrls);
+            renderIconBullet(contentSlide, text, contentX + 0.2, currentY, index, colors, fonts, bulletConfig);
             currentY += 0.55;
           });
         } else {
@@ -1578,7 +1536,7 @@ ${docOutline.substring(0, 8000)}`,
               let currentY = spacing.contentY + 3.2;
               bullets.forEach((b: any, index: number) => {
                 const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig, iconDataUrls);
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
                 currentY += 0.55;
               });
             } else {
@@ -1706,7 +1664,7 @@ ${docOutline.substring(0, 8000)}`,
               let currentY = spacing.contentY + 0.2;
               bullets.slice(0, midpoint).forEach((b: any, index: number) => {
                 const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig, iconDataUrls);
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
                 currentY += 0.55;
               });
               
@@ -1714,7 +1672,7 @@ ${docOutline.substring(0, 8000)}`,
               currentY = spacing.contentY + 0.2;
               bullets.slice(midpoint).forEach((b: any, index: number) => {
                 const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 5.45, currentY, index + midpoint, colors, fonts, bulletConfig, iconDataUrls);
+                renderIconBullet(contentSlide, text, 5.45, currentY, index + midpoint, colors, fonts, bulletConfig);
                 currentY += 0.55;
               });
             } else {
@@ -1788,7 +1746,7 @@ ${docOutline.substring(0, 8000)}`,
               let currentY = spacing.contentY + 0.2;
               bullets.forEach((b: any, index: number) => {
                 const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig, iconDataUrls);
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
                 currentY += 0.55;
               });
             } else {
