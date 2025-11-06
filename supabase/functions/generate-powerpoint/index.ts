@@ -89,6 +89,7 @@ serve(async (req) => {
       filename: string;
       base64: string;
       ext: string;
+      originalSize: number;
     }> = [];
     
     console.log(`Found ${mediaFiles.length} media files in DOCX`);
@@ -129,12 +130,13 @@ serve(async (req) => {
           continue;
         }
         
-        console.log(`Uploaded image: ${filename}`);
+        console.log(`Uploaded image: ${filename} (${(arrayBuf.byteLength / 1024).toFixed(1)}KB)`);
         extractedImages.push({
           path: storagePath,
           filename: filename,
           base64: base64,
-          ext: ext
+          ext: ext,
+          originalSize: arrayBuf.byteLength
         });
       } catch (err) {
         console.error(`Error processing image ${filename}:`, err);
@@ -422,20 +424,22 @@ ${cleanOutline.substring(0, 8000)}`,
                       },
                       quote: { type: 'string', description: 'Quote text for quote slides' },
                       attribution: { type: 'string', description: 'Author or source of quote' },
-                      imageCount: { type: 'number', description: 'Number of image placeholders (1-4)' },
-                      notes: { type: 'string', description: 'Speaker notes or additional context' }
-                    },
-                    required: ['type', 'title']
-                  }
-                }
-              },
-              required: ['title', 'slides']
-            }
-          }
-        }],
-        tool_choice: { type: 'function', function: { name: 'create_slides' } }
-      }),
-    });
+                       imageCount: { type: 'number', description: 'Number of image placeholders (1-4)' },
+                       imageCaption: { type: 'string', description: 'Caption or description for the image' },
+                       preferredImageIndex: { type: 'number', description: 'Specific image index to use (0-based)' },
+                       notes: { type: 'string', description: 'Speaker notes or additional context' }
+                     },
+                     required: ['type', 'title']
+                   }
+                 }
+               },
+               required: ['title', 'slides']
+             }
+           }
+         }],
+         tool_choice: { type: 'function', function: { name: 'create_slides' } }
+       }),
+     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
@@ -554,13 +558,30 @@ ${cleanOutline.substring(0, 8000)}`,
       }
     };
 
+    // Helper to optimize and resize images based on layout
+    const getOptimizedImageDimensions = (layoutType: string) => {
+      const layouts: Record<string, { w: number; h: number; quality: number }> = {
+        'image-left': { w: 4.0, h: 4.2, quality: 85 },
+        'image-right': { w: 4.0, h: 4.2, quality: 85 },
+        'full-image': { w: 9.0, h: 5.0, quality: 90 },
+        'image-grid': { w: 4.5, h: 3.0, quality: 80 },
+        'title-image': { w: 8.0, h: 4.5, quality: 90 },
+        'image-top': { w: 9.0, h: 4.0, quality: 85 }
+      };
+      
+      return layouts[layoutType] || layouts['image-left'];
+    };
+
     const renderImageGridSlide = (contentSlide: any, slide: any, spacing: any, availableImages: typeof extractedImages) => {
+      const dimensions = getOptimizedImageDimensions('image-grid');
       const imageCount = Math.min(slide.imageCount || 4, availableImages.length || 4);
       const cols = imageCount <= 2 ? imageCount : 2;
       const rows = Math.ceil(imageCount / cols);
-      const imageW = 4.0;
-      const imageH = 2.5;
+      const imageW = dimensions.w;
+      const imageH = dimensions.h;
       const gap = 0.5;
+      
+      console.log(`Rendering image-grid: ${imageCount} images at ${imageW}x${imageH} each`);
       
       for (let i = 0; i < imageCount; i++) {
         const col = i % cols;
@@ -594,8 +615,11 @@ ${cleanOutline.substring(0, 8000)}`,
     };
 
     const renderImageSideSlide = (contentSlide: any, slide: any, spacing: any, side: 'left' | 'right', availableImages: typeof extractedImages, imageIndex: number, imageCaption?: string) => {
-      const imageW = 4.0;
-      const imageH = 4.2;
+      const layoutType = side === 'left' ? 'image-left' : 'image-right';
+      const dimensions = getOptimizedImageDimensions(layoutType);
+      
+      const imageW = dimensions.w;
+      const imageH = dimensions.h;
       const imageX = side === 'left' ? 0.5 : 5.5;
       const contentX = side === 'left' ? 5.0 : 0.5;
       const contentW = 4.5;
@@ -603,10 +627,15 @@ ${cleanOutline.substring(0, 8000)}`,
       // Image or placeholder
       if (availableImages[imageIndex]) {
         const img = availableImages[imageIndex];
+        
+        console.log(`Rendering ${layoutType}: ${img.filename} (${(img.originalSize / 1024).toFixed(1)}KB) at ${dimensions.w}x${dimensions.h}`);
+        
         contentSlide.addImage({
           data: `data:image/${img.ext};base64,${img.base64}`,
           x: imageX, y: spacing.contentY, w: imageW, h: imageH,
-          sizing: { type: 'contain', w: imageW, h: imageH }
+          sizing: { type: 'contain', w: imageW, h: imageH },
+          rounding: false,
+          transparency: 0
         });
         
         // Add caption below image if available
@@ -739,10 +768,14 @@ ${cleanOutline.substring(0, 8000)}`,
           // Image or placeholder on top
           if (extractedImages[imageIndex]) {
             const img = extractedImages[imageIndex];
+            const dimensions = getOptimizedImageDimensions('image-top');
+            
+            console.log(`Rendering image-top: ${img.filename} at ${dimensions.w}x${dimensions.h}`);
+            
             contentSlide.addImage({
               data: `data:image/${img.ext};base64,${img.base64}`,
-              x: 0.5, y: spacing.contentY, w: 9, h: 2.5,
-              sizing: { type: 'contain', w: 9, h: 2.5 }
+              x: 0.5, y: spacing.contentY, w: dimensions.w, h: dimensions.h,
+              sizing: { type: 'contain', w: dimensions.w, h: dimensions.h }
             });
             imageIndex++;
           } else {
@@ -796,6 +829,10 @@ ${cleanOutline.substring(0, 8000)}`,
           // Full-slide image with text overlay
           if (extractedImages[imageIndex]) {
             const img = extractedImages[imageIndex];
+            const dimensions = getOptimizedImageDimensions('full-image');
+            
+            console.log(`Rendering image-full: ${img.filename} at ${dimensions.w}x${dimensions.h}`);
+            
             contentSlide.addImage({
               data: `data:image/${img.ext};base64,${img.base64}`,
               x: 0, y: 0, w: '100%', h: '100%',
