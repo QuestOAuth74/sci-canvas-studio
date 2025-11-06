@@ -26,6 +26,10 @@ export class ConnectorVisualFeedback {
       evented: false,
     } as any);
 
+    // Tag as ephemeral feedback so exports can hide it
+    (this.startMarker as any).isFeedback = true;
+    (this.startMarker as any).isPreviewLine = true;
+
     this.canvas.add(this.startMarker);
     this.canvas.renderAll();
   }
@@ -46,6 +50,10 @@ export class ConnectorVisualFeedback {
       selectable: false,
       evented: false,
     } as any);
+
+    // Tag as ephemeral preview so it never exports
+    (this.previewLine as any).isPreviewLine = true;
+    (this.previewLine as any).isFeedback = true;
 
     this.canvas.add(this.previewLine);
     this.canvas.renderAll();
@@ -70,6 +78,10 @@ export class ConnectorVisualFeedback {
         evented: false,
       } as any);
 
+      // Tag as ephemeral feedback
+      (indicator as any).isFeedback = true;
+      (indicator as any).isPortIndicator = true;
+
       this.snapIndicators.push(indicator);
       this.canvas.add(indicator);
     });
@@ -90,6 +102,8 @@ export class ConnectorVisualFeedback {
       selectable: false,
       evented: false,
     } as any);
+
+    (snapCircle as any).isFeedback = true;
 
     this.snapIndicators.push(snapCircle);
     this.canvas.add(snapCircle);
@@ -133,6 +147,8 @@ export class ConnectorVisualFeedback {
       selectable: false,
       evented: false,
     } as any);
+
+    (pulseCircle as any).isFeedback = true;
 
     this.canvas.add(pulseCircle);
 

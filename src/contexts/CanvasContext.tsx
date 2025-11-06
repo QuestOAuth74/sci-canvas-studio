@@ -774,10 +774,13 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       });
     }
 
-    // Temporarily hide guides and eraser paths
+    // Temporarily hide guides, previews, handles, and eraser paths
     const hidden: FabricObject[] = [];
     canvas.getObjects().forEach((obj) => {
-      if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath || obj.globalCompositeOperation === 'destination-out') {
+      const o: any = obj as any;
+      if (
+        o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath || obj.globalCompositeOperation === 'destination-out'
+      ) {
         if (obj.visible) {
           hidden.push(obj);
           obj.visible = false;
@@ -819,10 +822,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       });
     }
 
-    // Temporarily hide guides and eraser paths
+    // Temporarily hide guides, previews, handles, and eraser paths
     const hidden: FabricObject[] = [];
     canvas.getObjects().forEach((obj) => {
-      if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
+      const o: any = obj as any;
+      if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
         if (obj.visible) {
           hidden.push(obj);
           obj.visible = false;
@@ -868,10 +872,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       });
     }
 
-    // Temporarily hide guides and eraser paths
+    // Temporarily hide guides, previews, handles, and eraser paths
     const hidden: FabricObject[] = [];
     canvas.getObjects().forEach((obj) => {
-      if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
+      const o: any = obj as any;
+      if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
         if (obj.visible) {
           hidden.push(obj);
           obj.visible = false;
@@ -913,10 +918,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       });
     }
 
-    // Temporarily hide guides and eraser paths
+    // Temporarily hide guides, previews, handles, and eraser paths
     const hidden: FabricObject[] = [];
     canvas.getObjects().forEach((obj) => {
-      if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
+      const o: any = obj as any;
+      if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
         if (obj.visible) {
           hidden.push(obj);
           obj.visible = false;

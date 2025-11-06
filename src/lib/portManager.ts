@@ -86,6 +86,10 @@ export function showPortIndicators(
       hasBorders: false,
     } as any);
 
+    // Mark as ephemeral UI so we can hide on export
+    (indicator as any).isPortIndicator = true;
+    (indicator as any).isFeedback = true;
+
     canvas.add(indicator);
     indicators.push(indicator);
   });
