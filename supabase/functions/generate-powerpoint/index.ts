@@ -163,7 +163,7 @@ serve(async (req) => {
       }
     }
     
-    // Parse XML to extract structured content
+    // Parse XML to extract structured content with formatting
     let cleanOutline = '';
     const paragraphs = docXml.split('</w:p>');
     
@@ -174,27 +174,65 @@ serve(async (req) => {
       const isHeading1 = para.includes('w:val="Heading1"') || para.includes('w:val="heading 1"');
       const isHeading2 = para.includes('w:val="Heading2"') || para.includes('w:val="heading 2"');
       const isHeading3 = para.includes('w:val="Heading3"') || para.includes('w:val="heading 3"');
-      const isBullet = para.includes('<w:numPr>');
       
-      // Extract all text content
-      const textMatches = para.match(/<w:t[^>]*>([^<]+)<\/w:t>/g) || [];
-      const text = textMatches
-        .map(m => m.replace(/<w:t[^>]*>([^<]+)<\/w:t>/, '$1'))
-        .join('');
+      // Check for numbered/bulleted list
+      const hasNumbering = para.includes('<w:numPr>');
+      const numIdMatch = para.match(/<w:numId w:val="(\d+)"\/>/);
+      const ilvlMatch = para.match(/<w:ilvl w:val="(\d+)"\/>/);
       
-      if (!text.trim()) continue;
+      // Determine list level (indentation)
+      const listLevel = ilvlMatch ? parseInt(ilvlMatch[1]) : 0;
+      const indent = '  '.repeat(listLevel);
+      
+      // Parse text runs with formatting
+      const runs = para.match(/<w:r>.*?<\/w:r>/gs) || [];
+      let formattedText = '';
+      let hasBold = false;
+      let hasItalic = false;
+      let hasUnderline = false;
+      
+      for (const run of runs) {
+        const textMatch = run.match(/<w:t[^>]*>([^<]+)<\/w:t>/);
+        if (!textMatch || !textMatch[1]) continue;
+        
+        const text = textMatch[1];
+        const isBold = run.includes('<w:b/>') || run.includes('<w:b ');
+        const isItalic = run.includes('<w:i/>') || run.includes('<w:i ');
+        const isUnderline = run.includes('<w:u ');
+        
+        // Track if any formatting is present
+        if (isBold) hasBold = true;
+        if (isItalic) hasItalic = true;
+        if (isUnderline) hasUnderline = true;
+        
+        // Mark formatting in text
+        let marked = text;
+        if (isBold) marked = `**${marked}**`;
+        if (isItalic) marked = `*${marked}*`;
+        if (isUnderline) marked = `__${marked}__`;
+        
+        formattedText += marked;
+      }
+      
+      if (!formattedText.trim()) continue;
       
       // Format based on style
       if (isHeading1) {
-        cleanOutline += `\n# ${text.trim()}\n`;
+        cleanOutline += `\n# ${formattedText.trim()}\n`;
       } else if (isHeading2) {
-        cleanOutline += `\n## ${text.trim()}\n`;
+        cleanOutline += `\n## ${formattedText.trim()}\n`;
       } else if (isHeading3) {
-        cleanOutline += `\n### ${text.trim()}\n`;
-      } else if (isBullet) {
-        cleanOutline += `- ${text.trim()}\n`;
+        cleanOutline += `\n### ${formattedText.trim()}\n`;
+      } else if (hasNumbering) {
+        // Numbered or bulleted list
+        const isNumbered = numIdMatch && parseInt(numIdMatch[1]) > 0;
+        if (isNumbered) {
+          cleanOutline += `${indent}1. ${formattedText.trim()}\n`;
+        } else {
+          cleanOutline += `${indent}- ${formattedText.trim()}\n`;
+        }
       } else {
-        cleanOutline += `${text.trim()}\n`;
+        cleanOutline += `${formattedText.trim()}\n`;
       }
     }
     
@@ -231,13 +269,16 @@ serve(async (req) => {
             role: 'user',
             content: `Convert this outline into PowerPoint slides. The input format:
 - Lines starting with "#" or "##" are headings (use as slide titles or section markers)
+- Lines starting with "1." are numbered list items
 - Lines starting with "-" are bullet points
+- Indented items (with spaces) are sub-bullets/sub-numbers
+- Text with **bold**, *italic*, or __underline__ should preserve that formatting
 - Plain paragraphs may be quotes, descriptions, or content
 
 ${extractedImages.length > 0 ? `\nIMPORTANT: This document contains ${extractedImages.length} embedded images. Create slides with image layouts to utilize them effectively.\n` : ''}
 
 Create diverse slide types:
-- "bullets": Standard content with 3-5 bullet points
+- "bullets": Standard content with 3-5 bullet points (preserve formatting and list types)
 - "two-column": Split bullets into two columns
 - "quote": For memorable statements, key messages (provide quote + attribution)
 - "image-left" or "image-right": Content with image on one side${extractedImages.length > 0 ? ' (PREFER THESE when images available)' : ''}
@@ -245,7 +286,9 @@ Create diverse slide types:
 - "image-top": Image above content
 - "image-full": Full-slide image with minimal text overlay${extractedImages.length > 0 ? ' (USE for impactful visuals)' : ''}
 
-Use document headings as slide titles. Keep bullets concise. Document outline:
+IMPORTANT: Preserve text formatting (bold, italic, underline), numbered vs bulleted lists, and indentation levels from the source document.
+
+Document outline:
 
 ${cleanOutline.substring(0, 8000)}`,
           },
@@ -272,8 +315,19 @@ ${cleanOutline.substring(0, 8000)}`,
                       title: { type: 'string', description: 'Slide title' },
                       bullets: {
                         type: 'array',
-                        items: { type: 'string' },
-                        description: 'Bullet points for content slides'
+                        items: {
+                          type: 'object',
+                          properties: {
+                            text: { type: 'string', description: 'Bullet text content' },
+                            level: { type: 'number', description: 'Indentation level (0, 1, 2)', default: 0 },
+                            listType: { type: 'string', enum: ['bullet', 'number'], description: 'Bullet or numbered list', default: 'bullet' },
+                            bold: { type: 'boolean', description: 'Apply bold formatting', default: false },
+                            italic: { type: 'boolean', description: 'Apply italic formatting', default: false },
+                            underline: { type: 'boolean', description: 'Apply underline formatting', default: false }
+                          },
+                          required: ['text']
+                        },
+                        description: 'Formatted bullet points with text styling and list type'
                       },
                       quote: { type: 'string', description: 'Quote text for quote slides' },
                       attribution: { type: 'string', description: 'Author or source of quote' },
@@ -477,10 +531,29 @@ ${cleanOutline.substring(0, 8000)}`,
         });
       }
       
-      // Content bullets
+      // Content bullets with formatting
       const bullets = slide.bullets || [];
       if (bullets.length > 0) {
-        const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
+        const bulletText = bullets.map((b: any) => {
+          const text = typeof b === 'string' ? b : b.text;
+          const level = typeof b === 'object' ? (b.level || 0) : 0;
+          const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+          const bold = typeof b === 'object' ? (b.bold || false) : false;
+          const italic = typeof b === 'object' ? (b.italic || false) : false;
+          const underline = typeof b === 'object' ? (b.underline || false) : false;
+          
+          return {
+            text,
+            options: {
+              bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+              indentLevel: level,
+              bold,
+              italic,
+              underline
+            }
+          };
+        });
+        
         contentSlide.addText(bulletText, {
           x: contentX,
           y: spacing.contentY,
@@ -568,7 +641,26 @@ ${cleanOutline.substring(0, 8000)}`,
           }
           
           if (bullets.length > 0) {
-            const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
+            const bulletText = bullets.map((b: any) => {
+              const text = typeof b === 'string' ? b : b.text;
+              const level = typeof b === 'object' ? (b.level || 0) : 0;
+              const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+              const bold = typeof b === 'object' ? (b.bold || false) : false;
+              const italic = typeof b === 'object' ? (b.italic || false) : false;
+              const underline = typeof b === 'object' ? (b.underline || false) : false;
+              
+              return {
+                text,
+                options: {
+                  bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                  indentLevel: level,
+                  bold,
+                  italic,
+                  underline
+                }
+              };
+            });
+            
             contentSlide.addText(bulletText, {
               x: 0.5,
               y: spacing.contentY + 3.0,
@@ -598,7 +690,7 @@ ${cleanOutline.substring(0, 8000)}`,
                 fill: { color: '000000', transparency: 50 }
               });
               
-              const overlayText = slide.bullets.join(' • ');
+              const overlayText = slide.bullets.map((b: any) => typeof b === 'string' ? b : b.text).join(' • ');
               contentSlide.addText(overlayText, {
                 x: 0.5, y: 6.0, w: 9, h: 1,
                 fontSize: fonts.bodySize * 1.1,
@@ -613,7 +705,26 @@ ${cleanOutline.substring(0, 8000)}`,
           } else {
             // Fallback to regular bullets if no image
             if (bullets.length > 0) {
-              const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
+              const bulletText = bullets.map((b: any) => {
+                const text = typeof b === 'string' ? b : b.text;
+                const level = typeof b === 'object' ? (b.level || 0) : 0;
+                const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+                const bold = typeof b === 'object' ? (b.bold || false) : false;
+                const italic = typeof b === 'object' ? (b.italic || false) : false;
+                const underline = typeof b === 'object' ? (b.underline || false) : false;
+                
+                return {
+                  text,
+                  options: {
+                    bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                    indentLevel: level,
+                    bold,
+                    italic,
+                    underline
+                  }
+                };
+              });
+              
               contentSlide.addText(bulletText, {
                 x: 0.5,
                 y: spacing.contentY,
@@ -630,8 +741,29 @@ ${cleanOutline.substring(0, 8000)}`,
         case 'two-column':
           if (bullets.length > 0) {
             const midpoint = Math.ceil(bullets.length / 2);
-            const leftBullets = bullets.slice(0, midpoint).map((b: string) => ({ text: b, options: { bullet: true } }));
-            const rightBullets = bullets.slice(midpoint).map((b: string) => ({ text: b, options: { bullet: true } }));
+            
+            const formatBullets = (bulletArray: any[]) => bulletArray.map((b: any) => {
+              const text = typeof b === 'string' ? b : b.text;
+              const level = typeof b === 'object' ? (b.level || 0) : 0;
+              const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+              const bold = typeof b === 'object' ? (b.bold || false) : false;
+              const italic = typeof b === 'object' ? (b.italic || false) : false;
+              const underline = typeof b === 'object' ? (b.underline || false) : false;
+              
+              return {
+                text,
+                options: {
+                  bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                  indentLevel: level,
+                  bold,
+                  italic,
+                  underline
+                }
+              };
+            });
+            
+            const leftBullets = formatBullets(bullets.slice(0, midpoint));
+            const rightBullets = formatBullets(bullets.slice(midpoint));
             
             contentSlide.addText(leftBullets, {
               x: 0.5,
@@ -657,7 +789,26 @@ ${cleanOutline.substring(0, 8000)}`,
 
         default: // 'bullets' and fallback
           if (bullets.length > 0) {
-            const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
+            const bulletText = bullets.map((b: any) => {
+              const text = typeof b === 'string' ? b : b.text;
+              const level = typeof b === 'object' ? (b.level || 0) : 0;
+              const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+              const bold = typeof b === 'object' ? (b.bold || false) : false;
+              const italic = typeof b === 'object' ? (b.italic || false) : false;
+              const underline = typeof b === 'object' ? (b.underline || false) : false;
+              
+              return {
+                text,
+                options: {
+                  bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                  indentLevel: level,
+                  bold,
+                  italic,
+                  underline
+                }
+              };
+            });
+            
             contentSlide.addText(bulletText, {
               x: 0.5,
               y: spacing.contentY,
