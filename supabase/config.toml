@@ -15,3 +15,7 @@ timeout = 180
 
 [functions.generate-icon-from-reference]
 verify_jwt = true
+
+[functions.generate-powerpoint]
+verify_jwt = true
+timeout = 180

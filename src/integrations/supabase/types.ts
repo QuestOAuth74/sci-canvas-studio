@@ -494,6 +494,48 @@ export type Database = {
         }
         Relationships: []
       }
+      powerpoint_generations: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          generated_filename: string
+          id: string
+          original_filename: string
+          status: string | null
+          storage_path: string
+          template_name: string
+          user_id: string
+          word_doc_path: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          generated_filename: string
+          id?: string
+          original_filename: string
+          status?: string | null
+          storage_path: string
+          template_name: string
+          user_id: string
+          word_doc_path?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          generated_filename?: string
+          id?: string
+          original_filename?: string
+          status?: string | null
+          storage_path?: string
+          template_name?: string
+          user_id?: string
+          word_doc_path?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
