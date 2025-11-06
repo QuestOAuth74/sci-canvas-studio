@@ -13,12 +13,19 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let generationId: string | undefined;
+  
   try {
+    console.log('=== PowerPoint Generation Request Received ===');
+    
     // Get authorization header - JWT is already verified by Supabase since verify_jwt = true
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error('❌ No authorization header');
       throw new Error('No authorization header');
     }
+
+    console.log('✅ Authorization header present');
 
     // Create admin client with service role key for admin check
     const supabaseAdmin = createClient(
@@ -37,12 +44,17 @@ serve(async (req) => {
       }
     );
 
+    console.log('✅ Supabase clients created');
+
     // Get user from JWT (pass token explicitly to avoid env/session issues)
     const jwt = authHeader.replace('Bearer ', '').trim();
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(jwt);
     if (authError || !user) {
+      console.error('❌ Authentication failed:', authError?.message);
       throw new Error('Unauthorized');
     }
+
+    console.log('✅ User authenticated:', user.id);
 
     // Check admin access using service role client
     const { data: roles } = await supabaseAdmin
@@ -53,10 +65,19 @@ serve(async (req) => {
       .single();
 
     if (!roles) {
+      console.error('❌ User is not admin');
       throw new Error('Admin access required');
     }
 
-    const { generationId, wordDocPath, templateId } = await req.json();
+    console.log('✅ Admin access confirmed');
+
+    const requestBody = await req.json();
+    generationId = requestBody.generationId;
+    const { wordDocPath, templateId } = requestBody;
+
+    if (!generationId) {
+      throw new Error('Missing generationId');
+    }
 
     console.log('Starting PowerPoint generation:', { generationId, wordDocPath, templateId });
 
@@ -1824,31 +1845,35 @@ ${docOutline.substring(0, 8000)}`,
     );
 
   } catch (error: any) {
-    console.error('Error in generate-powerpoint:', error);
+    console.error('❌ Error in generate-powerpoint:', error);
+    console.error('❌ Error stack:', error.stack);
 
-    // Try to update status to failed
-    try {
-      const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      );
-      const body = await req.json();
-      const generationId = body.generationId;
-      if (generationId) {
+    // Try to update status to failed using the captured generationId
+    if (generationId) {
+      try {
+        const supabaseAdmin = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+        
         await supabaseAdmin
           .from('powerpoint_generations')
           .update({
             status: 'failed',
-            error_message: error.message,
+            error_message: error.message || 'Unknown error',
           })
           .eq('id', generationId);
+          
+        console.log(`✅ Updated generation ${generationId} status to failed`);
+      } catch (e) {
+        console.error('❌ Failed to update error status:', e);
       }
-    } catch (e) {
-      console.error('Failed to update error status:', e);
+    } else {
+      console.error('❌ No generationId available to update status');
     }
 
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error.message || 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
