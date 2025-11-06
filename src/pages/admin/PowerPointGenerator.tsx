@@ -5,17 +5,22 @@ import { Button } from '@/components/ui/button';
 import { PowerPointTemplateSelector } from '@/components/admin/PowerPointTemplateSelector';
 import { PowerPointGenerationList } from '@/components/admin/PowerPointGenerationList';
 import { PowerPointTemplateBuilder } from '@/components/admin/PowerPointTemplateBuilder';
+import { PowerPointPreviewModal } from '@/components/admin/PowerPointPreviewModal';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Loader2 } from 'lucide-react';
+import { Upload, FileText, Loader2, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { analyzeDocx, type DocxPreviewData } from '@/lib/docxAnalyzer';
 
 export default function PowerPointGenerator() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState('scientific-report');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<DocxPreviewData | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const queryClient = useQueryClient();
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -42,12 +47,33 @@ export default function PowerPointGenerator() {
     },
   });
 
+  const handlePreview = async () => {
+    if (!selectedFile) {
+      toast.error('Please select a file first');
+      return;
+    }
+
+    setIsAnalyzing(true);
+
+    try {
+      const preview = await analyzeDocx(selectedFile);
+      setPreviewData(preview);
+      setShowPreview(true);
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      toast.error(`Failed to analyze document: ${error.message}`);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!selectedFile) {
       toast.error('Please select a file first');
       return;
     }
 
+    setShowPreview(false);
     setIsGenerating(true);
 
     try {
@@ -216,11 +242,30 @@ export default function PowerPointGenerator() {
         </div>
 
         {/* Generate Button */}
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-3">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={handlePreview}
+            disabled={!selectedFile || isAnalyzing || isGenerating}
+            className="min-w-[200px]"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Eye className="mr-2 h-4 w-4" />
+                Preview
+              </>
+            )}
+          </Button>
           <Button
             size="lg"
             onClick={handleGenerate}
-            disabled={!selectedFile || isGenerating}
+            disabled={!selectedFile || isGenerating || isAnalyzing}
             className="min-w-[200px]"
           >
             {isGenerating ? (
@@ -236,6 +281,14 @@ export default function PowerPointGenerator() {
             )}
           </Button>
         </div>
+
+        <PowerPointPreviewModal
+          open={showPreview}
+          onOpenChange={setShowPreview}
+          previewData={previewData}
+          onConfirm={handleGenerate}
+          isGenerating={isGenerating}
+        />
           </TabsContent>
 
           <TabsContent value="templates">
