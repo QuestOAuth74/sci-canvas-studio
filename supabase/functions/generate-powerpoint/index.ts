@@ -326,10 +326,61 @@ serve(async (req) => {
   - After: ${afterText}${position.caption ? `\n  - Caption: ${position.caption}` : ''}`;
     }).join('\n\n');
 
+    // Helper function to upload Word document to Manus
+    async function uploadFileToManus(
+      fileBuffer: ArrayBuffer,
+      filename: string
+    ): Promise<string> {
+      const manusApiKey = Deno.env.get('MANUS_API_KEY');
+      if (!manusApiKey) {
+        throw new Error('MANUS_API_KEY not configured');
+      }
+
+      console.log(`📤 Creating Manus file record for: ${filename}`);
+      const createFileResponse = await fetch('https://api.manus.ai/v1/files', {
+        method: 'POST',
+        headers: {
+          'API_KEY': manusApiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filename })
+      });
+
+      if (!createFileResponse.ok) {
+        const errorText = await createFileResponse.text();
+        throw new Error(`Failed to create Manus file record: ${createFileResponse.status} - ${errorText}`);
+      }
+
+      const createFileData = await createFileResponse.json();
+      const uploadUrl = createFileData.upload_url;
+      const fileId = createFileData.id;
+
+      if (!uploadUrl || !fileId) {
+        throw new Error('Manus did not return upload_url or file id');
+      }
+
+      console.log(`📤 Uploading file to Manus presigned URL, file_id: ${fileId}`);
+
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        },
+        body: fileBuffer
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Failed to upload file to Manus: ${uploadResponse.status}`);
+      }
+
+      console.log(`✅ File uploaded to Manus successfully, file_id: ${fileId}`);
+      return fileId;
+    }
+
     // Helper function to create Manus AI task for full PowerPoint generation with diagrams
     async function createManusFullGenerationTask(
-      docOutline: string,
-      imageContexts: string,
+      fileId: string,
+      filename: string,
       imageCount: number
     ): Promise<string> {
       const manusApiKey = Deno.env.get('MANUS_API_KEY');
@@ -337,42 +388,37 @@ serve(async (req) => {
         throw new Error('MANUS_API_KEY not configured');
       }
 
-      const prompt = `Create a professional PowerPoint presentation from this scientific/academic document with COMPLETE DIAGRAMS AND FLOWCHARTS.
-
-DOCUMENT CONTENT:
-${docOutline}
-
-IMAGES AVAILABLE: ${imageCount} images with context:
-${imageContexts || 'No images available'}
+      const prompt = `Create a professional PowerPoint presentation (.pptx file) from the attached Word document.
 
 CRITICAL REQUIREMENTS:
-1. Create 10-15 slides with engaging, professional layouts
-2. GENERATE FLOWCHARTS AND DIAGRAMS to visualize complex concepts:
+1. Generate a complete PowerPoint file in .pptx format
+2. Create 12-18 slides with professional layouts
+3. **GENERATE FLOWCHARTS AND DIAGRAMS** to visualize complex concepts:
    - Process flows with arrows and decision nodes
    - System architecture diagrams with labeled components
    - Cause-effect relationships with connecting arrows
    - Timeline diagrams for sequential processes
-   - Comparison matrices for contrasts
+   - Comparison matrices for side-by-side analysis
    - Block diagrams with hierarchical structures
    - Venn diagrams for overlapping concepts
-3. Use the provided images where contextually relevant
-4. Create additional visual elements automatically for:
-   - Any multi-step processes → Flowchart
-   - System descriptions → Architecture diagram
-   - Comparisons → Side-by-side or matrix layout
-   - Relationships → Connected node diagrams
-   - Data or statistics → Charts/graphs
-5. Use professional color schemes suitable for scientific/academic presentations
-6. Include clear, concise titles and bullet points
-7. Integrate smooth transitions between sections
-8. Add speaker notes with key talking points
+   - Data visualizations (charts, graphs)
+4. The document contains ${imageCount} images - incorporate them where contextually relevant
+5. For any multi-step processes → Create flowcharts
+6. For system descriptions → Create architecture diagrams  
+7. For comparisons → Create matrix or side-by-side layouts
+8. For relationships → Create connected node diagrams
+9. Use professional color schemes suitable for scientific/academic presentations
+10. Include clear, concise titles and bullet points
+11. Add smooth transitions between sections
+12. Generate speaker notes with key talking points
 
 STYLE: Scientific/Academic presentation suitable for research conferences
 VISUAL QUALITY: High-quality diagrams with clear labels, consistent styling, professional aesthetics
+OUTPUT FORMAT: Complete PowerPoint (.pptx) file with all diagrams, flowcharts, and figures embedded
 
-OUTPUT: Complete PowerPoint (.pptx) file with all diagrams, flowcharts, and figures embedded and properly formatted.`;
+Analyze the Word document thoroughly and create a comprehensive presentation with rich visual elements.`;
 
-      console.log('Creating Manus AI full generation task...');
+      console.log('🎨 Creating Manus AI full generation task with file attachment...');
       
       const response = await fetch('https://api.manus.ai/v1/tasks', {
         method: 'POST',
@@ -382,6 +428,10 @@ OUTPUT: Complete PowerPoint (.pptx) file with all diagrams, flowcharts, and figu
         },
         body: JSON.stringify({
           prompt: prompt,
+          attachments: [{
+            filename: filename,
+            file_id: fileId
+          }],
           taskMode: 'agent',
           agentProfile: 'quality'
         })
@@ -389,14 +439,17 @@ OUTPUT: Complete PowerPoint (.pptx) file with all diagrams, flowcharts, and figu
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Manus task creation failed:', response.status, errorText);
-        throw new Error(`Manus task creation failed: ${response.status}`);
+        console.error('❌ Manus task creation failed:', response.status, errorText);
+        throw new Error(`Manus task creation failed: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      const taskId = result.taskId || result.id;
+      
+      // FIX: Manus returns task_id (underscore), not taskId (camelCase)
+      const taskId = result.task_id || result.id || result.taskId;
       
       if (!taskId) {
+        console.error('Manus API response:', JSON.stringify(result));
         throw new Error('No task ID returned from Manus API');
       }
 
@@ -404,9 +457,11 @@ OUTPUT: Complete PowerPoint (.pptx) file with all diagrams, flowcharts, and figu
       return taskId;
     }
 
-    // Helper function to poll Manus task completion
+    // Helper function to poll Manus task completion with progress updates
     async function pollManusTaskCompletion(
       taskId: string,
+      generationId: string,
+      supabaseAdmin: any,
       maxAttempts: number = 60,
       intervalMs: number = 5000
     ): Promise<string> {
@@ -416,30 +471,49 @@ OUTPUT: Complete PowerPoint (.pptx) file with all diagrams, flowcharts, and figu
       }
       
       for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        console.log(`Polling Manus task ${taskId}, attempt ${attempt + 1}/${maxAttempts}`);
+        console.log(`⏳ Polling Manus task ${taskId}, attempt ${attempt + 1}/${maxAttempts}`);
         
         const response = await fetch(`https://api.manus.ai/v1/tasks/${taskId}`, {
           headers: { 'API_KEY': manusApiKey }
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to check task status: ${response.status}`);
+          const errorText = await response.text();
+          throw new Error(`Failed to check task status: ${response.status} - ${errorText}`);
         }
 
         const taskData = await response.json();
         console.log('Task status:', taskData.status);
 
+        // Update progress in database
+        const progress = Math.min(95, (attempt / maxAttempts) * 100);
+        await supabaseAdmin
+          .from('powerpoint_generations')
+          .update({
+            metadata: {
+              manusTaskId: taskId,
+              generationMode: 'full',
+              progress: progress,
+              message: `Manus AI is creating your presentation with diagrams... (${Math.round(progress)}%)`
+            }
+          })
+          .eq('id', generationId);
+
         if (taskData.status === 'completed' || taskData.status === 'finished' || taskData.status === 'success') {
+          // Try multiple possible locations for the file URL
           const fileUrl = taskData.result?.fileUrl || 
                          taskData.result?.url ||
+                         taskData.result?.file_url ||
                          taskData.outputs?.[0]?.url ||
                          taskData.files?.[0]?.url ||
+                         taskData.artifacts?.[0]?.url ||
+                         taskData.download_url ||
                          taskData.downloadUrl ||
                          taskData.result;
           
           if (!fileUrl) {
-            console.error('Task completed but no file URL found. Task data:', JSON.stringify(taskData));
-            throw new Error('Task completed but no file URL found in result');
+            console.error('Task completed but no file URL found. Full task data:', JSON.stringify(taskData, null, 2));
+            throw new Error('Task completed but no file URL found in result. Check logs for task response structure.');
           }
 
           console.log(`✅ Task completed, file URL: ${fileUrl}`);
@@ -447,13 +521,14 @@ OUTPUT: Complete PowerPoint (.pptx) file with all diagrams, flowcharts, and figu
         }
 
         if (taskData.status === 'failed' || taskData.status === 'error') {
-          throw new Error(`Manus task failed: ${taskData.error || taskData.message || 'Unknown error'}`);
+          const errorMsg = taskData.error || taskData.message || taskData.error_message || 'Unknown error';
+          throw new Error(`Manus task failed: ${errorMsg}`);
         }
 
         await new Promise(resolve => setTimeout(resolve, intervalMs));
       }
 
-      throw new Error('Manus task timeout: exceeded maximum polling attempts');
+      throw new Error('Manus task timeout: exceeded maximum polling attempts (5 minutes)');
     }
 
     // Helper function to download Manus-generated PowerPoint
@@ -740,27 +815,42 @@ ${docOutline.substring(0, 8000)}`,
       console.log('🎨 Using FULL generation mode - Manus AI will create complete PowerPoint with diagrams');
       
       try {
-        // Create Manus task for full PowerPoint generation
-        const taskId = await createManusFullGenerationTask(cleanOutline, imageContexts, extractedImages.length);
+        // Step 1: Upload Word document to Manus
+        console.log('📤 Uploading Word document to Manus...');
+        const manusFileId = await uploadFileToManus(arrayBuffer, wordDocPath.split('/').pop() || 'document.docx');
         
-        // Update generation record with task ID
+        // Step 2: Create Manus task with file attachment
+        console.log('🎨 Creating Manus task with Word document attached...');
+        const taskId = await createManusFullGenerationTask(
+          manusFileId,
+          wordDocPath.split('/').pop() || 'document.docx',
+          extractedImages.length
+        );
+        
+        // Step 3: Update generation record with task ID
         await supabaseAdmin
           .from('powerpoint_generations')
           .update({ 
-            metadata: { manusTaskId: taskId, generationMode: 'full' },
+            metadata: { 
+              manusTaskId: taskId,
+              manusFileId: manusFileId,
+              generationMode: 'full',
+              progress: 10,
+              message: 'Manus AI is analyzing your document...'
+            },
             status: 'processing'
           })
           .eq('id', generationId);
 
-        // Poll for completion
+        // Step 4: Poll for completion with progress updates
         console.log('⏳ Waiting for Manus to generate PowerPoint with diagrams...');
-        const fileUrl = await pollManusTaskCompletion(taskId);
+        const fileUrl = await pollManusTaskCompletion(taskId, generationId, supabaseAdmin);
 
-        // Download the generated PowerPoint
-        console.log('📥 Downloading Manus-generated PowerPoint...');
+        // Step 5: Download generated PowerPoint
+        console.log('📥 Manus PowerPoint ready, downloading...');
         const pptxBlob = await downloadManusGeneratedFile(fileUrl);
 
-        // Upload to Supabase storage
+        // Step 6: Upload to Supabase storage
         const pptxFileName = `${generationId}_manus_full.pptx`;
         const { error: uploadError } = await supabaseClient.storage
           .from('ppt-generated')
@@ -775,29 +865,34 @@ ${docOutline.substring(0, 8000)}`,
 
         console.log('✅ PowerPoint uploaded successfully');
 
-        // Update generation record with completion
+        // Step 7: Update generation record with success
         await supabaseAdmin
           .from('powerpoint_generations')
           .update({
             status: 'completed',
             file_path: pptxFileName,
             completed_at: new Date().toISOString(),
-            metadata: { 
-              manusTaskId: taskId, 
+            metadata: {
+              manusTaskId: taskId,
+              manusFileId: manusFileId,
               generationMode: 'full',
-              fileSize: pptxBlob.size 
+              progress: 100,
+              message: 'PowerPoint generated successfully with diagrams!'
             }
           })
           .eq('id', generationId);
 
-        // Track AI usage
+        // Step 8: Track AI usage
         await supabaseClient.from('ai_generation_usage').insert({
           user_id: user.id,
           month_year: new Date().toISOString().substring(0, 7),
           generation_type: 'powerpoint_full',
           metadata: {
             ai_provider: 'manus',
-            generation_mode: 'full',
+            task_id: taskId,
+            file_id: manusFileId,
+            slides_generated: 'full_presentation',
+            mode: 'quality',
             image_count: extractedImages.length,
             template_id: templateId,
             file_size: pptxBlob.size

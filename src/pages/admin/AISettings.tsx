@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAIProviderSettings } from '@/hooks/useAIProviderSettings';
@@ -212,6 +212,22 @@ export default function AISettings() {
                     <AlertDescription>
                       <strong>Note:</strong> Manus AI requires a valid API key configured in your
                       Supabase Edge Function secrets. Make sure MANUS_API_KEY is set.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {generationMode === 'full' && primaryProvider === 'manus' && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Full Generation Mode Details</AlertTitle>
+                    <AlertDescription>
+                      Manus will receive the complete Word document as an attachment and generate
+                      a PowerPoint with diagrams, flowcharts, and rich visual elements. This mode
+                      uses more credits but produces superior results with professional diagrams.
+                      <br /><br />
+                      <strong>Estimated time:</strong> 2-5 minutes per presentation
+                      <br />
+                      <strong>Credit usage:</strong> ~150-300 credits (≈$1.50-$3.00)
                     </AlertDescription>
                   </Alert>
                 )}
