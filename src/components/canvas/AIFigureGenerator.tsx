@@ -498,8 +498,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
                 fill: fillColor,
                 stroke: strokeColor,
                 strokeWidth: obj.stroke_width || 2,
-                rx: obj.rounded_corners ? 10 : 0,
-                ry: obj.rounded_corners ? 10 : 0,
+                rx: 8, // Always add rounded corners for visual polish
+                ry: 8,
               });
           
           // Create text if there's text content
@@ -685,7 +685,13 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const validRoutingStyles = ['straight', 'curved', 'orthogonal'];
           const normalizedLineStyle = validLineStyles.includes(conn.style) ? conn.style : 'solid';
           const normalizedRoutingStyle = validRoutingStyles.includes(routingStyle) ? routingStyle : 'straight';
-          const normalizedColor = (conn.color && /^#[0-9A-Fa-f]{6}$/.test(conn.color)) ? conn.color : '#22c55e';
+          
+          // Debug log the original color before validation
+          if (conn.color && !/^#[0-9A-Fa-f]{6}$/.test(conn.color)) {
+            console.log(`⚠️ Invalid connector color "${conn.color}" for ${conn.from}→${conn.to}, using black fallback`);
+          }
+          
+          const normalizedColor = (conn.color && /^#[0-9A-Fa-f]{6}$/.test(conn.color)) ? conn.color : '#000000';
           const normalizedStrokeWidth = Math.max(1, Math.min(5, conn.strokeWidth || 2));
 
           console.log(`Creating connector: ${conn.from}→${conn.to}, style=${normalizedLineStyle}, routing=${normalizedRoutingStyle}, color=${normalizedColor}`);
