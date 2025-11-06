@@ -462,7 +462,7 @@ Analyze the Word document thoroughly and create a comprehensive presentation wit
       taskId: string,
       generationId: string,
       supabaseAdmin: any,
-      maxAttempts: number = 60,
+      maxAttempts: number = 24,
       intervalMs: number = 5000
     ): Promise<string> {
       const manusApiKey = Deno.env.get('MANUS_API_KEY');
@@ -483,21 +483,12 @@ Analyze the Word document thoroughly and create a comprehensive presentation wit
         }
 
         const taskData = await response.json();
-        console.log('Task status:', taskData.status);
-
-        // Update progress in database
-        const progress = Math.min(95, (attempt / maxAttempts) * 100);
-        await supabaseAdmin
-          .from('powerpoint_generations')
-          .update({
-            metadata: {
-              manusTaskId: taskId,
-              generationMode: 'full',
-              progress: progress,
-              message: `Manus AI is creating your presentation with diagrams... (${Math.round(progress)}%)`
-            }
-          })
-          .eq('id', generationId);
+        console.log(`📊 Task status: ${taskData.status} (attempt ${attempt + 1}/${maxAttempts})`);
+        
+        // Log full response for debugging
+        if (taskData.status !== 'running' && taskData.status !== 'pending') {
+          console.log('Full task data:', JSON.stringify(taskData, null, 2));
+        }
 
         if (taskData.status === 'completed' || taskData.status === 'finished' || taskData.status === 'success') {
           // Try multiple possible locations for the file URL
@@ -528,7 +519,7 @@ Analyze the Word document thoroughly and create a comprehensive presentation wit
         await new Promise(resolve => setTimeout(resolve, intervalMs));
       }
 
-      throw new Error('Manus task timeout: exceeded maximum polling attempts (5 minutes)');
+      throw new Error('Manus task timeout: exceeded maximum polling attempts (2 minutes). Task may still be processing.');
     }
 
     // Helper function to download Manus-generated PowerPoint
@@ -831,13 +822,6 @@ ${docOutline.substring(0, 8000)}`,
         await supabaseAdmin
           .from('powerpoint_generations')
           .update({ 
-            metadata: { 
-              manusTaskId: taskId,
-              manusFileId: manusFileId,
-              generationMode: 'full',
-              progress: 10,
-              message: 'Manus AI is analyzing your document...'
-            },
             status: 'processing'
           })
           .eq('id', generationId);
@@ -870,15 +854,8 @@ ${docOutline.substring(0, 8000)}`,
           .from('powerpoint_generations')
           .update({
             status: 'completed',
-            file_path: pptxFileName,
-            completed_at: new Date().toISOString(),
-            metadata: {
-              manusTaskId: taskId,
-              manusFileId: manusFileId,
-              generationMode: 'full',
-              progress: 100,
-              message: 'PowerPoint generated successfully with diagrams!'
-            }
+            storage_path: pptxFileName,
+            completed_at: new Date().toISOString()
           })
           .eq('id', generationId);
 
