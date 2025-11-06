@@ -1403,57 +1403,139 @@ ${docOutline.substring(0, 8000)}`,
         const useIconBullets = enhancedBullets?.enabled && shouldEnhance;
         const useShadedBoxes = shadedBoxes?.enabled && shouldEnhance;
         
-        if (useIconBullets) {
-          const bulletConfig = enhancedBullets;
-          const boxConfig = shadedBoxes;
+        // Check if we need two-column layout due to content length
+        const useTwoColumns = shouldUseTwoColumns(bullets, { contentH: imageH }, useIconBullets);
+        
+        if (useTwoColumns) {
+          // Too many bullets for single column - use full-width two-column layout
+          const midpoint = Math.ceil(bullets.length / 2);
+          const fullContentX = 0.5;
+          const fullContentW = 9;
           
-          // Calculate content height based on bullets
-          const bulletHeight = Math.min(bullets.length * 0.6, imageH);
-          
-          // Add shaded box if enabled
-          if (useShadedBoxes) {
-            addShadedBox(contentSlide, contentX, spacing.contentY, contentW, bulletHeight, boxConfig, colors);
-          }
-          
-          // Render each bullet with icon
-          let currentY = spacing.contentY + 0.2;
-          bullets.forEach((b: any, index: number) => {
-            const text = typeof b === 'string' ? b : b.text;
-            renderIconBullet(contentSlide, text, contentX + 0.2, currentY, index, colors, fonts, bulletConfig);
-            currentY += 0.55;
-          });
-        } else {
-          // Original bullet rendering
-          const bulletText = bullets.map((b: any) => {
-            const text = typeof b === 'string' ? b : b.text;
-            const level = typeof b === 'object' ? (b.level || 0) : 0;
-            const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
-            const bold = typeof b === 'object' ? (b.bold || false) : false;
-            const italic = typeof b === 'object' ? (b.italic || false) : false;
-            const underline = typeof b === 'object' ? (b.underline || false) : false;
+          if (useIconBullets) {
+            const bulletConfig = enhancedBullets;
+            const boxConfig = shadedBoxes;
             
-            return {
-              text,
-              options: {
-                bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
-                indentLevel: level,
-                bold,
-                italic,
-                underline
-              }
-            };
-          });
-          
-          contentSlide.addText(bulletText, {
-            x: contentX,
-            y: spacing.contentY,
-            w: contentW,
-            h: imageH,
-            fontSize: fonts.bodySize * 0.95,
-            fontFace: fonts.body,
-            color: colors.text,
-            lineSpacing: 20
-          });
+            // Add shaded boxes for both columns
+            if (useShadedBoxes) {
+              addShadedBox(contentSlide, fullContentX, spacing.contentY, 4.25, imageH, boxConfig, colors);
+              addShadedBox(contentSlide, fullContentX + 4.75, spacing.contentY, 4.25, imageH, boxConfig, colors);
+            }
+            
+            // Left column
+            let currentY = spacing.contentY + 0.2;
+            bullets.slice(0, midpoint).forEach((b: any, index: number) => {
+              const text = typeof b === 'string' ? b : b.text;
+              renderIconBullet(contentSlide, text, fullContentX + 0.2, currentY, index, colors, fonts, bulletConfig);
+              currentY += 0.55;
+            });
+            
+            // Right column
+            currentY = spacing.contentY + 0.2;
+            bullets.slice(midpoint).forEach((b: any, index: number) => {
+              const text = typeof b === 'string' ? b : b.text;
+              renderIconBullet(contentSlide, text, fullContentX + 4.95, currentY, index + midpoint, colors, fonts, bulletConfig);
+              currentY += 0.55;
+            });
+          } else {
+            // Standard two-column bullet formatting
+            const formatBullets = (items: any[]) => items.map((b: any) => {
+              const text = typeof b === 'string' ? b : b.text;
+              const level = typeof b === 'object' ? (b.level || 0) : 0;
+              const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+              const bold = typeof b === 'object' ? (b.bold || false) : false;
+              const italic = typeof b === 'object' ? (b.italic || false) : false;
+              const underline = typeof b === 'object' ? (b.underline || false) : false;
+              
+              return {
+                text,
+                options: {
+                  bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                  indentLevel: level,
+                  bold,
+                  italic,
+                  underline
+                }
+              };
+            });
+            
+            const leftBullets = formatBullets(bullets.slice(0, midpoint));
+            const rightBullets = formatBullets(bullets.slice(midpoint));
+            
+            contentSlide.addText(leftBullets, {
+              x: fullContentX,
+              y: spacing.contentY,
+              w: 4.25,
+              h: imageH,
+              fontSize: fonts.bodySize * 0.95,
+              fontFace: fonts.body,
+              color: colors.text,
+            });
+            
+            contentSlide.addText(rightBullets, {
+              x: fullContentX + 4.75,
+              y: spacing.contentY,
+              w: 4.25,
+              h: imageH,
+              fontSize: fonts.bodySize * 0.95,
+              fontFace: fonts.body,
+              color: colors.text,
+            });
+          }
+        } else {
+          // Single column fits - use original image-side layout
+          if (useIconBullets) {
+            const bulletConfig = enhancedBullets;
+            const boxConfig = shadedBoxes;
+            
+            // Calculate content height based on bullets
+            const bulletHeight = Math.min(bullets.length * 0.6, imageH);
+            
+            // Add shaded box if enabled
+            if (useShadedBoxes) {
+              addShadedBox(contentSlide, contentX, spacing.contentY, contentW, bulletHeight, boxConfig, colors);
+            }
+            
+            // Render each bullet with icon
+            let currentY = spacing.contentY + 0.2;
+            bullets.forEach((b: any, index: number) => {
+              const text = typeof b === 'string' ? b : b.text;
+              renderIconBullet(contentSlide, text, contentX + 0.2, currentY, index, colors, fonts, bulletConfig);
+              currentY += 0.55;
+            });
+          } else {
+            // Original bullet rendering
+            const bulletText = bullets.map((b: any) => {
+              const text = typeof b === 'string' ? b : b.text;
+              const level = typeof b === 'object' ? (b.level || 0) : 0;
+              const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+              const bold = typeof b === 'object' ? (b.bold || false) : false;
+              const italic = typeof b === 'object' ? (b.italic || false) : false;
+              const underline = typeof b === 'object' ? (b.underline || false) : false;
+              
+              return {
+                text,
+                options: {
+                  bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                  indentLevel: level,
+                  bold,
+                  italic,
+                  underline
+                }
+              };
+            });
+            
+            contentSlide.addText(bulletText, {
+              x: contentX,
+              y: spacing.contentY,
+              w: contentW,
+              h: imageH,
+              fontSize: fonts.bodySize * 0.95,
+              fontFace: fonts.body,
+              color: colors.text,
+              lineSpacing: 20
+            });
+          }
         }
       }
     };
@@ -1554,57 +1636,131 @@ ${docOutline.substring(0, 8000)}`,
             const shouldEnhance = shouldUseEnhancedBullets(slide, slideIndex, slideData.slides.length);
             const useIconBullets = enhancedBullets?.enabled && shouldEnhance;
             const useShadedBoxes = shadedBoxes?.enabled && shouldEnhance;
+            const useTwoColumns = shouldUseTwoColumns(bullets, { contentH: 2.5 }, useIconBullets);
             
-            if (useIconBullets) {
-              const bulletConfig = enhancedBullets;
-              const boxConfig = shadedBoxes;
+            if (useTwoColumns) {
+              // Two-column layout for better readability
+              const midpoint = Math.ceil(bullets.length / 2);
               
-              // Calculate content height based on bullets
-              const bulletHeight = Math.min(bullets.length * 0.6, 2.5);
-              
-              // Add shaded box if enabled
-              if (useShadedBoxes) {
-                addShadedBox(contentSlide, 0.5, spacing.contentY + 3.0, 9, bulletHeight, boxConfig, colors);
-              }
-              
-              // Render each bullet with icon
-              let currentY = spacing.contentY + 3.2;
-              bullets.forEach((b: any, index: number) => {
-                const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
-                currentY += 0.55;
-              });
-            } else {
-              // Original bullet rendering
-              const bulletText = bullets.map((b: any) => {
-                const text = typeof b === 'string' ? b : b.text;
-                const level = typeof b === 'object' ? (b.level || 0) : 0;
-                const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
-                const bold = typeof b === 'object' ? (b.bold || false) : false;
-                const italic = typeof b === 'object' ? (b.italic || false) : false;
-                const underline = typeof b === 'object' ? (b.underline || false) : false;
+              if (useIconBullets) {
+                const bulletConfig = enhancedBullets;
+                const boxConfig = shadedBoxes;
                 
-                return {
-                  text,
-                  options: {
-                    bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
-                    indentLevel: level,
-                    bold,
-                    italic,
-                    underline
-                  }
-                };
-              });
-              
-              contentSlide.addText(bulletText, {
-                x: 0.5,
-                y: spacing.contentY + 3.0,
-                w: 9,
-                h: 2.5,
-                fontSize: fonts.bodySize,
-                fontFace: fonts.body,
-                color: colors.text,
-              });
+                if (useShadedBoxes) {
+                  addShadedBox(contentSlide, 0.5, spacing.contentY + 3.0, 4.25, 2.5, boxConfig, colors);
+                  addShadedBox(contentSlide, 5.25, spacing.contentY + 3.0, 4.25, 2.5, boxConfig, colors);
+                }
+                
+                let currentY = spacing.contentY + 3.2;
+                bullets.slice(0, midpoint).forEach((b: any, index: number) => {
+                  const text = typeof b === 'string' ? b : b.text;
+                  renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
+                  currentY += 0.55;
+                });
+                
+                currentY = spacing.contentY + 3.2;
+                bullets.slice(midpoint).forEach((b: any, index: number) => {
+                  const text = typeof b === 'string' ? b : b.text;
+                  renderIconBullet(contentSlide, text, 5.45, currentY, index + midpoint, colors, fonts, bulletConfig);
+                  currentY += 0.55;
+                });
+              } else {
+                const formatBullets = (items: any[]) => items.map((b: any) => {
+                  const text = typeof b === 'string' ? b : b.text;
+                  const level = typeof b === 'object' ? (b.level || 0) : 0;
+                  const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+                  const bold = typeof b === 'object' ? (b.bold || false) : false;
+                  const italic = typeof b === 'object' ? (b.italic || false) : false;
+                  const underline = typeof b === 'object' ? (b.underline || false) : false;
+                  
+                  return {
+                    text,
+                    options: {
+                      bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                      indentLevel: level,
+                      bold,
+                      italic,
+                      underline
+                    }
+                  };
+                });
+                
+                const leftBullets = formatBullets(bullets.slice(0, midpoint));
+                const rightBullets = formatBullets(bullets.slice(midpoint));
+                
+                contentSlide.addText(leftBullets, {
+                  x: 0.5,
+                  y: spacing.contentY + 3.0,
+                  w: 4.25,
+                  h: 2.5,
+                  fontSize: fonts.bodySize,
+                  fontFace: fonts.body,
+                  color: colors.text,
+                });
+                
+                contentSlide.addText(rightBullets, {
+                  x: 5.25,
+                  y: spacing.contentY + 3.0,
+                  w: 4.25,
+                  h: 2.5,
+                  fontSize: fonts.bodySize,
+                  fontFace: fonts.body,
+                  color: colors.text,
+                });
+              }
+            } else {
+              // Single column layout
+              if (useIconBullets) {
+                const bulletConfig = enhancedBullets;
+                const boxConfig = shadedBoxes;
+                
+                // Calculate content height based on bullets
+                const bulletHeight = Math.min(bullets.length * 0.6, 2.5);
+                
+                // Add shaded box if enabled
+                if (useShadedBoxes) {
+                  addShadedBox(contentSlide, 0.5, spacing.contentY + 3.0, 9, bulletHeight, boxConfig, colors);
+                }
+                
+                // Render each bullet with icon
+                let currentY = spacing.contentY + 3.2;
+                bullets.forEach((b: any, index: number) => {
+                  const text = typeof b === 'string' ? b : b.text;
+                  renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
+                  currentY += 0.55;
+                });
+              } else {
+                // Original bullet rendering
+                const bulletText = bullets.map((b: any) => {
+                  const text = typeof b === 'string' ? b : b.text;
+                  const level = typeof b === 'object' ? (b.level || 0) : 0;
+                  const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+                  const bold = typeof b === 'object' ? (b.bold || false) : false;
+                  const italic = typeof b === 'object' ? (b.italic || false) : false;
+                  const underline = typeof b === 'object' ? (b.underline || false) : false;
+                  
+                  return {
+                    text,
+                    options: {
+                      bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                      indentLevel: level,
+                      bold,
+                      italic,
+                      underline
+                    }
+                  };
+                });
+                
+                contentSlide.addText(bulletText, {
+                  x: 0.5,
+                  y: spacing.contentY + 3.0,
+                  w: 9,
+                  h: 2.5,
+                  fontSize: fonts.bodySize,
+                  fontFace: fonts.body,
+                  color: colors.text,
+                });
+              }
             }
           }
           break;
