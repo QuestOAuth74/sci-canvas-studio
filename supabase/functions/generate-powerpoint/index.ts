@@ -326,28 +326,139 @@ serve(async (req) => {
   - After: ${afterText}${position.caption ? `\n  - Caption: ${position.caption}` : ''}`;
     }).join('\n\n');
 
-    // Call Lovable AI to structure content
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    // Helper function to call Manus AI for slide structure generation
+    async function generateSlideStructureWithManus(
+      docOutline: string,
+      imageContexts: string,
+      imageCount: number
+    ) {
+      const manusApiKey = Deno.env.get('MANUS_API_KEY');
+      if (!manusApiKey) {
+        throw new Error('MANUS_API_KEY not configured');
+      }
+
+      const prompt = `You are a PowerPoint presentation designer. Convert this Word document content into a structured slide deck.
+
+DOCUMENT CONTENT:
+${docOutline}
+
+AVAILABLE IMAGES (${imageCount} total):
+${imageContexts || 'No images available'}
+
+INSTRUCTIONS:
+1. Create 8-15 slides with diverse, engaging layouts
+2. For every image, create an "image-left" or "image-right" slide with related text content
+3. Use contextual information to match images with relevant text
+4. Alternate between layouts for visual variety
+5. Use "quote" slides for impactful statements
+6. Use "two-column" for comparisons
+7. Ensure each slide has a clear, concise title
+8. Limit bullets to 5 per slide for readability
+
+Return a JSON array of slides with this structure:
+{
+  "title": "Presentation Title",
+  "slides": [
+    {
+      "type": "bullets",
+      "title": "Slide Title",
+      "bullets": [
+        {
+          "text": "Point 1",
+          "level": 0,
+          "listType": "bullet",
+          "bold": false,
+          "italic": false,
+          "underline": false
+        }
+      ]
+    },
+    {
+      "type": "image-left",
+      "title": "Slide with Image",
+      "bullets": [{"text": "Point 1"}],
+      "imageCaption": "Image description",
+      "preferredImageIndex": 0
+    }
+  ]
+}
+
+Available slide types: "bullets", "two-column", "quote", "image-left", "image-right", "image-grid", "image-top", "image-full"`;
+
+      console.log('Calling Manus AI for slide structure generation...');
+      
+      const response = await fetch('https://open.manus.ai/v1/tasks', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${manusApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          response_format: { type: 'json_object' },
+          max_tokens: 4000,
+          temperature: 0.7
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Manus API error:', response.status, errorText);
+        throw new Error(`Manus API failed: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Manus AI response received successfully');
+      
+      // Parse the response - adjust based on actual Manus API response format
+      let slideData: any;
+      if (result.choices && result.choices[0]?.message?.content) {
+        slideData = JSON.parse(result.choices[0].message.content);
+      } else if (result.result) {
+        slideData = typeof result.result === 'string' ? JSON.parse(result.result) : result.result;
+      } else if (result.content) {
+        slideData = typeof result.content === 'string' ? JSON.parse(result.content) : result.content;
+      } else {
+        throw new Error('Unexpected Manus API response format');
+      }
+
+      // Validate response structure
+      if (!slideData.title || !slideData.slides || !Array.isArray(slideData.slides)) {
+        throw new Error('Invalid Manus response structure');
+      }
+
+      console.log(`✅ Manus AI generated ${slideData.slides.length} slides`);
+      return slideData;
     }
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a presentation expert. Analyze document structure to create engaging PowerPoint slides with varied layouts.',
-          },
-          {
-            role: 'user',
-            content: `Convert this outline into PowerPoint slides. The input format:
+    // Helper function to call Lovable AI (fallback)
+    async function generateSlideStructureWithLovable(
+      docOutline: string,
+      imageContexts: string
+    ) {
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+      if (!LOVABLE_API_KEY) {
+        throw new Error('LOVABLE_API_KEY not configured');
+      }
+
+      console.log('Using Lovable AI for slide structure generation...');
+
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a presentation expert. Analyze document structure to create engaging PowerPoint slides with varied layouts.',
+            },
+            {
+              role: 'user',
+              content: `Convert this outline into PowerPoint slides. The input format:
 - Lines starting with "#" or "##" are headings (use as slide titles or section markers)
 - Lines starting with "1." are numbered list items
 - Lines starting with "-" are bullet points
@@ -383,83 +494,130 @@ IMPORTANT: Preserve text formatting (bold, italic, underline), numbered vs bulle
 
 Document outline:
 
-${cleanOutline.substring(0, 8000)}`,
-          },
-        ],
-        tools: [{
-          type: 'function',
-          function: {
-            name: 'create_slides',
-            description: 'Structure content into PowerPoint slides',
-            parameters: {
-              type: 'object',
-              properties: {
-                title: { type: 'string', description: 'Presentation title' },
-                slides: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      type: { 
-                        type: 'string', 
-                        enum: ['bullets', 'two-column', 'quote', 'image-left', 'image-right', 'image-grid', 'image-top', 'image-full'], 
-                        description: 'Slide layout type' 
-                      },
-                      title: { type: 'string', description: 'Slide title' },
-                      bullets: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          properties: {
-                            text: { type: 'string', description: 'Bullet text content' },
-                            level: { type: 'number', description: 'Indentation level (0, 1, 2)', default: 0 },
-                            listType: { type: 'string', enum: ['bullet', 'number'], description: 'Bullet or numbered list', default: 'bullet' },
-                            bold: { type: 'boolean', description: 'Apply bold formatting', default: false },
-                            italic: { type: 'boolean', description: 'Apply italic formatting', default: false },
-                            underline: { type: 'boolean', description: 'Apply underline formatting', default: false }
-                          },
-                          required: ['text']
+${docOutline.substring(0, 8000)}`,
+            },
+          ],
+          tools: [{
+            type: 'function',
+            function: {
+              name: 'create_slides',
+              description: 'Structure content into PowerPoint slides',
+              parameters: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string', description: 'Presentation title' },
+                  slides: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        type: { 
+                          type: 'string', 
+                          enum: ['bullets', 'two-column', 'quote', 'image-left', 'image-right', 'image-grid', 'image-top', 'image-full'], 
+                          description: 'Slide layout type' 
                         },
-                        description: 'Formatted bullet points with text styling and list type'
+                        title: { type: 'string', description: 'Slide title' },
+                        bullets: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              text: { type: 'string', description: 'Bullet text content' },
+                              level: { type: 'number', description: 'Indentation level (0, 1, 2)', default: 0 },
+                              listType: { type: 'string', enum: ['bullet', 'number'], description: 'Bullet or numbered list', default: 'bullet' },
+                              bold: { type: 'boolean', description: 'Apply bold formatting', default: false },
+                              italic: { type: 'boolean', description: 'Apply italic formatting', default: false },
+                              underline: { type: 'boolean', description: 'Apply underline formatting', default: false }
+                            },
+                            required: ['text']
+                          },
+                          description: 'Formatted bullet points with text styling and list type'
+                        },
+                        quote: { type: 'string', description: 'Quote text for quote slides' },
+                        attribution: { type: 'string', description: 'Author or source of quote' },
+                        imageCount: { type: 'number', description: 'Number of image placeholders (1-4)' },
+                        imageCaption: { type: 'string', description: 'Caption or description for the image' },
+                        preferredImageIndex: { type: 'number', description: 'Specific image index to use (0-based)' },
+                        notes: { type: 'string', description: 'Speaker notes or additional context' }
                       },
-                      quote: { type: 'string', description: 'Quote text for quote slides' },
-                      attribution: { type: 'string', description: 'Author or source of quote' },
-                       imageCount: { type: 'number', description: 'Number of image placeholders (1-4)' },
-                       imageCaption: { type: 'string', description: 'Caption or description for the image' },
-                       preferredImageIndex: { type: 'number', description: 'Specific image index to use (0-based)' },
-                       notes: { type: 'string', description: 'Speaker notes or additional context' }
-                     },
-                     required: ['type', 'title']
-                   }
-                 }
-               },
-               required: ['title', 'slides']
-             }
-           }
-         }],
-         tool_choice: { type: 'function', function: { name: 'create_slides' } }
-       }),
-     });
+                      required: ['type', 'title']
+                    }
+                  }
+                },
+                required: ['title', 'slides']
+              }
+            }
+          }],
+          tool_choice: { type: 'function', function: { name: 'create_slides' } }
+        }),
+      });
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI API error:', aiResponse.status, errorText);
-      throw new Error(`AI processing failed: ${aiResponse.status}`);
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('Lovable AI API error:', aiResponse.status, errorText);
+        throw new Error(`Lovable AI processing failed: ${aiResponse.status}`);
+      }
+
+      const aiData = await aiResponse.json();
+      const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
+      const slideData = toolCall ? JSON.parse(toolCall.function.arguments) : {
+        title: 'Generated Presentation',
+        slides: [{ type: 'bullets', title: 'Content', bullets: ['No content extracted from document'] }]
+      };
+
+      console.log(`✅ Lovable AI generated ${slideData.slides.length} slides`);
+      return slideData;
     }
 
-    const aiData = await aiResponse.json();
-    const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
-    const slideData = toolCall ? JSON.parse(toolCall.function.arguments) : {
-      title: 'Generated Presentation',
-      slides: [{ type: 'bullets', title: 'Content', bullets: ['No content extracted from document'] }]
-    };
+    // Try Manus AI first, fallback to Lovable AI on error
+    let slideData: any;
+    let aiProvider = 'manus';
+
+    try {
+      slideData = await generateSlideStructureWithManus(
+        cleanOutline,
+        imageContexts,
+        extractedImages.length
+      );
+    } catch (manusError: any) {
+      console.warn('⚠️ Manus AI failed, falling back to Lovable AI:', manusError.message);
+      aiProvider = 'lovable';
+      
+      try {
+        slideData = await generateSlideStructureWithLovable(
+          cleanOutline,
+          imageContexts
+        );
+      } catch (lovableError: any) {
+        console.error('❌ Both AI providers failed');
+        throw new Error(`AI generation failed - Manus: ${manusError.message}, Lovable: ${lovableError.message}`);
+      }
+    }
 
     // Ensure at least one slide exists
     if (!slideData.slides || slideData.slides.length === 0) {
       slideData.slides = [{ type: 'bullets', title: 'No Content', bullets: ['Document appears empty'] }];
     }
 
-    console.log('AI structured slides:', slideData.slides.length);
+    console.log(`AI structured slides: ${slideData.slides.length} (provider: ${aiProvider})`);
+
+    // Track AI provider usage for analytics
+    try {
+      await supabaseClient.from('ai_generation_usage').insert({
+        user_id: user.id,
+        month_year: new Date().toISOString().substring(0, 7),
+        generation_type: 'powerpoint',
+        metadata: {
+          ai_provider: aiProvider,
+          slide_count: slideData.slides.length,
+          image_count: extractedImages.length,
+          template_id: templateId
+        }
+      });
+    } catch (usageError) {
+      console.warn('Failed to track AI usage:', usageError);
+      // Don't fail the entire generation if usage tracking fails
+    }
 
     // Generate PowerPoint using PptxGenJS
     const PptxGenJS = await import('https://esm.sh/pptxgenjs@3.12.0');
