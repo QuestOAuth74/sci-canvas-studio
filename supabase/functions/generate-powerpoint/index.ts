@@ -12,23 +12,37 @@ serve(async (req) => {
   }
 
   try {
+    // Get authorization header - JWT is already verified by Supabase since verify_jwt = true
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    // Create admin client with service role key for admin check
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    // Create client with user's JWT for other operations
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
-    // Verify admin access
+    // Get user from JWT
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
     if (authError || !user) {
       throw new Error('Unauthorized');
     }
 
-    const { data: roles } = await supabaseClient
+    // Check admin access using service role client
+    const { data: roles } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
@@ -303,18 +317,21 @@ Create slides with concise titles and 3-5 bullet points. Mark slides that would 
 
     // Try to update status to failed
     try {
-      const supabaseClient = createClient(
+      const supabaseAdmin = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
-      const { generationId } = await req.json();
-      await supabaseClient
-        .from('powerpoint_generations')
-        .update({
-          status: 'failed',
-          error_message: error.message,
-        })
-        .eq('id', generationId);
+      const body = await req.json();
+      const generationId = body.generationId;
+      if (generationId) {
+        await supabaseAdmin
+          .from('powerpoint_generations')
+          .update({
+            status: 'failed',
+            error_message: error.message,
+          })
+          .eq('id', generationId);
+      }
     } catch (e) {
       console.error('Failed to update error status:', e);
     }
