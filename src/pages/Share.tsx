@@ -46,6 +46,15 @@ export default function Share() {
       
       setIsSubmitting(true);
 
+      // Verify captcha on server side
+      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
+        body: { token: captchaToken }
+      });
+
+      if (captchaError || !captchaResult?.success) {
+        throw new Error('Captcha verification failed. Please try again.');
+      }
+
       // Call edge function to send email
       const { data, error } = await supabase.functions.invoke('send-share-email', {
         body: {

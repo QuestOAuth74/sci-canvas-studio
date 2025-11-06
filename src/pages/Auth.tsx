@@ -128,12 +128,33 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signIn(signInEmail, signInPassword);
-    setIsLoading(false);
 
-    if (!error) {
-      navigate('/');
-    } else {
+    try {
+      // Verify captcha on server side
+      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
+        body: { token: signInCaptchaToken }
+      });
+
+      if (captchaError || !captchaResult?.success) {
+        throw new Error('Captcha verification failed. Please try again.');
+      }
+
+      const { error } = await signIn(signInEmail, signInPassword);
+      setIsLoading(false);
+
+      if (!error) {
+        navigate('/');
+      } else {
+        setSignInCaptchaToken('');
+        signInCaptchaRef.current?.resetCaptcha();
+      }
+    } catch (error: any) {
+      setIsLoading(false);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to verify captcha",
+        variant: "destructive"
+      });
       setSignInCaptchaToken('');
       signInCaptchaRef.current?.resetCaptcha();
     }
@@ -170,14 +191,35 @@ export default function Auth() {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName, signUpCountry, signUpFieldOfStudy);
-    setIsLoading(false);
 
-    if (!error) {
-      setActiveTab('signin');
-      setSignUpCaptchaToken('');
-      signUpCaptchaRef.current?.resetCaptcha();
-    } else {
+    try {
+      // Verify captcha on server side
+      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
+        body: { token: signUpCaptchaToken }
+      });
+
+      if (captchaError || !captchaResult?.success) {
+        throw new Error('Captcha verification failed. Please try again.');
+      }
+
+      const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName, signUpCountry, signUpFieldOfStudy);
+      setIsLoading(false);
+
+      if (!error) {
+        setActiveTab('signin');
+        setSignUpCaptchaToken('');
+        signUpCaptchaRef.current?.resetCaptcha();
+      } else {
+        setSignUpCaptchaToken('');
+        signUpCaptchaRef.current?.resetCaptcha();
+      }
+    } catch (error: any) {
+      setIsLoading(false);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to verify captcha",
+        variant: "destructive"
+      });
       setSignUpCaptchaToken('');
       signUpCaptchaRef.current?.resetCaptcha();
     }

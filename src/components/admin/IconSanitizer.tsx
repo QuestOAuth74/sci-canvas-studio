@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ChevronLeft, ChevronRight, Trash2, RefreshCw, Eye, CheckCircle2, AlertTriangle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { sanitizeSVG } from "@/lib/utils";
 
 interface IconIssue {
   id: string;
@@ -375,7 +376,7 @@ export const IconSanitizer = () => {
                           <div className="flex-shrink-0 w-24 h-24 bg-muted rounded flex items-center justify-center">
                             {icon.thumbnail ? (
                               <div
-                                dangerouslySetInnerHTML={{ __html: icon.thumbnail }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeSVG(icon.thumbnail) }}
                                 className="w-20 h-20"
                               />
                             ) : (

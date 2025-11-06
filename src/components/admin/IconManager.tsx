@@ -7,6 +7,7 @@ import { Trash2, ChevronLeft, ChevronRight, RefreshCw, AlertCircle } from "lucid
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { sanitizeSVG } from "@/lib/utils";
 
 interface Icon {
   id: string;
@@ -351,13 +352,13 @@ export const IconManager = () => {
                 <div className="aspect-square border border-border rounded-lg p-2 flex items-center justify-center bg-muted">
                   {icon.thumbnail && !isBroken ? (
                     <div 
-                      dangerouslySetInnerHTML={{ __html: icon.thumbnail }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeSVG(icon.thumbnail) }}
                       className="w-16 h-16 [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
                       onError={() => handleThumbnailError(icon.id)}
                     />
                   ) : (
                     <div 
-                      dangerouslySetInnerHTML={{ __html: icon.svg_content }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeSVG(icon.svg_content) }}
                       className="w-16 h-16 [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
                       onError={() => handleThumbnailError(icon.id)}
                     />

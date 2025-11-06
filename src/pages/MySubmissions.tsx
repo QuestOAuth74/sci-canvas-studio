@@ -10,6 +10,7 @@ import { IconSubmissionDialog } from '@/components/community/IconSubmissionDialo
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { sanitizeSVG } from '@/lib/utils';
 
 const MySubmissions = () => {
   const navigate = useNavigate();
@@ -123,7 +124,7 @@ const MySubmissions = () => {
                         {submission.thumbnail ? (
                           <img src={submission.thumbnail} alt={submission.name} className="max-w-full max-h-full" />
                         ) : (
-                          <div dangerouslySetInnerHTML={{ __html: submission.svg_content }} className="max-w-full max-h-full" />
+                          <div dangerouslySetInnerHTML={{ __html: sanitizeSVG(submission.svg_content) }} className="max-w-full max-h-full" />
                         )}
                       </div>
 

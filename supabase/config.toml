@@ -7,6 +7,9 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.send-bulk-email]
+verify_jwt = true
+
+[functions.verify-captcha]
 verify_jwt = false
 
 [functions.generate-figure-from-reference]

@@ -11,6 +11,7 @@ import JSZip from "jszip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
+import { sanitizeSVG } from "@/lib/utils";
 
 interface Category {
   id: string;
@@ -722,7 +723,7 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
               <Label className="text-sm font-medium mb-2 block">Preview:</Label>
               <div className="w-24 h-24 mx-auto border border-border rounded-lg p-2 flex items-center justify-center bg-muted">
                 <div 
-                  dangerouslySetInnerHTML={{ __html: filePreview }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeSVG(filePreview) }}
                   className="w-full h-full [&>svg]:w-full [&>svg]:h-full [&>svg]:object-contain"
                 />
               </div>

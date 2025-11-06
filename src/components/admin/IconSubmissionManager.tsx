@@ -10,6 +10,7 @@ import { CheckCircle, XCircle, Eye, Clock, User } from 'lucide-react';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { IconSubmissionWithUser } from '@/types/iconSubmission';
 import { useAuth } from '@/contexts/AuthContext';
+import { sanitizeSVG } from '@/lib/utils';
 
 export const IconSubmissionManager = () => {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -126,7 +127,7 @@ export const IconSubmissionManager = () => {
                       {submission.thumbnail ? (
                         <img src={submission.thumbnail} alt={submission.name} className="max-w-full max-h-full" />
                       ) : (
-                        <div dangerouslySetInnerHTML={{ __html: submission.svg_content }} className="max-w-full max-h-full" />
+                        <div dangerouslySetInnerHTML={{ __html: sanitizeSVG(submission.svg_content) }} className="max-w-full max-h-full" />
                       )}
                     </div>
 
@@ -214,7 +215,7 @@ export const IconSubmissionManager = () => {
                 {selectedSubmission.thumbnail ? (
                   <img src={selectedSubmission.thumbnail} alt={selectedSubmission.name} className="max-w-full max-h-full" />
                 ) : (
-                  <div dangerouslySetInnerHTML={{ __html: selectedSubmission.svg_content }} className="max-w-full max-h-full" />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeSVG(selectedSubmission.svg_content) }} className="max-w-full max-h-full" />
                 )}
               </div>
 

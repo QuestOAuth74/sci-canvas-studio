@@ -9,6 +9,7 @@ import { Upload, X } from 'lucide-react';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { generateIconThumbnail } from '@/lib/thumbnailGenerator';
 import { toast } from 'sonner';
+import { sanitizeSVG } from '@/lib/utils';
 
 interface IconSubmissionDialogProps {
   open: boolean;
@@ -168,7 +169,7 @@ export const IconSubmissionDialog = ({ open, onOpenChange, categories }: IconSub
                 <div className="space-y-4">
                   <div 
                     className="w-32 h-32 mx-auto bg-muted rounded-lg flex items-center justify-center"
-                    dangerouslySetInnerHTML={{ __html: svgPreview }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeSVG(svgPreview) }}
                   />
                   <Button
                     type="button"

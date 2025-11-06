@@ -82,6 +82,15 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
+      // Verify captcha on server side
+      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
+        body: { token: captchaToken }
+      });
+
+      if (captchaError || !captchaResult?.success) {
+        throw new Error('Captcha verification failed. Please try again.');
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       
       const { error } = await supabase.from("contact_messages").insert({
