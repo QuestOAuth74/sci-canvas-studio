@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Canvas as FabricCanvas, FabricImage, Text as FabricText, Group, Rect, Circle, loadSVGFromString, util } from "fabric";
+import { Canvas as FabricCanvas, FabricImage, Text as FabricText, Group, Rect, Circle, Ellipse, loadSVGFromString, util } from "fabric";
 import { createConnector } from "@/lib/connectorSystem";
 
 interface AIFigureGeneratorProps {
@@ -185,6 +185,47 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
   const [activeTab, setActiveTab] = useState("reference");
   const [progressStages, setProgressStages] = useState<ProgressStage[]>(initialProgressStages);
 
+  // Helper to infer category from text content
+  const inferCategory = (text: string): string => {
+    const lowerText = text.toLowerCase();
+    
+    // Peptides/Substrates
+    if (/angiotensinogen|angiotensin|(^|\b)ang(\s|\(|$)/i.test(text)) {
+      return 'peptide';
+    }
+    
+    // Enzymes
+    if (/ace2?|renin|peptidase|oligopeptidase|enzyme/i.test(text)) {
+      return 'enzyme';
+    }
+    
+    // Receptors
+    if (/\bat[12]r\b|mas receptor|receptor/i.test(text)) {
+      return 'receptor';
+    }
+    
+    // Effects/Outcomes
+    if (/vasoconstriction|proliferation|cell growth|enigma|effect/i.test(text)) {
+      return 'effect';
+    }
+    
+    return 'unknown';
+  };
+
+  // Helper to get default color by category
+  const getCategoryColor = (category?: string, fallback?: string): string => {
+    const colors: Record<string, string> = {
+      'simple_shape': '#E5E7EB',   // Gray for basic shapes
+      'text_label': '#FFFFFF',     // White for text backgrounds
+      'complex_shape': '#DBEAFE',  // Light blue for complex shapes
+      'peptide': '#FFB366',        // Orange for peptides/substrates
+      'enzyme': '#98D891',         // Green for enzymes
+      'receptor': '#98D891',       // Green for receptors
+      'effect': '#93C5FD',         // Blue for effects/outcomes
+    };
+    return colors[category || ''] || fallback || '#E5E7EB';
+  };
+
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -310,25 +351,6 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
     }
   };
 
-  // Helper function to get category-based colors (mapped to design system)
-  const getCategoryColor = (category?: string, suggestedFill?: string): string => {
-    // If backend provided suggested style, use it
-    if (suggestedFill) return suggestedFill;
-    
-    // Otherwise use category mapping
-    const colorMap: Record<string, string> = {
-      'protein': '#FFE5CC',
-      'enzyme': '#FFE5CC',
-      'signal': '#FFE5CC',
-      'receptor': '#C8E6C9',
-      'molecule': '#F5F5F5',
-      'complex': '#E1BEE7',
-      'effect': '#BBDEFB',
-      'default': '#F5F5F5'
-    };
-    return colorMap[category || 'default'] || colorMap['default'];
-  };
-
   // Calculate edge intersection point for arrow connections
   const calculateEdgeIntersection = (
     fromObj: any,
@@ -387,6 +409,14 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
     if (!response || !canvas) return;
 
     const layoutToApply = useProposed ? response.proposed_layout : response.layout;
+
+    // Clean up previous AI-generated objects
+    const oldAIObjects = canvas.getObjects().filter(obj => (obj as any).data?.aiGen === true);
+    oldAIObjects.forEach(obj => canvas.remove(obj));
+    console.log(`Removed ${oldAIObjects.length} previous AI-generated objects`);
+
+    // Create a new batch ID for this generation
+    const BATCH_ID = `ai-${Date.now()}`;
 
     try {
       const canvasWidth = canvas.width || 800;
@@ -461,8 +491,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               id: `node-${i}`, // Predictable ID for connectivity
             } as any);
             
-            // Set z-index for text labels
+            // Set z-index for text labels and tag as AI-generated
             (textObj as any).set('z-index', 5);
+            (textObj as any).data = { aiGen: true, batch: BATCH_ID, kind: 'label' };
             
             canvas.add(textObj);
             addedObjects.push(textObj);
@@ -476,31 +507,45 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
           const shapeWidth = width;
           const shapeHeight = (obj as any).estimatedHeight || (40 + Math.max(0, lineCount - 1) * 20);
           
-          // Use suggested style from backend or determine from category
-          const fillColor = obj.fill_color || getCategoryColor(obj.shape_subtype, (obj as any).suggestedStyle?.fill);
+          // Infer category from text content for better color matching
+          const inferredCategory = inferCategory(objTextContent);
+          const fillColor = obj.fill_color || getCategoryColor(inferredCategory, getCategoryColor(obj.shape_subtype, (obj as any).suggestedStyle?.fill));
           const strokeColor = obj.stroke_color || (obj as any).suggestedStyle?.stroke || '#333333';
           
           // Create shape using exact backend positions
-          const shapeObj = obj.shape_type === 'circle' || obj.shape_type === 'oval'
-            ? new Circle({
-                left: 0,
-                top: 0,
-                radius: Math.min(shapeWidth, shapeHeight) / 2,
-                fill: fillColor,
-                stroke: strokeColor,
-                strokeWidth: obj.stroke_width || 2,
-              })
-            : new Rect({
-                left: 0,
-                top: 0,
-                width: shapeWidth,
-                height: shapeHeight,
-                fill: fillColor,
-                stroke: strokeColor,
-                strokeWidth: obj.stroke_width || 2,
-                rx: 8, // Always add rounded corners for visual polish
-                ry: 8,
-              });
+          let shapeObj;
+          if (obj.shape_type === 'circle') {
+            shapeObj = new Circle({
+              left: 0,
+              top: 0,
+              radius: Math.min(shapeWidth, shapeHeight) / 2,
+              fill: fillColor,
+              stroke: strokeColor,
+              strokeWidth: obj.stroke_width || 2,
+            });
+          } else if (obj.shape_type === 'oval') {
+            shapeObj = new Ellipse({
+              left: 0,
+              top: 0,
+              rx: shapeWidth / 2,
+              ry: shapeHeight / 2,
+              fill: fillColor,
+              stroke: strokeColor,
+              strokeWidth: obj.stroke_width || 2,
+            });
+          } else {
+            shapeObj = new Rect({
+              left: 0,
+              top: 0,
+              width: shapeWidth,
+              height: shapeHeight,
+              fill: fillColor,
+              stroke: strokeColor,
+              strokeWidth: obj.stroke_width || 2,
+              rx: 8, // Always add rounded corners for visual polish
+              ry: 8,
+            });
+          }
           
           // Create text if there's text content
           const textContent = objTextContent;
@@ -527,8 +572,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               id: `node-${i}`, // Predictable ID for connectivity
             } as any);
             
-            // Set z-index for shapes
+            // Set z-index for shapes and tag as AI-generated
             (group as any).set('z-index', 5);
+            (group as any).data = { aiGen: true, batch: BATCH_ID, kind: 'shape' };
             
             canvas.add(group);
             addedObjects.push(group);
@@ -542,8 +588,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               id: `node-${i}`, // Predictable ID for connectivity
             } as any);
             
-            // Set z-index for shapes
+            // Set z-index for shapes and tag as AI-generated
             (shapeObj as any).set('z-index', 5);
+            (shapeObj as any).data = { aiGen: true, batch: BATCH_ID, kind: 'shape' };
             
             canvas.add(shapeObj);
             addedObjects.push(shapeObj);
@@ -696,7 +743,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
 
           console.log(`Creating connector: ${conn.from}→${conn.to}, style=${normalizedLineStyle}, routing=${normalizedRoutingStyle}, color=${normalizedColor}`);
 
-          createConnector(canvas, {
+          const connector = createConnector(canvas, {
             startX,
             startY,
             endX,
@@ -714,6 +761,12 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             waypoints: conn.waypoints,
           });
 
+          // Tag connector as AI-generated and send to back for better visual hierarchy
+          if (connector) {
+            (connector as any).data = { aiGen: true, batch: BATCH_ID, kind: 'connector' };
+            canvas.sendObjectToBack(connector);
+          }
+
           if (conn.label) {
             const midX = (startX + endX) / 2;
             const midY = (startY + endY) / 2;
@@ -726,6 +779,10 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               padding: 2,
               selectable: false,
             });
+            
+            // Tag connector label as AI-generated
+            (text as any).data = { aiGen: true, batch: BATCH_ID, kind: 'label' };
+            
             canvas.add(text);
           }
         } catch (err) {
