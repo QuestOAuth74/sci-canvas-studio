@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BarChart3, Mail, FileText } from "lucide-react";
+import { ArrowLeft, BarChart3, Mail, FileText, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IconUploader } from "@/components/admin/IconUploader";
 import { IconManager } from "@/components/admin/IconManager";
@@ -41,6 +41,13 @@ const Admin = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/admin/ai-settings")}
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              AI Settings
+            </Button>
             <Button
               variant="outline"
               onClick={() => navigate("/admin/powerpoint-generator")}

@@ -569,28 +569,77 @@ ${docOutline.substring(0, 8000)}`,
       return slideData;
     }
 
-    // Try Manus AI first, fallback to Lovable AI on error
+    // Fetch AI provider settings from database
+    const { data: settingsData } = await supabaseClient
+      .from('ai_provider_settings')
+      .select('setting_value')
+      .eq('setting_key', 'powerpoint_generation')
+      .single();
+
+    const aiSettings = settingsData?.setting_value as any || {
+      primary_provider: 'manus',
+      fallback_enabled: true,
+      timeout_ms: 45000
+    };
+
+    console.log('AI Provider Settings:', {
+      primary: aiSettings.primary_provider,
+      fallback: aiSettings.fallback_enabled,
+      timeout: aiSettings.timeout_ms
+    });
+
+    // Try primary provider first, fallback to secondary if enabled
     let slideData: any;
-    let aiProvider = 'manus';
+    let aiProvider = aiSettings.primary_provider;
+    const secondaryProvider = aiSettings.primary_provider === 'manus' ? 'lovable' : 'manus';
+
+    // Timeout wrapper for AI calls
+    const withTimeout = async (promise: Promise<any>, timeoutMs: number) => {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error(`Request timeout after ${timeoutMs}ms`)), timeoutMs)
+        )
+      ]);
+    };
 
     try {
-      slideData = await generateSlideStructureWithManus(
-        cleanOutline,
-        imageContexts,
-        extractedImages.length
-      );
-    } catch (manusError: any) {
-      console.warn('⚠️ Manus AI failed, falling back to Lovable AI:', manusError.message);
-      aiProvider = 'lovable';
-      
-      try {
-        slideData = await generateSlideStructureWithLovable(
-          cleanOutline,
-          imageContexts
+      if (aiSettings.primary_provider === 'manus') {
+        slideData = await withTimeout(
+          generateSlideStructureWithManus(cleanOutline, imageContexts, extractedImages.length),
+          aiSettings.timeout_ms
         );
-      } catch (lovableError: any) {
-        console.error('❌ Both AI providers failed');
-        throw new Error(`AI generation failed - Manus: ${manusError.message}, Lovable: ${lovableError.message}`);
+      } else {
+        slideData = await withTimeout(
+          generateSlideStructureWithLovable(cleanOutline, imageContexts),
+          aiSettings.timeout_ms
+        );
+      }
+    } catch (primaryError: any) {
+      console.warn(`⚠️ ${aiSettings.primary_provider} AI failed: ${primaryError.message}`);
+      
+      if (aiSettings.fallback_enabled) {
+        console.log(`🔄 Attempting fallback to ${secondaryProvider} AI...`);
+        aiProvider = secondaryProvider;
+        
+        try {
+          if (secondaryProvider === 'manus') {
+            slideData = await withTimeout(
+              generateSlideStructureWithManus(cleanOutline, imageContexts, extractedImages.length),
+              aiSettings.timeout_ms
+            );
+          } else {
+            slideData = await withTimeout(
+              generateSlideStructureWithLovable(cleanOutline, imageContexts),
+              aiSettings.timeout_ms
+            );
+          }
+        } catch (secondaryError: any) {
+          console.error('❌ Both AI providers failed');
+          throw new Error(`AI generation failed - ${aiSettings.primary_provider}: ${primaryError.message}, ${secondaryProvider}: ${secondaryError.message}`);
+        }
+      } else {
+        throw new Error(`AI generation failed (fallback disabled): ${primaryError.message}`);
       }
     }
 
