@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+// @ts-ignore
+import JSZip from "https://esm.sh/jszip@3.10.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -67,9 +69,63 @@ serve(async (req) => {
       throw new Error(`Failed to download Word document: ${downloadError.message}`);
     }
 
-    // Parse document content (simplified - in production use proper DOCX parser)
-    const docText = await wordDoc.text();
-    console.log('Document downloaded, size:', docText.length);
+    // Parse DOCX content properly using JSZip
+    const arrayBuffer = await wordDoc.arrayBuffer();
+    console.log('Document downloaded, size:', arrayBuffer.byteLength);
+    
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    const docXmlFile = zip.file('word/document.xml');
+    
+    if (!docXmlFile) {
+      throw new Error('Invalid DOCX file - word/document.xml not found');
+    }
+    
+    const docXml = await docXmlFile.async('string');
+    
+    // Parse XML to extract structured content
+    let cleanOutline = '';
+    const paragraphs = docXml.split('</w:p>');
+    
+    for (const para of paragraphs) {
+      if (!para.includes('<w:t>')) continue;
+      
+      // Check for heading styles
+      const isHeading1 = para.includes('w:val="Heading1"') || para.includes('w:val="heading 1"');
+      const isHeading2 = para.includes('w:val="Heading2"') || para.includes('w:val="heading 2"');
+      const isHeading3 = para.includes('w:val="Heading3"') || para.includes('w:val="heading 3"');
+      const isBullet = para.includes('<w:numPr>');
+      
+      // Extract all text content
+      const textMatches = para.match(/<w:t[^>]*>([^<]+)<\/w:t>/g) || [];
+      const text = textMatches
+        .map(m => m.replace(/<w:t[^>]*>([^<]+)<\/w:t>/, '$1'))
+        .join('');
+      
+      if (!text.trim()) continue;
+      
+      // Format based on style
+      if (isHeading1) {
+        cleanOutline += `\n# ${text.trim()}\n`;
+      } else if (isHeading2) {
+        cleanOutline += `\n## ${text.trim()}\n`;
+      } else if (isHeading3) {
+        cleanOutline += `\n### ${text.trim()}\n`;
+      } else if (isBullet) {
+        cleanOutline += `- ${text.trim()}\n`;
+      } else {
+        cleanOutline += `${text.trim()}\n`;
+      }
+    }
+    
+    // Fallback if extraction was poor
+    if (cleanOutline.trim().length < 50) {
+      const allText = docXml.match(/<w:t[^>]*>([^<]+)<\/w:t>/g) || [];
+      cleanOutline = allText
+        .map(m => m.replace(/<w:t[^>]*>([^<]+)<\/w:t>/, '$1'))
+        .join('\n');
+    }
+    
+    console.log('Extracted outline (first 400 chars):', cleanOutline.substring(0, 400));
 
     // Call Lovable AI to structure content
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -88,16 +144,26 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a presentation expert. Convert document content into PowerPoint slides with varied layouts: bullet points, quotes, image placeholders, etc.',
+            content: 'You are a presentation expert. Analyze document structure to create engaging PowerPoint slides with varied layouts.',
           },
           {
             role: 'user',
-            content: `Convert this document into a PowerPoint presentation. Identify slide types:
-- QUOTE: For quotable statements, testimonials
-- IMAGE-GRID: For visual content sections
-- BULLETS: For standard content with bullet points
+            content: `Convert this outline into PowerPoint slides. The input format:
+- Lines starting with "#" or "##" are headings (use as slide titles or section markers)
+- Lines starting with "-" are bullet points
+- Plain paragraphs may be quotes, descriptions, or content
 
-Create slides with concise titles and 3-5 bullet points. Mark slides that would benefit from images. Document:\n\n${docText.substring(0, 10000)}`,
+Create diverse slide types:
+- "bullets": Standard content with 3-5 bullet points
+- "two-column": Split bullets into two columns
+- "quote": For memorable statements, key messages (provide quote + attribution)
+- "image-left" or "image-right": Content with image placeholder on one side
+- "image-grid": Multiple image placeholders (2-4 images)
+- "image-top": Image above content
+
+Use document headings as slide titles. Keep bullets concise. Document outline:
+
+${cleanOutline.substring(0, 8000)}`,
           },
         ],
         tools: [{
@@ -114,14 +180,23 @@ Create slides with concise titles and 3-5 bullet points. Mark slides that would 
                   items: {
                     type: 'object',
                     properties: {
-                      type: { type: 'string', enum: ['bullets', 'quote', 'image-grid', 'image-left'], description: 'Slide type' },
-                      title: { type: 'string' },
+                      type: { 
+                        type: 'string', 
+                        enum: ['bullets', 'two-column', 'quote', 'image-left', 'image-right', 'image-grid', 'image-top'], 
+                        description: 'Slide layout type' 
+                      },
+                      title: { type: 'string', description: 'Slide title' },
                       bullets: {
                         type: 'array',
-                        items: { type: 'string' }
-                      }
+                        items: { type: 'string' },
+                        description: 'Bullet points for content slides'
+                      },
+                      quote: { type: 'string', description: 'Quote text for quote slides' },
+                      attribution: { type: 'string', description: 'Author or source of quote' },
+                      imageCount: { type: 'number', description: 'Number of image placeholders (1-4)' },
+                      notes: { type: 'string', description: 'Speaker notes or additional context' }
                     },
-                    required: ['title', 'bullets']
+                    required: ['type', 'title']
                   }
                 }
               },
@@ -143,8 +218,13 @@ Create slides with concise titles and 3-5 bullet points. Mark slides that would 
     const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
     const slideData = toolCall ? JSON.parse(toolCall.function.arguments) : {
       title: 'Generated Presentation',
-      slides: [{ title: 'Content', bullets: ['Processing failed - content preview available'] }]
+      slides: [{ type: 'bullets', title: 'Content', bullets: ['No content extracted from document'] }]
     };
+
+    // Ensure at least one slide exists
+    if (!slideData.slides || slideData.slides.length === 0) {
+      slideData.slides = [{ type: 'bullets', title: 'No Content', bullets: ['Document appears empty'] }];
+    }
 
     console.log('AI structured slides:', slideData.slides.length);
 
@@ -215,6 +295,100 @@ Create slides with concise titles and 3-5 bullet points. Mark slides that would 
       align: layouts.titleSlide === 'centered' ? 'center' : layouts.titleSlide,
     });
 
+    // Helper functions for rendering different slide types
+    const renderQuoteSlide = (contentSlide: any, slide: any, spacing: any) => {
+      const quoteText = slide.quote || 'Quote content';
+      contentSlide.addText(`"${quoteText}"`, {
+        x: 1.0,
+        y: 2.5,
+        w: 8,
+        h: 2.5,
+        fontSize: fonts.bodySize * 1.4,
+        fontFace: fonts.body,
+        italic: true,
+        color: colors.primary,
+        align: 'center',
+        valign: 'middle',
+      });
+      
+      if (slide.attribution) {
+        contentSlide.addText(`— ${slide.attribution}`, {
+          x: 1.0,
+          y: 5.2,
+          w: 8,
+          h: 0.5,
+          fontSize: fonts.bodySize * 0.9,
+          fontFace: fonts.body,
+          color: colors.text,
+          align: 'center',
+        });
+      }
+    };
+
+    const renderImageGridSlide = (contentSlide: any, slide: any, spacing: any) => {
+      const imageCount = slide.imageCount || 4;
+      const cols = imageCount <= 2 ? imageCount : 2;
+      const rows = Math.ceil(imageCount / cols);
+      const imageW = 4.0;
+      const imageH = 2.5;
+      const gap = 0.5;
+      
+      for (let i = 0; i < imageCount; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = 0.5 + col * (imageW + gap);
+        const y = spacing.contentY + row * (imageH + gap);
+        
+        contentSlide.addShape(pptx.ShapeType.rect, {
+          x, y, w: imageW, h: imageH,
+          fill: { color: 'E0E0E0' },
+          line: { color: colors.secondary, width: 2 },
+        });
+        contentSlide.addText('[Image Placeholder]', {
+          x, y: y + imageH / 2 - 0.2, w: imageW, h: 0.4,
+          fontSize: 14,
+          color: '808080',
+          align: 'center',
+        });
+      }
+    };
+
+    const renderImageSideSlide = (contentSlide: any, slide: any, spacing: any, side: 'left' | 'right') => {
+      const imageW = 3.8;
+      const imageH = 4.0;
+      const imageX = side === 'left' ? 0.5 : 5.7;
+      const contentX = side === 'left' ? 4.8 : 0.5;
+      const contentW = 4.7;
+      
+      // Image placeholder
+      contentSlide.addShape(pptx.ShapeType.rect, {
+        x: imageX, y: spacing.contentY, w: imageW, h: imageH,
+        fill: { color: 'E0E0E0' },
+        line: { color: colors.secondary, width: 2 },
+      });
+      contentSlide.addText('[Image Placeholder]', {
+        x: imageX, y: spacing.contentY + imageH / 2 - 0.2, w: imageW, h: 0.4,
+        fontSize: 14,
+        color: '808080',
+        align: 'center',
+      });
+      
+      // Content bullets
+      const bullets = slide.bullets || [];
+      if (bullets.length > 0) {
+        const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
+        contentSlide.addText(bulletText, {
+          x: contentX,
+          y: spacing.contentY,
+          w: contentW,
+          h: imageH,
+          fontSize: fonts.bodySize * 0.95,
+          fontFace: fonts.body,
+          color: colors.text,
+        });
+      }
+    };
+
     // Content slides with custom layout
     const spacingMap: Record<string, { titleY: number; contentY: number; contentH: number }> = { 
       compact: { titleY: 0.3, contentY: 1.0, contentH: 5.5 }, 
@@ -232,47 +406,102 @@ Create slides with concise titles and 3-5 bullet points. Mark slides that would 
         y: spacing.titleY,
         w: 9,
         h: 0.75,
-        fontSize: fonts.titleSize * 0.73, // Scale down for content slides
+        fontSize: fonts.titleSize * 0.73,
         fontFace: fonts.title,
         bold: true,
         color: colors.primary,
       });
 
-      if (layouts.contentSlide === 'two-column') {
-        const midpoint = Math.ceil(slide.bullets.length / 2);
-        const leftBullets = slide.bullets.slice(0, midpoint).map((b: string) => ({ text: b, options: { bullet: true } }));
-        const rightBullets = slide.bullets.slice(midpoint).map((b: string) => ({ text: b, options: { bullet: true } }));
-        
-        contentSlide.addText(leftBullets, {
-          x: 0.5,
-          y: spacing.contentY,
-          w: 4.25,
-          h: spacing.contentH,
-          fontSize: fonts.bodySize,
-          fontFace: fonts.body,
-          color: colors.text,
-        });
-        
-        contentSlide.addText(rightBullets, {
-          x: 5.25,
-          y: spacing.contentY,
-          w: 4.25,
-          h: spacing.contentH,
-          fontSize: fonts.bodySize,
-          fontFace: fonts.body,
-          color: colors.text,
-        });
-      } else {
-        const bulletText = slide.bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
-        contentSlide.addText(bulletText, {
-          x: 0.5,
-          y: spacing.contentY,
-          w: 9,
-          h: spacing.contentH,
-          fontSize: fonts.bodySize,
-          fontFace: fonts.body,
-          color: colors.text,
-        });
+      const slideType = slide.type || 'bullets';
+      const bullets = slide.bullets || [];
+
+      switch (slideType) {
+        case 'quote':
+          renderQuoteSlide(contentSlide, slide, spacing);
+          break;
+          
+        case 'image-grid':
+          renderImageGridSlide(contentSlide, slide, spacing);
+          break;
+          
+        case 'image-left':
+          renderImageSideSlide(contentSlide, slide, spacing, 'left');
+          break;
+          
+        case 'image-right':
+          renderImageSideSlide(contentSlide, slide, spacing, 'right');
+          break;
+          
+        case 'image-top':
+          // Image placeholder on top
+          contentSlide.addShape(pptx.ShapeType.rect, {
+            x: 0.5, y: spacing.contentY, w: 9, h: 2.5,
+            fill: { color: 'E0E0E0' },
+            line: { color: colors.secondary, width: 2 },
+          });
+          contentSlide.addText('[Image Placeholder]', {
+            x: 0.5, y: spacing.contentY + 1.0, w: 9, h: 0.4,
+            fontSize: 14,
+            color: '808080',
+            align: 'center',
+          });
+          
+          if (bullets.length > 0) {
+            const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
+            contentSlide.addText(bulletText, {
+              x: 0.5,
+              y: spacing.contentY + 3.0,
+              w: 9,
+              h: 2.5,
+              fontSize: fonts.bodySize,
+              fontFace: fonts.body,
+              color: colors.text,
+            });
+          }
+          break;
+
+        case 'two-column':
+          if (bullets.length > 0) {
+            const midpoint = Math.ceil(bullets.length / 2);
+            const leftBullets = bullets.slice(0, midpoint).map((b: string) => ({ text: b, options: { bullet: true } }));
+            const rightBullets = bullets.slice(midpoint).map((b: string) => ({ text: b, options: { bullet: true } }));
+            
+            contentSlide.addText(leftBullets, {
+              x: 0.5,
+              y: spacing.contentY,
+              w: 4.25,
+              h: spacing.contentH,
+              fontSize: fonts.bodySize,
+              fontFace: fonts.body,
+              color: colors.text,
+            });
+            
+            contentSlide.addText(rightBullets, {
+              x: 5.25,
+              y: spacing.contentY,
+              w: 4.25,
+              h: spacing.contentH,
+              fontSize: fonts.bodySize,
+              fontFace: fonts.body,
+              color: colors.text,
+            });
+          }
+          break;
+
+        default: // 'bullets' and fallback
+          if (bullets.length > 0) {
+            const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
+            contentSlide.addText(bulletText, {
+              x: 0.5,
+              y: spacing.contentY,
+              w: 9,
+              h: spacing.contentH,
+              fontSize: fonts.bodySize,
+              fontFace: fonts.body,
+              color: colors.text,
+            });
+          }
+          break;
       }
     });
 
