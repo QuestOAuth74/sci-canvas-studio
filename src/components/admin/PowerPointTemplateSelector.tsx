@@ -1,8 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { POWERPOINT_TEMPLATES, PowerPointTemplate } from '@/types/powerpoint';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, Eye } from 'lucide-react';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { PowerPointTemplatePreview } from './PowerPointTemplatePreview';
 
 interface PowerPointTemplateSelectorProps {
   selectedTemplate: string;
@@ -14,6 +18,8 @@ export const PowerPointTemplateSelector = ({
   onSelectTemplate,
 }: PowerPointTemplateSelectorProps) => {
   const { templates: customTemplates, isLoading } = useCustomTemplates();
+  const [previewTemplate, setPreviewTemplate] = useState<PowerPointTemplate | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Combine built-in and custom templates
   const allTemplates: PowerPointTemplate[] = [
@@ -39,6 +45,23 @@ export const PowerPointTemplateSelector = ({
   }
 
   return (
+    <>
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{previewTemplate?.name} - Preview</DialogTitle>
+            <DialogDescription>
+              See how this template will look in your presentation
+            </DialogDescription>
+          </DialogHeader>
+          {previewTemplate && (
+            <div className="py-4">
+              <PowerPointTemplatePreview template={previewTemplate} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {allTemplates.map((template) => (
         <Card
@@ -72,8 +95,8 @@ export const PowerPointTemplateSelector = ({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2">
-              {Object.entries(template.colors).map(([key, color]) => (
+            <div className="flex gap-2 mb-3">
+              {Object.entries(template.colors).slice(0, 4).map(([key, color]) => (
                 <div
                   key={key}
                   className="h-8 w-8 rounded-md border border-border"
@@ -82,9 +105,23 @@ export const PowerPointTemplateSelector = ({
                 />
               ))}
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewTemplate(template);
+                setIsPreviewOpen(true);
+              }}
+            >
+              <Eye className="h-3 w-3 mr-2" />
+              Preview Template
+            </Button>
           </CardContent>
         </Card>
       ))}
     </div>
+    </>
   );
 };

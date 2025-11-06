@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
 import { CustomTemplate } from '@/types/powerpoint';
-import { Plus, Palette, Type, Layout, Trash2, Edit } from 'lucide-react';
+import { Plus, Palette, Type, Layout, Trash2, Edit, Eye } from 'lucide-react';
 import { z } from 'zod';
+import { PowerPointTemplatePreview } from './PowerPointTemplatePreview';
 
 const templateSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name too long'),
@@ -42,6 +43,8 @@ const GOOGLE_FONTS = [
 export const PowerPointTemplateBuilder = () => {
   const { templates, isLoading, createTemplate, updateTemplate, deleteTemplate } = useCustomTemplates();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<CustomTemplate | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<CustomTemplate | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -306,20 +309,20 @@ export const PowerPointTemplateBuilder = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="title-size">Title Size (pt)</Label>
-                    <Input
-                      id="title-size"
-                      type="number"
-                      min={20}
-                      max={72}
-                      value={formData.fonts.titleSize}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        fonts: { ...formData.fonts, titleSize: parseInt(e.target.value) || 44 }
-                      })}
-                    />
-                  </div>
+                   <div>
+                     <Label htmlFor="title-size">Title Size (pt)</Label>
+                     <Input
+                       id="title-size"
+                       type="number"
+                       min={20}
+                       max={72}
+                       value={formData.fonts.titleSize.toString()}
+                       onChange={(e) => setFormData({
+                         ...formData,
+                         fonts: { ...formData.fonts, titleSize: parseInt(e.target.value) || 44 }
+                       })}
+                     />
+                   </div>
                   <div>
                     <Label htmlFor="body-font">Body Font</Label>
                     <Select
@@ -339,20 +342,20 @@ export const PowerPointTemplateBuilder = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="body-size">Body Size (pt)</Label>
-                    <Input
-                      id="body-size"
-                      type="number"
-                      min={10}
-                      max={36}
-                      value={formData.fonts.bodySize}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        fonts: { ...formData.fonts, bodySize: parseInt(e.target.value) || 18 }
-                      })}
-                    />
-                  </div>
+                   <div>
+                     <Label htmlFor="body-size">Body Size (pt)</Label>
+                     <Input
+                       id="body-size"
+                       type="number"
+                       min={10}
+                       max={36}
+                       value={formData.fonts.bodySize.toString()}
+                       onChange={(e) => setFormData({
+                         ...formData,
+                         fonts: { ...formData.fonts, bodySize: parseInt(e.target.value) || 18 }
+                       })}
+                     />
+                   </div>
                 </CardContent>
               </Card>
 
@@ -425,6 +428,32 @@ export const PowerPointTemplateBuilder = () => {
                 </CardContent>
               </Card>
 
+              {/* Live Preview Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Live Preview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PowerPointTemplatePreview 
+                    template={{
+                      id: 'preview',
+                      name: formData.name || 'Preview',
+                      description: formData.description,
+                      colors: formData.colors,
+                      fonts: formData.fonts,
+                      layouts: formData.layouts,
+                      is_default: false,
+                      created_by: '',
+                      created_at: new Date().toISOString(),
+                      updated_at: new Date().toISOString(),
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => {
                   setIsDialogOpen(false);
@@ -440,6 +469,23 @@ export const PowerPointTemplateBuilder = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{previewTemplate?.name} - Preview</DialogTitle>
+            <DialogDescription>
+              See how your template will look in the final presentation
+            </DialogDescription>
+          </DialogHeader>
+          {previewTemplate && (
+            <div className="py-4">
+              <PowerPointTemplatePreview template={previewTemplate} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Template List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -470,6 +516,18 @@ export const PowerPointTemplateBuilder = () => {
                   <p>Body: {template.fonts.body} ({template.fonts.bodySize}pt)</p>
                 </div>
                 <div className="flex gap-2 mt-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setPreviewTemplate(template);
+                      setIsPreviewOpen(true);
+                    }}
+                    className="flex-1"
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Preview
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
