@@ -15,7 +15,7 @@ export const useCustomTemplates = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as CustomTemplate[];
+      return data as unknown as CustomTemplate[];
     },
   });
 
@@ -29,9 +29,11 @@ export const useCustomTemplates = () => {
         .insert({
           name: template.name,
           description: template.description,
-          colors: template.colors,
-          fonts: template.fonts,
-          layouts: template.layouts,
+          colors: template.colors as any,
+          fonts: template.fonts as any,
+          layouts: template.layouts as any,
+          quote_styles: template.quote_styles as any,
+          image_layouts: template.image_layouts as any,
           is_default: template.is_default,
           created_by: user.id,
         })
@@ -57,9 +59,11 @@ export const useCustomTemplates = () => {
         .update({
           name: template.name,
           description: template.description,
-          colors: template.colors,
-          fonts: template.fonts,
-          layouts: template.layouts,
+          colors: template.colors as any,
+          fonts: template.fonts as any,
+          layouts: template.layouts as any,
+          quote_styles: template.quote_styles as any,
+          image_layouts: template.image_layouts as any,
           is_default: template.is_default,
         })
         .eq('id', id);

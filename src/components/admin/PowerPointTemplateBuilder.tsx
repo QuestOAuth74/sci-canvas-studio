@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
-import { CustomTemplate } from '@/types/powerpoint';
-import { Plus, Palette, Type, Layout, Trash2, Edit, Eye } from 'lucide-react';
+import { CustomTemplate, QuoteStyles, ImageLayouts } from '@/types/powerpoint';
+import { Plus, Palette, Type, Layout, Trash2, Edit, Eye, Quote, Image as ImageIcon } from 'lucide-react';
 import { z } from 'zod';
 import { PowerPointTemplatePreview } from './PowerPointTemplatePreview';
 
@@ -30,14 +32,42 @@ const templateSchema = z.object({
   }),
   layouts: z.object({
     titleSlide: z.enum(['centered', 'left', 'right']),
-    contentSlide: z.enum(['bullets', 'two-column', 'image-text']),
+    contentSlide: z.enum(['bullets', 'two-column', 'image-text', 'image-left', 'image-right', 'image-grid', 'image-top', 'full-image', 'quote', 'split-content']),
     spacing: z.enum(['compact', 'normal', 'spacious']),
+  }),
+  quoteStyles: z.object({
+    quoteSize: z.number().min(20).max(72),
+    attributionSize: z.number().min(10).max(36),
+    showQuoteMarks: z.boolean(),
+    quoteColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid hex color').optional(),
+    alignment: z.enum(['left', 'center', 'right']),
+  }),
+  imageLayouts: z.object({
+    gridColumns: z.number().min(2).max(4),
+    imageSize: z.enum(['small', 'medium', 'large']),
+    imageBorder: z.boolean(),
+    imageRounded: z.boolean(),
+    imageSpacing: z.enum(['tight', 'normal', 'wide']),
   }),
 });
 
 const GOOGLE_FONTS = [
-  'Arial', 'Calibri', 'Georgia', 'Helvetica', 'Times New Roman', 'Verdana',
-  'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Playfair Display', 'Raleway'
+  'Arial', 'Calibri', 'Times New Roman', 'Georgia', 'Verdana',
+  'Montserrat', 'Open Sans', 'Roboto', 'Lato', 'Poppins',
+  'Playfair Display', 'Merriweather', 'Raleway', 'Ubuntu'
+];
+
+const CONTENT_SLIDE_OPTIONS = [
+  { value: 'bullets', label: 'Bullet Points', description: 'Simple list of points' },
+  { value: 'two-column', label: 'Two Columns', description: 'Split content into two columns' },
+  { value: 'image-text', label: 'Image + Text', description: 'Basic image with text' },
+  { value: 'image-left', label: 'Image Left', description: 'Large image on left, text on right' },
+  { value: 'image-right', label: 'Image Right', description: 'Text on left, large image on right' },
+  { value: 'image-grid', label: 'Image Grid', description: 'Grid of images with text' },
+  { value: 'image-top', label: 'Image Top', description: 'Image on top, text below' },
+  { value: 'full-image', label: 'Full Image', description: 'Full slide image with title overlay' },
+  { value: 'quote', label: 'Quote', description: 'Large centered quote with attribution' },
+  { value: 'split-content', label: 'Split Content', description: '50/50 split layout' },
 ];
 
 export const PowerPointTemplateBuilder = () => {
@@ -48,7 +78,7 @@ export const PowerPointTemplateBuilder = () => {
   const [editingTemplate, setEditingTemplate] = useState<CustomTemplate | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const [formData, setFormData] = useState<{
+  type FormDataType = {
     name: string;
     description: string;
     colors: {
@@ -66,10 +96,25 @@ export const PowerPointTemplateBuilder = () => {
     };
     layouts: {
       titleSlide: 'centered' | 'left' | 'right';
-      contentSlide: 'bullets' | 'two-column' | 'image-text';
+      contentSlide: 'bullets' | 'two-column' | 'image-text' | 'image-left' | 'image-right' | 'image-grid' | 'image-top' | 'full-image' | 'quote' | 'split-content';
       spacing: 'compact' | 'normal' | 'spacious';
     };
-  }>({
+    quoteStyles: {
+      quoteSize: number;
+      attributionSize: number;
+      showQuoteMarks: boolean;
+      alignment: 'left' | 'center' | 'right';
+    };
+    imageLayouts: {
+      gridColumns: number;
+      imageSize: 'small' | 'medium' | 'large';
+      imageBorder: boolean;
+      imageRounded: boolean;
+      imageSpacing: 'tight' | 'normal' | 'wide';
+    };
+  };
+
+  const [formData, setFormData] = useState<FormDataType>({
     name: '',
     description: '',
     colors: {
@@ -80,8 +125,8 @@ export const PowerPointTemplateBuilder = () => {
       background: '#ffffff',
     },
     fonts: {
-      title: 'Arial',
-      body: 'Arial',
+      title: 'Montserrat',
+      body: 'Open Sans',
       titleSize: 44,
       bodySize: 18,
     },
@@ -89,6 +134,19 @@ export const PowerPointTemplateBuilder = () => {
       titleSlide: 'centered',
       contentSlide: 'bullets',
       spacing: 'normal',
+    },
+    quoteStyles: {
+      quoteSize: 36,
+      attributionSize: 20,
+      showQuoteMarks: true,
+      alignment: 'center',
+    },
+    imageLayouts: {
+      gridColumns: 2,
+      imageSize: 'medium',
+      imageBorder: true,
+      imageRounded: false,
+      imageSpacing: 'normal',
     },
   });
 
@@ -104,8 +162,8 @@ export const PowerPointTemplateBuilder = () => {
         background: '#ffffff',
       },
       fonts: {
-        title: 'Arial',
-        body: 'Arial',
+        title: 'Montserrat',
+        body: 'Open Sans',
         titleSize: 44,
         bodySize: 18,
       },
@@ -114,13 +172,25 @@ export const PowerPointTemplateBuilder = () => {
         contentSlide: 'bullets',
         spacing: 'normal',
       },
+      quoteStyles: {
+        quoteSize: 36,
+        attributionSize: 20,
+        showQuoteMarks: true,
+        alignment: 'center',
+      },
+      imageLayouts: {
+        gridColumns: 2,
+        imageSize: 'medium',
+        imageBorder: true,
+        imageRounded: false,
+        imageSpacing: 'normal',
+      },
     });
     setEditingTemplate(null);
     setErrors({});
   };
 
   const handleEditTemplate = (template: CustomTemplate) => {
-    setEditingTemplate(template);
     setFormData({
       name: template.name,
       description: template.description || '',
@@ -130,7 +200,21 @@ export const PowerPointTemplateBuilder = () => {
       },
       fonts: template.fonts,
       layouts: template.layouts,
+      quoteStyles: template.quote_styles || {
+        quoteSize: 36,
+        attributionSize: 20,
+        showQuoteMarks: true,
+        alignment: 'center',
+      },
+      imageLayouts: template.image_layouts || {
+        gridColumns: 2,
+        imageSize: 'medium',
+        imageBorder: true,
+        imageRounded: false,
+        imageSpacing: 'normal',
+      },
     });
+    setEditingTemplate(template);
     setIsDialogOpen(true);
   };
 
@@ -159,6 +243,20 @@ export const PowerPointTemplateBuilder = () => {
           titleSlide: validated.layouts.titleSlide,
           contentSlide: validated.layouts.contentSlide,
           spacing: validated.layouts.spacing,
+        },
+        quote_styles: {
+          quoteSize: validated.quoteStyles.quoteSize,
+          attributionSize: validated.quoteStyles.attributionSize,
+          showQuoteMarks: validated.quoteStyles.showQuoteMarks,
+          quoteColor: validated.quoteStyles.quoteColor,
+          alignment: validated.quoteStyles.alignment,
+        },
+        image_layouts: {
+          gridColumns: validated.imageLayouts.gridColumns,
+          imageSize: validated.imageLayouts.imageSize,
+          imageBorder: validated.imageLayouts.imageBorder,
+          imageRounded: validated.imageLayouts.imageRounded,
+          imageSpacing: validated.imageLayouts.imageSpacing,
         },
         is_default: false,
       };
@@ -209,11 +307,14 @@ export const PowerPointTemplateBuilder = () => {
               New Template
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingTemplate ? 'Edit Template' : 'Create New Template'}
               </DialogTitle>
+              <DialogDescription>
+                Create custom templates with colors, fonts, layouts, and styling options
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-6 py-4">
@@ -309,20 +410,20 @@ export const PowerPointTemplateBuilder = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                   <div>
-                     <Label htmlFor="title-size">Title Size (pt)</Label>
-                     <Input
-                       id="title-size"
-                       type="number"
-                       min={20}
-                       max={72}
-                       value={formData.fonts.titleSize.toString()}
-                       onChange={(e) => setFormData({
-                         ...formData,
-                         fonts: { ...formData.fonts, titleSize: parseInt(e.target.value) || 44 }
-                       })}
-                     />
-                   </div>
+                  <div>
+                    <Label htmlFor="title-size">Title Size (pt)</Label>
+                    <Input
+                      id="title-size"
+                      type="number"
+                      min={20}
+                      max={72}
+                      value={formData.fonts.titleSize}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        fonts: { ...formData.fonts, titleSize: parseInt(e.target.value) || 44 }
+                      })}
+                    />
+                  </div>
                   <div>
                     <Label htmlFor="body-font">Body Font</Label>
                     <Select
@@ -342,20 +443,20 @@ export const PowerPointTemplateBuilder = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                   <div>
-                     <Label htmlFor="body-size">Body Size (pt)</Label>
-                     <Input
-                       id="body-size"
-                       type="number"
-                       min={10}
-                       max={36}
-                       value={formData.fonts.bodySize.toString()}
-                       onChange={(e) => setFormData({
-                         ...formData,
-                         fonts: { ...formData.fonts, bodySize: parseInt(e.target.value) || 18 }
-                       })}
-                     />
-                   </div>
+                  <div>
+                    <Label htmlFor="body-size">Body Size (pt)</Label>
+                    <Input
+                      id="body-size"
+                      type="number"
+                      min={10}
+                      max={36}
+                      value={formData.fonts.bodySize}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        fonts: { ...formData.fonts, bodySize: parseInt(e.target.value) || 18 }
+                      })}
+                    />
+                  </div>
                 </CardContent>
               </Card>
 
@@ -387,8 +488,8 @@ export const PowerPointTemplateBuilder = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="content-slide">Content Slide</Label>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="content-slide">Content Slide Layout</Label>
                     <Select
                       value={formData.layouts.contentSlide}
                       onValueChange={(value: any) => setFormData({
@@ -400,9 +501,14 @@ export const PowerPointTemplateBuilder = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="bullets">Bullet Points</SelectItem>
-                        <SelectItem value="two-column">Two Column</SelectItem>
-                        <SelectItem value="image-text">Image + Text</SelectItem>
+                        {CONTENT_SLIDE_OPTIONS.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <div className="flex flex-col">
+                              <span className="font-medium">{option.label}</span>
+                              <span className="text-xs text-muted-foreground">{option.description}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -428,6 +534,177 @@ export const PowerPointTemplateBuilder = () => {
                 </CardContent>
               </Card>
 
+              {/* Quote Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Quote className="h-4 w-4" />
+                    Quote Slide Settings
+                  </CardTitle>
+                  <CardDescription>Configure styling for quote slides</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="quote-size">Quote Font Size (pt)</Label>
+                      <Input
+                        id="quote-size"
+                        type="number"
+                        min={20}
+                        max={72}
+                        value={formData.quoteStyles.quoteSize}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          quoteStyles: { ...formData.quoteStyles, quoteSize: parseInt(e.target.value) || 36 }
+                        })}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="attribution-size">Attribution Font Size (pt)</Label>
+                      <Input
+                        id="attribution-size"
+                        type="number"
+                        min={10}
+                        max={36}
+                        value={formData.quoteStyles.attributionSize}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          quoteStyles: { ...formData.quoteStyles, attributionSize: parseInt(e.target.value) || 20 }
+                        })}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="quote-alignment">Quote Alignment</Label>
+                      <Select
+                        value={formData.quoteStyles.alignment}
+                        onValueChange={(value: any) => setFormData({
+                          ...formData,
+                          quoteStyles: { ...formData.quoteStyles, alignment: value }
+                        })}
+                      >
+                        <SelectTrigger id="quote-alignment">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="left">Left</SelectItem>
+                          <SelectItem value="center">Center</SelectItem>
+                          <SelectItem value="right">Right</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="quote-marks">Show Quotation Marks</Label>
+                      <Switch
+                        id="quote-marks"
+                        checked={formData.quoteStyles.showQuoteMarks}
+                        onCheckedChange={(checked) => setFormData({
+                          ...formData,
+                          quoteStyles: { ...formData.quoteStyles, showQuoteMarks: checked }
+                        })}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Image Layout Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4" />
+                    Image Layout Settings
+                  </CardTitle>
+                  <CardDescription>Configure image-based slide layouts</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="grid-columns">Grid Columns</Label>
+                      <Select
+                        value={formData.imageLayouts.gridColumns.toString()}
+                        onValueChange={(value) => setFormData({
+                          ...formData,
+                          imageLayouts: { ...formData.imageLayouts, gridColumns: parseInt(value) }
+                        })}
+                      >
+                        <SelectTrigger id="grid-columns">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="2">2 Columns</SelectItem>
+                          <SelectItem value="3">3 Columns</SelectItem>
+                          <SelectItem value="4">4 Columns</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="image-size">Image Size</Label>
+                      <Select
+                        value={formData.imageLayouts.imageSize}
+                        onValueChange={(value: any) => setFormData({
+                          ...formData,
+                          imageLayouts: { ...formData.imageLayouts, imageSize: value }
+                        })}
+                      >
+                        <SelectTrigger id="image-size">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="small">Small</SelectItem>
+                          <SelectItem value="medium">Medium</SelectItem>
+                          <SelectItem value="large">Large</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="image-spacing">Image Spacing</Label>
+                      <Select
+                        value={formData.imageLayouts.imageSpacing}
+                        onValueChange={(value: any) => setFormData({
+                          ...formData,
+                          imageLayouts: { ...formData.imageLayouts, imageSpacing: value }
+                        })}
+                      >
+                        <SelectTrigger id="image-spacing">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="tight">Tight</SelectItem>
+                          <SelectItem value="normal">Normal</SelectItem>
+                          <SelectItem value="wide">Wide</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex gap-6">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="image-border"
+                        checked={formData.imageLayouts.imageBorder}
+                        onCheckedChange={(checked) => setFormData({
+                          ...formData,
+                          imageLayouts: { ...formData.imageLayouts, imageBorder: checked }
+                        })}
+                      />
+                      <Label htmlFor="image-border">Show Border</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="image-rounded"
+                        checked={formData.imageLayouts.imageRounded}
+                        onCheckedChange={(checked) => setFormData({
+                          ...formData,
+                          imageLayouts: { ...formData.imageLayouts, imageRounded: checked }
+                        })}
+                      />
+                      <Label htmlFor="image-rounded">Rounded Corners</Label>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Live Preview Section */}
               <Card>
                 <CardHeader>
@@ -445,6 +722,8 @@ export const PowerPointTemplateBuilder = () => {
                       colors: formData.colors,
                       fonts: formData.fonts,
                       layouts: formData.layouts,
+                      quote_styles: formData.quoteStyles,
+                      image_layouts: formData.imageLayouts,
                       is_default: false,
                       created_by: '',
                       created_at: new Date().toISOString(),
@@ -462,7 +741,7 @@ export const PowerPointTemplateBuilder = () => {
                   Cancel
                 </Button>
                 <Button onClick={handleSubmit}>
-                  {editingTemplate ? 'Update' : 'Create'} Template
+                  {editingTemplate ? 'Update Template' : 'Create Template'}
                 </Button>
               </div>
             </div>
@@ -470,90 +749,79 @@ export const PowerPointTemplateBuilder = () => {
         </Dialog>
       </div>
 
+      {/* Templates Grid */}
+      {isLoading ? (
+        <div className="text-center py-8">Loading templates...</div>
+      ) : templates && templates.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {templates.map((template) => (
+            <Card key={template.id} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="text-base">{template.name}</CardTitle>
+                    {template.description && (
+                      <CardDescription className="text-xs mt-1">
+                        {template.description}
+                      </CardDescription>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => {
+                        setPreviewTemplate(template);
+                        setIsPreviewOpen(true);
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleEditTemplate(template)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDelete(template.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <PowerPointTemplatePreview template={template} compact />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="text-center py-8">
+            <p className="text-muted-foreground">No custom templates yet. Create one to get started!</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{previewTemplate?.name} - Preview</DialogTitle>
-            <DialogDescription>
-              See how your template will look in the final presentation
-            </DialogDescription>
+            <DialogTitle>{previewTemplate?.name}</DialogTitle>
+            {previewTemplate?.description && (
+              <DialogDescription>{previewTemplate.description}</DialogDescription>
+            )}
           </DialogHeader>
           {previewTemplate && (
-            <div className="py-4">
-              <PowerPointTemplatePreview template={previewTemplate} />
-            </div>
+            <PowerPointTemplatePreview template={previewTemplate} />
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Template List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {isLoading ? (
-          <p className="text-muted-foreground">Loading templates...</p>
-        ) : templates && templates.length > 0 ? (
-          templates.map((template) => (
-            <Card key={template.id} className="relative">
-              <CardHeader>
-                <CardTitle className="text-base">{template.name}</CardTitle>
-                {template.description && (
-                  <CardDescription className="text-sm">{template.description}</CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2 mb-3">
-                  {Object.entries(template.colors).slice(0, 4).map(([key, color]) => (
-                    <div
-                      key={key}
-                      className="h-8 w-8 rounded border"
-                      style={{ backgroundColor: color }}
-                      title={key}
-                    />
-                  ))}
-                </div>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>Title: {template.fonts.title} ({template.fonts.titleSize}pt)</p>
-                  <p>Body: {template.fonts.body} ({template.fonts.bodySize}pt)</p>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setPreviewTemplate(template);
-                      setIsPreviewOpen(true);
-                    }}
-                    className="flex-1"
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    Preview
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEditTemplate(template)}
-                    className="flex-1"
-                  >
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDelete(template.id)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <p className="text-muted-foreground col-span-full text-center py-8">
-            No custom templates yet. Create your first one!
-          </p>
-        )}
-      </div>
     </div>
   );
 };

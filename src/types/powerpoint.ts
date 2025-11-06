@@ -26,6 +26,22 @@ export interface PowerPointTemplate {
   isCustom?: boolean;
 }
 
+export interface QuoteStyles {
+  quoteSize: number;
+  attributionSize: number;
+  showQuoteMarks: boolean;
+  quoteColor?: string;
+  alignment: 'left' | 'center' | 'right';
+}
+
+export interface ImageLayouts {
+  gridColumns: number;
+  imageSize: 'small' | 'medium' | 'large';
+  imageBorder: boolean;
+  imageRounded: boolean;
+  imageSpacing: 'tight' | 'normal' | 'wide';
+}
+
 export interface CustomTemplate {
   id: string;
   name: string;
@@ -45,9 +61,11 @@ export interface CustomTemplate {
   };
   layouts: {
     titleSlide: 'centered' | 'left' | 'right';
-    contentSlide: 'bullets' | 'two-column' | 'image-text';
+    contentSlide: 'bullets' | 'two-column' | 'image-text' | 'image-left' | 'image-right' | 'image-grid' | 'image-top' | 'full-image' | 'quote' | 'split-content';
     spacing: 'compact' | 'normal' | 'spacious';
   };
+  quote_styles?: QuoteStyles | null;
+  image_layouts?: ImageLayouts | null;
   is_default: boolean;
   created_by: string;
   created_at: string;

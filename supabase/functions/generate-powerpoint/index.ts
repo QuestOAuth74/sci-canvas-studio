@@ -73,11 +73,16 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are a presentation expert. Convert document content into PowerPoint slide structure with titles and bullet points.',
+            content: 'You are a presentation expert. Convert document content into PowerPoint slides with varied layouts: bullet points, quotes, image placeholders, etc.',
           },
           {
             role: 'user',
-            content: `Convert this document into a PowerPoint presentation structure. Create slides with concise titles and 3-5 bullet points each. Identify natural content breaks. Document content:\n\n${docText.substring(0, 10000)}`,
+            content: `Convert this document into a PowerPoint presentation. Identify slide types:
+- QUOTE: For quotable statements, testimonials
+- IMAGE-GRID: For visual content sections
+- BULLETS: For standard content with bullet points
+
+Create slides with concise titles and 3-5 bullet points. Mark slides that would benefit from images. Document:\n\n${docText.substring(0, 10000)}`,
           },
         ],
         tools: [{
@@ -94,6 +99,7 @@ serve(async (req) => {
                   items: {
                     type: 'object',
                     properties: {
+                      type: { type: 'string', enum: ['bullets', 'quote', 'image-grid', 'image-left'], description: 'Slide type' },
                       title: { type: 'string' },
                       bullets: {
                         type: 'array',

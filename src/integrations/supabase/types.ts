@@ -502,9 +502,11 @@ export type Database = {
           description: string | null
           fonts: Json
           id: string
+          image_layouts: Json | null
           is_default: boolean | null
           layouts: Json
           name: string
+          quote_styles: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -514,9 +516,11 @@ export type Database = {
           description?: string | null
           fonts: Json
           id?: string
+          image_layouts?: Json | null
           is_default?: boolean | null
           layouts: Json
           name: string
+          quote_styles?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -526,9 +530,11 @@ export type Database = {
           description?: string | null
           fonts?: Json
           id?: string
+          image_layouts?: Json | null
           is_default?: boolean | null
           layouts?: Json
           name?: string
+          quote_styles?: Json | null
           updated_at?: string | null
         }
         Relationships: []
