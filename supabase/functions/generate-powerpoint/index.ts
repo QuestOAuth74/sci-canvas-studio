@@ -310,7 +310,22 @@ serve(async (req) => {
     
     console.log('Extracted outline (first 400 chars):', cleanOutline.substring(0, 400));
 
-    // Icon sets for enhanced bullets
+    // Fetch real icons from database for bullet points
+    const { data: bulletIcons } = await supabaseClient
+      .from('icons')
+      .select('id, name, svg_content, category')
+      .eq('category', 'general-items')
+      .limit(8);
+    
+    console.log(`Fetched ${bulletIcons?.length || 0} bullet icons from database`);
+    
+    // Convert SVG icons to base64 data URLs
+    const iconDataUrls = bulletIcons?.map(icon => {
+      const svgBase64 = btoa(icon.svg_content);
+      return `data:image/svg+xml;base64,${svgBase64}`;
+    }) || [];
+
+    // Icon sets for enhanced bullets (fallback to simple shapes if no DB icons)
     const ICON_SETS: Record<string, string[]> = {
       default: ['●', '■', '▲', '◆', '★'],
       scientific: ['🔬', '⚗️', '🧬', '🔭', '📊'],
@@ -338,9 +353,9 @@ serve(async (req) => {
       config: any,
       colors: any
     ) {
-      const bgColor = config?.backgroundColor || lightenColor(colors.primary.replace('#', ''), 90);
-      const opacity = config?.opacity || 10;
-      const padding = config?.padding || 0.2;
+      const bgColor = config?.backgroundColor || lightenColor(colors.primary.replace('#', ''), 85);
+      const opacity = config?.opacity || 22;  // Increased default from 10 to 22
+      const padding = config?.padding || 0.3;  // Slightly more padding
       
       slide.addShape(pptx.ShapeType.rect, {
         x: x - padding,
@@ -352,7 +367,7 @@ serve(async (req) => {
       });
     }
 
-    // Helper: Render circular icon bullet
+    // Helper: Render circular icon bullet with real SVG icon
     function renderIconBullet(
       slide: any,
       text: string,
@@ -361,11 +376,11 @@ serve(async (req) => {
       iconIndex: number,
       colors: any,
       fonts: any,
-      config: any
+      config: any,
+      iconDataUrls: string[]
     ) {
       const circleSize = config?.circleSize || 0.35;
       const circleColor = (config?.circleColor || colors.primary).replace('#', '');
-      const iconColor = (config?.iconColor || 'FFFFFF').replace('#', '');
       
       // Add circle background
       slide.addShape(pptx.ShapeType.ellipse, {
@@ -377,20 +392,48 @@ serve(async (req) => {
         line: { type: 'none' }
       });
       
-      // Add icon/symbol in circle center
-      const icons = ICON_SETS[config?.iconSet || 'default'] || ICON_SETS.default;
-      const icon = icons[iconIndex % icons.length];
-      
-      slide.addText(icon, {
-        x: x,
-        y: y,
-        w: circleSize,
-        h: circleSize,
-        fontSize: 14,
-        color: iconColor,
-        align: 'center',
-        valign: 'middle'
-      });
+      // Add real SVG icon from database (if available)
+      if (iconDataUrls && iconDataUrls.length > 0) {
+        const iconUrl = iconDataUrls[iconIndex % iconDataUrls.length];
+        try {
+          slide.addImage({
+            data: iconUrl,
+            x: x + 0.06,
+            y: y + 0.06,
+            w: circleSize - 0.12,
+            h: circleSize - 0.12,
+            sizing: { type: 'contain', w: circleSize - 0.12, h: circleSize - 0.12 }
+          });
+        } catch (e) {
+          // Fallback to unicode if image fails
+          const icons = ICON_SETS[config?.iconSet || 'default'] || ICON_SETS.default;
+          const icon = icons[iconIndex % icons.length];
+          slide.addText(icon, {
+            x: x,
+            y: y,
+            w: circleSize,
+            h: circleSize,
+            fontSize: 14,
+            color: 'FFFFFF',
+            align: 'center',
+            valign: 'middle'
+          });
+        }
+      } else {
+        // Fallback to unicode if no database icons
+        const icons = ICON_SETS[config?.iconSet || 'default'] || ICON_SETS.default;
+        const icon = icons[iconIndex % icons.length];
+        slide.addText(icon, {
+          x: x,
+          y: y,
+          w: circleSize,
+          h: circleSize,
+          fontSize: 14,
+          color: 'FFFFFF',
+          align: 'center',
+          valign: 'middle'
+        });
+      }
       
       // Add text next to icon
       slide.addText(text, {
@@ -403,6 +446,51 @@ serve(async (req) => {
         color: colors.text.replace('#', ''),
         valign: 'top'
       });
+    }
+
+    // Helper: Determine if slide should use enhanced bullets (selective application)
+    function shouldUseEnhancedBullets(slide: any, slideIndex: number, totalSlides: number): boolean {
+      const title = slide.title?.toLowerCase() || '';
+      
+      // Priority 1: Key findings, results, conclusions
+      if (title.includes('key') || title.includes('finding') || title.includes('result') || 
+          title.includes('conclusion') || title.includes('summary') || title.includes('takeaway') ||
+          title.includes('highlight')) {
+        return true;
+      }
+      
+      // Priority 2: Methods, methodology, approach
+      if (title.includes('method') || title.includes('approach') || title.includes('procedure') ||
+          title.includes('technique') || title.includes('protocol')) {
+        return true;
+      }
+      
+      // Priority 3: Objectives, aims, goals
+      if (title.includes('objective') || title.includes('aim') || title.includes('goal') || 
+          title.includes('purpose') || title.includes('target')) {
+        return true;
+      }
+      
+      // Priority 4: Important highlights detected from slide content
+      if (slide.bullets && slide.bullets.length > 0 && slide.bullets.length <= 5) {
+        const bulletText = slide.bullets.map((b: any) => 
+          typeof b === 'string' ? b : b.text
+        ).join(' ').toLowerCase();
+        
+        if (bulletText.includes('significant') || bulletText.includes('important') || 
+            bulletText.includes('critical') || bulletText.includes('primary') ||
+            bulletText.includes('essential') || bulletText.includes('key')) {
+          return true;
+        }
+      }
+      
+      // Priority 5: AI-marked slides
+      if (slide.enhanceBullets === true || slide.highlightBox === true) {
+        return true;
+      }
+      
+      // Don't use on every slide - maximum 40% of slides should have enhanced styling
+      return false;
     }
 
     // Build image context for AI
@@ -658,6 +746,8 @@ INSTRUCTIONS:
 6. Use "two-column" for comparisons
 7. Ensure each slide has a clear, concise title
 8. Limit bullets to 5 per slide for readability
+9. **Mark important slides:** Add "enhanceBullets: true" to 3-5 key slides (findings, methods, objectives, conclusions) that should have visual emphasis
+10. Do NOT mark every slide - only the most critical ones should have enhanced styling
 
 Return a JSON array of slides with this structure:
 {
@@ -665,7 +755,7 @@ Return a JSON array of slides with this structure:
   "slides": [
     {
       "type": "bullets",
-      "title": "Slide Title",
+      "title": "Background Information",
       "bullets": [
         {
           "text": "Point 1",
@@ -678,10 +768,17 @@ Return a JSON array of slides with this structure:
       ]
     },
     {
+      "type": "bullets",
+      "title": "Key Findings",
+      "enhanceBullets": true,
+      "bullets": [{"text": "Important finding 1"}, {"text": "Important finding 2"}]
+    },
+    {
       "type": "image-left",
-      "title": "Slide with Image",
-      "bullets": [{"text": "Point 1"}],
-      "imageCaption": "Image description",
+      "title": "Methodology Overview",
+      "enhanceBullets": true,
+      "bullets": [{"text": "Step 1"}, {"text": "Step 2"}],
+      "imageCaption": "Process diagram",
       "preferredImageIndex": 0
     }
   ]
@@ -783,6 +880,8 @@ INSTRUCTIONS FOR IMAGE PLACEMENT:
 5. If multiple images appear near the same content, consider "image-grid" layout
 6. Prioritize two-column layouts (image + text side-by-side) over other layouts
 7. Set preferredImageIndex (0-based) to specify which image to use
+8. **Mark important slides:** Add "enhanceBullets: true" to 3-5 key slides (findings, methods, objectives, conclusions) for visual emphasis
+9. Do NOT mark every slide - only the most critical content should have enhanced styling
 ` : ''}
 
 Create diverse slide types:
@@ -1117,22 +1216,22 @@ ${docOutline.substring(0, 8000)}`,
         'scientific-report': { 
           colors: { primary: '1e3a8a', secondary: '3b82f6', text: '1e293b', background: 'FFFFFF' },
           enhancedBullets: { enabled: true, iconSet: 'scientific', circleSize: 0.35, circleColor: '3b82f6', iconColor: 'ffffff' },
-          shadedBoxes: { enabled: true, opacity: 10, backgroundColor: 'e3f2fd', padding: 0.25 }
+          shadedBoxes: { enabled: true, opacity: 25, backgroundColor: 'dbeafe', padding: 0.3 }
         },
         'research-presentation': { 
           colors: { primary: '064e3b', secondary: '047857', text: '1f2937', background: 'FFFFFF' },
           enhancedBullets: { enabled: true, iconSet: 'scientific', circleSize: 0.35, circleColor: '047857', iconColor: 'ffffff' },
-          shadedBoxes: { enabled: true, opacity: 10, backgroundColor: 'd1fae5', padding: 0.25 }
+          shadedBoxes: { enabled: true, opacity: 25, backgroundColor: 'bbf7d0', padding: 0.3 }
         },
         'medical-briefing': { 
           colors: { primary: '991b1b', secondary: 'dc2626', text: '111827', background: 'FFFFFF' },
           enhancedBullets: { enabled: true, iconSet: 'medical', circleSize: 0.35, circleColor: 'dc2626', iconColor: 'ffffff' },
-          shadedBoxes: { enabled: true, opacity: 10, backgroundColor: 'fee2e2', padding: 0.25 }
+          shadedBoxes: { enabled: true, opacity: 25, backgroundColor: 'fecaca', padding: 0.3 }
         },
         'educational-lecture': { 
           colors: { primary: 'ea580c', secondary: '2563eb', text: '0f172a', background: 'FFFFFF' },
           enhancedBullets: { enabled: true, iconSet: 'educational', circleSize: 0.35, circleColor: '2563eb', iconColor: 'ffffff' },
-          shadedBoxes: { enabled: true, opacity: 10, backgroundColor: 'ffedd5', padding: 0.25 }
+          shadedBoxes: { enabled: true, opacity: 25, backgroundColor: 'fed7aa', padding: 0.3 }
         },
       };
       const config = builtInConfigs[templateId] || builtInConfigs['scientific-report'];
@@ -1252,7 +1351,7 @@ ${docOutline.substring(0, 8000)}`,
       }
     };
 
-    const renderImageSideSlide = (contentSlide: any, slide: any, spacing: any, side: 'left' | 'right', availableImages: typeof extractedImages, imageIndex: number, imageCaption?: string) => {
+    const renderImageSideSlide = (contentSlide: any, slide: any, spacing: any, side: 'left' | 'right', availableImages: typeof extractedImages, imageIndex: number, imageCaption: string | undefined, slideIndex: number, totalSlides: number) => {
       const layoutType = side === 'left' ? 'image-left' : 'image-right';
       const dimensions = getOptimizedImageDimensions(layoutType);
       
@@ -1307,8 +1406,9 @@ ${docOutline.substring(0, 8000)}`,
       // Content bullets with formatting
       const bullets = slide.bullets || [];
       if (bullets.length > 0) {
-        const useIconBullets = enhancedBullets?.enabled || false;
-        const useShadedBoxes = shadedBoxes?.enabled || false;
+        const shouldEnhance = shouldUseEnhancedBullets(slide, slideIndex, slideData.slides.length);
+        const useIconBullets = enhancedBullets?.enabled && shouldEnhance;
+        const useShadedBoxes = shadedBoxes?.enabled && shouldEnhance;
         
         if (useIconBullets) {
           const bulletConfig = enhancedBullets;
@@ -1326,7 +1426,7 @@ ${docOutline.substring(0, 8000)}`,
           let currentY = spacing.contentY + 0.2;
           bullets.forEach((b: any, index: number) => {
             const text = typeof b === 'string' ? b : b.text;
-            renderIconBullet(contentSlide, text, contentX + 0.2, currentY, index, colors, fonts, bulletConfig);
+            renderIconBullet(contentSlide, text, contentX + 0.2, currentY, index, colors, fonts, bulletConfig, iconDataUrls);
             currentY += 0.55;
           });
         } else {
@@ -1376,7 +1476,7 @@ ${docOutline.substring(0, 8000)}`,
     // Track image usage across slides
     let imageIndex = 0;
 
-    slideData.slides.forEach((slide: any) => {
+    slideData.slides.forEach((slide: any, slideIndex: number) => {
       const contentSlide = pptx.addSlide();
       contentSlide.background = { color: colors.background };
       
@@ -1418,7 +1518,9 @@ ${docOutline.substring(0, 8000)}`,
             slideType === 'image-left' ? 'left' : 'right', 
             extractedImages, 
             targetIndex,
-            slide.imageCaption || position?.caption
+            slide.imageCaption || position?.caption,
+            slideIndex,
+            slideData.slides.length
           );
           
           if (imageToUse && slide.preferredImageIndex === undefined) {
@@ -1456,8 +1558,9 @@ ${docOutline.substring(0, 8000)}`,
           }
           
           if (bullets.length > 0) {
-            const useIconBullets = enhancedBullets?.enabled || false;
-            const useShadedBoxes = shadedBoxes?.enabled || false;
+            const shouldEnhance = shouldUseEnhancedBullets(slide, slideIndex, slideData.slides.length);
+            const useIconBullets = enhancedBullets?.enabled && shouldEnhance;
+            const useShadedBoxes = shadedBoxes?.enabled && shouldEnhance;
             
             if (useIconBullets) {
               const bulletConfig = enhancedBullets;
@@ -1475,7 +1578,7 @@ ${docOutline.substring(0, 8000)}`,
               let currentY = spacing.contentY + 3.2;
               bullets.forEach((b: any, index: number) => {
                 const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig, iconDataUrls);
                 currentY += 0.55;
               });
             } else {
@@ -1584,8 +1687,9 @@ ${docOutline.substring(0, 8000)}`,
 
         case 'two-column':
           if (bullets.length > 0) {
-            const useIconBullets = enhancedBullets?.enabled || false;
-            const useShadedBoxes = shadedBoxes?.enabled || false;
+            const shouldEnhance = shouldUseEnhancedBullets(slide, slideIndex, slideData.slides.length);
+            const useIconBullets = enhancedBullets?.enabled && shouldEnhance;
+            const useShadedBoxes = shadedBoxes?.enabled && shouldEnhance;
             const midpoint = Math.ceil(bullets.length / 2);
             
             if (useIconBullets) {
@@ -1602,7 +1706,7 @@ ${docOutline.substring(0, 8000)}`,
               let currentY = spacing.contentY + 0.2;
               bullets.slice(0, midpoint).forEach((b: any, index: number) => {
                 const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig, iconDataUrls);
                 currentY += 0.55;
               });
               
@@ -1610,7 +1714,7 @@ ${docOutline.substring(0, 8000)}`,
               currentY = spacing.contentY + 0.2;
               bullets.slice(midpoint).forEach((b: any, index: number) => {
                 const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 5.45, currentY, index + midpoint, colors, fonts, bulletConfig);
+                renderIconBullet(contentSlide, text, 5.45, currentY, index + midpoint, colors, fonts, bulletConfig, iconDataUrls);
                 currentY += 0.55;
               });
             } else {
@@ -1663,8 +1767,9 @@ ${docOutline.substring(0, 8000)}`,
 
         default: // 'bullets' and fallback
           if (bullets.length > 0) {
-            const useIconBullets = enhancedBullets?.enabled || false;
-            const useShadedBoxes = shadedBoxes?.enabled || false;
+            const shouldEnhance = shouldUseEnhancedBullets(slide, slideIndex, slideData.slides.length);
+            const useIconBullets = enhancedBullets?.enabled && shouldEnhance;
+            const useShadedBoxes = shadedBoxes?.enabled && shouldEnhance;
             
             if (useIconBullets) {
               const bulletConfig = enhancedBullets;
@@ -1683,7 +1788,7 @@ ${docOutline.substring(0, 8000)}`,
               let currentY = spacing.contentY + 0.2;
               bullets.forEach((b: any, index: number) => {
                 const text = typeof b === 'string' ? b : b.text;
-                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig, iconDataUrls);
                 currentY += 0.55;
               });
             } else {
