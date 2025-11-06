@@ -23,6 +23,35 @@ export interface PowerPointTemplate {
     accent: string;
     text: string;
   };
+  isCustom?: boolean;
+}
+
+export interface CustomTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    text: string;
+    background?: string;
+  };
+  fonts: {
+    title: string;
+    body: string;
+    titleSize: number;
+    bodySize: number;
+  };
+  layouts: {
+    titleSlide: 'centered' | 'left' | 'right';
+    contentSlide: 'bullets' | 'two-column' | 'image-text';
+    spacing: 'compact' | 'normal' | 'spacious';
+  };
+  is_default: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const POWERPOINT_TEMPLATES: PowerPointTemplate[] = [

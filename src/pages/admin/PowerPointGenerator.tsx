@@ -4,7 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { PowerPointTemplateSelector } from '@/components/admin/PowerPointTemplateSelector';
 import { PowerPointGenerationList } from '@/components/admin/PowerPointGenerationList';
+import { PowerPointTemplateBuilder } from '@/components/admin/PowerPointTemplateBuilder';
 import { SEOHead } from '@/components/SEO/SEOHead';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, FileText, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -136,7 +138,15 @@ export default function PowerPointGenerator() {
           </p>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-2 mb-8">
+        <Tabs defaultValue="generate" className="space-y-8">
+          <TabsList className="grid w-full max-w-md grid-cols-3">
+            <TabsTrigger value="generate">Generate</TabsTrigger>
+            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="generate" className="space-y-8">
+        <div className="grid gap-8 lg:grid-cols-2">
           {/* File Upload */}
           <Card>
             <CardHeader>
@@ -206,7 +216,7 @@ export default function PowerPointGenerator() {
         </div>
 
         {/* Generate Button */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center">
           <Button
             size="lg"
             onClick={handleGenerate}
@@ -226,17 +236,34 @@ export default function PowerPointGenerator() {
             )}
           </Button>
         </div>
+          </TabsContent>
 
-        {/* Generation History */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Generation History</CardTitle>
-            <CardDescription>View and download your generated presentations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PowerPointGenerationList />
-          </CardContent>
-        </Card>
+          <TabsContent value="templates">
+            <Card>
+              <CardHeader>
+                <CardTitle>Template Builder</CardTitle>
+                <CardDescription>
+                  Create custom templates with your own colors, fonts, and layouts
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PowerPointTemplateBuilder />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history">
+            <Card>
+              <CardHeader>
+                <CardTitle>Generation History</CardTitle>
+                <CardDescription>View and download your generated presentations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PowerPointGenerationList />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   );

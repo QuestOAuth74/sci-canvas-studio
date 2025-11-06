@@ -494,6 +494,45 @@ export type Database = {
         }
         Relationships: []
       }
+      powerpoint_custom_templates: {
+        Row: {
+          colors: Json
+          created_at: string | null
+          created_by: string
+          description: string | null
+          fonts: Json
+          id: string
+          is_default: boolean | null
+          layouts: Json
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          colors: Json
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          fonts: Json
+          id?: string
+          is_default?: boolean | null
+          layouts: Json
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          colors?: Json
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          fonts?: Json
+          id?: string
+          is_default?: boolean | null
+          layouts?: Json
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       powerpoint_generations: {
         Row: {
           completed_at: string | null
