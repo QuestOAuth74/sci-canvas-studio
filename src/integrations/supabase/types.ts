@@ -581,6 +581,53 @@ export type Database = {
         }
         Relationships: []
       }
+      powerpoint_images: {
+        Row: {
+          created_at: string | null
+          generation_id: string
+          height: number | null
+          id: string
+          image_type: string | null
+          original_filename: string | null
+          position: string | null
+          slide_index: number | null
+          storage_path: string
+          width: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          generation_id: string
+          height?: number | null
+          id?: string
+          image_type?: string | null
+          original_filename?: string | null
+          position?: string | null
+          slide_index?: number | null
+          storage_path: string
+          width?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          generation_id?: string
+          height?: number | null
+          id?: string
+          image_type?: string | null
+          original_filename?: string | null
+          position?: string | null
+          slide_index?: number | null
+          storage_path?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "powerpoint_images_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "powerpoint_generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -82,6 +82,87 @@ serve(async (req) => {
     
     const docXml = await docXmlFile.async('string');
     
+    // Extract images from DOCX
+    const mediaFiles = zip.file(/^word\/media\//);
+    const extractedImages: Array<{
+      path: string;
+      filename: string;
+      base64: string;
+      ext: string;
+    }> = [];
+    
+    console.log(`Found ${mediaFiles.length} media files in DOCX`);
+    
+    for (const file of mediaFiles) {
+      const filename = file.name.split('/').pop();
+      if (!filename) continue;
+      
+      // Only process image files
+      const ext = filename.split('.').pop()?.toLowerCase() || '';
+      if (!['png', 'jpg', 'jpeg', 'gif', 'bmp'].includes(ext)) {
+        continue;
+      }
+      
+      try {
+        const imageData = await file.async('blob');
+        const storagePath = `${generationId}/${filename}`;
+        
+        // Convert to base64 for PptxGenJS
+        const arrayBuf = await imageData.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuf);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64 = btoa(binary);
+        
+        // Upload to storage
+        const { error: uploadError } = await supabaseClient.storage
+          .from('ppt-images')
+          .upload(storagePath, imageData, {
+            contentType: imageData.type || `image/${ext}`,
+            upsert: false
+          });
+        
+        if (uploadError) {
+          console.error(`Failed to upload image ${filename}:`, uploadError);
+          continue;
+        }
+        
+        console.log(`Uploaded image: ${filename}`);
+        extractedImages.push({
+          path: storagePath,
+          filename: filename,
+          base64: base64,
+          ext: ext
+        });
+      } catch (err) {
+        console.error(`Error processing image ${filename}:`, err);
+      }
+    }
+    
+    // Store image metadata in database
+    if (extractedImages.length > 0) {
+      const { error: insertError } = await supabaseClient
+        .from('powerpoint_images')
+        .insert(
+          extractedImages.map((img, index) => ({
+            generation_id: generationId,
+            storage_path: img.path,
+            original_filename: img.filename,
+            image_type: 'extracted',
+            slide_index: index + 1, // Start from slide 1 (after title)
+            position: 'center'
+          }))
+        );
+      
+      if (insertError) {
+        console.error('Failed to store image metadata:', insertError);
+      } else {
+        console.log(`Stored metadata for ${extractedImages.length} images`);
+      }
+    }
+    
     // Parse XML to extract structured content
     let cleanOutline = '';
     const paragraphs = docXml.split('</w:p>');
@@ -153,13 +234,16 @@ serve(async (req) => {
 - Lines starting with "-" are bullet points
 - Plain paragraphs may be quotes, descriptions, or content
 
+${extractedImages.length > 0 ? `\nIMPORTANT: This document contains ${extractedImages.length} embedded images. Create slides with image layouts to utilize them effectively.\n` : ''}
+
 Create diverse slide types:
 - "bullets": Standard content with 3-5 bullet points
 - "two-column": Split bullets into two columns
 - "quote": For memorable statements, key messages (provide quote + attribution)
-- "image-left" or "image-right": Content with image placeholder on one side
-- "image-grid": Multiple image placeholders (2-4 images)
+- "image-left" or "image-right": Content with image on one side${extractedImages.length > 0 ? ' (PREFER THESE when images available)' : ''}
+- "image-grid": Multiple images in a grid${extractedImages.length > 1 ? ' (USE THIS for multiple related images)' : ''}
 - "image-top": Image above content
+- "image-full": Full-slide image with minimal text overlay${extractedImages.length > 0 ? ' (USE for impactful visuals)' : ''}
 
 Use document headings as slide titles. Keep bullets concise. Document outline:
 
@@ -182,7 +266,7 @@ ${cleanOutline.substring(0, 8000)}`,
                     properties: {
                       type: { 
                         type: 'string', 
-                        enum: ['bullets', 'two-column', 'quote', 'image-left', 'image-right', 'image-grid', 'image-top'], 
+                        enum: ['bullets', 'two-column', 'quote', 'image-left', 'image-right', 'image-grid', 'image-top', 'image-full'], 
                         description: 'Slide layout type' 
                       },
                       title: { type: 'string', description: 'Slide title' },
@@ -325,8 +409,8 @@ ${cleanOutline.substring(0, 8000)}`,
       }
     };
 
-    const renderImageGridSlide = (contentSlide: any, slide: any, spacing: any) => {
-      const imageCount = slide.imageCount || 4;
+    const renderImageGridSlide = (contentSlide: any, slide: any, spacing: any, availableImages: typeof extractedImages) => {
+      const imageCount = Math.min(slide.imageCount || 4, availableImages.length || 4);
       const cols = imageCount <= 2 ? imageCount : 2;
       const rows = Math.ceil(imageCount / cols);
       const imageW = 4.0;
@@ -339,39 +423,59 @@ ${cleanOutline.substring(0, 8000)}`,
         const x = 0.5 + col * (imageW + gap);
         const y = spacing.contentY + row * (imageH + gap);
         
-        contentSlide.addShape(pptx.ShapeType.rect, {
-          x, y, w: imageW, h: imageH,
-          fill: { color: 'E0E0E0' },
-          line: { color: colors.secondary, width: 2 },
-        });
-        contentSlide.addText('[Image Placeholder]', {
-          x, y: y + imageH / 2 - 0.2, w: imageW, h: 0.4,
-          fontSize: 14,
-          color: '808080',
-          align: 'center',
-        });
+        if (availableImages[i]) {
+          // Use actual image
+          const img = availableImages[i];
+          contentSlide.addImage({
+            data: `data:image/${img.ext};base64,${img.base64}`,
+            x, y, w: imageW, h: imageH,
+            sizing: { type: 'contain', w: imageW, h: imageH }
+          });
+        } else {
+          // Fallback placeholder
+          contentSlide.addShape(pptx.ShapeType.rect, {
+            x, y, w: imageW, h: imageH,
+            fill: { color: 'E0E0E0' },
+            line: { color: colors.secondary, width: 2 },
+          });
+          contentSlide.addText('[Image]', {
+            x, y: y + imageH / 2 - 0.2, w: imageW, h: 0.4,
+            fontSize: 14,
+            color: '808080',
+            align: 'center',
+          });
+        }
       }
     };
 
-    const renderImageSideSlide = (contentSlide: any, slide: any, spacing: any, side: 'left' | 'right') => {
+    const renderImageSideSlide = (contentSlide: any, slide: any, spacing: any, side: 'left' | 'right', availableImages: typeof extractedImages, imageIndex: number) => {
       const imageW = 3.8;
       const imageH = 4.0;
       const imageX = side === 'left' ? 0.5 : 5.7;
       const contentX = side === 'left' ? 4.8 : 0.5;
       const contentW = 4.7;
       
-      // Image placeholder
-      contentSlide.addShape(pptx.ShapeType.rect, {
-        x: imageX, y: spacing.contentY, w: imageW, h: imageH,
-        fill: { color: 'E0E0E0' },
-        line: { color: colors.secondary, width: 2 },
-      });
-      contentSlide.addText('[Image Placeholder]', {
-        x: imageX, y: spacing.contentY + imageH / 2 - 0.2, w: imageW, h: 0.4,
-        fontSize: 14,
-        color: '808080',
-        align: 'center',
-      });
+      // Image or placeholder
+      if (availableImages[imageIndex]) {
+        const img = availableImages[imageIndex];
+        contentSlide.addImage({
+          data: `data:image/${img.ext};base64,${img.base64}`,
+          x: imageX, y: spacing.contentY, w: imageW, h: imageH,
+          sizing: { type: 'contain', w: imageW, h: imageH }
+        });
+      } else {
+        contentSlide.addShape(pptx.ShapeType.rect, {
+          x: imageX, y: spacing.contentY, w: imageW, h: imageH,
+          fill: { color: 'E0E0E0' },
+          line: { color: colors.secondary, width: 2 },
+        });
+        contentSlide.addText('[Image]', {
+          x: imageX, y: spacing.contentY + imageH / 2 - 0.2, w: imageW, h: 0.4,
+          fontSize: 14,
+          color: '808080',
+          align: 'center',
+        });
+      }
       
       // Content bullets
       const bullets = slide.bullets || [];
@@ -397,6 +501,9 @@ ${cleanOutline.substring(0, 8000)}`,
     };
     const spacing = spacingMap[layouts.spacing as string] || spacingMap.normal;
 
+    // Track image usage across slides
+    let imageIndex = 0;
+
     slideData.slides.forEach((slide: any) => {
       const contentSlide = pptx.addSlide();
       contentSlide.background = { color: colors.background };
@@ -421,30 +528,44 @@ ${cleanOutline.substring(0, 8000)}`,
           break;
           
         case 'image-grid':
-          renderImageGridSlide(contentSlide, slide, spacing);
+          const gridImages = extractedImages.slice(imageIndex, imageIndex + (slide.imageCount || 4));
+          renderImageGridSlide(contentSlide, slide, spacing, gridImages);
+          imageIndex += gridImages.length;
           break;
           
         case 'image-left':
-          renderImageSideSlide(contentSlide, slide, spacing, 'left');
+          renderImageSideSlide(contentSlide, slide, spacing, 'left', extractedImages, imageIndex);
+          if (extractedImages[imageIndex]) imageIndex++;
           break;
           
         case 'image-right':
-          renderImageSideSlide(contentSlide, slide, spacing, 'right');
+          renderImageSideSlide(contentSlide, slide, spacing, 'right', extractedImages, imageIndex);
+          if (extractedImages[imageIndex]) imageIndex++;
           break;
           
         case 'image-top':
-          // Image placeholder on top
-          contentSlide.addShape(pptx.ShapeType.rect, {
-            x: 0.5, y: spacing.contentY, w: 9, h: 2.5,
-            fill: { color: 'E0E0E0' },
-            line: { color: colors.secondary, width: 2 },
-          });
-          contentSlide.addText('[Image Placeholder]', {
-            x: 0.5, y: spacing.contentY + 1.0, w: 9, h: 0.4,
-            fontSize: 14,
-            color: '808080',
-            align: 'center',
-          });
+          // Image or placeholder on top
+          if (extractedImages[imageIndex]) {
+            const img = extractedImages[imageIndex];
+            contentSlide.addImage({
+              data: `data:image/${img.ext};base64,${img.base64}`,
+              x: 0.5, y: spacing.contentY, w: 9, h: 2.5,
+              sizing: { type: 'contain', w: 9, h: 2.5 }
+            });
+            imageIndex++;
+          } else {
+            contentSlide.addShape(pptx.ShapeType.rect, {
+              x: 0.5, y: spacing.contentY, w: 9, h: 2.5,
+              fill: { color: 'E0E0E0' },
+              line: { color: colors.secondary, width: 2 },
+            });
+            contentSlide.addText('[Image]', {
+              x: 0.5, y: spacing.contentY + 1.0, w: 9, h: 0.4,
+              fontSize: 14,
+              color: '808080',
+              align: 'center',
+            });
+          }
           
           if (bullets.length > 0) {
             const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
@@ -457,6 +578,52 @@ ${cleanOutline.substring(0, 8000)}`,
               fontFace: fonts.body,
               color: colors.text,
             });
+          }
+          break;
+          
+        case 'image-full':
+          // Full-slide image with text overlay
+          if (extractedImages[imageIndex]) {
+            const img = extractedImages[imageIndex];
+            contentSlide.addImage({
+              data: `data:image/${img.ext};base64,${img.base64}`,
+              x: 0, y: 0, w: '100%', h: '100%',
+              sizing: { type: 'cover', w: 10, h: 7.5 }
+            });
+            
+            // Semi-transparent overlay for text readability
+            if (slide.bullets && slide.bullets.length > 0) {
+              contentSlide.addShape(pptx.ShapeType.rect, {
+                x: 0, y: 5.5, w: '100%', h: 2,
+                fill: { color: '000000', transparency: 50 }
+              });
+              
+              const overlayText = slide.bullets.join(' • ');
+              contentSlide.addText(overlayText, {
+                x: 0.5, y: 6.0, w: 9, h: 1,
+                fontSize: fonts.bodySize * 1.1,
+                fontFace: fonts.body,
+                color: 'FFFFFF',
+                bold: true,
+                align: 'center',
+                valign: 'middle'
+              });
+            }
+            imageIndex++;
+          } else {
+            // Fallback to regular bullets if no image
+            if (bullets.length > 0) {
+              const bulletText = bullets.map((b: string) => ({ text: b, options: { bullet: true } }));
+              contentSlide.addText(bulletText, {
+                x: 0.5,
+                y: spacing.contentY,
+                w: 9,
+                h: spacing.contentH,
+                fontSize: fonts.bodySize,
+                fontFace: fonts.body,
+                color: colors.text,
+              });
+            }
           }
           break;
 
