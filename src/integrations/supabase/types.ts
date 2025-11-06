@@ -527,6 +527,7 @@ export type Database = {
           created_at: string | null
           created_by: string
           description: string | null
+          enhanced_bullets: Json | null
           fonts: Json
           id: string
           image_layouts: Json | null
@@ -534,6 +535,7 @@ export type Database = {
           layouts: Json
           name: string
           quote_styles: Json | null
+          shaded_boxes: Json | null
           updated_at: string | null
         }
         Insert: {
@@ -541,6 +543,7 @@ export type Database = {
           created_at?: string | null
           created_by: string
           description?: string | null
+          enhanced_bullets?: Json | null
           fonts: Json
           id?: string
           image_layouts?: Json | null
@@ -548,6 +551,7 @@ export type Database = {
           layouts: Json
           name: string
           quote_styles?: Json | null
+          shaded_boxes?: Json | null
           updated_at?: string | null
         }
         Update: {
@@ -555,6 +559,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string
           description?: string | null
+          enhanced_bullets?: Json | null
           fonts?: Json
           id?: string
           image_layouts?: Json | null
@@ -562,6 +567,7 @@ export type Database = {
           layouts?: Json
           name?: string
           quote_styles?: Json | null
+          shaded_boxes?: Json | null
           updated_at?: string | null
         }
         Relationships: []

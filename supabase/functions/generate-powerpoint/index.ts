@@ -1084,6 +1084,8 @@ ${docOutline.substring(0, 8000)}`,
     let colors: any;
     let fonts: any = { title: 'Arial', body: 'Arial', titleSize: 44, bodySize: 18 };
     let layouts: any = { titleSlide: 'centered', contentSlide: 'bullets', spacing: 'normal' };
+    let enhancedBullets: any = null;
+    let shadedBoxes: any = null;
 
     if (templateId.startsWith('custom-')) {
       // Fetch custom template from database
@@ -1104,18 +1106,39 @@ ${docOutline.substring(0, 8000)}`,
         };
         fonts = customTemplate.fonts;
         layouts = customTemplate.layouts;
+        enhancedBullets = customTemplate.enhanced_bullets;
+        shadedBoxes = customTemplate.shaded_boxes;
       } else {
         colors = { primary: '1e3a8a', secondary: '3b82f6', text: '1e293b', background: 'FFFFFF' };
       }
     } else {
-      // Use built-in templates
-      const builtInTemplates: Record<string, any> = {
-        'scientific-report': { primary: '1e3a8a', secondary: '3b82f6', text: '1e293b', background: 'FFFFFF' },
-        'research-presentation': { primary: '064e3b', secondary: '047857', text: '1f2937', background: 'FFFFFF' },
-        'medical-briefing': { primary: '991b1b', secondary: 'dc2626', text: '111827', background: 'FFFFFF' },
-        'educational-lecture': { primary: 'ea580c', secondary: '2563eb', text: '0f172a', background: 'FFFFFF' },
+      // Use built-in templates with enhanced bullets and shaded boxes
+      const builtInConfigs: Record<string, any> = {
+        'scientific-report': { 
+          colors: { primary: '1e3a8a', secondary: '3b82f6', text: '1e293b', background: 'FFFFFF' },
+          enhancedBullets: { enabled: true, iconSet: 'scientific', circleSize: 0.35, circleColor: '3b82f6', iconColor: 'ffffff' },
+          shadedBoxes: { enabled: true, opacity: 10, backgroundColor: 'e3f2fd', padding: 0.25 }
+        },
+        'research-presentation': { 
+          colors: { primary: '064e3b', secondary: '047857', text: '1f2937', background: 'FFFFFF' },
+          enhancedBullets: { enabled: true, iconSet: 'scientific', circleSize: 0.35, circleColor: '047857', iconColor: 'ffffff' },
+          shadedBoxes: { enabled: true, opacity: 10, backgroundColor: 'd1fae5', padding: 0.25 }
+        },
+        'medical-briefing': { 
+          colors: { primary: '991b1b', secondary: 'dc2626', text: '111827', background: 'FFFFFF' },
+          enhancedBullets: { enabled: true, iconSet: 'medical', circleSize: 0.35, circleColor: 'dc2626', iconColor: 'ffffff' },
+          shadedBoxes: { enabled: true, opacity: 10, backgroundColor: 'fee2e2', padding: 0.25 }
+        },
+        'educational-lecture': { 
+          colors: { primary: 'ea580c', secondary: '2563eb', text: '0f172a', background: 'FFFFFF' },
+          enhancedBullets: { enabled: true, iconSet: 'educational', circleSize: 0.35, circleColor: '2563eb', iconColor: 'ffffff' },
+          shadedBoxes: { enabled: true, opacity: 10, backgroundColor: 'ffedd5', padding: 0.25 }
+        },
       };
-      colors = builtInTemplates[templateId] || builtInTemplates['scientific-report'];
+      const config = builtInConfigs[templateId] || builtInConfigs['scientific-report'];
+      colors = config.colors;
+      enhancedBullets = config.enhancedBullets;
+      shadedBoxes = config.shadedBoxes;
     }
 
     // Title slide with custom layout
@@ -1284,36 +1307,61 @@ ${docOutline.substring(0, 8000)}`,
       // Content bullets with formatting
       const bullets = slide.bullets || [];
       if (bullets.length > 0) {
-        const bulletText = bullets.map((b: any) => {
-          const text = typeof b === 'string' ? b : b.text;
-          const level = typeof b === 'object' ? (b.level || 0) : 0;
-          const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
-          const bold = typeof b === 'object' ? (b.bold || false) : false;
-          const italic = typeof b === 'object' ? (b.italic || false) : false;
-          const underline = typeof b === 'object' ? (b.underline || false) : false;
-          
-          return {
-            text,
-            options: {
-              bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
-              indentLevel: level,
-              bold,
-              italic,
-              underline
-            }
-          };
-        });
+        const useIconBullets = enhancedBullets?.enabled || false;
+        const useShadedBoxes = shadedBoxes?.enabled || false;
         
-        contentSlide.addText(bulletText, {
-          x: contentX,
-          y: spacing.contentY,
-          w: contentW,
-          h: imageH,
-          fontSize: fonts.bodySize * 0.95,
-          fontFace: fonts.body,
-          color: colors.text,
-          lineSpacing: 20
-        });
+        if (useIconBullets) {
+          const bulletConfig = enhancedBullets;
+          const boxConfig = shadedBoxes;
+          
+          // Calculate content height based on bullets
+          const bulletHeight = Math.min(bullets.length * 0.6, imageH);
+          
+          // Add shaded box if enabled
+          if (useShadedBoxes) {
+            addShadedBox(contentSlide, contentX, spacing.contentY, contentW, bulletHeight, boxConfig, colors);
+          }
+          
+          // Render each bullet with icon
+          let currentY = spacing.contentY + 0.2;
+          bullets.forEach((b: any, index: number) => {
+            const text = typeof b === 'string' ? b : b.text;
+            renderIconBullet(contentSlide, text, contentX + 0.2, currentY, index, colors, fonts, bulletConfig);
+            currentY += 0.55;
+          });
+        } else {
+          // Original bullet rendering
+          const bulletText = bullets.map((b: any) => {
+            const text = typeof b === 'string' ? b : b.text;
+            const level = typeof b === 'object' ? (b.level || 0) : 0;
+            const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+            const bold = typeof b === 'object' ? (b.bold || false) : false;
+            const italic = typeof b === 'object' ? (b.italic || false) : false;
+            const underline = typeof b === 'object' ? (b.underline || false) : false;
+            
+            return {
+              text,
+              options: {
+                bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                indentLevel: level,
+                bold,
+                italic,
+                underline
+              }
+            };
+          });
+          
+          contentSlide.addText(bulletText, {
+            x: contentX,
+            y: spacing.contentY,
+            w: contentW,
+            h: imageH,
+            fontSize: fonts.bodySize * 0.95,
+            fontFace: fonts.body,
+            color: colors.text,
+            lineSpacing: 20
+          });
+        }
       }
     };
 
@@ -1408,35 +1456,60 @@ ${docOutline.substring(0, 8000)}`,
           }
           
           if (bullets.length > 0) {
-            const bulletText = bullets.map((b: any) => {
-              const text = typeof b === 'string' ? b : b.text;
-              const level = typeof b === 'object' ? (b.level || 0) : 0;
-              const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
-              const bold = typeof b === 'object' ? (b.bold || false) : false;
-              const italic = typeof b === 'object' ? (b.italic || false) : false;
-              const underline = typeof b === 'object' ? (b.underline || false) : false;
-              
-              return {
-                text,
-                options: {
-                  bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
-                  indentLevel: level,
-                  bold,
-                  italic,
-                  underline
-                }
-              };
-            });
+            const useIconBullets = enhancedBullets?.enabled || false;
+            const useShadedBoxes = shadedBoxes?.enabled || false;
             
-            contentSlide.addText(bulletText, {
-              x: 0.5,
-              y: spacing.contentY + 3.0,
-              w: 9,
-              h: 2.5,
-              fontSize: fonts.bodySize,
-              fontFace: fonts.body,
-              color: colors.text,
-            });
+            if (useIconBullets) {
+              const bulletConfig = enhancedBullets;
+              const boxConfig = shadedBoxes;
+              
+              // Calculate content height based on bullets
+              const bulletHeight = Math.min(bullets.length * 0.6, 2.5);
+              
+              // Add shaded box if enabled
+              if (useShadedBoxes) {
+                addShadedBox(contentSlide, 0.5, spacing.contentY + 3.0, 9, bulletHeight, boxConfig, colors);
+              }
+              
+              // Render each bullet with icon
+              let currentY = spacing.contentY + 3.2;
+              bullets.forEach((b: any, index: number) => {
+                const text = typeof b === 'string' ? b : b.text;
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
+                currentY += 0.55;
+              });
+            } else {
+              // Original bullet rendering
+              const bulletText = bullets.map((b: any) => {
+                const text = typeof b === 'string' ? b : b.text;
+                const level = typeof b === 'object' ? (b.level || 0) : 0;
+                const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+                const bold = typeof b === 'object' ? (b.bold || false) : false;
+                const italic = typeof b === 'object' ? (b.italic || false) : false;
+                const underline = typeof b === 'object' ? (b.underline || false) : false;
+                
+                return {
+                  text,
+                  options: {
+                    bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                    indentLevel: level,
+                    bold,
+                    italic,
+                    underline
+                  }
+                };
+              });
+              
+              contentSlide.addText(bulletText, {
+                x: 0.5,
+                y: spacing.contentY + 3.0,
+                w: 9,
+                h: 2.5,
+                fontSize: fonts.bodySize,
+                fontFace: fonts.body,
+                color: colors.text,
+              });
+            }
           }
           break;
           
@@ -1511,13 +1584,13 @@ ${docOutline.substring(0, 8000)}`,
 
         case 'two-column':
           if (bullets.length > 0) {
-            const useIconBullets = template.enhancedBullets?.enabled || template.enhanced_bullets?.enabled || false;
-            const useShadedBoxes = template.shadedBoxes?.enabled || template.shaded_boxes?.enabled || false;
+            const useIconBullets = enhancedBullets?.enabled || false;
+            const useShadedBoxes = shadedBoxes?.enabled || false;
             const midpoint = Math.ceil(bullets.length / 2);
             
             if (useIconBullets) {
-              const bulletConfig = template.enhancedBullets || template.enhanced_bullets;
-              const boxConfig = template.shadedBoxes || template.shaded_boxes;
+              const bulletConfig = enhancedBullets;
+              const boxConfig = shadedBoxes;
               
               // Add shaded boxes for both columns
               if (useShadedBoxes) {
@@ -1590,12 +1663,12 @@ ${docOutline.substring(0, 8000)}`,
 
         default: // 'bullets' and fallback
           if (bullets.length > 0) {
-            const useIconBullets = template.enhancedBullets?.enabled || template.enhanced_bullets?.enabled || false;
-            const useShadedBoxes = template.shadedBoxes?.enabled || template.shaded_boxes?.enabled || false;
+            const useIconBullets = enhancedBullets?.enabled || false;
+            const useShadedBoxes = shadedBoxes?.enabled || false;
             
             if (useIconBullets) {
-              const bulletConfig = template.enhancedBullets || template.enhanced_bullets;
-              const boxConfig = template.shadedBoxes || template.shaded_boxes;
+              const bulletConfig = enhancedBullets;
+              const boxConfig = shadedBoxes;
               
               // Calculate content height based on bullets
               const bulletHeight = bullets.length * 0.6;
