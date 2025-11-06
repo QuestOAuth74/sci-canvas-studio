@@ -6,6 +6,7 @@ interface AIProviderSettings {
   primary_provider: 'manus' | 'lovable';
   fallback_enabled: boolean;
   timeout_ms: number;
+  generation_mode: 'full' | 'structure';
 }
 
 export const useAIProviderSettings = () => {

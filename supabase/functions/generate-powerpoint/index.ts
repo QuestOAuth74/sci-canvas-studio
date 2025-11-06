@@ -326,6 +326,149 @@ serve(async (req) => {
   - After: ${afterText}${position.caption ? `\n  - Caption: ${position.caption}` : ''}`;
     }).join('\n\n');
 
+    // Helper function to create Manus AI task for full PowerPoint generation with diagrams
+    async function createManusFullGenerationTask(
+      docOutline: string,
+      imageContexts: string,
+      imageCount: number
+    ): Promise<string> {
+      const manusApiKey = Deno.env.get('MANUS_API_KEY');
+      if (!manusApiKey) {
+        throw new Error('MANUS_API_KEY not configured');
+      }
+
+      const prompt = `Create a professional PowerPoint presentation from this scientific/academic document with COMPLETE DIAGRAMS AND FLOWCHARTS.
+
+DOCUMENT CONTENT:
+${docOutline}
+
+IMAGES AVAILABLE: ${imageCount} images with context:
+${imageContexts || 'No images available'}
+
+CRITICAL REQUIREMENTS:
+1. Create 10-15 slides with engaging, professional layouts
+2. GENERATE FLOWCHARTS AND DIAGRAMS to visualize complex concepts:
+   - Process flows with arrows and decision nodes
+   - System architecture diagrams with labeled components
+   - Cause-effect relationships with connecting arrows
+   - Timeline diagrams for sequential processes
+   - Comparison matrices for contrasts
+   - Block diagrams with hierarchical structures
+   - Venn diagrams for overlapping concepts
+3. Use the provided images where contextually relevant
+4. Create additional visual elements automatically for:
+   - Any multi-step processes → Flowchart
+   - System descriptions → Architecture diagram
+   - Comparisons → Side-by-side or matrix layout
+   - Relationships → Connected node diagrams
+   - Data or statistics → Charts/graphs
+5. Use professional color schemes suitable for scientific/academic presentations
+6. Include clear, concise titles and bullet points
+7. Integrate smooth transitions between sections
+8. Add speaker notes with key talking points
+
+STYLE: Scientific/Academic presentation suitable for research conferences
+VISUAL QUALITY: High-quality diagrams with clear labels, consistent styling, professional aesthetics
+
+OUTPUT: Complete PowerPoint (.pptx) file with all diagrams, flowcharts, and figures embedded and properly formatted.`;
+
+      console.log('Creating Manus AI full generation task...');
+      
+      const response = await fetch('https://api.manus.ai/v1/tasks', {
+        method: 'POST',
+        headers: {
+          'API_KEY': manusApiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          taskMode: 'agent',
+          agentProfile: 'quality'
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Manus task creation failed:', response.status, errorText);
+        throw new Error(`Manus task creation failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const taskId = result.taskId || result.id;
+      
+      if (!taskId) {
+        throw new Error('No task ID returned from Manus API');
+      }
+
+      console.log(`✅ Manus task created: ${taskId}`);
+      return taskId;
+    }
+
+    // Helper function to poll Manus task completion
+    async function pollManusTaskCompletion(
+      taskId: string,
+      maxAttempts: number = 60,
+      intervalMs: number = 5000
+    ): Promise<string> {
+      const manusApiKey = Deno.env.get('MANUS_API_KEY');
+      if (!manusApiKey) {
+        throw new Error('MANUS_API_KEY not configured');
+      }
+      
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        console.log(`Polling Manus task ${taskId}, attempt ${attempt + 1}/${maxAttempts}`);
+        
+        const response = await fetch(`https://api.manus.ai/v1/tasks/${taskId}`, {
+          headers: { 'API_KEY': manusApiKey }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to check task status: ${response.status}`);
+        }
+
+        const taskData = await response.json();
+        console.log('Task status:', taskData.status);
+
+        if (taskData.status === 'completed' || taskData.status === 'finished' || taskData.status === 'success') {
+          const fileUrl = taskData.result?.fileUrl || 
+                         taskData.result?.url ||
+                         taskData.outputs?.[0]?.url ||
+                         taskData.files?.[0]?.url ||
+                         taskData.downloadUrl ||
+                         taskData.result;
+          
+          if (!fileUrl) {
+            console.error('Task completed but no file URL found. Task data:', JSON.stringify(taskData));
+            throw new Error('Task completed but no file URL found in result');
+          }
+
+          console.log(`✅ Task completed, file URL: ${fileUrl}`);
+          return fileUrl;
+        }
+
+        if (taskData.status === 'failed' || taskData.status === 'error') {
+          throw new Error(`Manus task failed: ${taskData.error || taskData.message || 'Unknown error'}`);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, intervalMs));
+      }
+
+      throw new Error('Manus task timeout: exceeded maximum polling attempts');
+    }
+
+    // Helper function to download Manus-generated PowerPoint
+    async function downloadManusGeneratedFile(fileUrl: string): Promise<Blob> {
+      console.log('Downloading Manus-generated PowerPoint from:', fileUrl);
+      
+      const response = await fetch(fileUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.status}`);
+      }
+
+      return await response.blob();
+    }
+
     // Helper function to call Manus AI for slide structure generation
     async function generateSlideStructureWithManus(
       docOutline: string,
@@ -579,14 +722,112 @@ ${docOutline.substring(0, 8000)}`,
     const aiSettings = settingsData?.setting_value as any || {
       primary_provider: 'manus',
       fallback_enabled: true,
-      timeout_ms: 45000
+      timeout_ms: 45000,
+      generation_mode: 'full'
     };
+
+    const generationMode = aiSettings.generation_mode || 'full';
 
     console.log('AI Provider Settings:', {
       primary: aiSettings.primary_provider,
       fallback: aiSettings.fallback_enabled,
-      timeout: aiSettings.timeout_ms
+      timeout: aiSettings.timeout_ms,
+      mode: generationMode
     });
+
+    // === FULL GENERATION MODE: Manus creates complete PowerPoint with diagrams ===
+    if (generationMode === 'full' && aiSettings.primary_provider === 'manus') {
+      console.log('🎨 Using FULL generation mode - Manus AI will create complete PowerPoint with diagrams');
+      
+      try {
+        // Create Manus task for full PowerPoint generation
+        const taskId = await createManusFullGenerationTask(cleanOutline, imageContexts, extractedImages.length);
+        
+        // Update generation record with task ID
+        await supabaseAdmin
+          .from('powerpoint_generations')
+          .update({ 
+            metadata: { manusTaskId: taskId, generationMode: 'full' },
+            status: 'processing'
+          })
+          .eq('id', generationId);
+
+        // Poll for completion
+        console.log('⏳ Waiting for Manus to generate PowerPoint with diagrams...');
+        const fileUrl = await pollManusTaskCompletion(taskId);
+
+        // Download the generated PowerPoint
+        console.log('📥 Downloading Manus-generated PowerPoint...');
+        const pptxBlob = await downloadManusGeneratedFile(fileUrl);
+
+        // Upload to Supabase storage
+        const pptxFileName = `${generationId}_manus_full.pptx`;
+        const { error: uploadError } = await supabaseClient.storage
+          .from('ppt-generated')
+          .upload(pptxFileName, pptxBlob, {
+            contentType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            upsert: true
+          });
+
+        if (uploadError) {
+          throw new Error(`Failed to upload PowerPoint: ${uploadError.message}`);
+        }
+
+        console.log('✅ PowerPoint uploaded successfully');
+
+        // Update generation record with completion
+        await supabaseAdmin
+          .from('powerpoint_generations')
+          .update({
+            status: 'completed',
+            file_path: pptxFileName,
+            completed_at: new Date().toISOString(),
+            metadata: { 
+              manusTaskId: taskId, 
+              generationMode: 'full',
+              fileSize: pptxBlob.size 
+            }
+          })
+          .eq('id', generationId);
+
+        // Track AI usage
+        await supabaseClient.from('ai_generation_usage').insert({
+          user_id: user.id,
+          month_year: new Date().toISOString().substring(0, 7),
+          generation_type: 'powerpoint_full',
+          metadata: {
+            ai_provider: 'manus',
+            generation_mode: 'full',
+            image_count: extractedImages.length,
+            template_id: templateId,
+            file_size: pptxBlob.size
+          }
+        });
+
+        return new Response(
+          JSON.stringify({ 
+            message: 'PowerPoint generated successfully with Manus AI (full mode)',
+            generationId,
+            filePath: pptxFileName,
+            mode: 'full'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+
+      } catch (fullGenError: any) {
+        console.error('❌ Full generation mode failed:', fullGenError.message);
+        
+        if (!aiSettings.fallback_enabled) {
+          throw new Error(`Full generation failed (fallback disabled): ${fullGenError.message}`);
+        }
+        
+        console.log('🔄 Falling back to structure generation mode...');
+        // Continue to structure generation below
+      }
+    }
+
+    // === STRUCTURE GENERATION MODE: Generate JSON structure, render with PptxGenJS ===
+    console.log('📋 Using STRUCTURE generation mode');
 
     // Try primary provider first, fallback to secondary if enabled
     let slideData: any;

@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useAIProviderSettings } from '@/hooks/useAIProviderSettings';
 import { SEOHead } from '@/components/SEO/SEOHead';
@@ -19,12 +20,14 @@ export default function AISettings() {
   const [primaryProvider, setPrimaryProvider] = useState<'manus' | 'lovable'>('manus');
   const [fallbackEnabled, setFallbackEnabled] = useState(true);
   const [timeoutMs, setTimeoutMs] = useState(45000);
+  const [generationMode, setGenerationMode] = useState<'full' | 'structure'>('full');
 
   useEffect(() => {
     if (settings) {
       setPrimaryProvider(settings.primary_provider);
       setFallbackEnabled(settings.fallback_enabled);
       setTimeoutMs(settings.timeout_ms);
+      setGenerationMode(settings.generation_mode || 'full');
     }
   }, [settings]);
 
@@ -33,13 +36,15 @@ export default function AISettings() {
       primary_provider: primaryProvider,
       fallback_enabled: fallbackEnabled,
       timeout_ms: timeoutMs,
+      generation_mode: generationMode,
     });
   };
 
   const hasChanges = settings && (
     settings.primary_provider !== primaryProvider ||
     settings.fallback_enabled !== fallbackEnabled ||
-    settings.timeout_ms !== timeoutMs
+    settings.timeout_ms !== timeoutMs ||
+    (settings.generation_mode || 'full') !== generationMode
   );
 
   if (isLoading) {
@@ -122,6 +127,53 @@ export default function AISettings() {
                 <Separator />
 
                 <div className="space-y-4">
+                  <div className="space-y-3">
+                    <Label>Generation Mode</Label>
+                    <RadioGroup
+                      value={generationMode}
+                      onValueChange={(value) => setGenerationMode(value as 'full' | 'structure')}
+                    >
+                      <div className="flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="full" id="mode-full" />
+                        <div className="flex-1">
+                          <Label htmlFor="mode-full" className="cursor-pointer">
+                            <div className="font-semibold flex items-center gap-2">
+                              Full Generation 
+                              <Badge variant="secondary" className="text-xs">Recommended</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Manus AI creates the complete PowerPoint with professional diagrams, flowcharts, 
+                              and visual elements. Best quality and most advanced features.
+                            </p>
+                          </Label>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start space-x-3 space-y-0 rounded-lg border p-4 hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="structure" id="mode-structure" />
+                        <div className="flex-1">
+                          <Label htmlFor="mode-structure" className="cursor-pointer">
+                            <div className="font-semibold">Structure Generation</div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              AI generates slide structure (JSON), then we render with custom templates. 
+                              Faster but limited diagram capabilities.
+                            </p>
+                          </Label>
+                        </div>
+                      </div>
+                    </RadioGroup>
+                    {generationMode === 'full' && primaryProvider !== 'manus' && (
+                      <Alert>
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          Full generation mode requires Manus AI as the primary provider.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+
+                  <Separator />
+
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="fallback">Enable Fallback Provider</Label>
