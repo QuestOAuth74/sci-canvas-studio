@@ -310,6 +310,101 @@ serve(async (req) => {
     
     console.log('Extracted outline (first 400 chars):', cleanOutline.substring(0, 400));
 
+    // Icon sets for enhanced bullets
+    const ICON_SETS: Record<string, string[]> = {
+      default: ['●', '■', '▲', '◆', '★'],
+      scientific: ['🔬', '⚗️', '🧬', '🔭', '📊'],
+      medical: ['💊', '⚕️', '🏥', '💉', '🫀'],
+      educational: ['📚', '✏️', '🎓', '📖', '💡']
+    };
+
+    // Helper: Convert hex color to lighter shade
+    function lightenColor(hexColor: string, percent: number): string {
+      const cleanHex = hexColor.replace('#', '');
+      const num = parseInt(cleanHex, 16);
+      const r = Math.min(255, Math.floor((num >> 16) + (255 - (num >> 16)) * percent / 100));
+      const g = Math.min(255, Math.floor(((num >> 8) & 0x00FF) + (255 - ((num >> 8) & 0x00FF)) * percent / 100));
+      const b = Math.min(255, Math.floor((num & 0x0000FF) + (255 - (num & 0x0000FF)) * percent / 100));
+      return ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase();
+    }
+
+    // Helper: Add shaded background box
+    function addShadedBox(
+      slide: any,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      config: any,
+      colors: any
+    ) {
+      const bgColor = config?.backgroundColor || lightenColor(colors.primary.replace('#', ''), 90);
+      const opacity = config?.opacity || 10;
+      const padding = config?.padding || 0.2;
+      
+      slide.addShape(pptx.ShapeType.rect, {
+        x: x - padding,
+        y: y - padding,
+        w: w + (padding * 2),
+        h: h + (padding * 2),
+        fill: { color: bgColor, transparency: 100 - opacity },
+        line: { type: 'none' }
+      });
+    }
+
+    // Helper: Render circular icon bullet
+    function renderIconBullet(
+      slide: any,
+      text: string,
+      x: number,
+      y: number,
+      iconIndex: number,
+      colors: any,
+      fonts: any,
+      config: any
+    ) {
+      const circleSize = config?.circleSize || 0.35;
+      const circleColor = (config?.circleColor || colors.primary).replace('#', '');
+      const iconColor = (config?.iconColor || 'FFFFFF').replace('#', '');
+      
+      // Add circle background
+      slide.addShape(pptx.ShapeType.ellipse, {
+        x: x,
+        y: y,
+        w: circleSize,
+        h: circleSize,
+        fill: { color: circleColor },
+        line: { type: 'none' }
+      });
+      
+      // Add icon/symbol in circle center
+      const icons = ICON_SETS[config?.iconSet || 'default'] || ICON_SETS.default;
+      const icon = icons[iconIndex % icons.length];
+      
+      slide.addText(icon, {
+        x: x,
+        y: y,
+        w: circleSize,
+        h: circleSize,
+        fontSize: 14,
+        color: iconColor,
+        align: 'center',
+        valign: 'middle'
+      });
+      
+      // Add text next to icon
+      slide.addText(text, {
+        x: x + circleSize + 0.15,
+        y: y + 0.02,
+        w: 8.5 - (x + circleSize + 0.15),
+        h: circleSize - 0.04,
+        fontSize: fonts.bodySize * 0.95,
+        fontFace: fonts.body,
+        color: colors.text.replace('#', ''),
+        valign: 'top'
+      });
+    }
+
     // Build image context for AI
     const imageContexts = extractedImages.map((img, idx) => {
       const position = imagePositionMap.get(img.filename);
@@ -1416,84 +1511,140 @@ ${docOutline.substring(0, 8000)}`,
 
         case 'two-column':
           if (bullets.length > 0) {
+            const useIconBullets = template.enhancedBullets?.enabled || template.enhanced_bullets?.enabled || false;
+            const useShadedBoxes = template.shadedBoxes?.enabled || template.shaded_boxes?.enabled || false;
             const midpoint = Math.ceil(bullets.length / 2);
             
-            const formatBullets = (bulletArray: any[]) => bulletArray.map((b: any) => {
-              const text = typeof b === 'string' ? b : b.text;
-              const level = typeof b === 'object' ? (b.level || 0) : 0;
-              const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
-              const bold = typeof b === 'object' ? (b.bold || false) : false;
-              const italic = typeof b === 'object' ? (b.italic || false) : false;
-              const underline = typeof b === 'object' ? (b.underline || false) : false;
+            if (useIconBullets) {
+              const bulletConfig = template.enhancedBullets || template.enhanced_bullets;
+              const boxConfig = template.shadedBoxes || template.shaded_boxes;
               
-              return {
-                text,
-                options: {
-                  bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
-                  indentLevel: level,
-                  bold,
-                  italic,
-                  underline
-                }
-              };
-            });
-            
-            const leftBullets = formatBullets(bullets.slice(0, midpoint));
-            const rightBullets = formatBullets(bullets.slice(midpoint));
-            
-            contentSlide.addText(leftBullets, {
-              x: 0.5,
-              y: spacing.contentY,
-              w: 4.25,
-              h: spacing.contentH,
-              fontSize: fonts.bodySize,
-              fontFace: fonts.body,
-              color: colors.text,
-            });
-            
-            contentSlide.addText(rightBullets, {
-              x: 5.25,
-              y: spacing.contentY,
-              w: 4.25,
-              h: spacing.contentH,
-              fontSize: fonts.bodySize,
-              fontFace: fonts.body,
-              color: colors.text,
-            });
+              // Add shaded boxes for both columns
+              if (useShadedBoxes) {
+                addShadedBox(contentSlide, 0.5, spacing.contentY, 4.25, spacing.contentH, boxConfig, colors);
+                addShadedBox(contentSlide, 5.25, spacing.contentY, 4.25, spacing.contentH, boxConfig, colors);
+              }
+              
+              // Left column
+              let currentY = spacing.contentY + 0.2;
+              bullets.slice(0, midpoint).forEach((b: any, index: number) => {
+                const text = typeof b === 'string' ? b : b.text;
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
+                currentY += 0.55;
+              });
+              
+              // Right column
+              currentY = spacing.contentY + 0.2;
+              bullets.slice(midpoint).forEach((b: any, index: number) => {
+                const text = typeof b === 'string' ? b : b.text;
+                renderIconBullet(contentSlide, text, 5.45, currentY, index + midpoint, colors, fonts, bulletConfig);
+                currentY += 0.55;
+              });
+            } else {
+              // Original formatting
+              const formatBullets = (bulletArray: any[]) => bulletArray.map((b: any) => {
+                const text = typeof b === 'string' ? b : b.text;
+                const level = typeof b === 'object' ? (b.level || 0) : 0;
+                const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+                const bold = typeof b === 'object' ? (b.bold || false) : false;
+                const italic = typeof b === 'object' ? (b.italic || false) : false;
+                const underline = typeof b === 'object' ? (b.underline || false) : false;
+                
+                return {
+                  text,
+                  options: {
+                    bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                    indentLevel: level,
+                    bold,
+                    italic,
+                    underline
+                  }
+                };
+              });
+              
+              const leftBullets = formatBullets(bullets.slice(0, midpoint));
+              const rightBullets = formatBullets(bullets.slice(midpoint));
+              
+              contentSlide.addText(leftBullets, {
+                x: 0.5,
+                y: spacing.contentY,
+                w: 4.25,
+                h: spacing.contentH,
+                fontSize: fonts.bodySize,
+                fontFace: fonts.body,
+                color: colors.text,
+              });
+              
+              contentSlide.addText(rightBullets, {
+                x: 5.25,
+                y: spacing.contentY,
+                w: 4.25,
+                h: spacing.contentH,
+                fontSize: fonts.bodySize,
+                fontFace: fonts.body,
+                color: colors.text,
+              });
+            }
           }
           break;
 
         default: // 'bullets' and fallback
           if (bullets.length > 0) {
-            const bulletText = bullets.map((b: any) => {
-              const text = typeof b === 'string' ? b : b.text;
-              const level = typeof b === 'object' ? (b.level || 0) : 0;
-              const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
-              const bold = typeof b === 'object' ? (b.bold || false) : false;
-              const italic = typeof b === 'object' ? (b.italic || false) : false;
-              const underline = typeof b === 'object' ? (b.underline || false) : false;
-              
-              return {
-                text,
-                options: {
-                  bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
-                  indentLevel: level,
-                  bold,
-                  italic,
-                  underline
-                }
-              };
-            });
+            const useIconBullets = template.enhancedBullets?.enabled || template.enhanced_bullets?.enabled || false;
+            const useShadedBoxes = template.shadedBoxes?.enabled || template.shaded_boxes?.enabled || false;
             
-            contentSlide.addText(bulletText, {
-              x: 0.5,
-              y: spacing.contentY,
-              w: 9,
-              h: spacing.contentH,
-              fontSize: fonts.bodySize,
-              fontFace: fonts.body,
-              color: colors.text,
-            });
+            if (useIconBullets) {
+              const bulletConfig = template.enhancedBullets || template.enhanced_bullets;
+              const boxConfig = template.shadedBoxes || template.shaded_boxes;
+              
+              // Calculate content height based on bullets
+              const bulletHeight = bullets.length * 0.6;
+              const contentH = Math.min(bulletHeight, spacing.contentH);
+              
+              // Add shaded box if enabled
+              if (useShadedBoxes) {
+                addShadedBox(contentSlide, 0.5, spacing.contentY, 9, contentH, boxConfig, colors);
+              }
+              
+              // Render each bullet with icon
+              let currentY = spacing.contentY + 0.2;
+              bullets.forEach((b: any, index: number) => {
+                const text = typeof b === 'string' ? b : b.text;
+                renderIconBullet(contentSlide, text, 0.7, currentY, index, colors, fonts, bulletConfig);
+                currentY += 0.55;
+              });
+            } else {
+              // Original bullet rendering
+              const bulletText = bullets.map((b: any) => {
+                const text = typeof b === 'string' ? b : b.text;
+                const level = typeof b === 'object' ? (b.level || 0) : 0;
+                const listType = typeof b === 'object' ? (b.listType || 'bullet') : 'bullet';
+                const bold = typeof b === 'object' ? (b.bold || false) : false;
+                const italic = typeof b === 'object' ? (b.italic || false) : false;
+                const underline = typeof b === 'object' ? (b.underline || false) : false;
+                
+                return {
+                  text,
+                  options: {
+                    bullet: listType === 'bullet' ? true : { type: 'number' as 'number' },
+                    indentLevel: level,
+                    bold,
+                    italic,
+                    underline
+                  }
+                };
+              });
+              
+              contentSlide.addText(bulletText, {
+                x: 0.5,
+                y: spacing.contentY,
+                w: 9,
+                h: spacing.contentH,
+                fontSize: fonts.bodySize,
+                fontFace: fonts.body,
+                color: colors.text,
+              });
+            }
           }
           break;
       }

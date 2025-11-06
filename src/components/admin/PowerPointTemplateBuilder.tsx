@@ -171,6 +171,19 @@ export const PowerPointTemplateBuilder = () => {
         opacity?: number;
       };
     };
+    enhancedBullets: {
+      enabled: boolean;
+      iconSet: 'default' | 'scientific' | 'medical' | 'educational';
+      circleSize: number;
+      circleColor: string;
+      iconColor: string;
+    };
+    shadedBoxes: {
+      enabled: boolean;
+      opacity: number;
+      backgroundColor: string;
+      padding: number;
+    };
   };
 
   const [formData, setFormData] = useState<FormDataType>({
@@ -235,6 +248,19 @@ export const PowerPointTemplateBuilder = () => {
         color: '#00000040',
         opacity: 30
       }
+    },
+    enhancedBullets: {
+      enabled: true,
+      iconSet: 'scientific',
+      circleSize: 0.35,
+      circleColor: '#3b82f6',
+      iconColor: '#ffffff'
+    },
+    shadedBoxes: {
+      enabled: true,
+      opacity: 10,
+      backgroundColor: '#e3f2fd',
+      padding: 0.25
     },
   });
 
@@ -301,6 +327,19 @@ export const PowerPointTemplateBuilder = () => {
           color: '#00000040',
           opacity: 30
         }
+      },
+      enhancedBullets: {
+        enabled: true,
+        iconSet: 'scientific',
+        circleSize: 0.35,
+        circleColor: '#3b82f6',
+        iconColor: '#ffffff'
+      },
+      shadedBoxes: {
+        enabled: true,
+        opacity: 10,
+        backgroundColor: '#e3f2fd',
+        padding: 0.25
       },
     });
     setEditingTemplate(null);
@@ -390,6 +429,19 @@ export const PowerPointTemplateBuilder = () => {
           opacity: 30
         }
       },
+      enhancedBullets: template.enhanced_bullets || {
+        enabled: true,
+        iconSet: 'scientific',
+        circleSize: 0.35,
+        circleColor: '#3b82f6',
+        iconColor: '#ffffff'
+      },
+      shadedBoxes: template.shaded_boxes || {
+        enabled: true,
+        opacity: 10,
+        backgroundColor: '#e3f2fd',
+        padding: 0.25
+      },
     });
     setEditingTemplate(template);
     setIsDialogOpen(true);
@@ -440,6 +492,19 @@ export const PowerPointTemplateBuilder = () => {
           sizingMode: validated.imageLayouts.sizingMode,
           captions: validated.imageLayouts.captions,
           shadow: validated.imageLayouts.shadow,
+        },
+        enhanced_bullets: {
+          enabled: formData.enhancedBullets.enabled,
+          iconSet: formData.enhancedBullets.iconSet,
+          circleSize: formData.enhancedBullets.circleSize,
+          circleColor: formData.enhancedBullets.circleColor,
+          iconColor: formData.enhancedBullets.iconColor,
+        },
+        shaded_boxes: {
+          enabled: formData.shadedBoxes.enabled,
+          opacity: formData.shadedBoxes.opacity,
+          backgroundColor: formData.shadedBoxes.backgroundColor,
+          padding: formData.shadedBoxes.padding,
         },
         is_default: false,
       };
@@ -885,6 +950,207 @@ export const PowerPointTemplateBuilder = () => {
                       <Label htmlFor="image-rounded">Rounded Corners</Label>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Enhanced Bullets */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <div className="h-4 w-4 rounded-full bg-primary" />
+                    Icon Bullets
+                  </CardTitle>
+                  <CardDescription>Circular icon bullets for professional presentations</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="icon-bullets">Enable Icon Bullets</Label>
+                    <Switch
+                      id="icon-bullets"
+                      checked={formData.enhancedBullets.enabled}
+                      onCheckedChange={(checked) => setFormData({
+                        ...formData,
+                        enhancedBullets: { ...formData.enhancedBullets, enabled: checked }
+                      })}
+                    />
+                  </div>
+                  
+                  {formData.enhancedBullets.enabled && (
+                    <>
+                      <div>
+                        <Label htmlFor="icon-set">Icon Set</Label>
+                        <Select
+                          value={formData.enhancedBullets.iconSet}
+                          onValueChange={(value: any) => setFormData({
+                            ...formData,
+                            enhancedBullets: { ...formData.enhancedBullets, iconSet: value }
+                          })}
+                        >
+                          <SelectTrigger id="icon-set">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="default">Default (●■▲◆★)</SelectItem>
+                            <SelectItem value="scientific">Scientific (🔬⚗️🧬🔭📊)</SelectItem>
+                            <SelectItem value="medical">Medical (💊⚕️🏥💉🫀)</SelectItem>
+                            <SelectItem value="educational">Educational (📚✏️🎓📖💡)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="circle-color">Circle Color</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              id="circle-color"
+                              type="color"
+                              value={formData.enhancedBullets.circleColor}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                enhancedBullets: { ...formData.enhancedBullets, circleColor: e.target.value }
+                              })}
+                              className="h-10 w-16 p-1 cursor-pointer"
+                            />
+                            <Input
+                              value={formData.enhancedBullets.circleColor}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                enhancedBullets: { ...formData.enhancedBullets, circleColor: e.target.value }
+                              })}
+                              placeholder="#000000"
+                              className="flex-1"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="icon-color">Icon Color</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              id="icon-color"
+                              type="color"
+                              value={formData.enhancedBullets.iconColor}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                enhancedBullets: { ...formData.enhancedBullets, iconColor: e.target.value }
+                              })}
+                              className="h-10 w-16 p-1 cursor-pointer"
+                            />
+                            <Input
+                              value={formData.enhancedBullets.iconColor}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                enhancedBullets: { ...formData.enhancedBullets, iconColor: e.target.value }
+                              })}
+                              placeholder="#FFFFFF"
+                              className="flex-1"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="circle-size">Circle Size (inches): {formData.enhancedBullets.circleSize}</Label>
+                        <Slider
+                          id="circle-size"
+                          min={0.2}
+                          max={0.6}
+                          step={0.05}
+                          value={[formData.enhancedBullets.circleSize]}
+                          onValueChange={([value]) => setFormData({
+                            ...formData,
+                            enhancedBullets: { ...formData.enhancedBullets, circleSize: value }
+                          })}
+                          className="mt-2"
+                        />
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Shaded Boxes */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <div className="h-4 w-4 bg-muted border" />
+                    Shaded Boxes
+                  </CardTitle>
+                  <CardDescription>Subtle background boxes for content highlighting</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="shaded-boxes">Enable Shaded Boxes</Label>
+                    <Switch
+                      id="shaded-boxes"
+                      checked={formData.shadedBoxes.enabled}
+                      onCheckedChange={(checked) => setFormData({
+                        ...formData,
+                        shadedBoxes: { ...formData.shadedBoxes, enabled: checked }
+                      })}
+                    />
+                  </div>
+                  
+                  {formData.shadedBoxes.enabled && (
+                    <>
+                      <div>
+                        <Label htmlFor="box-bg-color">Background Color</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            id="box-bg-color"
+                            type="color"
+                            value={formData.shadedBoxes.backgroundColor}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              shadedBoxes: { ...formData.shadedBoxes, backgroundColor: e.target.value }
+                            })}
+                            className="h-10 w-16 p-1 cursor-pointer"
+                          />
+                          <Input
+                            value={formData.shadedBoxes.backgroundColor}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              shadedBoxes: { ...formData.shadedBoxes, backgroundColor: e.target.value }
+                            })}
+                            placeholder="#e3f2fd"
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="box-opacity">Opacity (%): {formData.shadedBoxes.opacity}</Label>
+                        <Slider
+                          id="box-opacity"
+                          min={5}
+                          max={30}
+                          step={5}
+                          value={[formData.shadedBoxes.opacity]}
+                          onValueChange={([value]) => setFormData({
+                            ...formData,
+                            shadedBoxes: { ...formData.shadedBoxes, opacity: value }
+                          })}
+                          className="mt-2"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="box-padding">Padding (inches): {formData.shadedBoxes.padding}</Label>
+                        <Slider
+                          id="box-padding"
+                          min={0.1}
+                          max={0.5}
+                          step={0.05}
+                          value={[formData.shadedBoxes.padding]}
+                          onValueChange={([value]) => setFormData({
+                            ...formData,
+                            shadedBoxes: { ...formData.shadedBoxes, padding: value }
+                          })}
+                          className="mt-2"
+                        />
+                      </div>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 

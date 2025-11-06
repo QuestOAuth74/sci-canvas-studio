@@ -62,6 +62,9 @@ export const PowerPointTemplatePreview = ({
     return Math.round(size * 0.5);
   };
 
+  const enhancedBullets = isCustom && (template as CustomTemplate).enhanced_bullets;
+  const shadedBoxes = isCustom && (template as CustomTemplate).shaded_boxes;
+
   const renderContentSlide = () => {
     const bg = ('background' in colors && colors.background) || '#ffffff';
     
@@ -155,14 +158,54 @@ export const PowerPointTemplatePreview = ({
         );
 
       default:
+        const useIconBullets = enhancedBullets?.enabled;
+        const useShadedBoxes = shadedBoxes?.enabled;
+        
         return (
-          <div className="h-full p-4" style={{ backgroundColor: bg }}>
+          <div className="h-full p-4 relative" style={{ backgroundColor: bg }}>
             <h4 className="font-bold mb-2" style={{ color: colors.primary, fontSize: `${scaleFont(fonts.titleSize * 0.7)}px` }}>Slide Content</h4>
-            <div className={getSpacingClass()}>
+            
+            {/* Shaded box preview */}
+            {useShadedBoxes && (
+              <div 
+                className="absolute rounded"
+                style={{
+                  left: '1rem',
+                  right: '1rem',
+                  top: compact ? '2.5rem' : '3.5rem',
+                  bottom: '1rem',
+                  backgroundColor: shadedBoxes?.backgroundColor || colors.accent + '20',
+                  opacity: (shadedBoxes?.opacity || 10) / 100
+                }}
+              />
+            )}
+            
+            <div className={`${getSpacingClass()} relative z-10`}>
               {['Point 1', 'Point 2', 'Point 3'].map((p, i) => (
-                <div key={i} className="flex gap-2">
-                  <span style={{ color: colors.secondary }}>•</span>
-                  <span style={{ color: colors.text, fontSize: `${scaleFont(fonts.bodySize)}px`, fontFamily: fonts.body }}>{p}</span>
+                <div key={i} className="flex gap-2 items-start">
+                  {useIconBullets ? (
+                    <>
+                      <div 
+                        className="rounded-full flex items-center justify-center flex-shrink-0 text-[8px]"
+                        style={{ 
+                          width: compact ? '12px' : '16px',
+                          height: compact ? '12px' : '16px',
+                          backgroundColor: enhancedBullets?.circleColor || colors.secondary,
+                          color: enhancedBullets?.iconColor || '#ffffff'
+                        }}
+                      >
+                        {enhancedBullets?.iconSet === 'scientific' ? '🔬' : 
+                         enhancedBullets?.iconSet === 'medical' ? '💊' :
+                         enhancedBullets?.iconSet === 'educational' ? '📚' : '●'}
+                      </div>
+                      <span style={{ color: colors.text, fontSize: `${scaleFont(fonts.bodySize)}px`, fontFamily: fonts.body }}>{p}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ color: colors.secondary }}>•</span>
+                      <span style={{ color: colors.text, fontSize: `${scaleFont(fonts.bodySize)}px`, fontFamily: fonts.body }}>{p}</span>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

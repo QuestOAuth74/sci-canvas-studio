@@ -23,6 +23,8 @@ export interface PowerPointTemplate {
     accent: string;
     text: string;
   };
+  enhancedBullets?: EnhancedBullets;
+  shadedBoxes?: ShadedBoxes;
   isCustom?: boolean;
 }
 
@@ -83,6 +85,21 @@ export interface ImageLayouts {
   };
 }
 
+export interface EnhancedBullets {
+  enabled: boolean;
+  iconSet: 'default' | 'scientific' | 'medical' | 'educational';
+  circleSize: number;
+  circleColor: string;
+  iconColor: string;
+}
+
+export interface ShadedBoxes {
+  enabled: boolean;
+  opacity: number;
+  backgroundColor: string;
+  padding: number;
+}
+
 export interface CustomTemplate {
   id: string;
   name: string;
@@ -107,6 +124,8 @@ export interface CustomTemplate {
   };
   quote_styles?: QuoteStyles | null;
   image_layouts?: ImageLayouts | null;
+  enhanced_bullets?: EnhancedBullets | null;
+  shaded_boxes?: ShadedBoxes | null;
   is_default: boolean;
   created_by: string;
   created_at: string;
@@ -117,7 +136,7 @@ export const POWERPOINT_TEMPLATES: PowerPointTemplate[] = [
   {
     id: 'scientific-report',
     name: 'Scientific Report',
-    description: 'Professional, clean design with blue theme for research presentations',
+    description: 'Professional design with icon bullets and shaded boxes',
     preview: '📊',
     colors: {
       primary: '#1e3a8a',
@@ -125,11 +144,24 @@ export const POWERPOINT_TEMPLATES: PowerPointTemplate[] = [
       accent: '#60a5fa',
       text: '#1e293b',
     },
+    enhancedBullets: {
+      enabled: true,
+      iconSet: 'scientific',
+      circleSize: 0.35,
+      circleColor: '#3b82f6',
+      iconColor: '#ffffff'
+    },
+    shadedBoxes: {
+      enabled: true,
+      opacity: 10,
+      backgroundColor: '#e3f2fd',
+      padding: 0.25
+    }
   },
   {
     id: 'research-presentation',
     name: 'Research Presentation',
-    description: 'Academic style with gray-green theme for formal presentations',
+    description: 'Academic design with icon bullets and shaded boxes',
     preview: '🔬',
     colors: {
       primary: '#064e3b',
@@ -137,11 +169,24 @@ export const POWERPOINT_TEMPLATES: PowerPointTemplate[] = [
       accent: '#10b981',
       text: '#1f2937',
     },
+    enhancedBullets: {
+      enabled: true,
+      iconSet: 'scientific',
+      circleSize: 0.35,
+      circleColor: '#047857',
+      iconColor: '#ffffff'
+    },
+    shadedBoxes: {
+      enabled: true,
+      opacity: 10,
+      backgroundColor: '#d1fae5',
+      padding: 0.25
+    }
   },
   {
     id: 'medical-briefing',
     name: 'Medical Briefing',
-    description: 'Clinical design with red-white theme for urgent clarity',
+    description: 'Clinical design with icon bullets and shaded boxes',
     preview: '⚕️',
     colors: {
       primary: '#991b1b',
@@ -149,11 +194,24 @@ export const POWERPOINT_TEMPLATES: PowerPointTemplate[] = [
       accent: '#ef4444',
       text: '#111827',
     },
+    enhancedBullets: {
+      enabled: true,
+      iconSet: 'medical',
+      circleSize: 0.35,
+      circleColor: '#dc2626',
+      iconColor: '#ffffff'
+    },
+    shadedBoxes: {
+      enabled: true,
+      opacity: 10,
+      backgroundColor: '#fee2e2',
+      padding: 0.25
+    }
   },
   {
     id: 'educational-lecture',
     name: 'Educational Lecture',
-    description: 'Friendly, engaging design with orange-blue theme for teaching',
+    description: 'Engaging design with icon bullets and shaded boxes',
     preview: '📚',
     colors: {
       primary: '#ea580c',
@@ -161,5 +219,18 @@ export const POWERPOINT_TEMPLATES: PowerPointTemplate[] = [
       accent: '#fb923c',
       text: '#0f172a',
     },
+    enhancedBullets: {
+      enabled: true,
+      iconSet: 'educational',
+      circleSize: 0.35,
+      circleColor: '#2563eb',
+      iconColor: '#ffffff'
+    },
+    shadedBoxes: {
+      enabled: true,
+      opacity: 10,
+      backgroundColor: '#ffedd5',
+      padding: 0.25
+    }
   },
 ];
