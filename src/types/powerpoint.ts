@@ -40,6 +40,47 @@ export interface ImageLayouts {
   imageBorder: boolean;
   imageRounded: boolean;
   imageSpacing: 'tight' | 'normal' | 'wide';
+  
+  // Default positioning per slide type
+  defaultPositions?: {
+    'image-left'?: 'left' | 'center' | 'right';
+    'image-right'?: 'left' | 'center' | 'right';
+    'image-top'?: 'top' | 'center' | 'bottom';
+    'image-grid'?: 'left' | 'center' | 'right' | 'justified';
+  };
+  
+  // Border styling (when imageBorder is true)
+  borderStyle?: {
+    width?: number; // 1-10 points
+    color?: string; // hex color
+    style?: 'solid' | 'dashed' | 'dotted';
+  };
+  
+  // Corner rounding (when imageRounded is true)
+  cornerRadius?: number; // 0-50 (percentage or points)
+  
+  // Image sizing behavior
+  sizingMode?: 'contain' | 'cover' | 'crop';
+  
+  // Caption/label formatting
+  captions?: {
+    enabled?: boolean;
+    position?: 'above' | 'below' | 'overlay-bottom' | 'overlay-top';
+    fontSize?: number;
+    fontColor?: string;
+    backgroundColor?: string; // for overlay captions
+    alignment?: 'left' | 'center' | 'right';
+  };
+  
+  // Shadow effects
+  shadow?: {
+    enabled?: boolean;
+    blur?: number; // 0-20
+    angle?: number; // 0-360
+    distance?: number; // 0-20
+    color?: string;
+    opacity?: number; // 0-100
+  };
 }
 
 export interface CustomTemplate {

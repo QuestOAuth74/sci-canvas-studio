@@ -102,10 +102,45 @@ export const PowerPointTemplatePreview = ({
       case 'image-left':
       case 'image-right':
         const imageFirst = layouts.contentSlide === 'image-left';
+        const borderStyle = imageLayouts?.borderStyle;
+        const shadow = imageLayouts?.shadow;
+        const cornerRadius = imageLayouts?.imageRounded ? (imageLayouts?.cornerRadius || 8) : 0;
+        
+        const imageStyles: React.CSSProperties = {
+          borderColor: imageLayouts?.imageBorder && borderStyle?.color ? borderStyle.color : colors.secondary,
+          backgroundColor: colors.accent + '20',
+          borderWidth: imageLayouts?.imageBorder && borderStyle?.width ? `${borderStyle.width}px` : '2px',
+          borderStyle: imageLayouts?.imageBorder && borderStyle?.style ? borderStyle.style : 'solid',
+          borderRadius: `${cornerRadius}px`,
+          boxShadow: shadow?.enabled 
+            ? `${shadow.distance || 5}px ${shadow.distance || 5}px ${shadow.blur || 10}px ${shadow.color || '#00000040'}`
+            : 'none'
+        };
+        
         return (
           <div className={`grid grid-cols-2 gap-2 h-full p-4 ${imageFirst ? '' : 'grid-flow-dense'}`} style={{ backgroundColor: bg }}>
-            <div className="border-2 rounded flex items-center justify-center text-muted-foreground" style={{ borderColor: colors.secondary, backgroundColor: colors.accent + '20' }}>
-              Image
+            <div className="border-2 rounded flex items-center justify-center text-muted-foreground relative" style={imageStyles}>
+              <span className="text-xs">Image</span>
+              {imageLayouts?.captions?.enabled && (
+                <div 
+                  className="absolute text-[6px]"
+                  style={{
+                    bottom: imageLayouts.captions.position === 'overlay-bottom' ? 4 : undefined,
+                    top: imageLayouts.captions.position === 'overlay-top' ? 4 : undefined,
+                    left: imageLayouts.captions.alignment === 'left' ? 4 : undefined,
+                    right: imageLayouts.captions.alignment === 'right' ? 4 : undefined,
+                    textAlign: imageLayouts.captions.alignment || 'center',
+                    backgroundColor: imageLayouts.captions.position?.startsWith('overlay') 
+                      ? imageLayouts.captions.backgroundColor || '#00000080' 
+                      : 'transparent',
+                    color: imageLayouts.captions.fontColor || '#1e293b',
+                    padding: '2px 4px',
+                    width: '100%'
+                  }}
+                >
+                  Caption
+                </div>
+              )}
             </div>
             <div className={getSpacingClass()}>
               <h4 className="font-bold mb-2" style={{ color: colors.primary, fontSize: `${scaleFont(fonts.titleSize * 0.7)}px` }}>Content</h4>

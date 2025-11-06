@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useCustomTemplates } from '@/hooks/useCustomTemplates';
 import { CustomTemplate, QuoteStyles, ImageLayouts } from '@/types/powerpoint';
 import { Plus, Palette, Type, Layout, Trash2, Edit, Eye, Quote, Image as ImageIcon } from 'lucide-react';
@@ -48,6 +49,35 @@ const templateSchema = z.object({
     imageBorder: z.boolean(),
     imageRounded: z.boolean(),
     imageSpacing: z.enum(['tight', 'normal', 'wide']),
+    defaultPositions: z.object({
+      'image-left': z.enum(['left', 'center', 'right']),
+      'image-right': z.enum(['left', 'center', 'right']),
+      'image-top': z.enum(['top', 'center', 'bottom']),
+      'image-grid': z.enum(['left', 'center', 'right', 'justified']),
+    }).optional(),
+    borderStyle: z.object({
+      width: z.number().min(1).max(10),
+      color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      style: z.enum(['solid', 'dashed', 'dotted'])
+    }).optional(),
+    cornerRadius: z.number().min(0).max(50).optional(),
+    sizingMode: z.enum(['contain', 'cover', 'crop']).optional(),
+    captions: z.object({
+      enabled: z.boolean(),
+      position: z.enum(['above', 'below', 'overlay-bottom', 'overlay-top']),
+      fontSize: z.number().min(8).max(24),
+      fontColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+      backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6,8}$/).optional(),
+      alignment: z.enum(['left', 'center', 'right'])
+    }).optional(),
+    shadow: z.object({
+      enabled: z.boolean(),
+      blur: z.number().min(0).max(20),
+      angle: z.number().min(0).max(360),
+      distance: z.number().min(0).max(20),
+      color: z.string().regex(/^#[0-9A-Fa-f]{6,8}$/),
+      opacity: z.number().min(0).max(100)
+    }).optional()
   }),
 });
 
@@ -111,6 +141,35 @@ export const PowerPointTemplateBuilder = () => {
       imageBorder: boolean;
       imageRounded: boolean;
       imageSpacing: 'tight' | 'normal' | 'wide';
+      defaultPositions?: {
+        'image-left'?: 'left' | 'center' | 'right';
+        'image-right'?: 'left' | 'center' | 'right';
+        'image-top'?: 'top' | 'center' | 'bottom';
+        'image-grid'?: 'left' | 'center' | 'right' | 'justified';
+      };
+      borderStyle?: {
+        width?: number;
+        color?: string;
+        style?: 'solid' | 'dashed' | 'dotted';
+      };
+      cornerRadius?: number;
+      sizingMode?: 'contain' | 'cover' | 'crop';
+      captions?: {
+        enabled?: boolean;
+        position?: 'above' | 'below' | 'overlay-bottom' | 'overlay-top';
+        fontSize?: number;
+        fontColor?: string;
+        backgroundColor?: string;
+        alignment?: 'left' | 'center' | 'right';
+      };
+      shadow?: {
+        enabled?: boolean;
+        blur?: number;
+        angle?: number;
+        distance?: number;
+        color?: string;
+        opacity?: number;
+      };
     };
   };
 
@@ -147,6 +206,35 @@ export const PowerPointTemplateBuilder = () => {
       imageBorder: true,
       imageRounded: false,
       imageSpacing: 'normal',
+      defaultPositions: {
+        'image-left': 'left',
+        'image-right': 'right',
+        'image-top': 'center',
+        'image-grid': 'justified'
+      },
+      borderStyle: {
+        width: 2,
+        color: '#3b82f6',
+        style: 'solid'
+      },
+      cornerRadius: 8,
+      sizingMode: 'contain',
+      captions: {
+        enabled: false,
+        position: 'below',
+        fontSize: 14,
+        fontColor: '#1e293b',
+        backgroundColor: '#00000080',
+        alignment: 'center'
+      },
+      shadow: {
+        enabled: false,
+        blur: 10,
+        angle: 135,
+        distance: 5,
+        color: '#00000040',
+        opacity: 30
+      }
     },
   });
 
@@ -184,6 +272,35 @@ export const PowerPointTemplateBuilder = () => {
         imageBorder: true,
         imageRounded: false,
         imageSpacing: 'normal',
+        defaultPositions: {
+          'image-left': 'left',
+          'image-right': 'right',
+          'image-top': 'center',
+          'image-grid': 'justified'
+        },
+        borderStyle: {
+          width: 2,
+          color: '#3b82f6',
+          style: 'solid'
+        },
+        cornerRadius: 8,
+        sizingMode: 'contain',
+        captions: {
+          enabled: false,
+          position: 'below',
+          fontSize: 14,
+          fontColor: '#1e293b',
+          backgroundColor: '#00000080',
+          alignment: 'center'
+        },
+        shadow: {
+          enabled: false,
+          blur: 10,
+          angle: 135,
+          distance: 5,
+          color: '#00000040',
+          opacity: 30
+        }
       },
     });
     setEditingTemplate(null);
@@ -206,12 +323,72 @@ export const PowerPointTemplateBuilder = () => {
         showQuoteMarks: true,
         alignment: 'center',
       },
-      imageLayouts: template.image_layouts || {
+      imageLayouts: template.image_layouts ? {
+        ...template.image_layouts,
+        defaultPositions: template.image_layouts.defaultPositions || {
+          'image-left': 'left',
+          'image-right': 'right',
+          'image-top': 'center',
+          'image-grid': 'justified'
+        },
+        borderStyle: template.image_layouts.borderStyle || {
+          width: 2,
+          color: '#3b82f6',
+          style: 'solid'
+        },
+        cornerRadius: template.image_layouts.cornerRadius ?? 8,
+        sizingMode: template.image_layouts.sizingMode || 'contain',
+        captions: template.image_layouts.captions || {
+          enabled: false,
+          position: 'below',
+          fontSize: 14,
+          fontColor: '#1e293b',
+          backgroundColor: '#00000080',
+          alignment: 'center'
+        },
+        shadow: template.image_layouts.shadow || {
+          enabled: false,
+          blur: 10,
+          angle: 135,
+          distance: 5,
+          color: '#00000040',
+          opacity: 30
+        }
+      } : {
         gridColumns: 2,
         imageSize: 'medium',
         imageBorder: true,
         imageRounded: false,
         imageSpacing: 'normal',
+        defaultPositions: {
+          'image-left': 'left',
+          'image-right': 'right',
+          'image-top': 'center',
+          'image-grid': 'justified'
+        },
+        borderStyle: {
+          width: 2,
+          color: '#3b82f6',
+          style: 'solid'
+        },
+        cornerRadius: 8,
+        sizingMode: 'contain',
+        captions: {
+          enabled: false,
+          position: 'below',
+          fontSize: 14,
+          fontColor: '#1e293b',
+          backgroundColor: '#00000080',
+          alignment: 'center'
+        },
+        shadow: {
+          enabled: false,
+          blur: 10,
+          angle: 135,
+          distance: 5,
+          color: '#00000040',
+          opacity: 30
+        }
       },
     });
     setEditingTemplate(template);
@@ -257,6 +434,12 @@ export const PowerPointTemplateBuilder = () => {
           imageBorder: validated.imageLayouts.imageBorder,
           imageRounded: validated.imageLayouts.imageRounded,
           imageSpacing: validated.imageLayouts.imageSpacing,
+          defaultPositions: validated.imageLayouts.defaultPositions,
+          borderStyle: validated.imageLayouts.borderStyle,
+          cornerRadius: validated.imageLayouts.cornerRadius,
+          sizingMode: validated.imageLayouts.sizingMode,
+          captions: validated.imageLayouts.captions,
+          shadow: validated.imageLayouts.shadow,
         },
         is_default: false,
       };
@@ -702,6 +885,445 @@ export const PowerPointTemplateBuilder = () => {
                       <Label htmlFor="image-rounded">Rounded Corners</Label>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* Advanced Image Settings */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4" />
+                    Advanced Image Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  
+                  {/* Sizing Mode */}
+                  <div>
+                    <Label htmlFor="sizing-mode">Image Sizing Mode</Label>
+                    <Select 
+                      value={formData.imageLayouts.sizingMode || 'contain'}
+                      onValueChange={(value: any) => setFormData({
+                        ...formData,
+                        imageLayouts: { ...formData.imageLayouts, sizingMode: value }
+                      })}
+                    >
+                      <SelectTrigger id="sizing-mode">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="contain">Contain (fit with margins)</SelectItem>
+                        <SelectItem value="cover">Cover (fill area, may crop)</SelectItem>
+                        <SelectItem value="crop">Crop (center crop)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      How images should be sized within their containers
+                    </p>
+                  </div>
+
+                  {/* Border Styling */}
+                  {formData.imageLayouts.imageBorder && (
+                    <Collapsible defaultOpen>
+                      <CollapsibleTrigger className="flex items-center gap-2 font-medium text-sm">
+                        <span>Border Styling</span>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-3 pt-3">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <Label>Width (points): {formData.imageLayouts.borderStyle?.width || 2}</Label>
+                            <Slider
+                              value={[formData.imageLayouts.borderStyle?.width || 2]}
+                              onValueChange={([value]) => setFormData({
+                                ...formData,
+                                imageLayouts: {
+                                  ...formData.imageLayouts,
+                                  borderStyle: { ...formData.imageLayouts.borderStyle, width: value, color: formData.imageLayouts.borderStyle?.color || '#3b82f6', style: formData.imageLayouts.borderStyle?.style || 'solid' }
+                                }
+                              })}
+                              min={1} max={10} step={1}
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <Label>Color</Label>
+                            <Input 
+                              type="color" 
+                              value={formData.imageLayouts.borderStyle?.color || '#3b82f6'}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                imageLayouts: {
+                                  ...formData.imageLayouts,
+                                  borderStyle: { ...formData.imageLayouts.borderStyle, color: e.target.value, width: formData.imageLayouts.borderStyle?.width || 2, style: formData.imageLayouts.borderStyle?.style || 'solid' }
+                                }
+                              })}
+                              className="h-10 w-full"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Style</Label>
+                          <Select 
+                            value={formData.imageLayouts.borderStyle?.style || 'solid'}
+                            onValueChange={(value: any) => setFormData({
+                              ...formData,
+                              imageLayouts: {
+                                ...formData.imageLayouts,
+                                borderStyle: { ...formData.imageLayouts.borderStyle, style: value, width: formData.imageLayouts.borderStyle?.width || 2, color: formData.imageLayouts.borderStyle?.color || '#3b82f6' }
+                              }
+                            })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="solid">Solid</SelectItem>
+                              <SelectItem value="dashed">Dashed</SelectItem>
+                              <SelectItem value="dotted">Dotted</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  )}
+
+                  {/* Corner Radius */}
+                  {formData.imageLayouts.imageRounded && (
+                    <div>
+                      <Label>Corner Radius: {formData.imageLayouts.cornerRadius || 8}</Label>
+                      <Slider
+                        value={[formData.imageLayouts.cornerRadius || 8]}
+                        onValueChange={([value]) => setFormData({
+                          ...formData,
+                          imageLayouts: { ...formData.imageLayouts, cornerRadius: value }
+                        })}
+                        min={0} max={50} step={1}
+                      />
+                    </div>
+                  )}
+
+                  {/* Default Positions */}
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center gap-2 font-medium text-sm">
+                      <span>Default Image Positions</span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="grid grid-cols-2 gap-3 pt-3">
+                      <div>
+                        <Label>Image-Left Slides</Label>
+                        <Select 
+                          value={formData.imageLayouts.defaultPositions?.['image-left'] || 'left'}
+                          onValueChange={(value: any) => setFormData({
+                            ...formData,
+                            imageLayouts: {
+                              ...formData.imageLayouts,
+                              defaultPositions: { ...formData.imageLayouts.defaultPositions, 'image-left': value }
+                            }
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="left">Left Aligned</SelectItem>
+                            <SelectItem value="center">Centered</SelectItem>
+                            <SelectItem value="right">Right Aligned</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Image-Right Slides</Label>
+                        <Select 
+                          value={formData.imageLayouts.defaultPositions?.['image-right'] || 'right'}
+                          onValueChange={(value: any) => setFormData({
+                            ...formData,
+                            imageLayouts: {
+                              ...formData.imageLayouts,
+                              defaultPositions: { ...formData.imageLayouts.defaultPositions, 'image-right': value }
+                            }
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="left">Left Aligned</SelectItem>
+                            <SelectItem value="center">Centered</SelectItem>
+                            <SelectItem value="right">Right Aligned</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Image-Top Slides</Label>
+                        <Select 
+                          value={formData.imageLayouts.defaultPositions?.['image-top'] || 'center'}
+                          onValueChange={(value: any) => setFormData({
+                            ...formData,
+                            imageLayouts: {
+                              ...formData.imageLayouts,
+                              defaultPositions: { ...formData.imageLayouts.defaultPositions, 'image-top': value }
+                            }
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="top">Top</SelectItem>
+                            <SelectItem value="center">Center</SelectItem>
+                            <SelectItem value="bottom">Bottom</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Image-Grid Slides</Label>
+                        <Select 
+                          value={formData.imageLayouts.defaultPositions?.['image-grid'] || 'justified'}
+                          onValueChange={(value: any) => setFormData({
+                            ...formData,
+                            imageLayouts: {
+                              ...formData.imageLayouts,
+                              defaultPositions: { ...formData.imageLayouts.defaultPositions, 'image-grid': value }
+                            }
+                          })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="left">Left</SelectItem>
+                            <SelectItem value="center">Center</SelectItem>
+                            <SelectItem value="right">Right</SelectItem>
+                            <SelectItem value="justified">Justified</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Caption Settings */}
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center gap-2 font-medium text-sm">
+                      <span>Image Captions</span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-3 pt-3">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="captions-enabled"
+                          checked={formData.imageLayouts.captions?.enabled || false}
+                          onCheckedChange={(checked) => setFormData({
+                            ...formData,
+                            imageLayouts: {
+                              ...formData.imageLayouts,
+                              captions: { ...formData.imageLayouts.captions, enabled: checked, position: formData.imageLayouts.captions?.position || 'below', fontSize: formData.imageLayouts.captions?.fontSize || 14, fontColor: formData.imageLayouts.captions?.fontColor || '#1e293b', backgroundColor: formData.imageLayouts.captions?.backgroundColor, alignment: formData.imageLayouts.captions?.alignment || 'center' }
+                            }
+                          })}
+                        />
+                        <Label htmlFor="captions-enabled">Enable Captions</Label>
+                      </div>
+                      
+                      {formData.imageLayouts.captions?.enabled && (
+                        <>
+                          <div>
+                            <Label>Caption Position</Label>
+                            <Select 
+                              value={formData.imageLayouts.captions.position || 'below'}
+                              onValueChange={(value: any) => setFormData({
+                                ...formData,
+                                imageLayouts: {
+                                  ...formData.imageLayouts,
+                                  captions: { ...formData.imageLayouts.captions, position: value, enabled: true, fontSize: formData.imageLayouts.captions?.fontSize || 14, fontColor: formData.imageLayouts.captions?.fontColor || '#1e293b', alignment: formData.imageLayouts.captions?.alignment || 'center' }
+                                }
+                              })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="above">Above Image</SelectItem>
+                                <SelectItem value="below">Below Image</SelectItem>
+                                <SelectItem value="overlay-bottom">Overlay (Bottom)</SelectItem>
+                                <SelectItem value="overlay-top">Overlay (Top)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Font Size</Label>
+                              <Input 
+                                type="number" 
+                                min={8} 
+                                max={24}
+                                value={formData.imageLayouts.captions.fontSize || 14}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  imageLayouts: {
+                                    ...formData.imageLayouts,
+                                    captions: { ...formData.imageLayouts.captions, fontSize: parseInt(e.target.value) || 14, enabled: true, position: formData.imageLayouts.captions?.position || 'below', fontColor: formData.imageLayouts.captions?.fontColor || '#1e293b', alignment: formData.imageLayouts.captions?.alignment || 'center' }
+                                  }
+                                })}
+                              />
+                            </div>
+                            <div>
+                              <Label>Alignment</Label>
+                              <Select 
+                                value={formData.imageLayouts.captions.alignment || 'center'}
+                                onValueChange={(value: any) => setFormData({
+                                  ...formData,
+                                  imageLayouts: {
+                                    ...formData.imageLayouts,
+                                    captions: { ...formData.imageLayouts.captions, alignment: value, enabled: true, position: formData.imageLayouts.captions?.position || 'below', fontSize: formData.imageLayouts.captions?.fontSize || 14, fontColor: formData.imageLayouts.captions?.fontColor || '#1e293b' }
+                                  }
+                                })}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="left">Left</SelectItem>
+                                  <SelectItem value="center">Center</SelectItem>
+                                  <SelectItem value="right">Right</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Font Color</Label>
+                              <Input 
+                                type="color" 
+                                value={formData.imageLayouts.captions.fontColor || '#1e293b'}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  imageLayouts: {
+                                    ...formData.imageLayouts,
+                                    captions: { ...formData.imageLayouts.captions, fontColor: e.target.value, enabled: true, position: formData.imageLayouts.captions?.position || 'below', fontSize: formData.imageLayouts.captions?.fontSize || 14, alignment: formData.imageLayouts.captions?.alignment || 'center' }
+                                  }
+                                })}
+                              />
+                            </div>
+                            {formData.imageLayouts.captions.position?.startsWith('overlay') && (
+                              <div>
+                                <Label>Background (RGBA)</Label>
+                                <Input 
+                                  type="text" 
+                                  value={formData.imageLayouts.captions.backgroundColor || '#00000080'}
+                                  onChange={(e) => setFormData({
+                                    ...formData,
+                                    imageLayouts: {
+                                      ...formData.imageLayouts,
+                                      captions: { ...formData.imageLayouts.captions, backgroundColor: e.target.value, enabled: true, position: formData.imageLayouts.captions?.position || 'below', fontSize: formData.imageLayouts.captions?.fontSize || 14, fontColor: formData.imageLayouts.captions?.fontColor || '#1e293b', alignment: formData.imageLayouts.captions?.alignment || 'center' }
+                                    }
+                                  })}
+                                  placeholder="#00000080"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* Shadow Effects */}
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center gap-2 font-medium text-sm">
+                      <span>Shadow Effects</span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-3 pt-3">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="shadow-enabled"
+                          checked={formData.imageLayouts.shadow?.enabled || false}
+                          onCheckedChange={(checked) => setFormData({
+                            ...formData,
+                            imageLayouts: {
+                              ...formData.imageLayouts,
+                              shadow: { ...formData.imageLayouts.shadow, enabled: checked, blur: formData.imageLayouts.shadow?.blur || 10, angle: formData.imageLayouts.shadow?.angle || 135, distance: formData.imageLayouts.shadow?.distance || 5, color: formData.imageLayouts.shadow?.color || '#00000040', opacity: formData.imageLayouts.shadow?.opacity || 30 }
+                            }
+                          })}
+                        />
+                        <Label htmlFor="shadow-enabled">Enable Shadow</Label>
+                      </div>
+                      
+                      {formData.imageLayouts.shadow?.enabled && (
+                        <>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Blur: {formData.imageLayouts.shadow.blur || 10}</Label>
+                              <Slider 
+                                value={[formData.imageLayouts.shadow.blur || 10]}
+                                onValueChange={([value]) => setFormData({
+                                  ...formData,
+                                  imageLayouts: {
+                                    ...formData.imageLayouts,
+                                    shadow: { ...formData.imageLayouts.shadow, blur: value, enabled: true, angle: formData.imageLayouts.shadow?.angle || 135, distance: formData.imageLayouts.shadow?.distance || 5, color: formData.imageLayouts.shadow?.color || '#00000040', opacity: formData.imageLayouts.shadow?.opacity || 30 }
+                                  }
+                                })}
+                                min={0} max={20}
+                              />
+                            </div>
+                            <div>
+                              <Label>Distance: {formData.imageLayouts.shadow.distance || 5}</Label>
+                              <Slider 
+                                value={[formData.imageLayouts.shadow.distance || 5]}
+                                onValueChange={([value]) => setFormData({
+                                  ...formData,
+                                  imageLayouts: {
+                                    ...formData.imageLayouts,
+                                    shadow: { ...formData.imageLayouts.shadow, distance: value, enabled: true, blur: formData.imageLayouts.shadow?.blur || 10, angle: formData.imageLayouts.shadow?.angle || 135, color: formData.imageLayouts.shadow?.color || '#00000040', opacity: formData.imageLayouts.shadow?.opacity || 30 }
+                                  }
+                                })}
+                                min={0} max={20}
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            <div>
+                              <Label>Angle: {formData.imageLayouts.shadow.angle || 135}°</Label>
+                              <Slider 
+                                value={[formData.imageLayouts.shadow.angle || 135]}
+                                onValueChange={([value]) => setFormData({
+                                  ...formData,
+                                  imageLayouts: {
+                                    ...formData.imageLayouts,
+                                    shadow: { ...formData.imageLayouts.shadow, angle: value, enabled: true, blur: formData.imageLayouts.shadow?.blur || 10, distance: formData.imageLayouts.shadow?.distance || 5, color: formData.imageLayouts.shadow?.color || '#00000040', opacity: formData.imageLayouts.shadow?.opacity || 30 }
+                                  }
+                                })}
+                                min={0} max={360}
+                              />
+                            </div>
+                            <div>
+                              <Label>Opacity: {formData.imageLayouts.shadow.opacity || 30}%</Label>
+                              <Slider 
+                                value={[formData.imageLayouts.shadow.opacity || 30]}
+                                onValueChange={([value]) => setFormData({
+                                  ...formData,
+                                  imageLayouts: {
+                                    ...formData.imageLayouts,
+                                    shadow: { ...formData.imageLayouts.shadow, opacity: value, enabled: true, blur: formData.imageLayouts.shadow?.blur || 10, angle: formData.imageLayouts.shadow?.angle || 135, distance: formData.imageLayouts.shadow?.distance || 5, color: formData.imageLayouts.shadow?.color || '#00000040' }
+                                  }
+                                })}
+                                min={0} max={100}
+                              />
+                            </div>
+                            <div>
+                              <Label>Color</Label>
+                              <Input 
+                                type="color" 
+                                value={(formData.imageLayouts.shadow.color || '#00000040').slice(0, 7)}
+                                onChange={(e) => setFormData({
+                                  ...formData,
+                                  imageLayouts: {
+                                    ...formData.imageLayouts,
+                                    shadow: { ...formData.imageLayouts.shadow, color: e.target.value, enabled: true, blur: formData.imageLayouts.shadow?.blur || 10, angle: formData.imageLayouts.shadow?.angle || 135, distance: formData.imageLayouts.shadow?.distance || 5, opacity: formData.imageLayouts.shadow?.opacity || 30 }
+                                  }
+                                })}
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
                 </CardContent>
               </Card>
 
