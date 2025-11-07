@@ -334,12 +334,19 @@ serve(async (req) => {
     // Note: Using unicode icons instead of SVG for PptxGenJS compatibility
     const iconDataUrls: string[] = [];
 
-    // Icon sets for enhanced bullets (fallback to simple shapes if no DB icons)
-    const ICON_SETS: Record<string, string[]> = {
-      default: ['●', '■', '▲', '◆', '★'],
-      scientific: ['🔬', '⚗️', '🧬', '🔭', '📊'],
-      medical: ['💊', '⚕️', '🏥', '💉', '🫀'],
-      educational: ['📚', '✏️', '🎓', '📖', '💡']
+    // Geometric shape types for enhanced bullets
+    const SHAPE_SETS: Record<string, any[]> = {
+      default: [
+        pptx.ShapeType.ellipse,    // Circle
+        pptx.ShapeType.rect,       // Square
+        pptx.ShapeType.rtTriangle, // Triangle
+        pptx.ShapeType.diamond,    // Diamond
+        pptx.ShapeType.pentagon    // Pentagon
+      ],
+      minimal: [
+        pptx.ShapeType.ellipse,    // Circle
+        pptx.ShapeType.rect        // Square
+      ]
     };
 
     // Helper: Convert hex color to lighter shade
@@ -376,7 +383,7 @@ serve(async (req) => {
       });
     }
 
-    // Helper: Render circular icon bullet with unicode icon
+    // Helper: Render geometric shape bullet
     function renderIconBullet(
       slide: any,
       text: string,
@@ -387,39 +394,29 @@ serve(async (req) => {
       fonts: any,
       config: any
     ) {
-      const circleSize = config?.circleSize || 0.35;
-      const circleColor = (config?.circleColor || colors.primary).replace('#', '');
+      const shapeSize = config?.circleSize || 0.35;
+      const shapeColor = (config?.circleColor || colors.primary).replace('#', '');
       
-      // Add circle background
-      slide.addShape(pptx.ShapeType.ellipse, {
+      // Get the shape type based on index
+      const shapes = SHAPE_SETS[config?.shapeSet || 'default'] || SHAPE_SETS.default;
+      const shapeType = shapes[iconIndex % shapes.length];
+      
+      // Add geometric shape as bullet
+      slide.addShape(shapeType, {
         x: x,
         y: y,
-        w: circleSize,
-        h: circleSize,
-        fill: { color: circleColor },
+        w: shapeSize,
+        h: shapeSize,
+        fill: { color: shapeColor },
         line: { type: 'none' }
       });
       
-      // Use unicode icons (PptxGenJS doesn't support SVG in Deno runtime)
-      const icons = ICON_SETS[config?.iconSet || 'default'] || ICON_SETS.default;
-      const icon = icons[iconIndex % icons.length];
-      slide.addText(icon, {
-        x: x,
-        y: y,
-        w: circleSize,
-        h: circleSize,
-        fontSize: 14,
-        color: 'FFFFFF',
-        align: 'center',
-        valign: 'middle'
-      });
-      
-      // Add text next to icon
+      // Add text next to shape
       slide.addText(text, {
-        x: x + circleSize + 0.15,
+        x: x + shapeSize + 0.15,
         y: y + 0.02,
-        w: 8.5 - (x + circleSize + 0.15),
-        h: circleSize - 0.04,
+        w: 8.5 - (x + shapeSize + 0.15),
+        h: shapeSize - 0.04,
         fontSize: fonts.bodySize * 0.95,
         fontFace: fonts.body,
         color: colors.text.replace('#', ''),
