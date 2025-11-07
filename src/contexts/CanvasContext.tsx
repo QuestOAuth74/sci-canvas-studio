@@ -59,6 +59,10 @@ interface CanvasContextType {
   alignMiddle: () => void;
   alignBottom: () => void;
   
+  // Flip operations
+  flipHorizontal: () => void;
+  flipVertical: () => void;
+  
   // Layer operations
   bringToFront: () => void;
   sendToBack: () => void;
@@ -602,6 +606,29 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     });
     canvas.renderAll();
     saveState();
+  }, [canvas, saveState]);
+
+  // Flip operations
+  const flipHorizontal = useCallback(() => {
+    if (!canvas) return;
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+      activeObject.set({ flipX: !activeObject.flipX });
+      canvas.renderAll();
+      saveState();
+      toast.success("Flipped horizontally");
+    }
+  }, [canvas, saveState]);
+
+  const flipVertical = useCallback(() => {
+    if (!canvas) return;
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+      activeObject.set({ flipY: !activeObject.flipY });
+      canvas.renderAll();
+      saveState();
+      toast.success("Flipped vertically");
+    }
   }, [canvas, saveState]);
 
   // Layer operations
@@ -1703,6 +1730,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     alignTop,
     alignMiddle,
     alignBottom,
+    flipHorizontal,
+    flipVertical,
     bringToFront,
     sendToBack,
     bringForward,

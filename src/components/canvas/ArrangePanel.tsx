@@ -25,6 +25,8 @@ export const ArrangePanel = () => {
     alignTop,
     alignMiddle,
     alignBottom,
+    flipHorizontal,
+    flipVertical,
     bringToFront,
     sendToBack,
     bringForward,
@@ -65,16 +67,6 @@ export const ArrangePanel = () => {
   const handleRotate = () => {
     if (!selectedObject) return;
     selectedObject.set({ angle: rotation });
-    selectedObject.canvas?.renderAll();
-  };
-
-  const handleFlip = (direction: 'horizontal' | 'vertical') => {
-    if (!selectedObject) return;
-    if (direction === 'horizontal') {
-      selectedObject.set({ flipX: !selectedObject.flipX });
-    } else {
-      selectedObject.set({ flipY: !selectedObject.flipY });
-    }
     selectedObject.canvas?.renderAll();
   };
 
@@ -169,11 +161,11 @@ export const ArrangePanel = () => {
       <div className="space-y-1.5">
         <Label className="font-semibold text-xs">Transform</Label>
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleFlip('horizontal')} disabled={!selectedObject}>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={flipHorizontal} disabled={!selectedObject}>
             <FlipHorizontal className="h-3.5 w-3.5 mr-1" />
             Flip H
           </Button>
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => handleFlip('vertical')} disabled={!selectedObject}>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={flipVertical} disabled={!selectedObject}>
             <FlipVertical className="h-3.5 w-3.5 mr-1" />
             Flip V
           </Button>

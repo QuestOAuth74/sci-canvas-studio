@@ -71,6 +71,8 @@ const CanvasContent = () => {
     sendBackward,
     groupSelected,
     ungroupSelected,
+    flipHorizontal,
+    flipVertical,
     projectName,
     setProjectName,
     isSaving,
@@ -360,6 +362,18 @@ const CanvasContent = () => {
       if (e.key === 'h' && !e.metaKey && !e.ctrlKey && !e.altKey && !isEditingText) {
         e.preventDefault();
         hideSelected();
+      }
+
+      // Flip horizontal (Shift + H)
+      if (e.key === 'H' && e.shiftKey && !e.metaKey && !e.ctrlKey && !isEditingText) {
+        e.preventDefault();
+        flipHorizontal();
+      }
+
+      // Flip vertical (Shift + V)
+      if (e.key === 'V' && e.shiftKey && !e.metaKey && !e.ctrlKey && !isEditingText) {
+        e.preventDefault();
+        flipVertical();
       }
 
       // Show all hidden (Cmd/Ctrl + H)
