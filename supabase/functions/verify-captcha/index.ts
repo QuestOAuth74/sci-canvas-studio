@@ -7,6 +7,7 @@ const corsHeaders = {
 
 interface VerifyCaptchaRequest {
   token: string;
+  sitekey?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -16,7 +17,7 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { token }: VerifyCaptchaRequest = await req.json();
+    const { token, sitekey }: VerifyCaptchaRequest = await req.json();
 
     if (!token) {
       return new Response(
@@ -46,10 +47,7 @@ const handler = async (req: Request): Promise<Response> => {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        secret: hcaptchaSecret,
-        response: token,
-      }),
+      body: `secret=${encodeURIComponent(hcaptchaSecret)}&response=${encodeURIComponent(token)}${sitekey ? `&sitekey=${encodeURIComponent(sitekey)}` : ''}`,
     });
 
     const verifyResult = await verifyResponse.json();

@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Microscope, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
-import { HCaptchaWrapper, HCaptchaHandle } from '@/components/ui/hcaptcha-wrapper';
+import { HCaptchaWrapper, HCaptchaHandle, HCAPTCHA_SITE_KEY } from '@/components/ui/hcaptcha-wrapper';
 import { useToast } from '@/hooks/use-toast';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
@@ -132,11 +132,12 @@ export default function Auth() {
     try {
       // Verify captcha on server side
       const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: signInCaptchaToken }
+        body: { token: signInCaptchaToken, sitekey: HCAPTCHA_SITE_KEY }
       });
 
       if (captchaError || !captchaResult?.success) {
-        throw new Error('Captcha verification failed. Please try again.');
+        const codes = (captchaResult as any)?.errorCodes;
+        throw new Error(codes?.length ? `Captcha failed: ${codes.join(', ')}` : 'Captcha verification failed. Please try again.');
       }
 
       const { error } = await signIn(signInEmail, signInPassword);
@@ -195,11 +196,12 @@ export default function Auth() {
     try {
       // Verify captcha on server side
       const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: signUpCaptchaToken }
+        body: { token: signUpCaptchaToken, sitekey: HCAPTCHA_SITE_KEY }
       });
 
       if (captchaError || !captchaResult?.success) {
-        throw new Error('Captcha verification failed. Please try again.');
+        const codes = (captchaResult as any)?.errorCodes;
+        throw new Error(codes?.length ? `Captcha failed: ${codes.join(', ')}` : 'Captcha verification failed. Please try again.');
       }
 
       const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName, signUpCountry, signUpFieldOfStudy);
