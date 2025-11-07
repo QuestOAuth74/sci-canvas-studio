@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, Sparkles, X, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Upload, Sparkles, X, Loader2, CheckCircle2, XCircle, AlertCircle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Canvas as FabricCanvas, FabricImage, Text as FabricText, Group, Rect, Circle, Ellipse, loadSVGFromString, util } from "fabric";
 import { createConnector } from "@/lib/connectorSystem";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
+import { useNavigate } from "react-router-dom";
 
 interface AIFigureGeneratorProps {
   canvas: FabricCanvas | null;
@@ -184,6 +186,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
   const [response, setResponse] = useState<GenerationResponse | null>(null);
   const [activeTab, setActiveTab] = useState("reference");
   const [progressStages, setProgressStages] = useState<ProgressStage[]>(initialProgressStages);
+  const { hasAccess, remaining } = useFeatureAccess();
+  const navigate = useNavigate();
 
   // Helper to infer category from text content
   const inferCategory = (text: string): string => {
@@ -249,6 +253,20 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
   }, []);
 
   const handleGenerate = async (strictMode = false) => {
+    if (!hasAccess) {
+      toast.error(
+        `Submit ${remaining} more approved figure${remaining !== 1 ? 's' : ''} to unlock AI Figure Generator`,
+        { 
+          duration: 4000,
+          action: {
+            label: 'View Submissions',
+            onClick: () => navigate('/my-submissions')
+          }
+        }
+      );
+      return;
+    }
+
     if (!image || !canvas) return;
 
     setIsGenerating(true);
@@ -909,6 +927,18 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
             Upload a reference image and let AI recreate it with intelligent connector styling
           </DialogDescription>
         </DialogHeader>
+
+        {!hasAccess && (
+          <div className="bg-muted p-4 rounded-lg flex items-start gap-3 mb-4">
+            <Lock className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <p className="font-medium text-sm">Feature Locked</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Submit {remaining} more approved figure{remaining !== 1 ? 's' : ''} to unlock AI Figure Generator
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4">
           {/* Image Upload */}

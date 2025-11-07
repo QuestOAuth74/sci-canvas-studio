@@ -56,7 +56,7 @@ serve(async (req) => {
 
     console.log('✅ User authenticated:', user.id);
 
-    // Check admin access using service role client
+    // Check admin access OR premium access (3+ approved submissions)
     const { data: roles } = await supabaseAdmin
       .from('user_roles')
       .select('role')
@@ -64,12 +64,40 @@ serve(async (req) => {
       .eq('role', 'admin')
       .single();
 
-    if (!roles) {
-      console.error('❌ User is not admin');
-      throw new Error('Admin access required');
-    }
+    const isAdmin = !!roles;
 
-    console.log('✅ Admin access confirmed');
+    if (!isAdmin) {
+      // Check premium access for non-admin users
+      const { data: accessData, error: accessError } = await supabaseClient
+        .rpc('user_has_premium_access', { check_user_id: user.id });
+
+      if (accessError) {
+        console.error('❌ Error checking premium access:', accessError);
+        throw new Error('Failed to verify access');
+      }
+
+      if (!accessData) {
+        // Get remaining count for better error message
+        const { data: progressData } = await supabaseClient
+          .rpc('get_user_premium_progress', { check_user_id: user.id })
+          .single();
+
+        const remaining = (progressData as any)?.remaining || 3;
+
+        return new Response(
+          JSON.stringify({ 
+            error: 'FEATURE_LOCKED',
+            message: `Submit ${remaining} more approved figure${remaining !== 1 ? 's' : ''} to unlock PowerPoint Maker`,
+            remaining
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      console.log('✅ Premium access confirmed');
+    } else {
+      console.log('✅ Admin access - bypassing premium check');
+    }
 
     const requestBody = await req.json();
     generationId = requestBody.generationId;

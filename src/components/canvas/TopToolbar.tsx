@@ -31,6 +31,7 @@ import { useCanvas } from "@/contexts/CanvasContext";
 import { TextFormattingPanel } from "./TextFormattingPanel";
 import { ShapesDropdown } from "./ShapesDropdown";
 import { QuickSettings } from "./QuickSettings";
+import { FeatureAccessBadge } from "./FeatureAccessBadge";
 import { useState } from "react";
 
 interface TopToolbarProps {
@@ -284,6 +285,12 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
           </TooltipTrigger>
           <TooltipContent>Toggle Rulers</TooltipContent>
         </Tooltip>
+      </div>
+
+      <Separator orientation="vertical" className="h-6 mx-1" />
+
+      <div className="px-2">
+        <FeatureAccessBadge />
       </div>
 
       <div className="flex-1 flex items-center justify-center">

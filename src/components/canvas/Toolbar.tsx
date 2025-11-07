@@ -15,6 +15,7 @@ import {
   Spline,
   Crop,
   Clock,
+  FileText,
 } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
@@ -30,8 +31,9 @@ import { StraightLineTool } from "./StraightLineTool";
 import { OrthogonalLineTool } from "./OrthogonalLineTool";
 import { CurvedLineTool } from "./CurvedLineTool";
 import { ZoomCalloutTool } from "./ZoomCalloutTool";
+import { PowerPointGenerator } from "./PowerPointGenerator";
 import { useRecentlyUsedTools } from "@/hooks/useRecentlyUsedTools";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface ToolbarProps {
   activeTool: string;
@@ -41,6 +43,7 @@ interface ToolbarProps {
 export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const { canvas, selectedObject, setCropMode, setSelectedObject } = useCanvas();
   const { recentTools, addRecentTool } = useRecentlyUsedTools();
+  const [powerpointOpen, setPowerpointOpen] = useState(false);
   
   const tools = [
     { id: "select", icon: MousePointer2, label: "Select and Transform (1)" },
@@ -307,6 +310,29 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           <p>Eraser (9)</p>
         </TooltipContent>
       </Tooltip>
+
+      <Separator className="my-1" />
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setPowerpointOpen(true)}
+            className="w-10 h-10"
+          >
+            <FileText className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Generate PowerPoint</p>
+        </TooltipContent>
+      </Tooltip>
+
+      <PowerPointGenerator 
+        open={powerpointOpen} 
+        onOpenChange={setPowerpointOpen} 
+      />
     </div>
   );
 };

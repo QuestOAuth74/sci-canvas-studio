@@ -234,7 +234,42 @@ serve(async (req) => {
       });
     }
 
-    // User is authenticated, proceed with generation
+    // Check for premium access (3+ approved submissions) unless admin
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
+
+    const { data: roles } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
+
+    const isAdmin = !!roles;
+
+    if (!isAdmin) {
+      const { data: accessData } = await supabase
+        .rpc('user_has_premium_access', { check_user_id: user.id });
+
+      if (!accessData) {
+        const { data: progressData } = await supabase
+          .rpc('get_user_premium_progress', { check_user_id: user.id })
+          .single();
+
+        const remaining = (progressData as any)?.remaining || 3;
+
+        return new Response(
+          JSON.stringify({ 
+            error: 'FEATURE_LOCKED',
+            message: `Submit ${remaining} more approved figure${remaining !== 1 ? 's' : ''} to unlock AI Figure Generator`,
+            remaining
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     const { image, description, canvasWidth, canvasHeight, strict = false } = await req.json();
 

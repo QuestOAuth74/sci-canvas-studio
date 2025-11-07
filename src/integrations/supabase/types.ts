@@ -940,6 +940,14 @@ export type Database = {
         Args: { _month_year: string; _user_id: string }
         Returns: number
       }
+      get_user_premium_progress: {
+        Args: { check_user_id: string }
+        Returns: {
+          approved_count: number
+          has_access: boolean
+          remaining: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -957,6 +965,10 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      user_has_premium_access: {
+        Args: { check_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
