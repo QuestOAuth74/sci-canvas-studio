@@ -48,11 +48,11 @@ export const FeatureAccessBadge = () => {
           variant="outline"
           size="sm"
           className="gap-1.5 h-8"
-          onClick={() => navigate('/my-submissions')}
+          onClick={() => navigate('/projects')}
         >
           <Lock className="h-3 w-3" />
           <span className="text-xs">
-            {approvedCount}/3 Submissions
+            {approvedCount}/3 Projects
           </span>
           <TrendingUp className="h-3 w-3 text-muted-foreground" />
         </Button>
@@ -60,13 +60,21 @@ export const FeatureAccessBadge = () => {
       <TooltipContent className="max-w-xs">
         <p className="font-medium">Unlock Premium Features</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Submit {remaining} more approved figure{remaining !== 1 ? 's' : ''} to unlock:
+          Share {remaining} more approved project{remaining !== 1 ? 's' : ''} to the community to unlock:
         </p>
         <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
           <li>🎨 AI Figure Generator</li>
           <li>📊 PowerPoint Maker</li>
         </ul>
-        <p className="text-xs text-primary mt-2">Click to view your submissions</p>
+        <div className="mt-2 pt-2 border-t">
+          <p className="text-xs font-medium">How to unlock:</p>
+          <ol className="text-xs text-muted-foreground mt-1 space-y-0.5 list-decimal list-inside">
+            <li>Create a project</li>
+            <li>Click "Share to Community"</li>
+            <li>Get admin approval</li>
+          </ol>
+        </div>
+        <p className="text-xs text-primary mt-2">Click to view and share your projects</p>
       </TooltipContent>
     </Tooltip>
   );

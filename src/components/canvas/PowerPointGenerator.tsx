@@ -28,10 +28,10 @@ export const PowerPointGenerator = ({ open, onOpenChange }: PowerPointGeneratorP
     multiple: false,
     onDrop: (files) => {
       if (!hasAccess) {
-        toast.error(`Submit ${remaining} more approved figures to unlock PowerPoint Maker`, {
+        toast.error(`Share ${remaining} more approved project${remaining !== 1 ? 's' : ''} to unlock PowerPoint Maker`, {
           action: {
-            label: 'View Submissions',
-            onClick: () => navigate('/my-submissions')
+            label: 'View Projects',
+            onClick: () => navigate('/projects')
           }
         });
         return;
@@ -44,10 +44,10 @@ export const PowerPointGenerator = ({ open, onOpenChange }: PowerPointGeneratorP
 
   const handleGenerate = async () => {
     if (!hasAccess) {
-      toast.error(`Submit ${remaining} more approved figure${remaining !== 1 ? 's' : ''} to unlock PowerPoint Maker`, {
+      toast.error(`Share ${remaining} more approved project${remaining !== 1 ? 's' : ''} to unlock PowerPoint Maker`, {
         action: {
-          label: 'View Submissions',
-          onClick: () => navigate('/my-submissions')
+          label: 'View Projects',
+          onClick: () => navigate('/projects')
         }
       });
       return;
@@ -104,7 +104,7 @@ export const PowerPointGenerator = ({ open, onOpenChange }: PowerPointGeneratorP
             <div>
               <p className="font-medium text-sm">Feature Locked</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Submit {remaining} more approved figure{remaining !== 1 ? 's' : ''} to unlock
+                Share {remaining} more approved project{remaining !== 1 ? 's' : ''} to the community
               </p>
             </div>
           </div>

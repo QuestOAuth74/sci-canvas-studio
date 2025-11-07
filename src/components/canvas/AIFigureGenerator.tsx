@@ -255,12 +255,12 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
   const handleGenerate = async (strictMode = false) => {
     if (!hasAccess) {
       toast.error(
-        `Submit ${remaining} more approved figure${remaining !== 1 ? 's' : ''} to unlock AI Figure Generator`,
+        `Share ${remaining} more approved project${remaining !== 1 ? 's' : ''} to unlock AI Figure Generator`,
         { 
           duration: 4000,
           action: {
-            label: 'View Submissions',
-            onClick: () => navigate('/my-submissions')
+            label: 'View Projects',
+            onClick: () => navigate('/projects')
           }
         }
       );
