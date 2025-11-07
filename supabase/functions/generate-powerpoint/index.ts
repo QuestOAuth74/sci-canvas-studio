@@ -334,18 +334,18 @@ serve(async (req) => {
     // Note: Using unicode icons instead of SVG for PptxGenJS compatibility
     const iconDataUrls: string[] = [];
 
-    // Geometric shape types for enhanced bullets
-    const SHAPE_SETS: Record<string, any[]> = {
+    // Geometric shape types for enhanced bullets (using string literals for PptxGenJS compatibility)
+    const SHAPE_SETS: Record<string, string[]> = {
       default: [
-        pptx.ShapeType.ellipse,    // Circle
-        pptx.ShapeType.rect,       // Square
-        pptx.ShapeType.rtTriangle, // Triangle
-        pptx.ShapeType.diamond,    // Diamond
-        pptx.ShapeType.pentagon    // Pentagon
+        'ellipse',      // Circle
+        'rect',         // Square/Rectangle
+        'rtTriangle',   // Right Triangle
+        'diamond',      // Diamond
+        'pentagon'      // Pentagon
       ],
       minimal: [
-        pptx.ShapeType.ellipse,    // Circle
-        pptx.ShapeType.rect        // Square
+        'ellipse',      // Circle
+        'rect'          // Square
       ]
     };
 
