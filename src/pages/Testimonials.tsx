@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { HCaptchaWrapper, HCaptchaHandle } from "@/components/ui/hcaptcha-wrapper";
+
 import { SEOHead } from "@/components/SEO/SEOHead";
 
 const testimonialSchema = z.object({
@@ -47,8 +47,6 @@ const Testimonials = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showForm, setShowForm] = useState(true);
-  const [captchaToken, setCaptchaToken] = useState<string>('');
-  const captchaRef = useRef<HCaptchaHandle>(null);
 
   const ITEMS_PER_PAGE = 6;
 
@@ -85,15 +83,6 @@ const Testimonials = () => {
     e.preventDefault();
     setErrors({});
 
-    if (!captchaToken) {
-      toast({
-        title: "Captcha Required",
-        description: "Please complete the captcha verification",
-        variant: "destructive"
-      });
-      return;
-    }
-
     const validation = testimonialSchema.safeParse(formData);
     if (!validation.success) {
       const fieldErrors: Record<string, string> = {};
@@ -109,15 +98,6 @@ const Testimonials = () => {
     setIsSubmitting(true);
 
     try {
-      // Verify captcha on server side
-      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: captchaToken }
-      });
-
-      if (captchaError || !captchaResult?.success) {
-        throw new Error('Captcha verification failed. Please try again.');
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
       
       const { error } = await supabase.from("testimonials").insert({
@@ -130,8 +110,6 @@ const Testimonials = () => {
       setSubmitted(true);
       setShowForm(false);
       setFormData({ name: "", country: "", scientific_discipline: "", message: "", rating: 5 });
-      setCaptchaToken('');
-      captchaRef.current?.resetCaptcha();
       
       toast({
         title: "Thank you! 🎉",
@@ -151,8 +129,6 @@ const Testimonials = () => {
         title: "Oops!",
         description: "Something went wrong. Please try again.",
       });
-      setCaptchaToken('');
-      captchaRef.current?.resetCaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -283,12 +259,6 @@ const Testimonials = () => {
                     </p>
                   </div>
                 </div>
-
-                <HCaptchaWrapper
-                  ref={captchaRef}
-                  onVerify={(token) => setCaptchaToken(token)}
-                  onExpire={() => setCaptchaToken('')}
-                />
 
                 <Button
                   type="submit"

@@ -10,7 +10,7 @@ import { ArrowLeft, Share2, Mail, Loader2, Palette, MousePointer2, Download, Clo
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
 import { useAuth } from '@/contexts/AuthContext';
-import { HCaptchaWrapper, HCaptchaHandle } from '@/components/ui/hcaptcha-wrapper';
+
 
 const shareSchema = z.object({
   senderName: z.string().max(100, 'Name must be less than 100 characters').optional(),
@@ -23,8 +23,6 @@ export default function Share() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string>('');
-  const captchaRef = useRef<HCaptchaHandle>(null);
   const [formData, setFormData] = useState({
     senderName: user?.user_metadata?.full_name || '',
     recipientName: '',
@@ -34,26 +32,12 @@ export default function Share() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!captchaToken) {
-      toast.error('Please complete the captcha verification');
-      return;
-    }
 
     try {
       // Validate form data
       const validatedData = shareSchema.parse(formData);
       
       setIsSubmitting(true);
-
-      // Verify captcha on server side
-      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: captchaToken }
-      });
-
-      if (captchaError || !captchaResult?.success) {
-        throw new Error('Captcha verification failed. Please try again.');
-      }
 
       // Call edge function to send email
       const { data, error } = await supabase.functions.invoke('send-share-email', {
@@ -80,8 +64,6 @@ export default function Share() {
         recipientEmail: '',
         personalMessage: "I've been using BioSketch for my scientific illustrations and thought you might find it useful too! It's completely free and has made creating diagrams so much easier.",
       });
-      setCaptchaToken('');
-      captchaRef.current?.resetCaptcha();
 
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -91,8 +73,6 @@ export default function Share() {
         console.error('Error sharing:', error);
         toast.error('An error occurred. Please try again.');
       }
-      setCaptchaToken('');
-      captchaRef.current?.resetCaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -190,12 +170,6 @@ export default function Share() {
                   {formData.personalMessage.length}/500 characters
                 </p>
               </div>
-
-              <HCaptchaWrapper
-                ref={captchaRef}
-                onVerify={(token) => setCaptchaToken(token)}
-                onExpire={() => setCaptchaToken('')}
-              />
 
               <Button
                 type="submit"

@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Mail, User, Globe, MessageSquare } from "lucide-react";
 import { z } from "zod";
-import { HCaptchaWrapper, HCaptchaHandle } from "@/components/ui/hcaptcha-wrapper";
+
 import { SEOHead } from "@/components/SEO/SEOHead";
 
 const contactSchema = z.object({
@@ -30,8 +30,6 @@ const Contact = () => {
   });
   const [wordCount, setWordCount] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [captchaToken, setCaptchaToken] = useState<string>('');
-  const captchaRef = useRef<HCaptchaHandle>(null);
 
   const countWords = (text: string) => {
     return text.trim().split(/\s+/).filter(word => word.length > 0).length;
@@ -46,16 +44,6 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-
-    // Check captcha
-    if (!captchaToken) {
-      toast({
-        title: "Captcha Required",
-        description: "Please complete the captcha verification",
-        variant: "destructive"
-      });
-      return;
-    }
 
     // Check word count
     if (wordCount > 500) {
@@ -82,15 +70,6 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // Verify captcha on server side
-      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: captchaToken }
-      });
-
-      if (captchaError || !captchaResult?.success) {
-        throw new Error('Captcha verification failed. Please try again.');
-      }
-
       const { data: { user } } = await supabase.auth.getUser();
       
       const { error } = await supabase.from("contact_messages").insert({
@@ -116,8 +95,6 @@ const Contact = () => {
         message: ""
       });
       setWordCount(0);
-      setCaptchaToken('');
-      captchaRef.current?.resetCaptcha();
     } catch (error) {
       console.error("Error submitting contact form:", error);
       toast({
@@ -125,8 +102,6 @@ const Contact = () => {
         description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
-      setCaptchaToken('');
-      captchaRef.current?.resetCaptcha();
     } finally {
       setIsSubmitting(false);
     }
@@ -250,13 +225,6 @@ const Contact = () => {
                 <p className="text-sm font-semibold text-destructive">{errors.message}</p>
               )}
             </div>
-
-            {/* hCaptcha */}
-            <HCaptchaWrapper
-              ref={captchaRef}
-              onVerify={(token) => setCaptchaToken(token)}
-              onExpire={() => setCaptchaToken('')}
-            />
 
             {/* Submit Button */}
             <Button

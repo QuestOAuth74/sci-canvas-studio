@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Microscope, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
-import { HCaptchaWrapper, HCaptchaHandle, HCAPTCHA_SITE_KEY } from '@/components/ui/hcaptcha-wrapper';
+
 import { useToast } from '@/hooks/use-toast';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
@@ -80,11 +80,6 @@ export default function Auth() {
   const [signInErrors, setSignInErrors] = useState<any>({});
   const [signUpErrors, setSignUpErrors] = useState<any>({});
 
-  // Captcha states
-  const [signInCaptchaToken, setSignInCaptchaToken] = useState<string>('');
-  const [signUpCaptchaToken, setSignUpCaptchaToken] = useState<string>('');
-  const signInCaptchaRef = useRef<HCaptchaHandle>(null);
-  const signUpCaptchaRef = useRef<HCaptchaHandle>(null);
 
   useEffect(() => {
     // Check if this is a password reset link
@@ -107,15 +102,6 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignInErrors({});
-    
-    if (!signInCaptchaToken) {
-      toast({
-        title: "Captcha Required",
-        description: "Please complete the captcha verification",
-        variant: "destructive"
-      });
-      return;
-    }
 
     const result = signInSchema.safeParse({ email: signInEmail, password: signInPassword });
     if (!result.success) {
@@ -128,51 +114,17 @@ export default function Auth() {
     }
 
     setIsLoading(true);
+    const { error } = await signIn(signInEmail, signInPassword);
+    setIsLoading(false);
 
-    try {
-      // Verify captcha on server side
-      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: signInCaptchaToken, sitekey: HCAPTCHA_SITE_KEY }
-      });
-
-      if (captchaError || !captchaResult?.success) {
-        const codes = (captchaResult as any)?.errorCodes;
-        throw new Error(codes?.length ? `Captcha failed: ${codes.join(', ')}` : 'Captcha verification failed. Please try again.');
-      }
-
-      const { error } = await signIn(signInEmail, signInPassword);
-      setIsLoading(false);
-
-      if (!error) {
-        navigate('/');
-      } else {
-        setSignInCaptchaToken('');
-        signInCaptchaRef.current?.resetCaptcha();
-      }
-    } catch (error: any) {
-      setIsLoading(false);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to verify captcha",
-        variant: "destructive"
-      });
-      setSignInCaptchaToken('');
-      signInCaptchaRef.current?.resetCaptcha();
+    if (!error) {
+      navigate('/');
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignUpErrors({});
-    
-    if (!signUpCaptchaToken) {
-      toast({
-        title: "Captcha Required",
-        description: "Please complete the captcha verification",
-        variant: "destructive"
-      });
-      return;
-    }
 
     const result = signUpSchema.safeParse({ 
       email: signUpEmail, 
@@ -192,38 +144,11 @@ export default function Auth() {
     }
 
     setIsLoading(true);
+    const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName, signUpCountry, signUpFieldOfStudy);
+    setIsLoading(false);
 
-    try {
-      // Verify captcha on server side
-      const { data: captchaResult, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: signUpCaptchaToken, sitekey: HCAPTCHA_SITE_KEY }
-      });
-
-      if (captchaError || !captchaResult?.success) {
-        const codes = (captchaResult as any)?.errorCodes;
-        throw new Error(codes?.length ? `Captcha failed: ${codes.join(', ')}` : 'Captcha verification failed. Please try again.');
-      }
-
-      const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName, signUpCountry, signUpFieldOfStudy);
-      setIsLoading(false);
-
-      if (!error) {
-        setActiveTab('signin');
-        setSignUpCaptchaToken('');
-        signUpCaptchaRef.current?.resetCaptcha();
-      } else {
-        setSignUpCaptchaToken('');
-        signUpCaptchaRef.current?.resetCaptcha();
-      }
-    } catch (error: any) {
-      setIsLoading(false);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to verify captcha",
-        variant: "destructive"
-      });
-      setSignUpCaptchaToken('');
-      signUpCaptchaRef.current?.resetCaptcha();
+    if (!error) {
+      setActiveTab('signin');
     }
   };
 
@@ -492,11 +417,6 @@ export default function Auth() {
                       <p className="text-sm text-destructive">{signInErrors.password}</p>
                     )}
                   </div>
-                  <HCaptchaWrapper
-                    ref={signInCaptchaRef}
-                    onVerify={(token) => setSignInCaptchaToken(token)}
-                    onExpire={() => setSignInCaptchaToken('')}
-                  />
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Sign In
@@ -591,11 +511,6 @@ export default function Auth() {
                     <p className="text-sm text-destructive">{signUpErrors.fieldOfStudy}</p>
                   )}
                 </div>
-                <HCaptchaWrapper
-                  ref={signUpCaptchaRef}
-                  onVerify={(token) => setSignUpCaptchaToken(token)}
-                  onExpire={() => setSignUpCaptchaToken('')}
-                />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
