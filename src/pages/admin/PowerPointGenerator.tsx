@@ -6,9 +6,11 @@ import { PowerPointTemplateSelector } from '@/components/admin/PowerPointTemplat
 import { PowerPointGenerationList } from '@/components/admin/PowerPointGenerationList';
 import { PowerPointTemplateBuilder } from '@/components/admin/PowerPointTemplateBuilder';
 import { PowerPointPreviewModal } from '@/components/admin/PowerPointPreviewModal';
+import { PowerPointSettingsPanel, type PresentationSettings } from '@/components/admin/PowerPointSettingsPanel';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Upload, FileText, Loader2, Eye } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -21,6 +23,12 @@ export default function PowerPointGenerator() {
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<DocxPreviewData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [presentationSettings, setPresentationSettings] = useState<PresentationSettings>({
+    primaryColor: '#2563EB',
+    accentColor: '#3B82F6',
+    fontPairing: 'modern-sans',
+    layoutDensity: 'balanced',
+  });
   const queryClient = useQueryClient();
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -172,73 +180,85 @@ export default function PowerPointGenerator() {
           </TabsList>
 
           <TabsContent value="generate" className="space-y-8">
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* File Upload */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Upload Document</CardTitle>
-              <CardDescription>Upload a Word document (.docx, max 10MB)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div
-                {...getRootProps()}
-                className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-                  isDragActive
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-primary/50 hover:bg-accent/5'
-                }`}
-              >
-                <input {...getInputProps()} />
-                {selectedFile ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <FileText className="h-12 w-12 text-primary" />
-                    <div>
-                      <p className="font-medium">{selectedFile.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+        <div className="grid gap-8 lg:grid-cols-3">
+          {/* Left Column - File Upload & Template */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* File Upload */}
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader>
+                <CardTitle>Upload Document</CardTitle>
+                <CardDescription>Upload a Word document (.docx, max 10MB)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div
+                  {...getRootProps()}
+                  className={cn(
+                    "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300",
+                    isDragActive
+                      ? 'border-primary bg-primary/10 scale-[1.02]'
+                      : 'border-border hover:border-primary/50 hover:bg-accent/5'
+                  )}
+                >
+                  <input {...getInputProps()} />
+                  {selectedFile ? (
+                    <div className="flex flex-col items-center gap-3 animate-fade-in">
+                      <FileText className="h-12 w-12 text-primary" />
+                      <div>
+                        <p className="font-medium">{selectedFile.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFile(null);
+                        }}
+                      >
+                        Remove
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedFile(null);
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <Upload className="h-12 w-12 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">
-                        {isDragActive ? 'Drop file here' : 'Click or drag file to upload'}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Word documents only (.docx)
-                      </p>
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <Upload className="h-12 w-12 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">
+                          {isDragActive ? 'Drop file here' : 'Click or drag file to upload'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Word documents only (.docx)
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Template Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Template</CardTitle>
-              <CardDescription>Choose a presentation style</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PowerPointTemplateSelector
-                selectedTemplate={selectedTemplate}
-                onSelectTemplate={setSelectedTemplate}
-              />
-            </CardContent>
-          </Card>
+            {/* Template Selection */}
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader>
+                <CardTitle>Select Template</CardTitle>
+                <CardDescription>Choose a presentation style</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PowerPointTemplateSelector
+                  selectedTemplate={selectedTemplate}
+                  onSelectTemplate={setSelectedTemplate}
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Settings Panel */}
+          <div className="lg:col-span-1">
+            <PowerPointSettingsPanel
+              settings={presentationSettings}
+              onSettingsChange={setPresentationSettings}
+            />
+          </div>
         </div>
 
         {/* Generate Button */}
