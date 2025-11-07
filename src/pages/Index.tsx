@@ -187,70 +187,72 @@ const Index = () => {
           </div>
         </div>
 
-        {/* AI Icon Generator Announcement */}
-        <div className="relative animate-fade-in [animation-delay:200ms]">
-          <style>{`
-            @keyframes gradient-shift {
-              0%, 100% { background-position: 0% 50%; }
-              50% { background-position: 100% 50%; }
-            }
-            .animate-gradient-shift {
-              background-size: 200% 200%;
-              animation: gradient-shift 5s ease infinite;
-            }
-          `}</style>
-          
-          <div className="glass-card p-8 md:p-10 border-2 border-primary/50 relative overflow-hidden group hover:border-primary/80 transition-all">
-            {/* Animated background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 animate-gradient-shift" />
+        {/* AI Icon Generator Announcement - Only for authenticated users */}
+        {user && (
+          <div className="relative animate-fade-in [animation-delay:200ms]">
+            <style>{`
+              @keyframes gradient-shift {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+              }
+              .animate-gradient-shift {
+                background-size: 200% 200%;
+                animation: gradient-shift 5s ease infinite;
+              }
+            `}</style>
             
-            {/* Glow effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-secondary opacity-20 blur-xl group-hover:opacity-30 transition-opacity" />
-            
-            <div className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8">
-              {/* Icon section */}
-              <div className="flex-shrink-0">
-                <div className="relative">
-                  <div className="p-5 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-xl">
-                    <Sparkles className="h-12 w-12 md:h-16 md:w-16 text-white animate-pulse" />
-                  </div>
-                  {/* NEW badge */}
-                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-accent to-secondary text-white text-xs font-black px-3 py-1 rounded-full shadow-lg animate-bounce">
-                    NEW ✨
+            <div className="glass-card p-8 md:p-10 border-2 border-primary/50 relative overflow-hidden group hover:border-primary/80 transition-all">
+              {/* Animated background gradient */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 animate-gradient-shift" />
+              
+              {/* Glow effect */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-secondary opacity-20 blur-xl group-hover:opacity-30 transition-opacity" />
+              
+              <div className="relative flex flex-col md:flex-row items-center gap-6 md:gap-8">
+                {/* Icon section */}
+                <div className="flex-shrink-0">
+                  <div className="relative">
+                    <div className="p-5 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-xl">
+                      <Sparkles className="h-12 w-12 md:h-16 md:w-16 text-white animate-pulse" />
+                    </div>
+                    {/* NEW badge */}
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-accent to-secondary text-white text-xs font-black px-3 py-1 rounded-full shadow-lg animate-bounce">
+                      NEW ✨
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Content section */}
-              <div className="flex-1 text-center md:text-left space-y-3">
-                <h3 className="text-2xl md:text-3xl font-black tracking-tight">
-                  🎨 AI Icon Generator Now Available! 🚀
-                </h3>
-                <p className="text-base md:text-lg font-medium text-foreground/80 leading-relaxed">
-                  Transform your ideas into professional scientific icons using AI. Upload a reference image or describe what you need, and watch the magic happen! ✨
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center md:justify-start text-sm font-semibold">
-                  <span className="px-3 py-1 bg-primary/20 rounded-full">🧬 Medical</span>
-                  <span className="px-3 py-1 bg-accent/20 rounded-full">🔬 Biochemical</span>
-                  <span className="px-3 py-1 bg-secondary/20 rounded-full">🦠 Cellular</span>
-                  <span className="px-3 py-1 bg-primary/20 rounded-full">💡 & More!</span>
+                
+                {/* Content section */}
+                <div className="flex-1 text-center md:text-left space-y-3">
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tight">
+                    🎨 AI Icon Generator Now Available! 🚀
+                  </h3>
+                  <p className="text-base md:text-lg font-medium text-foreground/80 leading-relaxed">
+                    Transform your ideas into professional scientific icons using AI. Upload a reference image or describe what you need, and watch the magic happen! ✨
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center md:justify-start text-sm font-semibold">
+                    <span className="px-3 py-1 bg-primary/20 rounded-full">🧬 Medical</span>
+                    <span className="px-3 py-1 bg-accent/20 rounded-full">🔬 Biochemical</span>
+                    <span className="px-3 py-1 bg-secondary/20 rounded-full">🦠 Cellular</span>
+                    <span className="px-3 py-1 bg-primary/20 rounded-full">💡 & More!</span>
+                  </div>
                 </div>
-              </div>
-              
-              {/* CTA section */}
-              <div className="flex-shrink-0">
-                <Button 
-                  size="lg"
-                  onClick={() => navigate(user ? "/projects" : "/auth")}
-                  className="min-w-[200px] h-12 text-base font-bold shadow-xl hover:shadow-2xl transition-all group/btn"
-                >
-                  <Sparkles className="h-5 w-5 mr-2 group-hover/btn:rotate-180 transition-transform duration-500" />
-                  Try AI Generator
-                </Button>
+                
+                {/* CTA section */}
+                <div className="flex-shrink-0">
+                  <Button 
+                    size="lg"
+                    onClick={() => navigate("/projects")}
+                    className="min-w-[200px] h-12 text-base font-bold shadow-xl hover:shadow-2xl transition-all group/btn"
+                  >
+                    <Sparkles className="h-5 w-5 mr-2 group-hover/btn:rotate-180 transition-transform duration-500" />
+                    Try AI Generator
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Institution Logos Carousel */}
         <InstitutionCarousel />
