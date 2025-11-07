@@ -52,7 +52,9 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     selectedObject,
     togglePin,
     isPinned,
-    smoothenPath
+    smoothenPath,
+    recentColors,
+    addToRecentColors
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -200,6 +202,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleTextColorChange = (color: string) => {
     setTextColor(color);
+    addToRecentColors(color);
     const textObj = getTextObject(selectedObject);
     if (canvas && textObj) {
       textObj.set({ fill: color });
@@ -209,6 +212,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleShapeFillColorChange = (color: string) => {
     setShapeFillColor(color);
+    addToRecentColors(color);
     if (canvas && selectedObject && selectedObject.type !== 'textbox') {
       const targetShape = getShapeFromGroup(selectedObject);
       targetShape.set({ fill: color });
@@ -218,6 +222,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleShapeStrokeColorChange = (color: string) => {
     setShapeStrokeColor(color);
+    addToRecentColors(color);
     if (canvas && selectedObject && selectedObject.type !== 'textbox') {
       const targetShape = getShapeFromGroup(selectedObject);
       targetShape.set({ stroke: color });
@@ -227,6 +232,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleImageToneChange = (color: string, opacity: number = imageToneOpacity) => {
     setImageToneColor(color);
+    addToRecentColors(color);
     if (canvas && selectedObject && (selectedObject.type === 'image' || selectedObject instanceof FabricImage)) {
       const imageObj = selectedObject as FabricImage;
       
@@ -268,6 +274,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleIconColorChange = (color: string) => {
     setIconColor(color);
+    addToRecentColors(color);
     if (canvas && selectedObject && selectedObject.type === 'group') {
       const group = selectedObject as Group;
       
@@ -650,6 +657,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleFreeformLineColorChange = (color: string) => {
     setFreeformLineColor(color);
+    addToRecentColors(color);
     if (canvas && selectedObject && (selectedObject as any).isFreeformLine) {
       const pathObj = selectedObject as Path;
       pathObj.set({ stroke: color });
@@ -895,6 +903,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                             placeholder="#000000"
                           />
                         </div>
+                        
+                        {/* Recent Colors */}
+                        {recentColors.length > 0 && (
+                          <div className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">Recent</Label>
+                            <div className="flex gap-1 flex-wrap">
+                              {recentColors.map((color, idx) => (
+                                <Button
+                                  key={`icon-${color}-${idx}`}
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                                  style={{ 
+                                    backgroundColor: color,
+                                    borderColor: iconColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                                  }}
+                                  onClick={() => handleIconColorChange(color)}
+                                  title={color}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </TabsContent>
                     
@@ -1015,6 +1046,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                           placeholder="#3b82f6"
                         />
                       </div>
+                      
+                      {/* Recent Colors */}
+                      {recentColors.length > 0 && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Recent</Label>
+                          <div className="flex gap-1 flex-wrap">
+                            {recentColors.map((color, idx) => (
+                              <Button
+                                key={`image-tone-${color}-${idx}`}
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                                style={{ 
+                                  backgroundColor: color,
+                                  borderColor: imageToneColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                                }}
+                                onClick={() => handleImageToneChange(color)}
+                                title={color}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -1082,6 +1136,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                           placeholder="#3b82f6"
                         />
                       </div>
+                      
+                      {/* Recent Colors */}
+                      {recentColors.length > 0 && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Recent</Label>
+                          <div className="flex gap-1 flex-wrap">
+                            {recentColors.map((color, idx) => (
+                              <Button
+                                key={`shape-fill-${color}-${idx}`}
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                                style={{ 
+                                  backgroundColor: color,
+                                  borderColor: shapeFillColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                                }}
+                                onClick={() => handleShapeFillColorChange(color)}
+                                title={color}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Stroke Color */}
@@ -1116,6 +1193,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                           placeholder="#000000"
                         />
                       </div>
+                      
+                      {/* Recent Colors */}
+                      {recentColors.length > 0 && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Recent</Label>
+                          <div className="flex gap-1 flex-wrap">
+                            {recentColors.map((color, idx) => (
+                              <Button
+                                key={`shape-stroke-${color}-${idx}`}
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                                style={{ 
+                                  backgroundColor: color,
+                                  borderColor: shapeStrokeColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                                }}
+                                onClick={() => handleShapeStrokeColorChange(color)}
+                                title={color}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1180,6 +1280,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                           placeholder="#000000"
                         />
                       </div>
+                      
+                      {/* Recent Colors */}
+                      {recentColors.length > 0 && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Recent</Label>
+                          <div className="flex gap-1 flex-wrap">
+                            {recentColors.map((color, idx) => (
+                              <Button
+                                key={`freeform-${color}-${idx}`}
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                                style={{ 
+                                  backgroundColor: color,
+                                  borderColor: freeformLineColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                                }}
+                                onClick={() => handleFreeformLineColorChange(color)}
+                                title={color}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -1334,6 +1457,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                         />
                       </div>
                     </div>
+                    
+                    {/* Recent Colors for Text */}
+                    {recentColors.length > 0 && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Recent Colors</Label>
+                        <div className="flex gap-1 flex-wrap">
+                          {recentColors.map((color, idx) => (
+                            <Button
+                              key={`text-${color}-${idx}`}
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                              style={{ 
+                                backgroundColor: color,
+                                borderColor: textColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                              }}
+                              onClick={() => handleTextColorChange(color)}
+                              title={color}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
