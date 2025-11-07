@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Palette, Type, LayoutGrid, Sparkles, Check } from 'lucide-react';
+import { Palette, Type, LayoutGrid, Sparkles, Check, Image as ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface PresentationSettings {
@@ -12,6 +12,13 @@ export interface PresentationSettings {
   accentColor: string;
   fontPairing: string;
   layoutDensity: 'minimal' | 'balanced' | 'detailed';
+  imageStyle: {
+    cornerRadius: 'none' | 'small' | 'medium' | 'large' | 'circle';
+    shadow: 'none' | 'soft' | 'medium' | 'strong';
+    border: 'none' | 'thin' | 'medium' | 'thick';
+    borderColor: string;
+    effect: 'none' | 'polaroid' | 'frame';
+  };
 }
 
 interface PowerPointSettingsPanelProps {
@@ -317,6 +324,162 @@ export function PowerPointSettingsPanel({ settings, onSettingsChange }: PowerPoi
                 )}
               </button>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Image Style Section */}
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <ImageIcon className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Image Enhancements</CardTitle>
+              <CardDescription>Customize image styling and effects</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Corner Radius */}
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Corner Radius</Label>
+            <div className="grid grid-cols-5 gap-2">
+              {[
+                { value: 'none' as const, label: 'None', demo: '□' },
+                { value: 'small' as const, label: 'Small', demo: '▢' },
+                { value: 'medium' as const, label: 'Medium', demo: '▢' },
+                { value: 'large' as const, label: 'Large', demo: '▢' },
+                { value: 'circle' as const, label: 'Circle', demo: '◯' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() =>
+                    onSettingsChange({
+                      ...settings,
+                      imageStyle: { ...settings.imageStyle, cornerRadius: option.value },
+                    })
+                  }
+                  className={cn(
+                    "p-3 rounded-lg border-2 transition-all text-center",
+                    settings.imageStyle.cornerRadius === option.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <div className="text-2xl mb-1">{option.demo}</div>
+                  <p className="text-xs font-medium">{option.label}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Shadow */}
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Drop Shadow</Label>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { value: 'none' as const, label: 'None', intensity: 0 },
+                { value: 'soft' as const, label: 'Soft', intensity: 1 },
+                { value: 'medium' as const, label: 'Medium', intensity: 2 },
+                { value: 'strong' as const, label: 'Strong', intensity: 3 },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() =>
+                    onSettingsChange({
+                      ...settings,
+                      imageStyle: { ...settings.imageStyle, shadow: option.value },
+                    })
+                  }
+                  className={cn(
+                    "p-3 rounded-lg border-2 transition-all",
+                    settings.imageStyle.shadow === option.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-full h-8 mb-2 rounded bg-primary/20 transition-shadow",
+                      option.intensity === 1 && "shadow-sm",
+                      option.intensity === 2 && "shadow-md",
+                      option.intensity === 3 && "shadow-lg"
+                    )}
+                  />
+                  <p className="text-xs font-medium">{option.label}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Border */}
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Border</Label>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { value: 'none' as const, label: 'None', width: 0 },
+                { value: 'thin' as const, label: 'Thin', width: 1 },
+                { value: 'medium' as const, label: 'Medium', width: 2 },
+                { value: 'thick' as const, label: 'Thick', width: 3 },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() =>
+                    onSettingsChange({
+                      ...settings,
+                      imageStyle: { ...settings.imageStyle, border: option.value },
+                    })
+                  }
+                  className={cn(
+                    "p-3 rounded-lg border-2 transition-all",
+                    settings.imageStyle.border === option.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <div
+                    className="w-full h-8 mb-2 rounded bg-primary/20"
+                    style={{
+                      border: option.width ? `${option.width}px solid currentColor` : 'none',
+                    }}
+                  />
+                  <p className="text-xs font-medium">{option.label}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Special Effects */}
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Special Effects</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { value: 'none' as const, label: 'Standard', description: 'Clean image' },
+                { value: 'polaroid' as const, label: 'Polaroid', description: 'White frame' },
+                { value: 'frame' as const, label: 'Frame', description: 'Colored border' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() =>
+                    onSettingsChange({
+                      ...settings,
+                      imageStyle: { ...settings.imageStyle, effect: option.value },
+                    })
+                  }
+                  className={cn(
+                    "p-4 rounded-lg border-2 transition-all text-left",
+                    settings.imageStyle.effect === option.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/50"
+                  )}
+                >
+                  <p className="font-semibold text-sm mb-1">{option.label}</p>
+                  <p className="text-xs text-muted-foreground">{option.description}</p>
+                </button>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

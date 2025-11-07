@@ -73,7 +73,7 @@ serve(async (req) => {
 
     const requestBody = await req.json();
     generationId = requestBody.generationId;
-    const { wordDocPath, templateId } = requestBody;
+    const { wordDocPath, templateId, presentationSettings } = requestBody;
 
     if (!generationId) {
       throw new Error('Missing generationId');
@@ -345,6 +345,139 @@ serve(async (req) => {
       const g = Math.min(255, Math.floor(((num >> 8) & 0x00FF) + (255 - ((num >> 8) & 0x00FF)) * percent / 100));
       const b = Math.min(255, Math.floor((num & 0x0000FF) + (255 - (num & 0x0000FF)) * percent / 100));
       return ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0').toUpperCase();
+    }
+
+    // Helper: Create image styling options
+    function createImageOptions(
+      baseOptions: any,
+      imageStyle: any,
+      colors: any
+    ) {
+      const options = { ...baseOptions };
+      
+      // Apply rounding based on corner radius setting
+      const roundingMap: Record<string, boolean> = {
+        'none': false,
+        'small': true,
+        'medium': true,
+        'large': true,
+        'circle': true
+      };
+      options.rounding = roundingMap[imageStyle?.cornerRadius || 'none'] || false;
+      
+      // Apply shadow
+      if (imageStyle?.shadow && imageStyle.shadow !== 'none') {
+        const shadowSettings: Record<string, any> = {
+          'soft': { type: 'outer', blur: 5, opacity: 0.10, offset: 2, color: '000000' },
+          'medium': { type: 'outer', blur: 8, opacity: 0.20, offset: 3, color: '000000' },
+          'strong': { type: 'outer', blur: 12, opacity: 0.30, offset: 4, color: '000000' }
+        };
+        options.shadow = shadowSettings[imageStyle.shadow];
+      }
+      
+      // Apply border
+      if (imageStyle?.border && imageStyle.border !== 'none') {
+        const borderWidths: Record<string, number> = {
+          'thin': 1,
+          'medium': 3,
+          'thick': 5
+        };
+        options.line = {
+          color: (imageStyle.borderColor || colors.accent || colors.secondary).replace('#', ''),
+          width: borderWidths[imageStyle.border],
+          type: 'solid'
+        };
+      }
+      
+      return options;
+    }
+
+    // Helper: Add polaroid image with white frame and caption
+    function addPolaroidImage(
+      slide: any,
+      imageData: any,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      caption: string,
+      colors: any,
+      fonts: any
+    ) {
+      const frameMargin = 0.15;
+      const captionHeight = 0.4;
+      const totalFrameH = h + frameMargin * 2 + captionHeight;
+      
+      // White background frame
+      slide.addShape(pptx.ShapeType.rect, {
+        x: x - frameMargin,
+        y: y - frameMargin,
+        w: w + frameMargin * 2,
+        h: totalFrameH,
+        fill: { color: 'FFFFFF' },
+        line: { color: 'E0E0E0', width: 1 },
+        shadow: { type: 'outer', blur: 8, opacity: 0.15, offset: 3, color: '000000' }
+      });
+      
+      // Image
+      slide.addImage({
+        ...imageData,
+        x, y, w, h,
+        sizing: { type: 'contain', w, h }
+      });
+      
+      // Caption in the bottom space
+      slide.addText(caption || 'Image', {
+        x: x - frameMargin,
+        y: y + h + frameMargin * 0.5,
+        w: w + frameMargin * 2,
+        h: captionHeight - frameMargin * 0.5,
+        fontSize: 11,
+        fontFace: fonts.body,
+        color: '666666',
+        align: 'center',
+        valign: 'middle',
+        italic: true
+      });
+    }
+
+    // Helper: Add multi-color border frame effect
+    function addFramedImage(
+      slide: any,
+      imageData: any,
+      x: number,
+      y: number,
+      w: number,
+      h: number,
+      colors: any
+    ) {
+      // Outer frame (primary color)
+      const outerWidth = 0.08;
+      slide.addShape(pptx.ShapeType.rect, {
+        x: x - outerWidth,
+        y: y - outerWidth,
+        w: w + outerWidth * 2,
+        h: h + outerWidth * 2,
+        fill: { color: colors.primary.replace('#', '') }
+      });
+      
+      // Middle frame (white)
+      const middleWidth = 0.05;
+      slide.addShape(pptx.ShapeType.rect, {
+        x: x - middleWidth,
+        y: y - middleWidth,
+        w: w + middleWidth * 2,
+        h: h + middleWidth * 2,
+        fill: { color: 'FFFFFF' }
+      });
+      
+      // Image with subtle shadow
+      slide.addImage({
+        ...imageData,
+        x, y, w, h,
+        sizing: { type: 'contain', w, h },
+        shadow: { type: 'inner', blur: 3, opacity: 0.10, offset: 1, color: '000000' }
+      });
     }
 
     // Helper: Add shaded background box
@@ -1292,6 +1425,9 @@ ${docOutline.substring(0, 8000)}`,
       const imageH = dimensions.h;
       const gap = 0.5;
       
+      // Get image style settings
+      const imageStyle = presentationSettings?.imageStyle || {};
+      
       console.log(`Rendering image-grid: ${imageCount} images at ${imageW}x${imageH} each`);
       
       for (let i = 0; i < imageCount; i++) {
@@ -1301,13 +1437,18 @@ ${docOutline.substring(0, 8000)}`,
         const y = spacing.contentY + row * (imageH + gap);
         
         if (availableImages[i]) {
-          // Use actual image
+          // Use actual image with styling
           const img = availableImages[i];
-          contentSlide.addImage({
-            data: `data:image/${img.ext};base64,${img.base64}`,
-            x, y, w: imageW, h: imageH,
-            sizing: { type: 'contain', w: imageW, h: imageH }
-          });
+          const imageOptions = createImageOptions(
+            {
+              data: `data:image/${img.ext};base64,${img.base64}`,
+              x, y, w: imageW, h: imageH,
+              sizing: { type: 'contain', w: imageW, h: imageH }
+            },
+            imageStyle,
+            colors
+          );
+          contentSlide.addImage(imageOptions);
         } else {
           // Fallback placeholder
           contentSlide.addShape(pptx.ShapeType.rect, {
@@ -1335,33 +1476,60 @@ ${docOutline.substring(0, 8000)}`,
       const contentX = side === 'left' ? 5.0 : 0.5;
       const contentW = 4.5;
       
+      // Get image style settings
+      const imageStyle = presentationSettings?.imageStyle || {};
+      
       // Image or placeholder
       if (availableImages[imageIndex]) {
         const img = availableImages[imageIndex];
         
         console.log(`Rendering ${layoutType}: ${img.filename} (${(img.originalSize / 1024).toFixed(1)}KB) at ${dimensions.w}x${dimensions.h}`);
         
-        contentSlide.addImage({
-          data: `data:image/${img.ext};base64,${img.base64}`,
-          x: imageX, y: spacing.contentY, w: imageW, h: imageH,
-          sizing: { type: 'contain', w: imageW, h: imageH },
-          rounding: false,
-          transparency: 0
-        });
-        
-        // Add caption below image if available
-        if (imageCaption) {
-          contentSlide.addText(imageCaption, {
-            x: imageX,
-            y: spacing.contentY + imageH + 0.1,
-            w: imageW,
-            h: 0.3,
-            fontSize: 10,
-            fontFace: fonts.body,
-            color: '666666',
-            align: 'center',
-            italic: true
-          });
+        // Apply special effects or standard image
+        if (imageStyle.effect === 'polaroid') {
+          addPolaroidImage(
+            contentSlide,
+            { data: `data:image/${img.ext};base64,${img.base64}` },
+            imageX, spacing.contentY, imageW, imageH,
+            imageCaption || '',
+            colors, fonts
+          );
+        } else if (imageStyle.effect === 'frame') {
+          addFramedImage(
+            contentSlide,
+            { data: `data:image/${img.ext};base64,${img.base64}` },
+            imageX, spacing.contentY, imageW, imageH,
+            colors
+          );
+        } else {
+          const imageOptions = createImageOptions(
+            {
+              data: `data:image/${img.ext};base64,${img.base64}`,
+              x: imageX,
+              y: spacing.contentY,
+              w: imageW,
+              h: imageH,
+              sizing: { type: 'contain', w: imageW, h: imageH }
+            },
+            imageStyle,
+            colors
+          );
+          contentSlide.addImage(imageOptions);
+          
+          // Add caption below image if available (only for non-special effects)
+          if (imageCaption) {
+            contentSlide.addText(imageCaption, {
+              x: imageX,
+              y: spacing.contentY + imageH + 0.1,
+              w: imageW,
+              h: 0.3,
+              fontSize: 10,
+              fontFace: fonts.body,
+              color: '666666',
+              align: 'center',
+              italic: true
+            });
+          }
         }
       } else {
         contentSlide.addShape(pptx.ShapeType.rect, {
@@ -1590,14 +1758,20 @@ ${docOutline.substring(0, 8000)}`,
           if (extractedImages[imageIndex]) {
             const img = extractedImages[imageIndex];
             const dimensions = getOptimizedImageDimensions('image-top');
+            const imageStyle = presentationSettings?.imageStyle || {};
             
             console.log(`Rendering image-top: ${img.filename} at ${dimensions.w}x${dimensions.h}`);
             
-            contentSlide.addImage({
-              data: `data:image/${img.ext};base64,${img.base64}`,
-              x: 0.5, y: spacing.contentY, w: dimensions.w, h: dimensions.h,
-              sizing: { type: 'contain', w: dimensions.w, h: dimensions.h }
-            });
+            const imageOptions = createImageOptions(
+              {
+                data: `data:image/${img.ext};base64,${img.base64}`,
+                x: 0.5, y: spacing.contentY, w: dimensions.w, h: dimensions.h,
+                sizing: { type: 'contain', w: dimensions.w, h: dimensions.h }
+              },
+              imageStyle,
+              colors
+            );
+            contentSlide.addImage(imageOptions);
             imageIndex++;
           } else {
             contentSlide.addShape(pptx.ShapeType.rect, {
@@ -1751,9 +1925,11 @@ ${docOutline.substring(0, 8000)}`,
           if (extractedImages[imageIndex]) {
             const img = extractedImages[imageIndex];
             const dimensions = getOptimizedImageDimensions('full-image');
+            const imageStyle = presentationSettings?.imageStyle || {};
             
             console.log(`Rendering image-full: ${img.filename} at ${dimensions.w}x${dimensions.h}`);
             
+            // For full-slide images, we use basic options (no borders/shadows to avoid cluttering)
             contentSlide.addImage({
               data: `data:image/${img.ext};base64,${img.base64}`,
               x: 0, y: 0, w: '100%', h: '100%',

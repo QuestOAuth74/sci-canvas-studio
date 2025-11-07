@@ -28,6 +28,13 @@ export default function PowerPointGenerator() {
     accentColor: '#3B82F6',
     fontPairing: 'modern-sans',
     layoutDensity: 'balanced',
+    imageStyle: {
+      cornerRadius: 'small',
+      shadow: 'soft',
+      border: 'none',
+      borderColor: '#3B82F6',
+      effect: 'none',
+    },
   });
   const queryClient = useQueryClient();
 
@@ -119,6 +126,13 @@ export default function PowerPointGenerator() {
           generationId: generation.id,
           wordDocPath: fileName,
           templateId: selectedTemplate,
+          presentationSettings: {
+            ...presentationSettings,
+            imageStyle: {
+              ...presentationSettings.imageStyle,
+              borderColor: presentationSettings.accentColor,
+            },
+          },
         },
       });
 
