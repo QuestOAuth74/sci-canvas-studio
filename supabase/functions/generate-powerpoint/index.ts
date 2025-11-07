@@ -334,20 +334,8 @@ serve(async (req) => {
     // Note: Using unicode icons instead of SVG for PptxGenJS compatibility
     const iconDataUrls: string[] = [];
 
-    // Geometric shape types for enhanced bullets (using string literals for PptxGenJS compatibility)
-    const SHAPE_SETS: Record<string, string[]> = {
-      default: [
-        'ellipse',      // Circle
-        'rect',         // Square/Rectangle
-        'rtTriangle',   // Right Triangle
-        'diamond',      // Diamond
-        'pentagon'      // Pentagon
-      ],
-      minimal: [
-        'ellipse',      // Circle
-        'rect'          // Square
-      ]
-    };
+    // Use only small circles for enhanced bullets
+    const BULLET_CIRCLE_SHAPE = 'ellipse';
 
     // Helper: Convert hex color to lighter shade
     function lightenColor(hexColor: string, percent: number): string {
@@ -383,7 +371,7 @@ serve(async (req) => {
       });
     }
 
-    // Helper: Render geometric shape bullet
+    // Helper: Render small circle bullet
     function renderIconBullet(
       slide: any,
       text: string,
@@ -394,33 +382,29 @@ serve(async (req) => {
       fonts: any,
       config: any
     ) {
-      const shapeSize = config?.circleSize || 0.35;
-      const shapeColor = (config?.circleColor || colors.primary).replace('#', '');
+      const circleSize = 0.20;  // Small circle size
+      const circleColor = (config?.circleColor || colors.primary).replace('#', '');
       
-      // Get the shape type based on index
-      const shapes = SHAPE_SETS[config?.shapeSet || 'default'] || SHAPE_SETS.default;
-      const shapeType = shapes[iconIndex % shapes.length];
-      
-      // Add geometric shape as bullet
-      slide.addShape(shapeType, {
+      // Add small circle as bullet
+      slide.addShape(BULLET_CIRCLE_SHAPE, {
         x: x,
         y: y,
-        w: shapeSize,
-        h: shapeSize,
-        fill: { color: shapeColor },
+        w: circleSize,
+        h: circleSize,
+        fill: { color: circleColor },
         line: { type: 'none' }
       });
       
-      // Add text next to shape
+      // Add text next to circle with smaller font
       slide.addText(text, {
-        x: x + shapeSize + 0.15,
-        y: y + 0.02,
-        w: 8.5 - (x + shapeSize + 0.15),
-        h: shapeSize - 0.04,
-        fontSize: fonts.bodySize * 0.95,
+        x: x + circleSize + 0.15,
+        y: y,
+        w: 8.5 - (x + circleSize + 0.15),
+        h: circleSize,
+        fontSize: fonts.bodySize * 0.80,  // Smaller font size
         fontFace: fonts.body,
         color: colors.text.replace('#', ''),
-        valign: 'top'
+        valign: 'middle'
       });
     }
 
@@ -1464,7 +1448,7 @@ ${docOutline.substring(0, 8000)}`,
               y: spacing.contentY,
               w: 4.25,
               h: imageH,
-              fontSize: fonts.bodySize * 0.95,
+              fontSize: fonts.bodySize * 0.85,  // Smaller font size
               fontFace: fonts.body,
               color: colors.text,
             });
@@ -1474,7 +1458,7 @@ ${docOutline.substring(0, 8000)}`,
               y: spacing.contentY,
               w: 4.25,
               h: imageH,
-              fontSize: fonts.bodySize * 0.95,
+              fontSize: fonts.bodySize * 0.85,  // Smaller font size
               fontFace: fonts.body,
               color: colors.text,
             });
@@ -1527,7 +1511,7 @@ ${docOutline.substring(0, 8000)}`,
               y: spacing.contentY,
               w: contentW,
               h: imageH,
-              fontSize: fonts.bodySize * 0.95,
+              fontSize: fonts.bodySize * 0.85,  // Smaller font size
               fontFace: fonts.body,
               color: colors.text,
               lineSpacing: 20
@@ -1690,7 +1674,7 @@ ${docOutline.substring(0, 8000)}`,
                   y: spacing.contentY + 3.0,
                   w: 4.25,
                   h: 2.5,
-                  fontSize: fonts.bodySize,
+                  fontSize: fonts.bodySize * 0.85,  // Smaller font size
                   fontFace: fonts.body,
                   color: colors.text,
                 });
@@ -1700,7 +1684,7 @@ ${docOutline.substring(0, 8000)}`,
                   y: spacing.contentY + 3.0,
                   w: 4.25,
                   h: 2.5,
-                  fontSize: fonts.bodySize,
+                  fontSize: fonts.bodySize * 0.85,  // Smaller font size
                   fontFace: fonts.body,
                   color: colors.text,
                 });
@@ -1753,7 +1737,7 @@ ${docOutline.substring(0, 8000)}`,
                   y: spacing.contentY + 3.0,
                   w: 9,
                   h: 2.5,
-                  fontSize: fonts.bodySize,
+                  fontSize: fonts.bodySize * 0.85,  // Smaller font size
                   fontFace: fonts.body,
                   color: colors.text,
                 });
@@ -1823,7 +1807,7 @@ ${docOutline.substring(0, 8000)}`,
                 y: spacing.contentY,
                 w: 9,
                 h: spacing.contentH,
-                fontSize: fonts.bodySize,
+                fontSize: fonts.bodySize * 0.85,  // Smaller font size
                 fontFace: fonts.body,
                 color: colors.text,
               });
@@ -1893,7 +1877,7 @@ ${docOutline.substring(0, 8000)}`,
                 y: spacing.contentY,
                 w: 4.25,
                 h: spacing.contentH,
-                fontSize: fonts.bodySize,
+                fontSize: fonts.bodySize * 0.85,  // Smaller font size
                 fontFace: fonts.body,
                 color: colors.text,
               });
@@ -1903,7 +1887,7 @@ ${docOutline.substring(0, 8000)}`,
                 y: spacing.contentY,
                 w: 4.25,
                 h: spacing.contentH,
-                fontSize: fonts.bodySize,
+                fontSize: fonts.bodySize * 0.85,  // Smaller font size
                 fontFace: fonts.body,
                 color: colors.text,
               });
@@ -1977,7 +1961,7 @@ ${docOutline.substring(0, 8000)}`,
                   y: spacing.contentY,
                   w: 4.25,
                   h: spacing.contentH,
-                  fontSize: fonts.bodySize,
+                  fontSize: fonts.bodySize * 0.85,  // Smaller font size
                   fontFace: fonts.body,
                   color: colors.text,
                 });
@@ -1987,7 +1971,7 @@ ${docOutline.substring(0, 8000)}`,
                   y: spacing.contentY,
                   w: 4.25,
                   h: spacing.contentH,
-                  fontSize: fonts.bodySize,
+                  fontSize: fonts.bodySize * 0.85,  // Smaller font size
                   fontFace: fonts.body,
                   color: colors.text,
                 });
@@ -2041,7 +2025,7 @@ ${docOutline.substring(0, 8000)}`,
                   y: spacing.contentY,
                   w: 9,
                   h: spacing.contentH,
-                  fontSize: fonts.bodySize,
+                  fontSize: fonts.bodySize * 0.85,  // Smaller font size
                   fontFace: fonts.body,
                   color: colors.text,
                 });
