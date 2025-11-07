@@ -56,13 +56,20 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('HCaptcha verification result:', {
       success: verifyResult.success,
+      errorCodes: verifyResult['error-codes'] || [],
       timestamp: new Date().toISOString(),
     });
+
+    // Log the full response for debugging
+    if (!verifyResult.success) {
+      console.error('HCaptcha verification failed:', JSON.stringify(verifyResult));
+    }
 
     return new Response(
       JSON.stringify({
         success: verifyResult.success,
         error: verifyResult.success ? null : 'Captcha verification failed',
+        errorCodes: verifyResult['error-codes'] || [],
       }),
       {
         status: 200,
