@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
-import { Bell, FolderOpen, MessageSquare, Image, Mail, MessageCircle } from 'lucide-react';
+import { Bell, FolderOpen, MessageSquare, Image, Mail, MessageCircle, CheckCheck } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface NotificationItemProps {
   icon: React.ReactNode;
@@ -157,6 +158,49 @@ export const AdminNotificationBell = () => {
     setOpen(false);
   };
 
+  const clearAllNotifications = async () => {
+    try {
+      const promises = [];
+      
+      // Mark all unread contact messages as read
+      if (unreadMessages > 0) {
+        promises.push(
+          supabase
+            .from('contact_messages')
+            .update({ is_read: true })
+            .eq('is_read', false)
+        );
+      }
+      
+      // Mark all unviewed tool feedback as viewed
+      if (totalFeedback > 0) {
+        promises.push(
+          supabase
+            .from('tool_feedback')
+            .update({ is_viewed: true })
+            .eq('is_viewed', false)
+        );
+      }
+      
+      // Execute all updates
+      if (promises.length > 0) {
+        await Promise.all(promises);
+        
+        toast.success('Notifications cleared', {
+          description: `Marked ${unreadMessages} messages and ${totalFeedback} feedback as viewed`
+        });
+        
+        // Refresh counts
+        fetchCounts();
+      }
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
+      toast.error('Failed to clear notifications', {
+        description: 'Please try again'
+      });
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -188,52 +232,69 @@ export const AdminNotificationBell = () => {
           <Separator />
           
           {totalCount > 0 ? (
-            <div className="space-y-2">
-              {pendingProjects > 0 && (
-                <NotificationItem
-                  icon={<FolderOpen className="h-4 w-4" />}
-                  label="Submitted Projects"
-                  count={pendingProjects}
-                  onClick={() => scrollToSection('submitted-projects')}
-                />
-              )}
+            <>
+              <div className="space-y-2">
+                {pendingProjects > 0 && (
+                  <NotificationItem
+                    icon={<FolderOpen className="h-4 w-4" />}
+                    label="Submitted Projects"
+                    count={pendingProjects}
+                    onClick={() => scrollToSection('submitted-projects')}
+                  />
+                )}
+                
+                {pendingTestimonials > 0 && (
+                  <NotificationItem
+                    icon={<MessageSquare className="h-4 w-4" />}
+                    label="Testimonials"
+                    count={pendingTestimonials}
+                    onClick={() => scrollToSection('testimonials')}
+                  />
+                )}
+                
+                {pendingIconSubmissions > 0 && (
+                  <NotificationItem
+                    icon={<Image className="h-4 w-4" />}
+                    label="Icon Submissions"
+                    count={pendingIconSubmissions}
+                    onClick={() => scrollToSection('icon-submissions')}
+                  />
+                )}
+                
+                {unreadMessages > 0 && (
+                  <NotificationItem
+                    icon={<Mail className="h-4 w-4" />}
+                    label="Contact Messages"
+                    count={unreadMessages}
+                    onClick={() => scrollToSection('contact-messages')}
+                  />
+                )}
+                
+                {totalFeedback > 0 && (
+                  <NotificationItem
+                    icon={<MessageCircle className="h-4 w-4" />}
+                    label="Tool Feedback"
+                    count={totalFeedback}
+                    onClick={() => scrollToSection('tool-feedback')}
+                  />
+                )}
+              </div>
               
-              {pendingTestimonials > 0 && (
-                <NotificationItem
-                  icon={<MessageSquare className="h-4 w-4" />}
-                  label="Testimonials"
-                  count={pendingTestimonials}
-                  onClick={() => scrollToSection('testimonials')}
-                />
+              {(unreadMessages > 0 || totalFeedback > 0) && (
+                <>
+                  <Separator />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={clearAllNotifications}
+                  >
+                    <CheckCheck className="h-4 w-4 mr-2" />
+                    Clear All Notifications
+                  </Button>
+                </>
               )}
-              
-              {pendingIconSubmissions > 0 && (
-                <NotificationItem
-                  icon={<Image className="h-4 w-4" />}
-                  label="Icon Submissions"
-                  count={pendingIconSubmissions}
-                  onClick={() => scrollToSection('icon-submissions')}
-                />
-              )}
-              
-              {unreadMessages > 0 && (
-                <NotificationItem
-                  icon={<Mail className="h-4 w-4" />}
-                  label="Contact Messages"
-                  count={unreadMessages}
-                  onClick={() => scrollToSection('contact-messages')}
-                />
-              )}
-              
-              {totalFeedback > 0 && (
-                <NotificationItem
-                  icon={<MessageCircle className="h-4 w-4" />}
-                  label="Tool Feedback"
-                  count={totalFeedback}
-                  onClick={() => scrollToSection('tool-feedback')}
-                />
-              )}
-            </div>
+            </>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
