@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadAllFonts } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
-import { CurvedText } from "@/lib/curvedText";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -150,11 +149,6 @@ interface CanvasContextType {
   rotateSelected: (degrees: number) => void;
   duplicateBelow: () => void;
   loadTemplate: (template: any) => Promise<void>;
-  
-  // Curved text operations
-  addCurvedText: (curvedText: CurvedText) => void;
-  editCurvedText: (existingText: CurvedText, newProperties: CurvedText) => void;
-  convertTextToCurvedText: () => Promise<void>;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -1572,102 +1566,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas, saveState]);
 
-  // Curved text operations
-  const addCurvedText = useCallback((curvedText: CurvedText) => {
-    if (!canvas) return;
-    
-    // Ensure center origin
-    curvedText.set({
-      originX: 'center',
-      originY: 'center',
-    });
-    
-    // Mark as dirty to force fresh render
-    curvedText.dirty = true;
-    canvas.add(curvedText);
-    curvedText.setCoords();
-    canvas.setActiveObject(curvedText);
-    canvas.requestRenderAll();
-    saveState();
-    toast.success('Curved text added');
-  }, [canvas, saveState]);
-
-  const editCurvedText = useCallback((existingText: CurvedText, newProperties: CurvedText) => {
-    if (!canvas) return;
-    
-    // Update properties
-    existingText.text = newProperties.text;
-    existingText.diameter = newProperties.diameter;
-    existingText.kerning = newProperties.kerning;
-    existingText.flipped = newProperties.flipped;
-    existingText.fontSize = newProperties.fontSize;
-    existingText.fontFamily = newProperties.fontFamily;
-    existingText.fontWeight = newProperties.fontWeight;
-    existingText.fontStyle = newProperties.fontStyle;
-    existingText.textFill = newProperties.textFill;
-    
-    // Mark as dirty and force re-render
-    existingText.dirty = true;
-    canvas.requestRenderAll();
-    saveState();
-    toast.success('Curved text updated');
-  }, [canvas, saveState]);
-
-  const convertTextToCurvedText = useCallback(async () => {
-    if (!canvas) return;
-    
-    const activeObject = canvas.getActiveObject() as any;
-    if (!activeObject || (activeObject.type !== 'textbox' && activeObject.type !== 'i-text' && activeObject.type !== 'text')) {
-      toast.error('Please select a text object to convert');
-      return;
-    }
-
-    // Extract text properties
-    const textContent = activeObject.text || 'Curved Text';
-    const fontSize = activeObject.fontSize || 40;
-    const fontFamily = activeObject.fontFamily || 'Inter';
-    const fontWeight = activeObject.fontWeight || 'normal';
-    const fontStyle = activeObject.fontStyle || 'normal';
-    const fill = activeObject.fill || '#000000';
-    
-    // Get center point of original text
-    const centerPoint = activeObject.getCenterPoint();
-
-    // Ensure font is loaded
-    const { ensureFontLoaded } = await import('@/lib/fontLoader');
-    await ensureFontLoaded(fontFamily);
-
-    // Create curved text with same properties
-    const curvedText = new CurvedText(textContent, {
-      diameter: 400, // Default diameter
-      kerning: 0,
-      flipped: false,
-      fontSize,
-      fontFamily,
-      fontWeight,
-      fontStyle,
-      fill,
-      left: centerPoint.x,
-      top: centerPoint.y,
-    });
-
-    // Ensure center origin
-    curvedText.set({
-      originX: 'center',
-      originY: 'center',
-    });
-
-    // Remove original text and add curved text
-    canvas.remove(activeObject);
-    curvedText.dirty = true;
-    canvas.add(curvedText);
-    curvedText.setCoords();
-    canvas.setActiveObject(curvedText);
-    canvas.requestRenderAll();
-    saveState();
-    
-    toast.success('Converted to curved text');
-  }, [canvas, saveState]);
 
   const duplicateSelected = useCallback(async () => {
     if (!canvas || !selectedObject) return;
@@ -1889,9 +1787,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     rotateSelected,
     duplicateBelow,
     loadTemplate,
-    addCurvedText,
-    editCurvedText,
-    convertTextToCurvedText,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

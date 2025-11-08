@@ -55,7 +55,6 @@ interface CanvasContextMenuProps {
   onRedo: () => void;
   onShowAllHidden: () => void;
   onOpenProperties: () => void;
-  onConvertToCurvedText?: () => void;
 }
 
 export const CanvasContextMenu = ({
@@ -83,7 +82,6 @@ export const CanvasContextMenu = ({
   onRedo,
   onShowAllHidden,
   onOpenProperties,
-  onConvertToCurvedText,
 }: CanvasContextMenuProps) => {
   const hasSelection = !!selectedObject;
   // Determine if multiple objects are selected without relying on private Fabric internals
@@ -202,17 +200,6 @@ export const CanvasContextMenu = ({
                     <ContextMenuShortcut>⌘⇧G</ContextMenuShortcut>
                   </ContextMenuItem>
                 )}
-              </>
-            )}
-            
-            {/* Convert text to curved text - only show for text objects */}
-            {isTextObject && onConvertToCurvedText && (
-              <>
-                <ContextMenuSeparator />
-                <ContextMenuItem onClick={onConvertToCurvedText}>
-                  <Type className="mr-2 h-4 w-4" />
-                  <span>Convert to Curved Text</span>
-                </ContextMenuItem>
               </>
             )}
             

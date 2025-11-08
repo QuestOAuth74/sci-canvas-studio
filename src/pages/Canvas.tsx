@@ -30,8 +30,6 @@ import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonalLineDialog";
 import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
 import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
-import { CurvedTextDialog } from "@/components/canvas/CurvedTextDialog";
-import { CurvedText } from "@/lib/curvedText";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -53,8 +51,6 @@ const CanvasContent = () => {
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [templatesDialogOpen, setTemplatesDialogOpen] = useState(false);
-  const [curvedTextDialogOpen, setCurvedTextDialogOpen] = useState(false);
-  const [editingCurvedText, setEditingCurvedText] = useState<CurvedText | undefined>(undefined);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
@@ -105,9 +101,6 @@ const CanvasContent = () => {
     rotateSelected,
     duplicateBelow,
     loadTemplate,
-    addCurvedText,
-    editCurvedText,
-    convertTextToCurvedText,
   } = useCanvas();
 
   // Track clipboard status via copy/cut actions
@@ -173,24 +166,6 @@ const CanvasContent = () => {
     }
   }, [canvas, checkForRecovery, recoverCanvas]);
 
-  // Add double-click handler for curved text editing
-  useEffect(() => {
-    if (!canvas) return;
-
-    const handleDoubleClick = (e: any) => {
-      const target = e.target;
-      if (target && target.type === 'curvedText') {
-        setEditingCurvedText(target as CurvedText);
-        setCurvedTextDialogOpen(true);
-      }
-    };
-
-    canvas.on('mouse:dblclick', handleDoubleClick);
-
-    return () => {
-      canvas.off('mouse:dblclick', handleDoubleClick);
-    };
-  }, [canvas]);
 
   const handleExport = () => {
     toast("Export functionality will save your SVG file");
@@ -199,8 +174,6 @@ const CanvasContent = () => {
   const handleShapeSelect = (shape: string) => {
     if (shape === 'orthogonal-line-custom') {
       setCustomOrthogonalDialogOpen(true);
-    } else if (shape === 'curved-text') {
-      setCurvedTextDialogOpen(true);
     } else {
       setActiveTool(shape);
       toast.success(`Selected ${shape}`);
@@ -473,10 +446,6 @@ const CanvasContent = () => {
         e.preventDefault();
         setActiveTool("straight-line");
         toast.info("Straight line tool activated");
-      } else if (e.shiftKey && e.key === 'T' && !modifier && !isEditingText) {
-        e.preventDefault();
-        setCurvedTextDialogOpen(true);
-        toast.info("Curved text tool activated");
       } else if (!modifier && e.key.toLowerCase() === 'c' && !isEditingText) {
         e.preventDefault();
         const activeObject = canvas?.getActiveObject();
@@ -574,25 +543,6 @@ const CanvasContent = () => {
         open={customOrthogonalDialogOpen}
         onOpenChange={setCustomOrthogonalDialogOpen}
         onConfirm={handleCustomOrthogonalLine}
-      />
-      
-      {/* Curved Text Dialog */}
-      <CurvedTextDialog
-        open={curvedTextDialogOpen}
-        onOpenChange={(open) => {
-          setCurvedTextDialogOpen(open);
-          if (!open) setEditingCurvedText(undefined);
-        }}
-        existingText={editingCurvedText}
-        onAdd={(curvedText) => {
-          if (editingCurvedText) {
-            editCurvedText(editingCurvedText, curvedText);
-          } else {
-            addCurvedText(curvedText);
-          }
-          setActiveTool('select');
-          setEditingCurvedText(undefined);
-        }}
       />
       
       {/* Crop Tool */}
@@ -812,7 +762,6 @@ const CanvasContent = () => {
               setIsPropertiesPanelCollapsed(false);
               setRightSidebarTab("properties");
             }}
-            onConvertToCurvedText={convertTextToCurvedText}
           >
             <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
           </CanvasContextMenu>

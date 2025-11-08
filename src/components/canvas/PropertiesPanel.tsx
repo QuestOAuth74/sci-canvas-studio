@@ -55,7 +55,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     smoothenPath,
     recentColors,
     addToRecentColors,
-    convertTextToCurvedText
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -144,9 +143,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     return obj?.type === 'image';
   };
 
-  const isCurvedTextObject = (obj: any) => {
-    return obj?.type === 'curvedText';
-  };
 
   // Update text properties when selected object changes
   useEffect(() => {
@@ -759,23 +755,18 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
             <TabsList className="grid w-full m-3" style={{ gridTemplateColumns: `repeat(${
               !selectedObject ? 2 : 
               (isTextObject(selectedObject) ? 3 : 
-               isLineObject(selectedObject) ? 3 : 
-               isCurvedTextObject(selectedObject) ? 3 : 2)
+               isLineObject(selectedObject) ? 3 : 2)
             }, minmax(0, 1fr))` }}>
               {!selectedObject && <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>}
               
               {selectedObject && (
                 <>
-                  {(isShapeObject(selectedObject) || isImageObject(selectedObject) || (selectedObject.type === 'group' && !isCurvedTextObject(selectedObject))) && (
+                  {(isShapeObject(selectedObject) || isImageObject(selectedObject) || selectedObject.type === 'group') && (
                     <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
                   )}
                   
                   {isTextObject(selectedObject) && (
                     <TabsTrigger value="text" className="text-xs">Text</TabsTrigger>
-                  )}
-                  
-                  {isCurvedTextObject(selectedObject) && (
-                    <TabsTrigger value="curved-text" className="text-xs">Curved Text</TabsTrigger>
                   )}
                   
                   {isLineObject(selectedObject) && (
@@ -1487,42 +1478,14 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                               onClick={() => handleTextColorChange(color)}
                               title={color}
                             />
-                          ))}
-                        </div>
-                      </div>
-                     )}
+                     ))}
                    </div>
-                   
-                   {/* Convert to Curved Text Button */}
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     className="w-full"
-                     onClick={convertTextToCurvedText}
-                   >
-                     Convert to Curved Text
-                   </Button>
                  </div>
-               )}
+                )}
+             </div>
+           </div>
+         )}
 
-              <div className="pt-3 border-t">
-                <h3 className="font-semibold text-sm mb-3">Arrange</h3>
-                <ArrangePanel />
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="curved-text" className="space-y-4 mt-0">
-              {isCurvedTextObject(selectedObject) && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-sm">Curved Text Properties</h3>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Select the curved text and use the properties panel to view details. To edit, double-click the object or use Edit menu.
-                  </p>
-                </div>
-              )}
-              
               <div className="pt-3 border-t">
                 <h3 className="font-semibold text-sm mb-3">Arrange</h3>
                 <ArrangePanel />
