@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { FeaturedProjectShowcase } from '@/components/auth/FeaturedProjectShowcase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
-import { HCaptchaWrapper, HCaptchaHandle, HCAPTCHA_SITE_KEY } from '@/components/ui/hcaptcha-wrapper';
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -81,12 +80,6 @@ export default function Auth() {
   const [signInErrors, setSignInErrors] = useState<any>({});
   const [signUpErrors, setSignUpErrors] = useState<any>({});
 
-  // Captcha states and refs
-  const [signInCaptchaToken, setSignInCaptchaToken] = useState<string>('');
-  const [signUpCaptchaToken, setSignUpCaptchaToken] = useState<string>('');
-  const signInCaptchaRef = useRef<HCaptchaHandle>(null);
-  const signUpCaptchaRef = useRef<HCaptchaHandle>(null);
-
 
   useEffect(() => {
     // Check if this is a password reset link
@@ -120,55 +113,12 @@ export default function Auth() {
       return;
     }
 
-    // Verify captcha
-    if (!signInCaptchaToken) {
-      toast({
-        title: "Verification required",
-        description: "Please complete the captcha verification",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsLoading(true);
+    const { error } = await signIn(signInEmail, signInPassword);
+    setIsLoading(false);
 
-    try {
-      // Verify captcha with edge function
-      const { data: captchaData, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: signInCaptchaToken, sitekey: HCAPTCHA_SITE_KEY }
-      });
-
-      if (captchaError || !captchaData?.success) {
-        toast({
-          title: "Verification failed",
-          description: "Captcha verification failed. Please try again.",
-          variant: "destructive"
-        });
-        signInCaptchaRef.current?.resetCaptcha();
-        setSignInCaptchaToken('');
-        setIsLoading(false);
-        return;
-      }
-
-      // Proceed with sign in
-      const { error } = await signIn(signInEmail, signInPassword);
-      setIsLoading(false);
-
-      if (!error) {
-        navigate('/');
-      } else {
-        signInCaptchaRef.current?.resetCaptcha();
-        setSignInCaptchaToken('');
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An error occurred. Please try again.",
-        variant: "destructive"
-      });
-      signInCaptchaRef.current?.resetCaptcha();
-      setSignInCaptchaToken('');
-      setIsLoading(false);
+    if (!error) {
+      navigate('/');
     }
   };
 
@@ -193,56 +143,12 @@ export default function Auth() {
       return;
     }
 
-    // Verify captcha
-    if (!signUpCaptchaToken) {
-      toast({
-        title: "Verification required",
-        description: "Please complete the captcha verification",
-        variant: "destructive"
-      });
-      return;
-    }
-
     setIsLoading(true);
+    const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName, signUpCountry, signUpFieldOfStudy);
+    setIsLoading(false);
 
-    try {
-      // Verify captcha with edge function
-      const { data: captchaData, error: captchaError } = await supabase.functions.invoke('verify-captcha', {
-        body: { token: signUpCaptchaToken, sitekey: HCAPTCHA_SITE_KEY }
-      });
-
-      if (captchaError || !captchaData?.success) {
-        toast({
-          title: "Verification failed",
-          description: "Captcha verification failed. Please try again.",
-          variant: "destructive"
-        });
-        signUpCaptchaRef.current?.resetCaptcha();
-        setSignUpCaptchaToken('');
-        setIsLoading(false);
-        return;
-      }
-
-      // Proceed with sign up
-      const { error } = await signUp(signUpEmail, signUpPassword, signUpFullName, signUpCountry, signUpFieldOfStudy);
-      setIsLoading(false);
-
-      if (!error) {
-        setActiveTab('signin');
-        setSignUpCaptchaToken('');
-      } else {
-        signUpCaptchaRef.current?.resetCaptcha();
-        setSignUpCaptchaToken('');
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An error occurred. Please try again.",
-        variant: "destructive"
-      });
-      signUpCaptchaRef.current?.resetCaptcha();
-      setSignUpCaptchaToken('');
-      setIsLoading(false);
+    if (!error) {
+      setActiveTab('signin');
     }
   };
 
@@ -511,12 +417,6 @@ export default function Auth() {
                       <p className="text-sm text-destructive">{signInErrors.password}</p>
                     )}
                   </div>
-                  <HCaptchaWrapper
-                    ref={signInCaptchaRef}
-                    onVerify={(token) => setSignInCaptchaToken(token)}
-                    onExpire={() => setSignInCaptchaToken('')}
-                    onError={() => setSignInCaptchaToken('')}
-                  />
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Sign In
@@ -611,12 +511,6 @@ export default function Auth() {
                     <p className="text-sm text-destructive">{signUpErrors.fieldOfStudy}</p>
                   )}
                 </div>
-                <HCaptchaWrapper
-                  ref={signUpCaptchaRef}
-                  onVerify={(token) => setSignUpCaptchaToken(token)}
-                  onExpire={() => setSignUpCaptchaToken('')}
-                  onError={() => setSignUpCaptchaToken('')}
-                />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
