@@ -844,7 +844,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       }
     });
-    canvas.requestRenderAll();
+    canvas.renderAll();
 
     // Calculate multiplier based on DPI (300 is base)
     const multiplier = dpi / 300;
@@ -853,7 +853,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.requestRenderAll();
+    canvas.renderAll();
 
     const link = document.createElement('a');
     link.download = selectionOnly ? `selection-${dpi}dpi.png` : `diagram-${dpi}dpi.png`;
@@ -893,7 +893,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const originalBg = canvas.backgroundColor;
     canvas.backgroundColor = '';
-    canvas.requestRenderAll();
+    canvas.renderAll();
 
     // Calculate multiplier based on DPI (300 is base)
     const multiplier = dpi / 300;
@@ -903,7 +903,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     canvas.backgroundColor = originalBg;
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.requestRenderAll();
+    canvas.renderAll();
 
     const link = document.createElement('a');
     link.download = selectionOnly ? `selection-transparent-${dpi}dpi.png` : `diagram-transparent-${dpi}dpi.png`;
@@ -940,7 +940,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       }
     });
-    canvas.requestRenderAll();
+    canvas.renderAll();
 
     // Calculate multiplier based on DPI (300 is base)
     const multiplier = dpi / 300;
@@ -949,7 +949,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.requestRenderAll();
+    canvas.renderAll();
 
     const link = document.createElement('a');
     link.download = selectionOnly ? `selection-${dpi}dpi.jpg` : `diagram-${dpi}dpi.jpg`;
@@ -986,14 +986,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       }
     });
-    canvas.requestRenderAll();
+    canvas.renderAll();
 
     const svg = canvas.toSVG();
 
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.requestRenderAll();
+    canvas.renderAll();
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
@@ -1426,7 +1426,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
     } finally {
       setIsSaving(false);
-      setSaveStatus('unsaved');
     }
   }, [canvas, user, projectName, paperSize, canvasDimensions, currentProjectId]);
 
@@ -1484,10 +1483,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   // Optimized auto-save - only save if canvas is dirty
   useEffect(() => {
-    if (!canvas || !user || !currentProjectId || !isDirty) return;
+    if (!canvas || !user || !currentProjectId) return;
 
-    const debouncedSave = debounce(() => {
-      if (isDirty && canvas && user) {
+    const interval = setInterval(() => {
+      if (isDirty && canvas && user && currentProjectId) {
         // Use requestIdleCallback if available, fallback to setTimeout
         const idleCallback = window.requestIdleCallback || ((cb: IdleRequestCallback) => setTimeout(cb, 1));
         idleCallback(() => {
@@ -1497,10 +1496,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
     }, 30000);
 
-    debouncedSave();
-
     return () => {
-      // Cleanup handled by debounce
+      clearInterval(interval);
     };
   }, [canvas, user, currentProjectId, isDirty, saveProject]);
 
