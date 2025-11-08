@@ -74,6 +74,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [freeformEndMarker, setFreeformEndMarker] = useState<"none" | "dot" | "arrow">("none");
   const [eraserWidth, setEraserWidth] = useState(20);
   const [smoothingStrength, setSmoothingStrength] = useState(50);
+  const [activeTab, setActiveTab] = useState<string>("diagram");
 
   const COLOR_PALETTE = [
     "#3b82f6", // Blue
@@ -177,6 +178,22 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       setFreeformLineThickness((pathObj.strokeWidth as number) || 2);
       setFreeformStartMarker((pathObj as any).startMarker || "none");
       setFreeformEndMarker((pathObj as any).endMarker || "none");
+    }
+  }, [selectedObject]);
+
+  // Update active tab when selectedObject changes
+  useEffect(() => {
+    if (!selectedObject) {
+      setActiveTab("diagram");
+    } else {
+      // Determine the best default tab based on object type
+      if (isTextObject(selectedObject)) {
+        setActiveTab("text");
+      } else if (isLineObject(selectedObject)) {
+        setActiveTab("line");
+      } else {
+        setActiveTab("style");
+      }
     }
   }, [selectedObject]);
 
@@ -751,7 +768,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
             </div>
           )}
 
-          <Tabs defaultValue={selectedObject ? "style" : "diagram"} className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full m-3" style={{ gridTemplateColumns: `repeat(${
               !selectedObject ? 2 : 
               (isTextObject(selectedObject) ? 3 : 
