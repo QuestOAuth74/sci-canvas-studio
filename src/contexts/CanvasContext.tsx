@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadAllFonts } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
+import { CurvedText } from "@/lib/curvedText";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -149,6 +150,9 @@ interface CanvasContextType {
   rotateSelected: (degrees: number) => void;
   duplicateBelow: () => void;
   loadTemplate: (template: any) => Promise<void>;
+  
+  // Curved text operations
+  addCurvedText: (curvedText: CurvedText) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -1566,6 +1570,17 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas, saveState]);
 
+  // Curved text operations
+  const addCurvedText = useCallback((curvedText: CurvedText) => {
+    if (!canvas) return;
+    
+    canvas.add(curvedText);
+    canvas.setActiveObject(curvedText);
+    canvas.renderAll();
+    saveState();
+    toast.success('Curved text added');
+  }, [canvas, saveState]);
+
   const duplicateSelected = useCallback(async () => {
     if (!canvas || !selectedObject) return;
 
@@ -1786,6 +1801,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     rotateSelected,
     duplicateBelow,
     loadTemplate,
+    addCurvedText,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

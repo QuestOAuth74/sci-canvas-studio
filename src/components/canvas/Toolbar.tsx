@@ -248,6 +248,22 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            variant={activeTool === "curved-text" ? "default" : "ghost"}
+            size="icon"
+            onClick={() => handleToolChange("curved-text")}
+            className="w-10 h-10"
+          >
+            <FileText className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Curved Text (Shift + T)</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
             variant={activeTool === "image" ? "default" : "ghost"}
             size="icon"
             onClick={() => handleToolChange("image")}
