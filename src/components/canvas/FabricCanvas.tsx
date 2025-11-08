@@ -13,6 +13,7 @@ import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { calculateArcPath } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { loadImageWithCORS } from "@/lib/utils";
+import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -73,6 +74,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
   const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
+  
+  // Object culling manager for viewport-based performance optimization
+  const cullingManagerRef = useRef<ObjectCullingManager>(new ObjectCullingManager());
+  const throttledCullRef = useRef<(() => void) | null>(null);
   
   const { 
     canvas,
@@ -217,6 +222,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     // Initialize connector visual feedback
     connectorFeedbackRef.current = new ConnectorVisualFeedback(canvas);
+    
+    // Initialize object culling manager
+    cullingManagerRef.current.setCanvas(canvas);
+    throttledCullRef.current = createThrottledCuller(cullingManagerRef.current, 100);
+    
+    // Apply culling on viewport changes (pan/zoom)
+    canvas.on('after:render', () => {
+      if (throttledCullRef.current) {
+        throttledCullRef.current();
+      }
+    });
     
     // Apply control styles to any existing objects on canvas
     canvas.getObjects().forEach((obj) => {
@@ -528,13 +544,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     }
   }, [canvas, canvasDimensions]);
 
-  // Handle zoom changes
+  // Handle zoom changes with culling
   useEffect(() => {
     if (!canvas) return;
 
     const zoomLevel = zoom / 100;
     canvas.setZoom(zoomLevel);
     canvas.requestRenderAll();
+    
+    // Trigger culling after zoom change
+    if (throttledCullRef.current) {
+      throttledCullRef.current();
+    }
   }, [canvas, zoom]);
 
   // Handle background color changes

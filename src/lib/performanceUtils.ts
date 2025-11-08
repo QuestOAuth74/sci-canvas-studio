@@ -49,11 +49,13 @@ export function debounce<T extends (...args: any[]) => any>(
 }
 
 /**
- * Render scheduler for batching canvas render calls
+ * Enhanced Render Scheduler for batching canvas render calls and operations
  */
 export class RenderScheduler {
   private scheduled: boolean = false;
   private canvas: any = null;
+  private operationQueue: Array<() => void> = [];
+  private batchTimeout: NodeJS.Timeout | null = null;
 
   constructor(canvas?: any) {
     this.canvas = canvas;
@@ -80,5 +82,78 @@ export class RenderScheduler {
       this.canvas.requestRenderAll();
     }
     this.scheduled = false;
+  }
+
+  /**
+   * Queue an operation to be executed in batch
+   * Useful for bulk modifications that should only trigger one render
+   */
+  queueOperation(operation: () => void) {
+    this.operationQueue.push(operation);
+
+    // Clear existing timeout
+    if (this.batchTimeout) {
+      clearTimeout(this.batchTimeout);
+    }
+
+    // Set new timeout to execute batch
+    this.batchTimeout = setTimeout(() => {
+      this.executeBatch();
+    }, 16); // ~60fps
+  }
+
+  /**
+   * Execute all queued operations in batch
+   */
+  private executeBatch() {
+    if (this.operationQueue.length === 0 || !this.canvas) return;
+
+    // Disable rendering temporarily for bulk operations
+    this.canvas.renderOnAddRemove = false;
+
+    // Execute all operations
+    this.operationQueue.forEach(operation => {
+      try {
+        operation();
+      } catch (error) {
+        console.error('Error executing batched operation:', error);
+      }
+    });
+
+    // Re-enable rendering and render once
+    this.canvas.renderOnAddRemove = true;
+    this.scheduleRender();
+
+    // Clear queue
+    this.operationQueue = [];
+    this.batchTimeout = null;
+  }
+
+  /**
+   * Execute operations immediately (skip batching)
+   */
+  executeImmediate(operation: () => void) {
+    if (!this.canvas) return;
+
+    operation();
+    this.renderNow();
+  }
+
+  /**
+   * Clear all pending operations
+   */
+  clearQueue() {
+    this.operationQueue = [];
+    if (this.batchTimeout) {
+      clearTimeout(this.batchTimeout);
+      this.batchTimeout = null;
+    }
+  }
+
+  /**
+   * Get number of pending operations
+   */
+  getPendingCount(): number {
+    return this.operationQueue.length;
   }
 }

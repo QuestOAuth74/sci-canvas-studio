@@ -9,6 +9,7 @@ import { GradientConfig, ShadowConfig } from "@/types/effects";
 import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
 import { safeDownloadDataUrl, reloadCanvasImagesWithCORS } from "@/lib/utils";
 import { removeBackground } from "@/lib/backgroundRemoval";
+import { HistoryManager } from "@/lib/historyManager";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -197,9 +198,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [backgroundColor, setBackgroundColor] = useState("#ffffff");
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 1200, height: 800 });
   const [paperSize, setPaperSize] = useState("custom");
-  const [history, setHistory] = useState<string[]>([]);
+  
+  // New differential history manager for better performance
+  const historyManager = useRef<HistoryManager>(new HistoryManager(20));
   const [historyStep, setHistoryStep] = useState(0);
-  const MAX_HISTORY_SIZE = 50;
+  
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("Untitled Diagram");
   const [isSaving, setIsSaving] = useState(false);
@@ -241,20 +244,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // Export dialog state
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
-  // History management with size limit for performance
+  // History management with differential compression
   const saveState = useCallback(() => {
     if (!canvas) return;
-    const json = JSON.stringify(canvas.toJSON());
-    const newHistory = history.slice(0, historyStep + 1);
-    newHistory.push(json);
-    
-    // Limit history size for performance
-    const limitedHistory = newHistory.slice(-MAX_HISTORY_SIZE);
-    setHistory(limitedHistory);
-    setHistoryStep(limitedHistory.length - 1);
+    historyManager.current.saveState(canvas);
+    setHistoryStep(historyManager.current.getCurrentStep());
     setSaveStatus('unsaved');
-    setIsDirty(true); // Mark canvas as dirty for optimized auto-save
-  }, [canvas, history, historyStep, MAX_HISTORY_SIZE]);
+    setIsDirty(true);
+  }, [canvas]);
   
   // Throttled version of saveState for object modifications
   const throttledSaveState = useMemo(
@@ -262,29 +259,25 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     [saveState]
   );
 
-  const undo = useCallback(() => {
-    if (!canvas || historyStep === 0) return;
-    const prevState = history[historyStep - 1];
-    if (prevState) {
-      canvas.loadFromJSON(prevState).then(() => {
-        reloadCanvasImagesWithCORS(canvas);
-        canvas.requestRenderAll();
-        setHistoryStep(prev => prev - 1);
-      });
+  const undo = useCallback(async () => {
+    if (!canvas) return;
+    const success = await historyManager.current.undo(canvas);
+    if (success) {
+      reloadCanvasImagesWithCORS(canvas);
+      renderScheduler.current?.scheduleRender();
+      setHistoryStep(historyManager.current.getCurrentStep());
     }
-  }, [canvas, history, historyStep]);
+  }, [canvas]);
 
-  const redo = useCallback(() => {
-    if (!canvas || historyStep >= history.length - 1) return;
-    const nextState = history[historyStep + 1];
-    if (nextState) {
-      canvas.loadFromJSON(nextState).then(() => {
-        reloadCanvasImagesWithCORS(canvas);
-        canvas.requestRenderAll();
-        setHistoryStep(prev => prev + 1);
-      });
+  const redo = useCallback(async () => {
+    if (!canvas) return;
+    const success = await historyManager.current.redo(canvas);
+    if (success) {
+      reloadCanvasImagesWithCORS(canvas);
+      renderScheduler.current?.scheduleRender();
+      setHistoryStep(historyManager.current.getCurrentStep());
     }
-  }, [canvas, history, historyStep]);
+  }, [canvas]);
 
   // Clipboard operations
   const cut = useCallback(() => {
@@ -1728,7 +1721,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       setCanvasDimensions(template.dimensions);
       canvas.setDimensions(template.dimensions);
       
-      setHistory([]);
+      historyManager.current.clear();
       saveState();
       setSaveStatus('unsaved');
       
