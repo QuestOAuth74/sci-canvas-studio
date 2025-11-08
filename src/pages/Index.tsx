@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, Upload, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, Upload, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom, Hand } from "lucide-react";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -141,6 +141,16 @@ const Index = () => {
               </div>
             </div>
 
+            {/* Welcome Message */}
+            {user && (
+              <div className="flex items-center justify-center gap-3 mb-4 animate-fade-in">
+                <Hand className="h-8 w-8 text-primary animate-wave" />
+                <h2 className="text-2xl md:text-3xl font-bold">
+                  Hello {user.user_metadata?.full_name?.split(' ')[0] || 'there'}!
+                </h2>
+              </div>
+            )}
+
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
               <Button 
@@ -198,6 +208,17 @@ const Index = () => {
               .animate-gradient-shift {
                 background-size: 200% 200%;
                 animation: gradient-shift 5s ease infinite;
+              }
+              @keyframes wave {
+                0%, 100% { transform: rotate(0deg); }
+                10%, 30% { transform: rotate(14deg); }
+                20% { transform: rotate(-8deg); }
+                40% { transform: rotate(-4deg); }
+                50% { transform: rotate(10deg); }
+              }
+              .animate-wave {
+                animation: wave 2s ease-in-out infinite;
+                transform-origin: 70% 70%;
               }
             `}</style>
             
