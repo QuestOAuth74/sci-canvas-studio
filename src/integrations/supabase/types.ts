@@ -791,6 +791,7 @@ export type Database = {
       }
       tool_feedback: {
         Row: {
+          comment: string | null
           created_at: string
           id: string
           page: string
@@ -800,6 +801,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          comment?: string | null
           created_at?: string
           id?: string
           page?: string
@@ -809,6 +811,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          comment?: string | null
           created_at?: string
           id?: string
           page?: string

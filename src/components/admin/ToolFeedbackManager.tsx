@@ -14,6 +14,7 @@ interface Feedback {
   page: string;
   user_agent: string | null;
   created_at: string;
+  comment: string | null;
 }
 
 export const ToolFeedbackManager = () => {
@@ -168,6 +169,7 @@ export const ToolFeedbackManager = () => {
                     <TableHead>Rating</TableHead>
                     <TableHead>User</TableHead>
                     <TableHead>Page</TableHead>
+                    <TableHead>Comment</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -204,6 +206,15 @@ export const ToolFeedbackManager = () => {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{feedback.page}</Badge>
+                      </TableCell>
+                      <TableCell className="max-w-md">
+                        {feedback.comment ? (
+                          <p className="text-sm text-foreground line-clamp-2" title={feedback.comment}>
+                            {feedback.comment}
+                          </p>
+                        ) : (
+                          <span className="text-sm text-muted-foreground italic">No comment</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
