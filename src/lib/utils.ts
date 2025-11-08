@@ -82,6 +82,37 @@ export async function safeDownloadDataUrl(dataUrl: string, filename: string): Pr
 }
 
 /**
+ * Reloads all images in canvas with CORS to prevent tainting
+ * Call this after loadFromJSON to fix export issues
+ */
+export function reloadCanvasImagesWithCORS(canvas: any): void {
+  canvas.getObjects().forEach((obj: any) => {
+    if (obj.type === 'image') {
+      const src = obj.getSrc?.() || obj.src;
+      
+      if (!src || src.startsWith('data:')) {
+        return; // Skip data URLs
+      }
+
+      // Create new image element with CORS enabled
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        obj.setElement(img);
+        canvas.requestRenderAll();
+      };
+      
+      img.onerror = () => {
+        console.warn('Failed to reload image with CORS:', src);
+      };
+      
+      img.src = src;
+    }
+  });
+}
+
+/**
  * Loads an image with proper CORS handling for canvas export compatibility
  * @param src - Image source (data URL or external URL)
  * @returns Promise resolving to loaded Image element

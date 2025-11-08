@@ -7,7 +7,7 @@ import { loadAllFonts } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
 import { GradientConfig, ShadowConfig } from "@/types/effects";
 import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
-import { safeDownloadDataUrl } from "@/lib/utils";
+import { safeDownloadDataUrl, reloadCanvasImagesWithCORS } from "@/lib/utils";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -262,6 +262,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const prevState = history[historyStep - 1];
     if (prevState) {
       canvas.loadFromJSON(prevState).then(() => {
+        reloadCanvasImagesWithCORS(canvas);
         canvas.requestRenderAll();
         setHistoryStep(prev => prev - 1);
       });
@@ -273,6 +274,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const nextState = history[historyStep + 1];
     if (nextState) {
       canvas.loadFromJSON(nextState).then(() => {
+        reloadCanvasImagesWithCORS(canvas);
         canvas.requestRenderAll();
         setHistoryStep(prev => prev + 1);
       });
@@ -1576,6 +1578,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Load canvas data
       await canvas.loadFromJSON(data.canvas_data as Record<string, any>);
       
+      // Reload images with CORS to prevent tainting
+      reloadCanvasImagesWithCORS(canvas);
+      
       // Force font re-application after loading
       canvas.getObjects().forEach(obj => {
         if (obj.type === 'textbox' || obj.type === 'text') {
@@ -1662,7 +1667,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const recoverCanvas = useCallback((recoveryData: any) => {
     if (!canvas) return;
     
-    canvas.loadFromJSON(recoveryData.state, () => {
+    canvas.loadFromJSON(recoveryData.state).then(() => {
+      reloadCanvasImagesWithCORS(canvas);
       canvas.requestRenderAll();
       toast.success('Canvas recovered successfully!');
       localStorage.removeItem('canvas_recovery');
@@ -1696,6 +1702,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       
       canvas.clear();
       await canvas.loadFromJSON(template.canvasData);
+      
+      // Reload images with CORS to prevent tainting
+      reloadCanvasImagesWithCORS(canvas);
       
       canvas.getObjects().forEach(obj => {
         if (obj.type === 'textbox' || obj.type === 'text') {

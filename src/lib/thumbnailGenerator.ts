@@ -1,5 +1,6 @@
 import { Canvas as FabricCanvas } from "fabric";
 import { supabase } from "@/integrations/supabase/client";
+import { reloadCanvasImagesWithCORS } from "@/lib/utils";
 
 // Helper function to safely encode SVG to base64 with unicode support
 const svgToBase64 = (svgContent: string): string => {
@@ -80,6 +81,7 @@ export async function generateProjectThumbnail(
 
     // Load the canvas data
     await tempCanvas.loadFromJSON(canvasData);
+    reloadCanvasImagesWithCORS(tempCanvas);
     tempCanvas.renderAll();
 
     // Calculate thumbnail dimensions (max 800x600, maintain aspect ratio)
