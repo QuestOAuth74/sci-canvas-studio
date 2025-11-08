@@ -8,13 +8,15 @@ import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
 import { LinePropertiesPanel } from "./LinePropertiesPanel";
 import { StylePresets } from "./StylePresets";
+import { ImageEraserTool } from "./ImageEraserTool";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as FabricCircle, Polygon } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ChevronLeft, ChevronRight, Pin, PinOff, Eraser } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pin, PinOff, Eraser, Paintbrush } from "lucide-react";
+import { toast } from "sonner";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -76,6 +78,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [eraserWidth, setEraserWidth] = useState(20);
   const [smoothingStrength, setSmoothingStrength] = useState(50);
   const [activeTab, setActiveTab] = useState<string>("diagram");
+  const [showImageEraser, setShowImageEraser] = useState(false);
 
   const COLOR_PALETTE = [
     "#3b82f6", // Blue
@@ -179,6 +182,10 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       setFreeformLineThickness((pathObj.strokeWidth as number) || 2);
       setFreeformStartMarker((pathObj as any).startMarker || "none");
       setFreeformEndMarker((pathObj as any).endMarker || "none");
+    }
+    // Close eraser tool if selection changes or is no longer an image
+    if (!selectedObject || !(selectedObject instanceof FabricImage)) {
+      setShowImageEraser(false);
     }
   }, [selectedObject]);
 
@@ -1375,18 +1382,81 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                   {/* Background Removal */}
                   <div className="space-y-2 pt-4 border-t">
                     <Label className="text-sm font-medium">Background Removal</Label>
-                    <Button 
-                      onClick={removeImageBackground}
-                      className="w-full"
-                      variant="outline"
-                    >
-                      <Eraser className="mr-2 h-4 w-4" />
-                      Remove Background
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Uses AI to automatically remove the background from your image.
-                      Works best with clear subjects.
-                    </p>
+                    
+                    {!showImageEraser && (
+                      <>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button 
+                            onClick={removeImageBackground}
+                            className="w-full"
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Eraser className="mr-2 h-4 w-4" />
+                            AI Remove
+                          </Button>
+                          <Button 
+                            onClick={() => setShowImageEraser(true)}
+                            className="w-full"
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Paintbrush className="mr-2 h-4 w-4" />
+                            Manual Erase
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Use AI for automatic removal or manually erase with a brush.
+                        </p>
+                      </>
+                    )}
+                    
+                    {showImageEraser && selectedObject instanceof FabricImage && (
+                      <ImageEraserTool
+                        image={selectedObject}
+                        onComplete={async (dataUrl) => {
+                          if (!canvas) return;
+                          
+                          try {
+                            // Create new image with erased background
+                            const newImg = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+                            
+                            // Preserve all properties from original
+                            newImg.set({
+                              left: selectedObject.left,
+                              top: selectedObject.top,
+                              scaleX: selectedObject.scaleX,
+                              scaleY: selectedObject.scaleY,
+                              angle: selectedObject.angle,
+                              opacity: selectedObject.opacity,
+                              flipX: selectedObject.flipX,
+                              flipY: selectedObject.flipY,
+                              originX: selectedObject.originX,
+                              originY: selectedObject.originY,
+                            });
+                            
+                            // Replace old image
+                            const objects = canvas.getObjects();
+                            const index = objects.indexOf(selectedObject);
+                            canvas.remove(selectedObject);
+                            if (index >= 0) {
+                              canvas.insertAt(index, newImg);
+                            } else {
+                              canvas.add(newImg);
+                            }
+                            canvas.setActiveObject(newImg);
+                            canvas.renderAll();
+                            
+                            setShowImageEraser(false);
+                            toast.success('Background erased successfully!');
+                          } catch (error) {
+                            console.error('Failed to apply erased image:', error);
+                            toast.error('Failed to apply changes');
+                          }
+                        }}
+                        onCancel={() => setShowImageEraser(false)}
+                      />
+                    )}
                   </div>
                 </div>
               )}
