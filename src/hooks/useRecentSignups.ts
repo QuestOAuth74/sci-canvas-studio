@@ -5,14 +5,14 @@ export const useRecentSignups = () => {
   return useQuery({
     queryKey: ["recent-signups"],
     queryFn: async () => {
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+      const seventyTwoHoursAgo = new Date();
+      seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72);
 
       // Get count
       const { count, error: countError } = await supabase
         .from("profiles")
         .select("*", { count: "exact", head: true })
-        .gte("created_at", twentyFourHoursAgo.toISOString());
+        .gte("created_at", seventyTwoHoursAgo.toISOString());
 
       if (countError) {
         console.error("Error fetching recent signups:", countError);
@@ -23,7 +23,7 @@ export const useRecentSignups = () => {
       const { data: profiles, error: dataError } = await supabase
         .from("profiles")
         .select("country")
-        .gte("created_at", twentyFourHoursAgo.toISOString())
+        .gte("created_at", seventyTwoHoursAgo.toISOString())
         .not("country", "is", null);
 
       if (dataError) {
