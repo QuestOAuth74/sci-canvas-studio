@@ -3,9 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ThumbsUp, ThumbsDown, User, UserX } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ThumbsUp, ThumbsDown, User, UserX, CheckCheck } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface Feedback {
   id: string;
@@ -15,6 +17,7 @@ interface Feedback {
   user_agent: string | null;
   created_at: string;
   comment: string | null;
+  is_viewed: boolean;
 }
 
 export const ToolFeedbackManager = () => {
@@ -62,6 +65,22 @@ export const ToolFeedbackManager = () => {
     }
 
     setFilteredFeedbacks(filtered);
+  };
+
+  const markAllAsViewed = async () => {
+    try {
+      const { error } = await supabase
+        .from('tool_feedback')
+        .update({ is_viewed: true })
+        .eq('is_viewed', false);
+
+      if (error) throw error;
+      
+      toast.success('All feedback marked as viewed');
+      fetchFeedbacks();
+    } catch (error) {
+      toast.error('Failed to mark all feedback as viewed');
+    }
   };
 
   const getStatistics = () => {
@@ -130,8 +149,21 @@ export const ToolFeedbackManager = () => {
       {/* Filters and Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Feedback Details</CardTitle>
-          <CardDescription>All user feedback submissions</CardDescription>
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <CardTitle>Feedback Details</CardTitle>
+              <CardDescription>All user feedback submissions</CardDescription>
+            </div>
+            <Button
+              onClick={markAllAsViewed}
+              variant="outline"
+              size="sm"
+              disabled={feedbacks.filter(f => !f.is_viewed).length === 0}
+            >
+              <CheckCheck className="h-4 w-4 mr-2" />
+              Mark All as Viewed
+            </Button>
+          </div>
           
           <div className="flex gap-4 pt-4">
             <Select value={filterRating} onValueChange={setFilterRating}>
@@ -165,11 +197,12 @@ export const ToolFeedbackManager = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Rating</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Page</TableHead>
-                    <TableHead>Comment</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Rating</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Page</TableHead>
+              <TableHead>Comment</TableHead>
+              <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -207,16 +240,21 @@ export const ToolFeedbackManager = () => {
                       <TableCell>
                         <Badge variant="outline">{feedback.page}</Badge>
                       </TableCell>
-                      <TableCell className="max-w-md">
-                        {feedback.comment ? (
-                          <p className="text-sm text-foreground line-clamp-2" title={feedback.comment}>
-                            {feedback.comment}
-                          </p>
-                        ) : (
-                          <span className="text-sm text-muted-foreground italic">No comment</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
+                       <TableCell className="max-w-md">
+                         {feedback.comment ? (
+                           <p className="text-sm text-foreground line-clamp-2" title={feedback.comment}>
+                             {feedback.comment}
+                           </p>
+                         ) : (
+                           <span className="text-sm text-muted-foreground italic">No comment</span>
+                         )}
+                       </TableCell>
+                       <TableCell>
+                         {!feedback.is_viewed && (
+                           <Badge variant="secondary" className="text-xs">New</Badge>
+                         )}
+                       </TableCell>
+                     </TableRow>
                   ))}
                 </TableBody>
               </Table>

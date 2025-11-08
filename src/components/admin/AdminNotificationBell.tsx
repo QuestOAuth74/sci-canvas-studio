@@ -68,10 +68,11 @@ export const AdminNotificationBell = () => {
       .select('id', { count: 'exact', head: true })
       .eq('is_read', false);
 
-    // Fetch tool feedback
+    // Fetch unviewed tool feedback
     const { count: feedbackCount } = await supabase
       .from('tool_feedback')
-      .select('id', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true })
+      .eq('is_viewed', false);
 
     setPendingProjects(projectsCount || 0);
     setPendingTestimonials(testimonialsCount || 0);

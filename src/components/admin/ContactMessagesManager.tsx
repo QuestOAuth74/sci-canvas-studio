@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Mail, Trash2, Eye, EyeOff, StickyNote, MapPin, Calendar, Reply, Loader2 } from "lucide-react";
+import { Mail, Trash2, Eye, EyeOff, StickyNote, MapPin, Calendar, Reply, Loader2, CheckCheck } from "lucide-react";
 import { format } from "date-fns";
 
 export const ContactMessagesManager = () => {
@@ -95,6 +95,24 @@ export const ContactMessagesManager = () => {
     },
   });
 
+  const markAllAsRead = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("contact_messages")
+        .update({ is_read: true })
+        .eq("is_read", false);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contact-messages"] });
+      toast.success("All messages marked as read");
+    },
+    onError: () => {
+      toast.error("Failed to mark all messages as read");
+    },
+  });
+
   const sendReply = useMutation({
     mutationFn: async ({ 
       recipientEmail, 
@@ -172,13 +190,24 @@ export const ContactMessagesManager = () => {
                 Total: {messages?.length || 0} | Unread: {unreadCount}
               </CardDescription>
             </div>
-            <Button
-              variant={showUnreadOnly ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowUnreadOnly(!showUnreadOnly)}
-            >
-              {showUnreadOnly ? "Show All" : "Unread Only"}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => markAllAsRead.mutate()}
+                disabled={unreadCount === 0 || markAllAsRead.isPending}
+              >
+                <CheckCheck className="h-4 w-4 mr-2" />
+                Mark All as Read
+              </Button>
+              <Button
+                variant={showUnreadOnly ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowUnreadOnly(!showUnreadOnly)}
+              >
+                {showUnreadOnly ? "Show All" : "Unread Only"}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>

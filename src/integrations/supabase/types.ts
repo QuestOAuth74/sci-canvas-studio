@@ -794,6 +794,7 @@ export type Database = {
           comment: string | null
           created_at: string
           id: string
+          is_viewed: boolean
           page: string
           rating: string
           session_id: string | null
@@ -804,6 +805,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          is_viewed?: boolean
           page?: string
           rating: string
           session_id?: string | null
@@ -814,6 +816,7 @@ export type Database = {
           comment?: string | null
           created_at?: string
           id?: string
+          is_viewed?: boolean
           page?: string
           rating?: string
           session_id?: string | null
