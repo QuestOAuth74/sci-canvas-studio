@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { ProjectCard } from '@/components/community/ProjectCard';
 import { ProjectPreviewModal } from '@/components/community/ProjectPreviewModal';
 import { CommunityFilters } from '@/components/community/CommunityFilters';
+import { FeatureUnlockBanner } from '@/components/community/FeatureUnlockBanner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import {
@@ -189,6 +190,8 @@ export default function Community() {
           <UserMenu />
         </div>
       </header>
+
+      <FeatureUnlockBanner />
 
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col gap-6">
