@@ -523,6 +523,96 @@ All colors MUST be HSL.
     --sidebar-border: 215 15% 25%;
     --sidebar-ring: 210 75% 65%;
   }
+
+  /* Fall Theme - Light Mode */
+  .theme-fall {
+    --background: 35 25% 96%;           /* Light cream/beige */
+    --foreground: 30 20% 25%;            /* Dark brown text */
+    --card: 35 20% 97%;                  /* Very light warm beige */
+    --card-foreground: 30 20% 25%;       /* Dark brown */
+    --popover: 35 20% 97%;
+    --popover-foreground: 30 20% 25%;
+    
+    /* Primary - Warm Amber/Orange */
+    --primary: 38 85% 55%;               /* Rich amber */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Deep Brown */
+    --secondary: 25 45% 40%;             /* Chocolate brown */
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Muted - Warm Tan */
+    --muted: 35 20% 90%;                 /* Light tan */
+    --muted-foreground: 30 15% 45%;      /* Medium brown */
+    
+    /* Accent - Golden Yellow */
+    --accent: 45 75% 70%;                /* Warm gold */
+    --accent-foreground: 30 20% 25%;
+    
+    /* Destructive - Warm Red */
+    --destructive: 10 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* UI Elements */
+    --border: 35 15% 82%;                /* Warm border */
+    --input: 35 20% 97%;
+    --ring: 38 85% 55%;
+    
+    /* Sidebar */
+    --sidebar-background: 35 20% 90%;
+    --sidebar-foreground: 30 20% 25%;
+    --sidebar-primary: 38 85% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 45 75% 70%;
+    --sidebar-accent-foreground: 30 20% 25%;
+    --sidebar-border: 35 15% 82%;
+    --sidebar-ring: 38 85% 55%;
+  }
+
+  /* Fall Theme - Dark Mode */
+  .theme-fall.dark {
+    --background: 25 20% 14%;            /* Dark chocolate brown */
+    --foreground: 40 30% 85%;            /* Warm light text */
+    --card: 25 18% 18%;                  /* Dark warm card */
+    --card-foreground: 40 30% 85%;
+    --popover: 25 18% 18%;
+    --popover-foreground: 40 30% 85%;
+    
+    /* Primary - Bright Amber */
+    --primary: 40 80% 60%;               /* Glowing amber */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Golden Yellow */
+    --secondary: 45 70% 55%;             /* Warm gold */
+    --secondary-foreground: 25 20% 14%;
+    
+    /* Muted */
+    --muted: 25 15% 22%;                 /* Dark tan */
+    --muted-foreground: 40 20% 65%;
+    
+    /* Accent - Peach */
+    --accent: 30 65% 70%;                /* Light warm peach */
+    --accent-foreground: 25 20% 14%;
+    
+    /* Destructive */
+    --destructive: 10 75% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* UI Elements */
+    --border: 25 15% 26%;
+    --input: 25 15% 22%;
+    --ring: 40 80% 60%;
+    
+    /* Sidebar */
+    --sidebar-background: 25 18% 16%;
+    --sidebar-foreground: 40 30% 85%;
+    --sidebar-primary: 40 80% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 30 65% 70%;
+    --sidebar-accent-foreground: 25 20% 14%;
+    --sidebar-border: 25 15% 26%;
+    --sidebar-ring: 40 80% 60%;
+  }
 }
 
 @layer base {

@@ -28,6 +28,13 @@ export const ThemeSwitcher = () => {
           {theme === 'blue' && <Check className="h-4 w-4" />}
         </div>
       </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => setTheme('fall')}>
+        <div className="flex items-center gap-2 w-full">
+          <div className="w-4 h-4 rounded-full bg-[hsl(38,85%,55%)] border border-border" />
+          <span className="flex-1">Fall Theme</span>
+          {theme === 'fall' && <Check className="h-4 w-4" />}
+        </div>
+      </DropdownMenuItem>
     </>
   );
 };

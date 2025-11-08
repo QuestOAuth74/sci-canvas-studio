@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-type Theme = 'purple' | 'blue';
+type Theme = 'purple' | 'blue' | 'fall';
 
 interface ThemeContextType {
   theme: Theme;
@@ -12,14 +12,14 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setThemeState] = useState<Theme>(() => {
     const stored = localStorage.getItem('theme-color-scheme');
-    return (stored === 'blue' || stored === 'purple') ? stored : 'purple';
+    return (stored === 'blue' || stored === 'purple' || stored === 'fall') ? stored : 'purple';
   });
 
   useEffect(() => {
     const root = document.documentElement;
     
-    // Remove both theme classes first
-    root.classList.remove('theme-purple', 'theme-blue');
+    // Remove all theme classes first
+    root.classList.remove('theme-purple', 'theme-blue', 'theme-fall');
     
     // Add the selected theme class
     root.classList.add(`theme-${theme}`);
