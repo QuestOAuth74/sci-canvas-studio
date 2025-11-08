@@ -422,88 +422,120 @@ const Index = () => {
         </div>
 
       {/* Footer Section */}
-      <footer className="relative z-10 border-t border-border/60 bg-gradient-to-b from-muted/30 to-background mt-16">
+      <footer className="relative z-10 mt-20">
         <div className="container mx-auto px-4 py-12">
-          <div className="max-w-6xl mx-auto space-y-12">
-            {/* Share Section */}
-            <div className="bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 rounded-2xl shadow-lg p-8 md:p-10">
-              <h3 className="text-2xl md:text-3xl font-semibold mb-4 flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-secondary to-secondary/80 rounded-xl shadow-md">
-                  <Share2 className="h-6 w-6 text-white" />
+          {/* Made with Love Banner */}
+          <div className="relative mb-12 animate-fade-in">
+            <div className="glass-card p-6 md:p-8 border-2 border-primary/30 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10" />
+              <div className="relative text-center">
+                <p className="text-2xl md:text-3xl font-bold tracking-tight">
+                  Made with <Heart className="inline h-7 w-7 text-red-500 animate-pulse mx-1" fill="currentColor" /> by the Scientific Community
+                </p>
+                <p className="text-sm md:text-base font-medium text-muted-foreground mt-2">
+                  Empowering researchers worldwide to create beautiful scientific illustrations
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Footer Content */}
+          <div className="glass-card p-10 md:p-12 border-t-2 border-primary/20">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12 mb-10">
+              
+              {/* About Column */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <Microscope className="h-8 w-8 text-primary" />
+                  <h3 className="text-xl font-bold tracking-tight">BioSketch</h3>
                 </div>
-                Share BioSketch 💌
-              </h3>
-              <p className="text-base md:text-lg font-medium leading-relaxed mb-6 text-foreground/70">
-                The best way to support BioSketch is by sharing it with colleagues, students, 
-                and others who might benefit from free scientific illustration tools.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  onClick={() => navigate('/share')}
-                  className="h-12 px-8 text-base font-semibold group"
-                >
-                  <Share2 className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Share BioSketch
-                </Button>
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  onClick={() => navigate("/testimonials")}
-                  className="h-12 px-8 text-base font-semibold group"
-                >
-                  <MessageCircleHeart className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                  Leave a Kind Word
-                </Button>
+                <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+                  A free, open-source scientific illustration tool designed by scientists, for scientists.
+                </p>
+              </div>
+
+              {/* Resources Column */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-primary" />
+                  Resources
+                </h4>
+                <div className="space-y-2">
+                  <button onClick={() => navigate("/community")} className="block text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Community Gallery
+                  </button>
+                  <button onClick={() => navigate("/blog")} className="block text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Blog & Tutorials
+                  </button>
+                  <button onClick={() => navigate("/release-notes")} className="block text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Release Notes
+                  </button>
+                  <button onClick={() => navigate("/testimonials")} className="block text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Testimonials
+                  </button>
+                  <button onClick={() => navigate("/share")} className="block text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Share BioSketch
+                  </button>
+                </div>
+              </div>
+
+              {/* Legal Column */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-primary" />
+                  Legal
+                </h4>
+                <div className="space-y-2">
+                  <button onClick={() => navigate("/terms")} className="block text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Terms & Conditions
+                  </button>
+                  <button onClick={() => navigate("/contact")} className="block text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Contact Us
+                  </button>
+                  <div className="pt-2 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground/80">
+                      CC-BY License
+                    </p>
+                    <p className="text-xs font-medium text-muted-foreground/70">
+                      Icons by{" "}
+                      <a href="https://www.biorender.com/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline">
+                        BioRender.com
+                      </a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Community Column */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  Community
+                </h4>
+                <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-4">
+                  Join researchers from leading institutions worldwide creating better science communication.
+                </p>
+                <img 
+                  src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
+                  alt="BioSketch Art"
+                  width="120"
+                  height="120"
+                  className="border-2 border-border/60 rounded-xl shadow-md"
+                />
               </div>
             </div>
 
-            {/* Community Gallery Carousel */}
-            {user && (
-              <div className="py-8">
-                <CommunityCarousel />
-              </div>
-            )}
-
-            {/* Footer Image */}
-            <div className="flex flex-col items-center py-8 gap-4">
-              <img 
-                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
-                alt="BioSketch Art"
-                width="150"
-                height="150"
-                className="border-2 border-border/60 rounded-2xl shadow-lg"
-              />
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => navigate("/release-notes")}
-                  className="px-4 py-2 bg-accent/10 text-accent border border-accent/20 rounded-lg shadow-sm font-semibold text-sm hover:shadow-md hover:scale-105 transition-all hover:bg-accent/20"
-                >
-                  v1.1.0
-                </button>
-                <button
-                  onClick={() => navigate("/contact")}
-                  className="px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-lg shadow-sm font-semibold text-sm hover:shadow-md hover:scale-105 transition-all hover:bg-primary/20"
-                >
-                  Contact Us
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Footer */}
-            <div className="text-center pt-8 border-t border-border/40 space-y-3">
-              <p className="text-sm md:text-base font-medium text-foreground/70">
-                All content on BioSketch.Art is shared under creative commons license (CC-BY) unless stated otherwise.{" "}
-                <button
-                  onClick={() => navigate("/terms")}
-                  className="underline hover:text-primary transition-colors font-semibold"
-                >
-                  Terms and Conditions
-                </button>
+            {/* Bottom Bar */}
+            <div className="pt-8 border-t border-border/40 flex flex-col md:flex-row justify-between items-center gap-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                © {new Date().getFullYear()} BioSketch. All rights reserved.
               </p>
-              <p className="text-sm md:text-base font-semibold text-foreground/60">
-                Made with <Share2 className="inline h-4 w-4 text-primary animate-pulse" /> by the Scientific Community
-              </p>
+              <button
+                onClick={() => navigate("/release-notes")}
+                className="px-3 py-1.5 glass-effect text-primary border border-primary/20 rounded-lg text-xs font-semibold hover:bg-primary/10 transition-all"
+              >
+                v1.1.0
+              </button>
             </div>
           </div>
         </div>
