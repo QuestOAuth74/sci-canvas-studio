@@ -17,7 +17,6 @@ import { SignupToast } from "@/components/SignupToast";
 import { InstitutionCarousel } from "@/components/InstitutionCarousel";
 import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 import { CommunityCarousel } from "@/components/community/CommunityCarousel";
-import { AnatomyIconsShowcase } from "@/components/home/AnatomyIconsShowcase";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -390,11 +389,6 @@ const Index = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Anatomy Icons Showcase */}
-      <div className="container mx-auto px-4 py-12 relative z-10">
-        <AnatomyIconsShowcase />
       </div>
 
         {/* Blog Posts Carousel - Only for authenticated users */}
