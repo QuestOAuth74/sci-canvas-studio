@@ -521,6 +521,33 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          attempt_time: string
+          created_at: string
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean
+        }
+        Insert: {
+          attempt_time?: string
+          created_at?: string
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+        }
+        Update: {
+          attempt_time?: string
+          created_at?: string
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       powerpoint_custom_templates: {
         Row: {
           colors: Json
@@ -917,6 +944,7 @@ export type Database = {
     }
     Functions: {
       can_user_generate: { Args: { _user_id: string }; Returns: Json }
+      cleanup_old_login_attempts: { Args: never; Returns: undefined }
       clone_project: {
         Args: { new_project_name: string; source_project_id: string }
         Returns: string

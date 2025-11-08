@@ -108,18 +108,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
+    // Use rate-limited login edge function
+    const { data, error: functionError } = await supabase.functions.invoke('rate-limited-login', {
+      body: { email, password }
     });
-    
-    if (error) {
-      toast.error(error.message);
-    } else {
+
+    if (functionError) {
+      toast.error(functionError.message);
+      return { error: functionError };
+    }
+
+    if (!data.success) {
+      const errorMessage = data.rateLimited 
+        ? data.error 
+        : data.remainingAttempts !== undefined
+          ? `${data.error}. ${data.remainingAttempts} attempt(s) remaining.`
+          : data.error;
+      
+      toast.error(errorMessage);
+      return { error: { message: data.error } };
+    }
+
+    // Set the session from the edge function response
+    if (data.session) {
+      await supabase.auth.setSession(data.session);
       toast.success('Welcome back!');
     }
     
-    return { error };
+    return { error: null };
   };
 
   const signOut = async () => {
