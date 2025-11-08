@@ -281,6 +281,17 @@ export default function Auth() {
 
         {/* Auth Card */}
         <Card className="w-full lg:flex-1 lg:max-w-md backdrop-blur-sm bg-card/80 border-border shadow-xl">
+          <div className="p-4 pb-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="mb-2"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+          </div>
         <CardHeader className="space-y-1">
           <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             BioSketch
