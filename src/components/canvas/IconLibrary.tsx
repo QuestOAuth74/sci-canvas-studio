@@ -363,23 +363,17 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
         return;
       }
 
-      // Check SVG size and enforce limits
+      // Check SVG size and show warnings (but don't block)
       const svgSizeKB = new Blob([data.svg_content]).size / 1024;
       console.log(`Loading icon: ${icon.name}, Size: ${svgSizeKB.toFixed(2)} KB`);
       
-      // Block icons over 1MB (Web Worker limit)
+      // Warn for large icons but continue loading
       if (svgSizeKB > 1024) {
-        clearInterval(progressInterval);
-        setLoadingProgress(null);
-        toast.error(`Icon too large (${svgSizeKB.toFixed(0)}KB)`, {
-          description: 'Maximum size is 1MB. Try simplifying the graphic.'
+        toast.warning(`Very large icon (${svgSizeKB.toFixed(0)}KB)`, {
+          description: 'This may take longer to load. Processing...'
         });
-        return;
-      }
-      
-      // Warn for icons over 500KB
-      if (svgSizeKB > 500) {
-        toast.warning(`Large icon (${svgSizeKB.toFixed(0)}KB)`, {
+      } else if (svgSizeKB > 500) {
+        toast.info(`Large icon (${svgSizeKB.toFixed(0)}KB)`, {
           description: 'Processing may take a moment...'
         });
       }

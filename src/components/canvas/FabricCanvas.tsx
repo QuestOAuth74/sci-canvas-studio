@@ -372,17 +372,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           worker.postMessage({ type: 'parse', svgContent: svgData, id: iconId || 'temp' });
         });
         
-        if (workerResult.type === 'error') {
-          throw new Error(workerResult.error);
-        }
-        
-        if (workerResult.type === 'too-complex') {
-          toast.warning(workerResult.error, {
-            description: 'This icon is very complex and may slow down the canvas.'
+        // Show any warnings from worker (but continue loading)
+        if (workerResult.data?.warnings?.length > 0) {
+          workerResult.data.warnings.forEach((warning: string) => {
+            toast.warning(warning, {
+              description: 'Icon will still load, but performance may be affected.',
+              duration: 5000
+            });
           });
         }
         
-        // Use processed SVG from worker
+        // Always use the processed SVG - no blocking
         const processedSVG = workerResult.data.svgContent;
         console.log('Worker processed SVG, complexity:', workerResult.data.complexity);
         

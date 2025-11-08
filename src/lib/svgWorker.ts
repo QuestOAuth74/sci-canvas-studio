@@ -11,11 +11,14 @@ interface SVGParseMessage {
 }
 
 interface SVGParseResult {
-  type: 'success' | 'error' | 'too-complex';
+  type: 'success';
   id: string;
-  data?: any;
-  error?: string;
-  complexity?: number;
+  data: {
+    svgContent: string;
+    complexity: number;
+    simplified: boolean;
+    warnings?: string[];
+  };
 }
 
 // Calculate SVG complexity score
@@ -50,51 +53,49 @@ self.onmessage = async (e: MessageEvent<SVGParseMessage>) => {
   if (type !== 'parse') return;
   
   try {
-    // Check size
+    const warnings: string[] = [];
+    
+    // Check size - WARN but don't block
     if (svgContent.length > MAX_SVG_SIZE) {
-      const result: SVGParseResult = {
-        type: 'error',
-        id,
-        error: `SVG too large (${(svgContent.length / 1024).toFixed(0)}KB). Maximum size is 1MB.`
-      };
-      self.postMessage(result);
-      return;
+      warnings.push(`Very large SVG (${(svgContent.length / 1024).toFixed(0)}KB). Performance may be affected.`);
+    } else if (svgContent.length > MAX_SVG_SIZE / 2) {
+      warnings.push(`Large SVG (${(svgContent.length / 1024).toFixed(0)}KB). Processing may take a moment.`);
     }
     
-    // Check complexity
+    // Check complexity - WARN but don't block
     const complexity = calculateComplexity(svgContent);
     if (complexity > MAX_COMPLEXITY_SCORE) {
-      const result: SVGParseResult = {
-        type: 'too-complex',
-        id,
-        error: `SVG too complex (score: ${complexity}). Try simplifying the graphic.`,
-        complexity
-      };
-      self.postMessage(result);
-      return;
+      warnings.push(`Very complex SVG (score: ${complexity}). Applying aggressive simplification.`);
     }
     
-    // Simplify if moderately complex
-    const processedSvg = complexity > 500 ? simplifySVG(svgContent) : svgContent;
+    // Apply aggressive simplification for large/complex SVGs
+    const shouldSimplify = complexity > 500 || svgContent.length > MAX_SVG_SIZE / 2;
+    const processedSvg = shouldSimplify ? simplifySVG(svgContent) : svgContent;
     
-    // Parse SVG (note: fabric.loadSVGFromString doesn't work in worker)
-    // So we'll return the processed SVG and let main thread do final parsing
+    // ALWAYS return success with warnings
     const result: SVGParseResult = {
       type: 'success',
       id,
       data: {
         svgContent: processedSvg,
         complexity,
-        simplified: complexity > 500
+        simplified: shouldSimplify,
+        warnings: warnings.length > 0 ? warnings : undefined
       }
     };
     
     self.postMessage(result);
   } catch (error) {
+    // Even on error, try to return the original SVG with a warning
     const result: SVGParseResult = {
-      type: 'error',
+      type: 'success',
       id,
-      error: error instanceof Error ? error.message : 'Failed to process SVG'
+      data: {
+        svgContent: svgContent,
+        complexity: 0,
+        simplified: false,
+        warnings: [error instanceof Error ? error.message : 'Failed to process SVG - using original']
+      }
     };
     self.postMessage(result);
   }
