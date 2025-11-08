@@ -57,7 +57,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     smoothenPath,
     recentColors,
     addToRecentColors,
-    removeImageBackground,
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -1385,28 +1384,17 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                     
                     {!showImageEraser && (
                       <>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            onClick={removeImageBackground}
-                            className="w-full"
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Eraser className="mr-2 h-4 w-4" />
-                            AI Remove
-                          </Button>
-                          <Button 
-                            onClick={() => setShowImageEraser(true)}
-                            className="w-full"
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Paintbrush className="mr-2 h-4 w-4" />
-                            Manual Erase
-                          </Button>
-                        </div>
+                        <Button 
+                          onClick={() => setShowImageEraser(true)}
+                          className="w-full"
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Paintbrush className="mr-2 h-4 w-4" />
+                          Manual Eraser
+                        </Button>
                         <p className="text-xs text-muted-foreground">
-                          Use AI for automatic removal or manually erase with a brush.
+                          Manually erase parts of the image with a brush tool.
                         </p>
                       </>
                     )}

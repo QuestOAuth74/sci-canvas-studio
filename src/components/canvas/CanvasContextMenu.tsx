@@ -56,7 +56,6 @@ interface CanvasContextMenuProps {
   onRedo: () => void;
   onShowAllHidden: () => void;
   onOpenProperties: () => void;
-  onRemoveBackground: () => void;
 }
 
 export const CanvasContextMenu = ({
@@ -84,7 +83,6 @@ export const CanvasContextMenu = ({
   onRedo,
   onShowAllHidden,
   onOpenProperties,
-  onRemoveBackground,
 }: CanvasContextMenuProps) => {
   const hasSelection = !!selectedObject;
   // Determine if multiple objects are selected without relying on private Fabric internals
@@ -210,14 +208,6 @@ export const CanvasContextMenu = ({
             )}
             
             <ContextMenuSeparator />
-            
-            {isImageObject && (
-              <ContextMenuItem onClick={onRemoveBackground}>
-                <Eraser className="mr-2 h-4 w-4" />
-                <span>Remove Background</span>
-                <ContextMenuShortcut>⌘⇧B</ContextMenuShortcut>
-              </ContextMenuItem>
-            )}
             
             <ContextMenuItem onClick={onOpenProperties}>
               <Settings className="mr-2 h-4 w-4" />
