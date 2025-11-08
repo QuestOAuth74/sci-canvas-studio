@@ -27,6 +27,11 @@ export class CurvedText extends FabricObject {
   private internalCanvas: HTMLCanvasElement | null = null;
 
   static type = 'curvedText';
+  
+  static cacheProperties = [
+    ...(FabricObject.prototype as any).cacheProperties || [],
+    'text', 'diameter', 'kerning', 'flipped', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle', 'textFill'
+  ];
 
   constructor(text: string = '', options: CurvedTextOptions = {}) {
     super(options);
@@ -43,6 +48,10 @@ export class CurvedText extends FabricObject {
     
     this.width = this.diameter;
     this.height = this.diameter / 2;
+    
+    // Set center origin for proper rendering
+    this.originX = 'center';
+    this.originY = 'center';
     
     // Disable caching to prevent blank renders in Fabric v6
     this.objectCaching = false;
@@ -65,6 +74,13 @@ export class CurvedText extends FabricObject {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
     const radius = this.diameter / 2;
+    
+    // Handle empty text case
+    if (!this.text || !this.text.trim()) {
+      canvas.width = 1;
+      canvas.height = 1;
+      return canvas;
+    }
     
     // Set canvas size
     canvas.width = this.diameter;
@@ -119,7 +135,12 @@ export class CurvedText extends FabricObject {
       angle += charAngle;
     }
     
-    return this.cropCanvas(canvas);
+    try {
+      return this.cropCanvas(canvas);
+    } catch (error) {
+      console.warn('Failed to crop canvas, using full canvas:', error);
+      return canvas;
+    }
   }
 
   private cropCanvas(sourceCanvas: HTMLCanvasElement): HTMLCanvasElement {

@@ -1576,9 +1576,16 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const addCurvedText = useCallback((curvedText: CurvedText) => {
     if (!canvas) return;
     
+    // Ensure center origin
+    curvedText.set({
+      originX: 'center',
+      originY: 'center',
+    });
+    
     // Mark as dirty to force fresh render
     curvedText.dirty = true;
     canvas.add(curvedText);
+    curvedText.setCoords();
     canvas.setActiveObject(curvedText);
     canvas.requestRenderAll();
     saveState();
@@ -1606,7 +1613,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     toast.success('Curved text updated');
   }, [canvas, saveState]);
 
-  const convertTextToCurvedText = useCallback(() => {
+  const convertTextToCurvedText = useCallback(async () => {
     if (!canvas) return;
     
     const activeObject = canvas.getActiveObject() as any;
@@ -1622,8 +1629,13 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const fontWeight = activeObject.fontWeight || 'normal';
     const fontStyle = activeObject.fontStyle || 'normal';
     const fill = activeObject.fill || '#000000';
-    const left = activeObject.left || 100;
-    const top = activeObject.top || 100;
+    
+    // Get center point of original text
+    const centerPoint = activeObject.getCenterPoint();
+
+    // Ensure font is loaded
+    const { ensureFontLoaded } = await import('@/lib/fontLoader');
+    await ensureFontLoaded(fontFamily);
 
     // Create curved text with same properties
     const curvedText = new CurvedText(textContent, {
@@ -1635,14 +1647,21 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       fontWeight,
       fontStyle,
       fill,
-      left,
-      top,
+      left: centerPoint.x,
+      top: centerPoint.y,
+    });
+
+    // Ensure center origin
+    curvedText.set({
+      originX: 'center',
+      originY: 'center',
     });
 
     // Remove original text and add curved text
     canvas.remove(activeObject);
     curvedText.dirty = true;
     canvas.add(curvedText);
+    curvedText.setCoords();
     canvas.setActiveObject(curvedText);
     canvas.requestRenderAll();
     saveState();
