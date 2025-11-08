@@ -30,6 +30,7 @@ import BlogCategories from "./pages/admin/BlogCategories";
 import BlogTags from "./pages/admin/BlogTags";
 import PowerPointGenerator from "./pages/admin/PowerPointGenerator";
 import AISettings from "./pages/admin/AISettings";
+import RateLimits from "./pages/admin/RateLimits";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/admin/email-notifications" element={<AdminRoute><EmailNotifications /></AdminRoute>} />
             <Route path="/admin/powerpoint-generator" element={<AdminRoute><PowerPointGenerator /></AdminRoute>} />
             <Route path="/admin/ai-settings" element={<AdminRoute><AISettings /></AdminRoute>} />
+            <Route path="/admin/rate-limits" element={<AdminRoute><RateLimits /></AdminRoute>} />
             <Route path="/admin/blog" element={<AdminRoute><BlogManagement /></AdminRoute>} />
             <Route path="/admin/blog/new" element={<AdminRoute><BlogEditor /></AdminRoute>} />
             <Route path="/admin/blog/edit/:id" element={<AdminRoute><BlogEditor /></AdminRoute>} />

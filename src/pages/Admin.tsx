@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BarChart3, Mail, FileText, Sparkles } from "lucide-react";
+import { ArrowLeft, BarChart3, Mail, FileText, Sparkles, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { IconUploader } from "@/components/admin/IconUploader";
 import { IconManager } from "@/components/admin/IconManager";
@@ -54,6 +54,13 @@ const Admin = () => {
             >
               <FileText className="h-4 w-4 mr-2" />
               PowerPoint
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate("/admin/rate-limits")}
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              Rate Limits
             </Button>
             <Button
               variant="outline"
