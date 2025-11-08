@@ -117,6 +117,12 @@ export const KeyboardShortcutsDialog = ({
         { keys: ["Backspace"], description: "Delete selected objects" },
       ],
     },
+    {
+      category: "Image Editing",
+      items: [
+        { keys: [`${modKey}`, "Shift", "B"], description: "Remove image background (AI)" },
+      ],
+    },
   ];
 
   return (

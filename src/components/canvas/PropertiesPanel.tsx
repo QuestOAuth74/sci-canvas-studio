@@ -14,7 +14,7 @@ import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as FabricCircle, Polygon } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ChevronLeft, ChevronRight, Pin, PinOff } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pin, PinOff, Eraser } from "lucide-react";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -55,6 +55,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     smoothenPath,
     recentColors,
     addToRecentColors,
+    removeImageBackground,
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -1369,6 +1370,23 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                     >
                       Remove Tone
                     </Button>
+                  </div>
+                  
+                  {/* Background Removal */}
+                  <div className="space-y-2 pt-4 border-t">
+                    <Label className="text-sm font-medium">Background Removal</Label>
+                    <Button 
+                      onClick={removeImageBackground}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      <Eraser className="mr-2 h-4 w-4" />
+                      Remove Background
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Uses AI to automatically remove the background from your image.
+                      Works best with clear subjects.
+                    </p>
                   </div>
                 </div>
               )}

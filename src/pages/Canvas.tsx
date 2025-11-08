@@ -98,6 +98,7 @@ const CanvasContent = () => {
     duplicateSelected,
     pasteInPlace,
     deselectAll,
+    removeImageBackground,
     toggleLockSelected,
     hideSelected,
     showAllHidden,
@@ -409,6 +410,14 @@ const CanvasContent = () => {
       if ((e.metaKey || e.ctrlKey) && e.key === '=') {
         e.preventDefault();
         duplicateBelow();
+      }
+
+      // Remove background (Cmd/Ctrl + Shift + B)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'b') {
+        e.preventDefault();
+        if (selectedObject?.type === 'image') {
+          removeImageBackground();
+        }
       }
 
       // Cut/Copy/Paste
@@ -779,6 +788,7 @@ const CanvasContent = () => {
               setIsPropertiesPanelCollapsed(false);
               setRightSidebarTab("properties");
             }}
+            onRemoveBackground={removeImageBackground}
           >
             <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
           </CanvasContextMenu>

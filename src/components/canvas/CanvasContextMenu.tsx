@@ -26,7 +26,8 @@ import {
   MousePointerClick,
   Undo2,
   Redo2,
-  Type
+  Type,
+  Eraser
 } from "lucide-react";
 import { FabricObject } from "fabric";
 
@@ -55,6 +56,7 @@ interface CanvasContextMenuProps {
   onRedo: () => void;
   onShowAllHidden: () => void;
   onOpenProperties: () => void;
+  onRemoveBackground: () => void;
 }
 
 export const CanvasContextMenu = ({
@@ -82,6 +84,7 @@ export const CanvasContextMenu = ({
   onRedo,
   onShowAllHidden,
   onOpenProperties,
+  onRemoveBackground,
 }: CanvasContextMenuProps) => {
   const hasSelection = !!selectedObject;
   // Determine if multiple objects are selected without relying on private Fabric internals
@@ -100,6 +103,7 @@ export const CanvasContextMenu = ({
   const isGroup = (selectedObject as any)?.type === 'group';
   const isLocked = (selectedObject as any)?.lockMovementX || (selectedObject as any)?.lockMovementY;
   const isTextObject = (selectedObject as any)?.type === 'textbox' || (selectedObject as any)?.type === 'i-text' || (selectedObject as any)?.type === 'text';
+  const isImageObject = selectedObject?.type === 'image';
 
   return (
     <ContextMenu>
@@ -204,6 +208,14 @@ export const CanvasContextMenu = ({
             )}
             
             <ContextMenuSeparator />
+            
+            {isImageObject && (
+              <ContextMenuItem onClick={onRemoveBackground}>
+                <Eraser className="mr-2 h-4 w-4" />
+                <span>Remove Background</span>
+                <ContextMenuShortcut>⌘⇧B</ContextMenuShortcut>
+              </ContextMenuItem>
+            )}
             
             <ContextMenuItem onClick={onOpenProperties}>
               <Settings className="mr-2 h-4 w-4" />

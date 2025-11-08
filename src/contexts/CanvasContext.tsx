@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useMemo, useRef } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, Gradient, Shadow } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, Gradient, Shadow, FabricImage } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,7 @@ import { smoothFabricPath } from "@/lib/pathSmoothing";
 import { GradientConfig, ShadowConfig } from "@/types/effects";
 import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
 import { safeDownloadDataUrl, reloadCanvasImagesWithCORS } from "@/lib/utils";
+import { removeBackground } from "@/lib/backgroundRemoval";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -160,6 +161,9 @@ interface CanvasContextType {
   // Shadow operations
   applyShadow: (config: ShadowConfig) => void;
   clearEffects: () => void;
+  
+  // Background removal
+  removeImageBackground: () => Promise<void>;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -1965,6 +1969,70 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     toast.success('All effects cleared');
   }, [selectedObject, canvas, saveState]);
 
+  // Background removal
+  const removeImageBackground = useCallback(async () => {
+    if (!canvas || !selectedObject || selectedObject.type !== 'image') {
+      toast.error('Please select an image first');
+      return;
+    }
+
+    const toastId = toast.loading('Removing background... This may take 10-30 seconds.');
+    
+    try {
+      const imageObj = selectedObject as FabricImage;
+      const imageElement = imageObj.getElement() as HTMLImageElement;
+      
+      // Remove background using existing library
+      const resultBlob = await removeBackground(imageElement);
+      
+      // Convert blob to data URL
+      const dataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(resultBlob);
+      });
+      
+      // Create new image with transparent background
+      const newImg = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+      
+      // Preserve all properties from original
+      newImg.set({
+        left: imageObj.left,
+        top: imageObj.top,
+        scaleX: imageObj.scaleX,
+        scaleY: imageObj.scaleY,
+        angle: imageObj.angle,
+        opacity: imageObj.opacity,
+        flipX: imageObj.flipX,
+        flipY: imageObj.flipY,
+        originX: imageObj.originX,
+        originY: imageObj.originY,
+        lockMovementX: imageObj.lockMovementX,
+        lockMovementY: imageObj.lockMovementY,
+        selectable: imageObj.selectable,
+      });
+      
+      // Replace old image with new one at same z-index
+      const objects = canvas.getObjects();
+      const index = objects.indexOf(imageObj);
+      canvas.remove(imageObj);
+      if (index >= 0) {
+        canvas.insertAt(index, newImg);
+      } else {
+        canvas.add(newImg);
+      }
+      canvas.setActiveObject(newImg);
+      
+      saveState();
+      toast.dismiss(toastId);
+      toast.success('Background removed successfully!');
+    } catch (error) {
+      console.error('Background removal failed:', error);
+      toast.dismiss(toastId);
+      toast.error('Failed to remove background. Try with a simpler image.');
+    }
+  }, [selectedObject, canvas, saveState]);
+
   const value: CanvasContextType = {
     canvas,
     setCanvas,
@@ -2071,6 +2139,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     clearGradient,
     applyShadow,
     clearEffects,
+    removeImageBackground,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;
