@@ -9,12 +9,13 @@ import { PowerPointPreviewModal } from '@/components/admin/PowerPointPreviewModa
 import { PowerPointSettingsPanel, type PresentationSettings } from '@/components/admin/PowerPointSettingsPanel';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Loader2, Eye } from 'lucide-react';
+import { Upload, FileText, Loader2, Eye, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { analyzeDocx, type DocxPreviewData } from '@/lib/docxAnalyzer';
+import { useNavigate } from 'react-router-dom';
 
 export default function PowerPointGenerator() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -37,6 +38,7 @@ export default function PowerPointGenerator() {
     },
   });
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -179,6 +181,15 @@ export default function PowerPointGenerator() {
         description="Convert Word documents to PowerPoint presentations"
       />
       <div className="container mx-auto py-8 px-4 max-w-7xl">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/')}
+          className="mb-4"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Home
+        </Button>
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">PowerPoint Generator</h1>
           <p className="text-muted-foreground">
