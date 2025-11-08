@@ -14,6 +14,7 @@ import { IconSanitizer } from "@/components/admin/IconSanitizer";
 import { IconNameCleaner } from "@/components/admin/IconNameCleaner";
 import { CommunityUploader } from "@/components/admin/CommunityUploader";
 import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
+import { ToolFeedbackManager } from "@/components/admin/ToolFeedbackManager";
 import { Separator } from "@/components/ui/separator";
 import { SEOHead } from "@/components/SEO/SEOHead";
 
@@ -116,6 +117,9 @@ const Admin = () => {
             </Button>
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('contact-messages')?.scrollIntoView({ behavior: 'smooth' })}>
               Contact
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('tool-feedback')?.scrollIntoView({ behavior: 'smooth' })}>
+              Tool Feedback
             </Button>
           </div>
         </div>
@@ -232,6 +236,17 @@ const Admin = () => {
               <p className="text-muted-foreground">View and respond to user contact form submissions</p>
             </div>
             <ContactMessagesManager />
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Section 11: Tool Feedback */}
+          <section id="tool-feedback">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Tool Feedback</h2>
+              <p className="text-muted-foreground">User ratings and feedback for the design tool</p>
+            </div>
+            <ToolFeedbackManager />
           </section>
         </div>
       </div>

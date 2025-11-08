@@ -789,6 +789,36 @@ export type Database = {
         }
         Relationships: []
       }
+      tool_feedback: {
+        Row: {
+          created_at: string
+          id: string
+          page: string
+          rating: string
+          session_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page?: string
+          rating: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page?: string
+          rating?: string
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_assets: {
         Row: {
           category: string | null

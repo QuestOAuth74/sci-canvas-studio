@@ -31,6 +31,7 @@ import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonal
 import { CustomCurvedLineDialog } from "@/components/canvas/CustomCurvedLineDialog";
 import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
 import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
+import { ToolRatingWidget } from "@/components/canvas/ToolRatingWidget";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -835,6 +836,9 @@ const CanvasContent = () => {
 
       {/* Bottom Bar */}
       <BottomBar />
+
+      {/* Rating Widget */}
+      <ToolRatingWidget />
     </div>
   );
 };
