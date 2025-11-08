@@ -107,8 +107,10 @@ export const CanvasContextMenu = ({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>
-        {children}
+      <ContextMenuTrigger asChild={false} className="w-full h-full">
+        <div className="w-full h-full">
+          {children}
+        </div>
       </ContextMenuTrigger>
       <ContextMenuContent className="w-64">
         {hasSelection ? (
