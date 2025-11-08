@@ -154,7 +154,7 @@ interface CanvasContextType {
   // Curved text operations
   addCurvedText: (curvedText: CurvedText) => void;
   editCurvedText: (existingText: CurvedText, newProperties: CurvedText) => void;
-  convertTextToCurvedText: () => void;
+  convertTextToCurvedText: () => Promise<void>;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
