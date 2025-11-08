@@ -53,69 +53,69 @@ export const FeatureUnlockBanner = () => {
   return (
     <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border-y border-border/50">
       <div className="container mx-auto px-4 py-3">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          {/* Left: Message & Progress */}
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            <Lock className="h-5 w-5 text-primary flex-shrink-0" />
-            <div className="flex items-center gap-3 flex-wrap">
-              <p className="text-sm font-medium text-foreground">
-                {getMessage()}
-              </p>
-              <div className="flex items-center gap-1 text-sm">
-                <span className="text-muted-foreground">Progress:</span>
-                <div className="flex gap-0.5">
-                  {getProgressStars()}
-                </div>
-                <span className="text-muted-foreground ml-1">
-                  ({approvedCount}/3)
-                </span>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 lg:gap-4">
+        {/* Left: Message & Progress */}
+        <div className="flex items-center gap-3 w-full lg:flex-1">
+          <Lock className="h-5 w-5 text-primary flex-shrink-0" />
+          <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground">
+              {getMessage()}
+            </p>
+            <div className="flex items-center gap-1 text-xs">
+              <span className="text-muted-foreground">Progress:</span>
+              <div className="flex gap-0.5">
+                {getProgressStars()}
               </div>
+              <span className="text-muted-foreground ml-1">
+                ({approvedCount}/3)
+              </span>
             </div>
-          </div>
-
-          {/* Center: Features List */}
-          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="font-medium">Get:</span>
-            <span>🎨 AI Figure Generator</span>
-            <span>•</span>
-            <span>📊 PowerPoint Maker</span>
-            <span>•</span>
-            <span>🎨 Icon Generator</span>
-          </div>
-
-          {/* Right: CTA & Dismiss */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Button 
-              size="sm" 
-              variant="default"
-              onClick={() => navigate('/projects')}
-              className="gap-1.5"
-            >
-              Share Projects
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 flex-shrink-0"
-              onClick={handleDismiss}
-              aria-label="Dismiss banner"
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </div>
 
-        {/* Mobile Features List */}
-        <div className="md:hidden mt-2 pt-2 border-t border-border/30 flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+        {/* Center: Features List (Desktop only) */}
+        <div className="hidden lg:flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0">
           <Sparkles className="h-4 w-4 text-primary" />
-          <span className="font-medium">Unlock:</span>
+          <span className="font-medium">Get:</span>
           <span>🎨 AI Figure Generator</span>
           <span>•</span>
           <span>📊 PowerPoint Maker</span>
           <span>•</span>
           <span>🎨 Icon Generator</span>
         </div>
+
+        {/* Right: CTA & Dismiss */}
+        <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-end">
+          <Button 
+            size="sm" 
+            variant="default"
+            onClick={() => navigate('/projects')}
+            className="gap-1.5"
+          >
+            Share Projects
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 flex-shrink-0"
+            onClick={handleDismiss}
+            aria-label="Dismiss banner"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Features List */}
+      <div className="lg:hidden mt-2 pt-2 border-t border-border/30 flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <span className="font-medium">Unlock:</span>
+        <span>🎨 AI Figure Generator</span>
+        <span>•</span>
+        <span>📊 PowerPoint Maker</span>
+        <span>•</span>
+        <span>🎨 Icon Generator</span>
+      </div>
       </div>
 
       {/* Animated gradient overlay */}
