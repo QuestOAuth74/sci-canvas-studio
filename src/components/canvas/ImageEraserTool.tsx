@@ -180,7 +180,7 @@ export const ImageEraserTool = ({ image, onComplete, onCancel }: ImageEraserTool
         />
       </div>
 
-      <div className="relative border rounded-lg overflow-hidden bg-checkered" style={{ maxHeight: '400px' }}>
+      <div className="relative border rounded-lg overflow-auto bg-checkered flex justify-center items-center" style={{ minHeight: '500px', maxHeight: '70vh' }}>
         <div className="relative inline-block max-w-full">
           <canvas
             ref={canvasRef}

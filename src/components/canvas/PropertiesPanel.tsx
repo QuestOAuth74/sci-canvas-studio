@@ -8,7 +8,7 @@ import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
 import { LinePropertiesPanel } from "./LinePropertiesPanel";
 import { StylePresets } from "./StylePresets";
-import { ImageEraserTool } from "./ImageEraserTool";
+import { ImageEraserDialog } from "./ImageEraserDialog";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
@@ -1411,52 +1411,48 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                       </>
                     )}
                     
-                    {showImageEraser && selectedObject instanceof FabricImage && (
-                      <ImageEraserTool
-                        image={selectedObject}
-                        onComplete={async (dataUrl) => {
-                          if (!canvas) return;
+                    <ImageEraserDialog
+                      open={showImageEraser}
+                      onOpenChange={setShowImageEraser}
+                      image={selectedObject instanceof FabricImage ? selectedObject : null}
+                      onComplete={async (dataUrl) => {
+                        if (!canvas) return;
+                        
+                        try {
+                          // Create new image with erased background
+                          const newImg = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
                           
-                          try {
-                            // Create new image with erased background
-                            const newImg = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
-                            
-                            // Preserve all properties from original
-                            newImg.set({
-                              left: selectedObject.left,
-                              top: selectedObject.top,
-                              scaleX: selectedObject.scaleX,
-                              scaleY: selectedObject.scaleY,
-                              angle: selectedObject.angle,
-                              opacity: selectedObject.opacity,
-                              flipX: selectedObject.flipX,
-                              flipY: selectedObject.flipY,
-                              originX: selectedObject.originX,
-                              originY: selectedObject.originY,
-                            });
-                            
-                            // Replace old image
-                            const objects = canvas.getObjects();
-                            const index = objects.indexOf(selectedObject);
-                            canvas.remove(selectedObject);
-                            if (index >= 0) {
-                              canvas.insertAt(index, newImg);
-                            } else {
-                              canvas.add(newImg);
-                            }
-                            canvas.setActiveObject(newImg);
-                            canvas.renderAll();
-                            
-                            setShowImageEraser(false);
-                            toast.success('Background erased successfully!');
-                          } catch (error) {
-                            console.error('Failed to apply erased image:', error);
-                            toast.error('Failed to apply changes');
+                          // Preserve all properties from original
+                          newImg.set({
+                            left: selectedObject.left,
+                            top: selectedObject.top,
+                            scaleX: selectedObject.scaleX,
+                            scaleY: selectedObject.scaleY,
+                            angle: selectedObject.angle,
+                            opacity: selectedObject.opacity,
+                            flipX: selectedObject.flipX,
+                            flipY: selectedObject.flipY,
+                          });
+                          
+                          // Replace old image with new one at same z-index
+                          const objects = canvas.getObjects();
+                          const index = objects.indexOf(selectedObject);
+                          canvas.remove(selectedObject);
+                          if (index >= 0) {
+                            canvas.insertAt(index, newImg);
+                          } else {
+                            canvas.add(newImg);
                           }
-                        }}
-                        onCancel={() => setShowImageEraser(false)}
-                      />
-                    )}
+                          canvas.setActiveObject(newImg);
+                          canvas.renderAll();
+                          
+                          toast.success('Manual erasure applied!');
+                        } catch (error) {
+                          console.error('Failed to apply erased image:', error);
+                          toast.error('Failed to apply changes');
+                        }
+                      }}
+                    />
                   </div>
                 </div>
               )}
