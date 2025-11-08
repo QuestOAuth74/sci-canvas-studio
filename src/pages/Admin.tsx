@@ -15,6 +15,7 @@ import { IconNameCleaner } from "@/components/admin/IconNameCleaner";
 import { CommunityUploader } from "@/components/admin/CommunityUploader";
 import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
 import { ToolFeedbackManager } from "@/components/admin/ToolFeedbackManager";
+import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 import { Separator } from "@/components/ui/separator";
 import { SEOHead } from "@/components/SEO/SEOHead";
 
@@ -70,15 +71,16 @@ const Admin = () => {
               <BarChart3 className="h-4 w-4 mr-2" />
               Analytics
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/admin/email-notifications")}
-            >
-              <Mail className="h-4 w-4 mr-2" />
-              Send Email
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/admin/email-notifications")}
+          >
+            <Mail className="h-4 w-4 mr-2" />
+            Send Email
+          </Button>
+          <AdminNotificationBell />
         </div>
+      </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
