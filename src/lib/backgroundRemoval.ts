@@ -34,9 +34,18 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
   try {
     console.log('Starting background removal process...');
-    const segmenter = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
-      device: 'auto',
-    });
+    console.log('Loading AI model... This may take 10-30 seconds on first use.');
+    
+    const segmenter = await Promise.race([
+      pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
+        device: 'auto',
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Model loading timeout')), 60000)
+      )
+    ]) as any;
+    
+    console.log('Model loaded successfully!');
     
     // Convert HTMLImageElement to canvas
     const canvas = document.createElement('canvas');
@@ -205,14 +214,8 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
       );
     });
   } catch (error) {
-    console.error('Error removing background:', error);
-    console.warn('Segmentation failed, using fast white removal fallback');
-    try {
-      return await removeWhiteByFloodFill(imageElement, { tolerance: 20 });
-    } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError);
-      throw error;
-    }
+    console.error('AI background removal failed:', error);
+    throw new Error('AI model failed to load or process. This feature requires a modern browser with WebGPU or WebGL support.');
   }
 };
 

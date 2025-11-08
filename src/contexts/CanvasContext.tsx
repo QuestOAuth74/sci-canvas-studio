@@ -1976,11 +1976,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       return;
     }
 
-    const toastId = toast.loading('Removing background... This may take 10-30 seconds.');
+    const toastId = toast.loading('Loading AI model... This may take up to 30 seconds on first use.');
     
     try {
       const imageObj = selectedObject as FabricImage;
       const imageElement = imageObj.getElement() as HTMLImageElement;
+      
+      // Update toast to show processing
+      toast.loading('Processing image...', { id: toastId });
       
       // Remove background using existing library
       const resultBlob = await removeBackground(imageElement);
@@ -2023,13 +2026,15 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
       canvas.setActiveObject(newImg);
       
+      canvas.renderAll();
       saveState();
       toast.dismiss(toastId);
-      toast.success('Background removed successfully!');
-    } catch (error) {
+      toast.success('Background removed successfully! ✨');
+    } catch (error: any) {
       console.error('Background removal failed:', error);
       toast.dismiss(toastId);
-      toast.error('Failed to remove background. Try with a simpler image.');
+      const errorMsg = error?.message || 'Failed to remove background';
+      toast.error(errorMsg, { duration: 5000 });
     }
   }, [selectedObject, canvas, saveState]);
 
