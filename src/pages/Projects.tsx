@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { 
   Pagination, 
@@ -146,21 +147,27 @@ export default function Projects() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="glass-card overflow-hidden">
-                <Skeleton className="w-full h-48" />
-                <div className="p-6 space-y-4">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
+              <Card key={i} className="overflow-hidden">
+                <Skeleton className="h-48 w-full" />
+                <CardHeader>
+                  <Skeleton className="h-6 w-3/4 mb-2" />
                   <Skeleton className="h-4 w-full" />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Skeleton className="h-4 w-2/3" />
                   <div className="flex gap-2">
-                    <Skeleton className="h-10 flex-1" />
-                    <Skeleton className="h-10 w-10" />
-                    <Skeleton className="h-10 w-10" />
+                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-5 w-20" />
                   </div>
-                </div>
-              </div>
+                  <div className="flex gap-2 pt-2">
+                    <Skeleton className="h-9 flex-1" />
+                    <Skeleton className="h-9 w-9" />
+                    <Skeleton className="h-9 w-9" />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         ) : filteredProjects.length === 0 ? (
@@ -183,82 +190,79 @@ export default function Projects() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {paginatedProjects.map((project) => (
-                <div 
-                  key={project.id} 
-                  className="glass-card overflow-hidden group hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                <Card 
+                  key={project.id}
+                  className="hover:shadow-lg transition-shadow overflow-hidden"
                 >
-                  {/* Thumbnail Section */}
+                  {/* Thumbnail Section - matches Community exactly */}
                   <div 
-                    className="relative h-48 bg-muted cursor-pointer overflow-hidden"
+                    className="h-48 bg-muted cursor-pointer relative group"
                     onClick={() => openProject(project.id)}
                   >
                     <img
                       src={project.thumbnail_url || noPreviewImage}
                       alt={project.name}
+                      loading="lazy"
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
-                      <span className="text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        Click to open
-                      </span>
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <span className="text-white font-medium">Click to open</span>
                     </div>
                   </div>
 
-                  {/* Content Section */}
-                  <div className="p-6">
-                    {/* Title & Date */}
-                    <div className="mb-4">
-                      <h3 className="text-xl font-bold mb-2 truncate" title={project.name}>
-                        {project.name}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-3.5 w-3.5" />
-                        <span>Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}</span>
-                      </div>
+                  {/* CardHeader - Project Name */}
+                  <CardHeader>
+                    <CardTitle className="line-clamp-1">{project.name}</CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span>Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}</span>
                     </div>
+                  </CardHeader>
 
+                  {/* CardContent - Metadata & Status */}
+                  <CardContent className="space-y-3">
                     {/* Dimensions */}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Ruler className="h-3.5 w-3.5" />
-                      <span className="font-mono">
+                      <span className="font-mono text-xs">
                         {project.canvas_width} × {project.canvas_height}px
                       </span>
                       <span className="text-xs">•</span>
-                      <span>{project.paper_size}</span>
+                      <span className="text-xs">{project.paper_size}</span>
                     </div>
 
                     {/* Status Badges */}
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex flex-wrap gap-2">
                       {project.is_public ? (
-                        <Badge variant="default" className="gap-1">
+                        <Badge variant="default" className="gap-1 text-xs">
                           <Globe className="h-3 w-3" />
                           Public
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="gap-1">
+                        <Badge variant="secondary" className="gap-1 text-xs">
                           <Lock className="h-3 w-3" />
                           Private
                         </Badge>
                       )}
                       
                       {project.approval_status === 'approved' && (
-                        <Badge variant="default" className="gap-1 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+                        <Badge variant="default" className="gap-1 text-xs bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
                           <CheckCircle className="h-3 w-3" />
                           Approved
                         </Badge>
                       )}
                       
                       {project.approval_status === 'pending' && (
-                        <Badge variant="secondary" className="gap-1">
+                        <Badge variant="secondary" className="gap-1 text-xs">
                           <Clock className="h-3 w-3" />
-                          Pending Review
+                          Pending
                         </Badge>
                       )}
                       
                       {project.approval_status === 'rejected' && (
-                        <Badge variant="destructive" className="gap-1">
+                        <Badge variant="destructive" className="gap-1 text-xs">
                           <XCircle className="h-3 w-3" />
                           Rejected
                         </Badge>
@@ -266,33 +270,33 @@ export default function Projects() {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 pt-2">
                       <Button
                         onClick={() => openProject(project.id)}
                         className="flex-1"
-                        size="lg"
+                        size="sm"
                       >
-                        <FolderOpen className="mr-2 h-4 w-4" />
+                        <FolderOpen className="mr-1 h-3.5 w-3.5" />
                         Open
                       </Button>
                       <Button
                         onClick={() => setShareDialogProject(project)}
                         variant="outline"
-                        size="lg"
+                        size="sm"
                         title={project.is_public ? 'Manage sharing' : 'Share to community'}
                       >
-                        <Share2 className={`h-4 w-4 ${project.is_public ? 'text-primary' : ''}`} />
+                        <Share2 className={`h-3.5 w-3.5 ${project.is_public ? 'text-primary' : ''}`} />
                       </Button>
                       <Button
                         onClick={() => deleteProject(project.id, project.name)}
                         variant="destructive"
-                        size="lg"
+                        size="sm"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
