@@ -12,6 +12,7 @@ import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
 import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { calculateArcPath } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
+import { loadImageWithCORS } from "@/lib/utils";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -382,10 +383,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           canvas.requestRenderAll();
           toast.success("Asset added to canvas");
         } else {
-          // Handle as data URL image
-          const img = new Image();
-          
-          img.onload = () => {
+          // Handle as data URL image with CORS support
+          try {
+            const img = await loadImageWithCORS(content);
             const fabricImage = new FabricImage(img, {
               left: (canvas.width || 0) / 2,
               top: (canvas.height || 0) / 2,
@@ -402,40 +402,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             canvas.setActiveObject(fabricImage);
             canvas.requestRenderAll();
             toast.success("Asset added to canvas");
-          };
-          
-          img.onerror = () => {
-            console.error("Failed to load image from data URL");
+          } catch (error) {
+            console.error("Failed to load image:", error);
             toast.error("Failed to load image asset");
-          };
-          
-          // Set timeout for slow loading images
-          const timeout = setTimeout(() => {
-            console.error("Image loading timeout");
-            toast.error("Image loading timed out");
-          }, 10000);
-          
-          img.onload = () => {
-            clearTimeout(timeout);
-            const fabricImage = new FabricImage(img, {
-              left: (canvas.width || 0) / 2,
-              top: (canvas.height || 0) / 2,
-              originX: "center",
-              originY: "center",
-            });
-            
-            const maxW = (canvas.width || 0) * 0.6;
-            const maxH = (canvas.height || 0) * 0.6;
-            const scale = Math.min(maxW / fabricImage.width!, maxH / fabricImage.height!, 1);
-            fabricImage.scale(scale);
-            
-            canvas.add(fabricImage);
-            canvas.setActiveObject(fabricImage);
-            canvas.renderAll();
-            toast.success("Asset added to canvas");
-          };
-          
-          img.src = content;
+          }
         }
       } catch (error) {
         console.error("Error adding asset:", error);
@@ -772,7 +742,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         try {
           const reader = new FileReader();
           
-          reader.onload = (event) => {
+          reader.onload = async (event) => {
             const imgUrl = event.target?.result as string;
             
             if (file.type === "image/svg+xml" || fileExtension === ".svg") {
@@ -808,9 +778,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
                 toast.error("Failed to load SVG image");
               });
             } else {
-              // Handle JPG/PNG files
-              const img = new Image();
-              img.onload = () => {
+              // Handle JPG/PNG files with CORS support
+              try {
+                const img = await loadImageWithCORS(imgUrl);
                 const fabricImage = new FabricImage(img, {
                   left: (canvas.width || 0) / 2,
                   top: (canvas.height || 0) / 2,
@@ -835,11 +805,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
                 }));
                 
                 if (onShapeCreated) onShapeCreated();
-              };
-              img.onerror = () => {
+              } catch (error) {
+                console.error("Failed to load image:", error);
                 toast.error("Failed to load image");
-              };
-              img.src = imgUrl;
+              }
             }
           };
           

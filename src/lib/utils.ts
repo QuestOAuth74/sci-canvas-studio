@@ -53,3 +53,39 @@ export async function safeDownloadDataUrl(dataUrl: string, filename: string): Pr
   const blob = await dataUrlToBlob(dataUrl);
   downloadBlob(blob, filename);
 }
+
+/**
+ * Loads an image with proper CORS handling for canvas export compatibility
+ * @param src - Image source (data URL or external URL)
+ * @returns Promise resolving to loaded Image element
+ */
+export function loadImageWithCORS(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    
+    // Set crossOrigin for non-data URLs to enable canvas export
+    // Data URLs don't need CORS since they're already embedded
+    if (!src.startsWith('data:')) {
+      img.crossOrigin = 'anonymous';
+    }
+    
+    img.onload = () => resolve(img);
+    img.onerror = (err) => {
+      // If CORS fails, try again without crossOrigin (but canvas will be tainted)
+      if (img.crossOrigin) {
+        console.warn('CORS failed, retrying without crossOrigin (export will be disabled)');
+        const imgRetry = new Image();
+        imgRetry.onload = () => {
+          console.warn('Image loaded without CORS - export functionality will not work');
+          resolve(imgRetry);
+        };
+        imgRetry.onerror = reject;
+        imgRetry.src = src;
+      } else {
+        reject(err);
+      }
+    };
+    
+    img.src = src;
+  });
+}
