@@ -28,6 +28,7 @@ import { AlignmentGuides } from "@/components/canvas/AlignmentGuides";
 import { CropTool } from "@/components/canvas/CropTool";
 import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonalLineDialog";
+import { CustomCurvedLineDialog } from "@/components/canvas/CustomCurvedLineDialog";
 import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
 import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,6 +50,7 @@ const CanvasContent = () => {
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [aiIconGeneratorOpen, setAiIconGeneratorOpen] = useState(false);
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
+  const [customCurvedDialogOpen, setCustomCurvedDialogOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [templatesDialogOpen, setTemplatesDialogOpen] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
@@ -174,6 +176,8 @@ const CanvasContent = () => {
   const handleShapeSelect = (shape: string) => {
     if (shape === 'orthogonal-line-custom') {
       setCustomOrthogonalDialogOpen(true);
+    } else if (shape === 'curved-line-custom') {
+      setCustomCurvedDialogOpen(true);
     } else {
       setActiveTool(shape);
       toast.success(`Selected ${shape}`);
@@ -183,6 +187,11 @@ const CanvasContent = () => {
   const handleCustomOrthogonalLine = (startMarker: string, endMarker: string) => {
     setActiveTool(`orthogonal-line-custom-${startMarker}-${endMarker}`);
     toast.success(`Custom orthogonal line selected: ${startMarker} → ${endMarker}`);
+  };
+
+  const handleCustomCurvedLine = (startMarker: string, endMarker: string) => {
+    setActiveTool(`curved-line-custom-${startMarker}-${endMarker}`);
+    toast.success(`Custom curved line selected: ${startMarker} → ${endMarker}`);
   };
 
   const handleShapeCreated = useCallback(() => {
@@ -543,6 +552,13 @@ const CanvasContent = () => {
         open={customOrthogonalDialogOpen}
         onOpenChange={setCustomOrthogonalDialogOpen}
         onConfirm={handleCustomOrthogonalLine}
+      />
+      
+      {/* Custom Curved Line Dialog */}
+      <CustomCurvedLineDialog
+        open={customCurvedDialogOpen}
+        onOpenChange={setCustomCurvedDialogOpen}
+        onConfirm={handleCustomCurvedLine}
       />
       
       {/* Crop Tool */}

@@ -1204,7 +1204,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
 
     // Parse activeTool to set markers and styles
-    if (activeTool.includes('double-arrow')) {
+    if (activeTool.startsWith('curved-line-custom-')) {
+      // Extract custom markers from tool name
+      // Format: curved-line-custom-{startMarker}-{endMarker}
+      const parts = activeTool.split('-');
+      if (parts.length >= 5) {
+        options.startMarker = parts[3]; // e.g., 'dot', 'arrow', 'none', 'bar', 'block', 'back-arrow'
+        options.endMarker = parts[4];
+      }
+    } else if (activeTool.includes('double-arrow')) {
       options.startMarker = 'arrow';
       options.endMarker = 'arrow';
     } else if (activeTool.includes('arrow')) {

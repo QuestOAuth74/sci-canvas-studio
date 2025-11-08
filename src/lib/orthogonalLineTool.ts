@@ -7,7 +7,7 @@ export interface OrthogonalLinePoint {
   y: number;
 }
 
-export type MarkerType = 'none' | 'dot' | 'arrow' | 'diamond' | 'circle' | 'bar';
+export type MarkerType = 'none' | 'dot' | 'arrow' | 'back-arrow' | 'diamond' | 'circle' | 'bar' | 'block';
 export type LineStyleType = 'solid' | 'dashed' | 'dotted';
 
 export interface OrthogonalLineOptions {
@@ -366,6 +366,51 @@ export class OrthogonalLineTool {
           strokeLineCap: 'round',
         });
         return bar;
+      }
+
+      case 'block': {
+        const size = 10;
+        const block = new Polygon([
+          { x: -size/2, y: -size/2 },
+          { x: size/2, y: -size/2 },
+          { x: size/2, y: size/2 },
+          { x: -size/2, y: size/2 },
+        ], {
+          fill: color,
+          stroke: color,
+          strokeWidth: 1,
+          left: x,
+          top: y,
+          angle: angle,
+          originX: 'center',
+          originY: 'center',
+          selectable: false,
+          evented: false,
+          strokeUniform: true,
+        });
+        return block;
+      }
+
+      case 'back-arrow': {
+        const arrowSize = 10;
+        const arrow = new Polygon([
+          { x: 0, y: 0 },
+          { x: arrowSize, y: -arrowSize / 2 },
+          { x: arrowSize, y: arrowSize / 2 },
+        ], {
+          fill: color,
+          stroke: color,
+          strokeWidth: 0,
+          left: x,
+          top: y,
+          angle: angle,
+          selectable: false,
+          evented: false,
+          originX: 'center',
+          originY: 'center',
+          strokeUniform: true,
+        });
+        return arrow;
       }
 
       default:

@@ -64,6 +64,14 @@ export const CurvedLineTool = ({ onLineSelect, activeTool }: CurvedLineToolProps
             {option.label}
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => onLineSelect("curved-line-custom")}
+          className="cursor-pointer"
+        >
+          <span className="mr-2 text-lg">✨</span>
+          Custom Curved Line
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

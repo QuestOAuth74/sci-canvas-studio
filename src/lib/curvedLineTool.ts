@@ -1,6 +1,6 @@
 import { Canvas, Path, Circle, Line, Group, util, Point as FabricPoint } from "fabric";
 
-export type MarkerType = 'none' | 'arrow' | 'diamond' | 'circle' | 'dot';
+export type MarkerType = 'none' | 'arrow' | 'back-arrow' | 'diamond' | 'circle' | 'dot' | 'bar' | 'block';
 export type LineStyleType = 'solid' | 'dashed' | 'dotted';
 
 export interface Point {
@@ -332,6 +332,31 @@ export class CurvedLineTool {
       case 'dot':
         marker = new Circle({
           radius: size / 3,
+          fill: this.options.strokeColor,
+          stroke: this.options.strokeColor,
+          strokeWidth: 1,
+        });
+        break;
+      
+      case 'bar':
+        marker = new Path(`M 0 ${-size/2} L 0 ${size/2}`, {
+          fill: 'transparent',
+          stroke: this.options.strokeColor,
+          strokeWidth: 3,
+          strokeLineCap: 'round',
+        });
+        break;
+      
+      case 'block':
+        marker = new Path(`M ${-size/2} ${-size/2} L ${size/2} ${-size/2} L ${size/2} ${size/2} L ${-size/2} ${size/2} Z`, {
+          fill: this.options.strokeColor,
+          stroke: this.options.strokeColor,
+          strokeWidth: 1,
+        });
+        break;
+      
+      case 'back-arrow':
+        marker = new Path(`M 0 0 L ${size} ${-size/2} L ${size} ${size/2} Z`, {
           fill: this.options.strokeColor,
           stroke: this.options.strokeColor,
           strokeWidth: 1,
