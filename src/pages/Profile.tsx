@@ -294,7 +294,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/10 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <Button
           variant="ghost"
           onClick={() => navigate('/')}
@@ -304,104 +304,12 @@ export default function Profile() {
           Back to Home
         </Button>
         
-        <FeatureUnlockBanner />
-        
-        {/* Premium Features Section - Only shown when unlocked */}
-        {hasAccess && !featureAccessLoading && (
-          <Card className="mb-6 overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <CardTitle>Your Premium Features</CardTitle>
-              </div>
-              <CardDescription>
-                Congratulations! You've unlocked these powerful tools by contributing to the community
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* AI Figure Generator Card */}
-                <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                        <Wand2 className="h-5 w-5" />
-                      </div>
-                      <h3 className="font-semibold">AI Figure Generator</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Generate scientific figures from reference images using AI
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="default"
-                      onClick={() => navigate('/canvas')}
-                      className="w-full mt-auto"
-                    >
-                      Open in Canvas
-                    </Button>
-                  </div>
-                </div>
-
-                {/* AI Icon Generator Card */}
-                <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                        <Sparkles className="h-5 w-5" />
-                      </div>
-                      <h3 className="font-semibold">AI Icon Generator</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Create custom scientific icons and symbols with AI
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="default"
-                      onClick={() => navigate('/canvas')}
-                      className="w-full mt-auto"
-                    >
-                      Open in Canvas
-                    </Button>
-                  </div>
-                </div>
-
-                {/* PowerPoint Generator Card */}
-                <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                        <FileText className="h-5 w-5" />
-                      </div>
-                      <h3 className="font-semibold">PowerPoint Maker</h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      Convert your canvas designs into PowerPoint presentations
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="default"
-                      onClick={() => navigate('/canvas')}
-                      className="w-full mt-auto"
-                    >
-                      Open in Canvas
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Info badge */}
-              <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                <p className="text-xs text-muted-foreground flex items-center gap-2">
-                  <Info className="h-3 w-3" />
-                  These features are available on the Canvas page. Click any button above to get started!
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-6">
+          {/* LEFT COLUMN - Main Content */}
+          <div className="space-y-6">
+            <FeatureUnlockBanner />
+            
+            <Card>
           <CardHeader>
             <CardTitle>Profile Settings</CardTitle>
             <CardDescription>Manage your personal information and notifications</CardDescription>
@@ -739,6 +647,95 @@ export default function Profile() {
             </Tabs>
           </CardContent>
         </Card>
+          </div>
+
+          {/* RIGHT COLUMN - Premium Features Sidebar */}
+          {hasAccess && !featureAccessLoading && (
+            <div className="lg:sticky lg:top-6 lg:self-start">
+              <Card className="overflow-hidden border-primary/20">
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <CardTitle className="text-lg">Your Premium Features</CardTitle>
+                  </div>
+                  <CardDescription className="text-xs">
+                    Access your unlocked tools
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* AI Figure Generator Card */}
+                  <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                          <Wand2 className="h-4 w-4" />
+                        </div>
+                        <h3 className="font-semibold text-sm">AI Figure Generator</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Generate scientific figures from reference images using AI
+                      </p>
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        onClick={() => navigate('/canvas')}
+                        className="w-full mt-auto"
+                      >
+                        Open in Canvas
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* AI Icon Generator Card */}
+                  <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                          <Sparkles className="h-4 w-4" />
+                        </div>
+                        <h3 className="font-semibold text-sm">AI Icon Generator</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Create custom scientific icons and symbols with AI
+                      </p>
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        onClick={() => navigate('/canvas')}
+                        className="w-full mt-auto"
+                      >
+                        Open in Canvas
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* PowerPoint Generator Card */}
+                  <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                          <FileText className="h-4 w-4" />
+                        </div>
+                        <h3 className="font-semibold text-sm">PowerPoint Maker</h3>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Convert your canvas designs into PowerPoint presentations
+                      </p>
+                      <Button 
+                        size="sm" 
+                        variant="default"
+                        onClick={() => navigate('/admin/powerpoint-generator')}
+                        className="w-full mt-auto"
+                      >
+                        Open Generator
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
