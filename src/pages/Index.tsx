@@ -492,17 +492,9 @@ const Index = () => {
                   <button onClick={() => navigate("/contact")} className="block text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                     Contact Us
                   </button>
-                  <div className="pt-2 space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground/80">
-                      CC-BY License
-                    </p>
-                    <p className="text-xs font-medium text-muted-foreground/70">
-                      Icons by{" "}
-                      <a href="https://www.biorender.com/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline">
-                        BioRender.com
-                      </a>
-                    </p>
-                  </div>
+                  <p className="text-xs font-medium text-muted-foreground/80 pt-2">
+                    CC-BY License
+                  </p>
                 </div>
               </div>
 
