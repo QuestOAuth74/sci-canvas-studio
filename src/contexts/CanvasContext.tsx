@@ -153,6 +153,7 @@ interface CanvasContextType {
   
   // Curved text operations
   addCurvedText: (curvedText: CurvedText) => void;
+  editCurvedText: (existingText: CurvedText, newProperties: CurvedText) => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -1583,6 +1584,27 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     toast.success('Curved text added');
   }, [canvas, saveState]);
 
+  const editCurvedText = useCallback((existingText: CurvedText, newProperties: CurvedText) => {
+    if (!canvas) return;
+    
+    // Update properties
+    existingText.text = newProperties.text;
+    existingText.diameter = newProperties.diameter;
+    existingText.kerning = newProperties.kerning;
+    existingText.flipped = newProperties.flipped;
+    existingText.fontSize = newProperties.fontSize;
+    existingText.fontFamily = newProperties.fontFamily;
+    existingText.fontWeight = newProperties.fontWeight;
+    existingText.fontStyle = newProperties.fontStyle;
+    existingText.textFill = newProperties.textFill;
+    
+    // Mark as dirty and force re-render
+    existingText.dirty = true;
+    canvas.requestRenderAll();
+    saveState();
+    toast.success('Curved text updated');
+  }, [canvas, saveState]);
+
   const duplicateSelected = useCallback(async () => {
     if (!canvas || !selectedObject) return;
 
@@ -1804,6 +1826,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     duplicateBelow,
     loadTemplate,
     addCurvedText,
+    editCurvedText,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;
