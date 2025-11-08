@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, Gradient, Shadow } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadAllFonts } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
+import { GradientConfig, ShadowConfig } from "@/types/effects";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -149,6 +150,14 @@ interface CanvasContextType {
   rotateSelected: (degrees: number) => void;
   duplicateBelow: () => void;
   loadTemplate: (template: any) => Promise<void>;
+  
+  // Gradient operations
+  applyGradient: (config: GradientConfig, target: 'fill' | 'stroke') => void;
+  clearGradient: (target: 'fill' | 'stroke') => void;
+  
+  // Shadow operations
+  applyShadow: (config: ShadowConfig) => void;
+  clearEffects: () => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -1685,6 +1694,117 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     saveState();
   }, [canvas, selectedObject, saveState]);
 
+  // Helper to detect if object is a shape-with-text group
+  const isShapeWithTextGroup = (obj: any): boolean => {
+    if (obj.type !== 'group') return false;
+    const objects = obj.getObjects();
+    return objects.length === 2 && 
+           (objects[0].type === 'circle' || objects[0].type === 'rect') &&
+           objects[1].type === 'textbox';
+  };
+
+  // Helper to get the shape from a group
+  const getShapeFromGroup = (obj: any) => {
+    if (isShapeWithTextGroup(obj)) {
+      return obj.getObjects()[0]; // First object is the shape
+    }
+    return obj; // Return the object itself if not a group
+  };
+
+  // Gradient operations
+  const applyGradient = useCallback((config: GradientConfig, target: 'fill' | 'stroke') => {
+    if (!selectedObject || !canvas) return;
+    
+    const targetObj = getShapeFromGroup(selectedObject);
+    let gradient;
+    
+    if (config.type === 'linear') {
+      const angleRad = (config.angle * Math.PI) / 180;
+      const coords = {
+        x1: Math.cos(angleRad) * -50,
+        y1: Math.sin(angleRad) * -50,
+        x2: Math.cos(angleRad) * 50,
+        y2: Math.sin(angleRad) * 50,
+      };
+      gradient = new Gradient({
+        type: 'linear',
+        coords: coords,
+        colorStops: config.stops.map(stop => ({
+          offset: stop.offset,
+          color: stop.color,
+          opacity: stop.opacity || 1
+        }))
+      });
+    } else {
+      gradient = new Gradient({
+        type: 'radial',
+        coords: {
+          x1: config.centerX * 100,
+          y1: config.centerY * 100,
+          x2: config.centerX * 100,
+          y2: config.centerY * 100,
+          r1: 0,
+          r2: config.radius
+        },
+        colorStops: config.stops.map(stop => ({
+          offset: stop.offset,
+          color: stop.color,
+          opacity: stop.opacity || 1
+        }))
+      });
+    }
+    
+    targetObj.set(target, gradient);
+    canvas.requestRenderAll();
+    saveState();
+    toast.success(`Gradient applied to ${target}`);
+  }, [selectedObject, canvas, saveState]);
+
+  const clearGradient = useCallback((target: 'fill' | 'stroke') => {
+    if (!selectedObject || !canvas) return;
+    
+    const targetObj = getShapeFromGroup(selectedObject);
+    targetObj.set(target, '');
+    canvas.requestRenderAll();
+    saveState();
+    toast.success(`Gradient cleared from ${target}`);
+  }, [selectedObject, canvas, saveState]);
+
+  // Shadow operations
+  const applyShadow = useCallback((config: ShadowConfig) => {
+    if (!selectedObject || !canvas) return;
+    
+    if (config.enabled) {
+      const shadow = new Shadow({
+        color: config.color,
+        blur: config.blur,
+        offsetX: config.offsetX,
+        offsetY: config.offsetY,
+      });
+      // Manually set opacity by manipulating the color with alpha
+      const hexOpacity = Math.round(config.opacity * 255).toString(16).padStart(2, '0');
+      shadow.color = config.color + hexOpacity;
+      
+      selectedObject.set('shadow', shadow);
+      toast.success('Shadow applied');
+    } else {
+      selectedObject.set('shadow', null);
+      toast.success('Shadow removed');
+    }
+    
+    canvas.requestRenderAll();
+    saveState();
+  }, [selectedObject, canvas, saveState]);
+
+  const clearEffects = useCallback(() => {
+    if (!selectedObject || !canvas) return;
+    
+    selectedObject.set('shadow', null);
+    canvas.requestRenderAll();
+    saveState();
+    toast.success('All effects cleared');
+  }, [selectedObject, canvas, saveState]);
+
   const value: CanvasContextType = {
     canvas,
     setCanvas,
@@ -1787,6 +1907,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     rotateSelected,
     duplicateBelow,
     loadTemplate,
+    applyGradient,
+    clearGradient,
+    applyShadow,
+    clearEffects,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

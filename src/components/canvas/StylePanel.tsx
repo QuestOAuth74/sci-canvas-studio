@@ -7,6 +7,9 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { useEffect, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GradientPanel } from "./GradientPanel";
+import { EffectsPanel } from "./EffectsPanel";
 
 // Preset color palette
 const COLOR_PRESETS = [
@@ -105,9 +108,16 @@ export const StylePanel = () => {
   };
 
   return (
-    <div className="space-y-3">
-      {/* Fill */}
-      <div className="space-y-1.5">
+    <Tabs defaultValue="colors" className="w-full">
+      <TabsList className="w-full grid grid-cols-3">
+        <TabsTrigger value="colors">Colors</TabsTrigger>
+        <TabsTrigger value="gradients">Gradients</TabsTrigger>
+        <TabsTrigger value="effects">Effects</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="colors" className="space-y-3 mt-3">
+        {/* Fill */}
+        <div className="space-y-1.5">
         <div className="flex items-center gap-2">
           <Checkbox 
             id="fill" 
@@ -286,6 +296,15 @@ export const StylePanel = () => {
         />
         <p className="text-xs text-muted-foreground text-right">{opacity}%</p>
       </div>
-    </div>
+      </TabsContent>
+
+      <TabsContent value="gradients" className="mt-3">
+        <GradientPanel />
+      </TabsContent>
+
+      <TabsContent value="effects" className="mt-3">
+        <EffectsPanel />
+      </TabsContent>
+    </Tabs>
   );
 };
