@@ -252,10 +252,24 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
     const loadingToastId = toast.loading(`Loading ${icon.name}...`);
     
     try {
+      // Check cache first
+      const { iconCache } = await import('@/lib/iconCache');
+      const cached = await iconCache.get(icon.id);
+      
+      if (cached) {
+        console.log('Using cached icon:', icon.name);
+        const event = new CustomEvent("addIconToCanvas", {
+          detail: { svgData: cached.svgContent, iconId: icon.id },
+        });
+        window.dispatchEvent(event);
+        toast.dismiss(loadingToastId);
+        return;
+      }
+      
       // If we already have svg_content, use it
       if (icon.svg_content) {
         const event = new CustomEvent("addIconToCanvas", {
-          detail: { svgData: icon.svg_content },
+          detail: { svgData: icon.svg_content, iconId: icon.id },
         });
         window.dispatchEvent(event);
         toast.dismiss(loadingToastId);
@@ -286,25 +300,24 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       const svgSizeKB = new Blob([data.svg_content]).size / 1024;
       console.log(`Loading icon: ${icon.name}, Size: ${svgSizeKB.toFixed(2)} KB`);
       
-    // Block icons over 2MB (increased for scientific illustrations)
-    if (svgSizeKB > 2048) {
-      toast.dismiss(loadingToastId);
-      toast.error(`Icon too large (${svgSizeKB.toFixed(0)}KB)`, {
-        description: 'Maximum size is 2MB for scientific illustrations.'
-      });
-      return;
-    }
+      // Block icons over 1MB (Web Worker limit)
+      if (svgSizeKB > 1024) {
+        toast.dismiss(loadingToastId);
+        toast.error(`Icon too large (${svgSizeKB.toFixed(0)}KB)`, {
+          description: 'Maximum size is 1MB. Try simplifying the graphic.'
+        });
+        return;
+      }
       
       // Warn for icons over 500KB
       if (svgSizeKB > 500) {
-        toast.dismiss(loadingToastId);
         toast.warning(`Large icon (${svgSizeKB.toFixed(0)}KB)`, {
-          description: 'May affect save performance. Use with caution.'
+          description: 'Processing may take a moment...'
         });
       }
 
       const event = new CustomEvent("addIconToCanvas", {
-        detail: { svgData: data.svg_content },
+        detail: { svgData: data.svg_content, iconId: icon.id },
       });
       window.dispatchEvent(event);
       toast.dismiss(loadingToastId);
@@ -532,16 +545,16 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                             <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                               <div className="flex items-center justify-between w-full pr-2">
                                 <div className="flex items-center gap-2">
-                                  <button
+                                  <div
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       togglePin(category.id);
                                     }}
-                                    className="hover:text-yellow-600 transition-colors"
+                                    className="hover:text-yellow-600 transition-colors cursor-pointer"
                                     title="Unpin category"
                                   >
                                     <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                                  </button>
+                                  </div>
                                   <span>{category.name}</span>
                                 </div>
                   <span className="text-xs text-muted-foreground font-normal">
@@ -642,16 +655,16 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                         <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                           <div className="flex items-center justify-between w-full pr-2">
                             <div className="flex items-center gap-2">
-                              <button
+                              <div
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   togglePin(category.id);
                                 }}
-                                className="hover:text-yellow-500 transition-colors"
+                                className="hover:text-yellow-500 transition-colors cursor-pointer"
                                 title="Pin category"
                               >
                                 <Star className="h-4 w-4" />
-                              </button>
+                              </div>
                               <span>{category.name}</span>
                             </div>
                   <span className="text-xs text-muted-foreground font-normal">

@@ -292,33 +292,103 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     // Listen for custom event to add icons to canvas
     const handleAddIcon = async (event: CustomEvent) => {
-      const { svgData } = event.detail;
+      const { svgData, iconId } = event.detail;
 
       try {
         const startTime = performance.now();
         
-        // Sanitize SVG before parsing to fix namespace issues
-        console.log('Original SVG size:', svgData.length, 'Has color info:', /fill=|style=/.test(svgData));
-        const sanitizedSVG = sanitizeSVGNamespaces(svgData);
-        console.log('Sanitized SVG size:', sanitizedSVG.length, 'Preserved colors:', /fill=|style=/.test(sanitizedSVG));
+        // Check cache first
+        const { iconCache } = await import('@/lib/iconCache');
+        const cached = iconId ? await iconCache.get(iconId) : null;
         
-        // Create a timeout promise for large SVG parsing
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('SVG parsing timeout')), 20000); // 20 second timeout
+        if (cached) {
+          console.log('Using cached icon:', iconId);
+          // Deserialize cached Fabric object
+          const parsePromise = loadSVGFromString(cached.svgContent);
+          const { objects, options } = await parsePromise;
+          const group = util.groupSVGElements(objects, options);
+          
+          // Scale and position
+          const maxW = (canvas.width || 0) * 0.6;
+          const maxH = (canvas.height || 0) * 0.6;
+          const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
+          group.scale(scale);
+          group.set({
+            left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
+            top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+          });
+          
+          canvas.add(group);
+          canvas.setActiveObject(group);
+          canvas.requestRenderAll();
+          toast.success("Icon added to canvas (cached)");
+          return;
+        }
+        
+        // Process SVG in Web Worker for validation
+        const worker = new Worker(new URL('@/lib/svgWorker.ts', import.meta.url), { type: 'module' });
+        
+        const workerResult = await new Promise<any>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            worker.terminate();
+            reject(new Error('Worker timeout'));
+          }, 10000);
+          
+          worker.onmessage = (e) => {
+            clearTimeout(timeout);
+            worker.terminate();
+            resolve(e.data);
+          };
+          
+          worker.onerror = (err) => {
+            clearTimeout(timeout);
+            worker.terminate();
+            reject(err);
+          };
+          
+          worker.postMessage({ type: 'parse', svgContent: svgData, id: iconId || 'temp' });
         });
         
+        if (workerResult.type === 'error') {
+          throw new Error(workerResult.error);
+        }
+        
+        if (workerResult.type === 'too-complex') {
+          toast.warning(workerResult.error, {
+            description: 'This icon is very complex and may slow down the canvas.'
+          });
+        }
+        
+        // Use processed SVG from worker
+        const processedSVG = workerResult.data.svgContent;
+        console.log('Worker processed SVG, complexity:', workerResult.data.complexity);
+        
+        // Sanitize SVG before parsing to fix namespace issues
+        const sanitizedSVG = sanitizeSVGNamespaces(processedSVG);
+        
         // Parse sanitized SVG string with timeout
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('SVG parsing timeout')), 15000);
+        });
+        
         const parsePromise = loadSVGFromString(sanitizedSVG);
         const { objects, options } = await Promise.race([parsePromise, timeoutPromise]) as Awaited<ReturnType<typeof loadSVGFromString>>;
         
         const parseTime = performance.now() - startTime;
         console.log(`SVG parsed in ${parseTime.toFixed(2)}ms`);
         
-        if (parseTime > 5000) {
-          console.warn('Large SVG detected - parsing took over 5 seconds');
-        }
-        
         const group = util.groupSVGElements(objects, options);
+        
+        // Cache the parsed icon
+        if (iconId) {
+          iconCache.set({
+            id: iconId,
+            svgContent: sanitizedSVG,
+            parsedData: group.toObject(),
+            timestamp: Date.now(),
+            complexity: workerResult.data.complexity
+          });
+        }
         
         // Scale to fit within 60% of canvas area
         const maxW = (canvas.width || 0) * 0.6;
