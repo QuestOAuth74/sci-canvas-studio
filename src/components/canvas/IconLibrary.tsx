@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, Search, X, Star, Sparkles } from "lucide-rea
 import { usePinnedCategories } from "@/hooks/usePinnedCategories";
 import { toast } from "sonner";
 import noPreview from "@/assets/no_preview.png";
+import { LoadingProgress } from "@/components/canvas/LoadingProgress";
 
 interface Icon {
   id: string;
@@ -93,6 +94,13 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   const [loadingCategories, setLoadingCategories] = useState<Record<string, boolean>>({});
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
   const { pinnedCategoryIds, togglePin, isPinned } = usePinnedCategories();
+  
+  // Loading progress state
+  const [loadingProgress, setLoadingProgress] = useState<{
+    iconName: string;
+    progress: number;
+  } | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Split categories into pinned and unpinned
   const { pinnedCategories, unpinnedCategories } = useMemo(() => {
@@ -249,32 +257,83 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   const handleIconClick = async (icon: Icon) => {
-    const loadingToastId = toast.loading(`Loading ${icon.name}...`);
+    // Cancel any existing load
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    // Create new abort controller
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+    
+    setLoadingProgress({ iconName: icon.name, progress: 0 });
     
     try {
+      // Simulate progress for UI feedback
+      const progressInterval = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (!prev) return null;
+          const newProgress = Math.min(prev.progress + 10, 90);
+          return { ...prev, progress: newProgress };
+        });
+      }, 200);
+      
+      // Check if aborted
+      if (signal.aborted) {
+        clearInterval(progressInterval);
+        setLoadingProgress(null);
+        return;
+      }
+      
+      setLoadingProgress(prev => prev ? { ...prev, progress: 10 } : null);
+      
       // Check cache first
       const { iconCache } = await import('@/lib/iconCache');
       const cached = await iconCache.get(icon.id);
       
+      if (signal.aborted) {
+        clearInterval(progressInterval);
+        setLoadingProgress(null);
+        return;
+      }
+      
       if (cached) {
         console.log('Using cached icon:', icon.name);
+        clearInterval(progressInterval);
+        setLoadingProgress(prev => prev ? { ...prev, progress: 100 } : null);
+        
         const event = new CustomEvent("addIconToCanvas", {
           detail: { svgData: cached.svgContent, iconId: icon.id },
         });
         window.dispatchEvent(event);
-        toast.dismiss(loadingToastId);
+        
+        setTimeout(() => setLoadingProgress(null), 500);
         return;
       }
       
+      setLoadingProgress(prev => prev ? { ...prev, progress: 30 } : null);
+      
       // If we already have svg_content, use it
       if (icon.svg_content) {
+        if (signal.aborted) {
+          clearInterval(progressInterval);
+          setLoadingProgress(null);
+          return;
+        }
+        
+        clearInterval(progressInterval);
+        setLoadingProgress(prev => prev ? { ...prev, progress: 100 } : null);
+        
         const event = new CustomEvent("addIconToCanvas", {
           detail: { svgData: icon.svg_content, iconId: icon.id },
         });
         window.dispatchEvent(event);
-        toast.dismiss(loadingToastId);
+        
+        setTimeout(() => setLoadingProgress(null), 500);
         return;
       }
+
+      setLoadingProgress(prev => prev ? { ...prev, progress: 50 } : null);
 
       // Otherwise, fetch full svg_content for high-quality canvas rendering
       const { data, error } = await supabase
@@ -283,15 +342,23 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
         .eq('id', icon.id)
         .single();
 
+      if (signal.aborted) {
+        clearInterval(progressInterval);
+        setLoadingProgress(null);
+        return;
+      }
+
       if (error) {
-        toast.dismiss(loadingToastId);
+        clearInterval(progressInterval);
+        setLoadingProgress(null);
         toast.error(`Failed to load icon: ${error.message}`);
         console.error('Error loading icon:', error);
         return;
       }
       
       if (!data?.svg_content) {
-        toast.dismiss(loadingToastId);
+        clearInterval(progressInterval);
+        setLoadingProgress(null);
         toast.error('No SVG content found for this icon');
         return;
       }
@@ -302,7 +369,8 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       
       // Block icons over 1MB (Web Worker limit)
       if (svgSizeKB > 1024) {
-        toast.dismiss(loadingToastId);
+        clearInterval(progressInterval);
+        setLoadingProgress(null);
         toast.error(`Icon too large (${svgSizeKB.toFixed(0)}KB)`, {
           description: 'Maximum size is 1MB. Try simplifying the graphic.'
         });
@@ -316,17 +384,43 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
         });
       }
 
+      setLoadingProgress(prev => prev ? { ...prev, progress: 80 } : null);
+
+      if (signal.aborted) {
+        clearInterval(progressInterval);
+        setLoadingProgress(null);
+        return;
+      }
+
+      clearInterval(progressInterval);
+      setLoadingProgress(prev => prev ? { ...prev, progress: 100 } : null);
+
       const event = new CustomEvent("addIconToCanvas", {
         detail: { svgData: data.svg_content, iconId: icon.id },
       });
       window.dispatchEvent(event);
-      toast.dismiss(loadingToastId);
+      
+      setTimeout(() => setLoadingProgress(null), 500);
     } catch (error) {
-      toast.dismiss(loadingToastId);
+      if (signal.aborted) {
+        setLoadingProgress(null);
+        toast.info('Icon loading cancelled');
+        return;
+      }
+      
+      setLoadingProgress(null);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Failed to load icon: ${errorMessage}`);
       console.error('Error loading icon:', error);
     }
+  };
+
+  const handleCancelLoad = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setLoadingProgress(null);
+    toast.info('Icon loading cancelled');
   };
 
   const onImgLoad = (id: string) => {
@@ -743,6 +837,15 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
             </ScrollArea>
           )}
         </>
+      )}
+      
+      {/* Loading progress indicator */}
+      {loadingProgress && (
+        <LoadingProgress
+          iconName={loadingProgress.iconName}
+          progress={loadingProgress.progress}
+          onCancel={handleCancelLoad}
+        />
       )}
     </div>
   );

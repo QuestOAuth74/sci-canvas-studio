@@ -14,6 +14,7 @@ import { calculateArcPath } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { loadImageWithCORS } from "@/lib/utils";
 import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling";
+import { calculateObjectComplexity, applyComplexityOptimizations, shouldSimplifyControls } from "@/lib/objectComplexity";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -324,6 +325,12 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           const { objects, options } = await parsePromise;
           const group = util.groupSVGElements(objects, options);
           
+          // Calculate complexity and apply optimizations
+          const complexity = calculateObjectComplexity(group);
+          if (shouldSimplifyControls(complexity)) {
+            applyComplexityOptimizations(group, complexity);
+          }
+          
           // Scale and position
           const maxW = (canvas.width || 0) * 0.6;
           const maxH = (canvas.height || 0) * 0.6;
@@ -394,6 +401,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         console.log(`SVG parsed in ${parseTime.toFixed(2)}ms`);
         
         const group = util.groupSVGElements(objects, options);
+        
+        // Calculate complexity and apply optimizations
+        const complexity = calculateObjectComplexity(group);
+        console.log('Object complexity:', complexity);
+        
+        if (shouldSimplifyControls(complexity)) {
+          applyComplexityOptimizations(group, complexity);
+          toast.info(`Complex icon (${complexity.totalObjects} objects)`, {
+            description: 'Simplified controls applied for better performance'
+          });
+        }
         
         // Cache the parsed icon
         if (iconId) {
