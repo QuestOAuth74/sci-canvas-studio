@@ -14,17 +14,19 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, Upload, User as UserIcon, ArrowLeft, Bell, BellOff, Trash2, Lock } from 'lucide-react';
+import { Loader2, Upload, User as UserIcon, ArrowLeft, Bell, BellOff, Trash2, Lock, Sparkles, Wand2, FileText, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
 import { FeatureUnlockBanner } from '@/components/community/FeatureUnlockBanner';
+import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 
 export default function Profile() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { hasAccess, isLoading: featureAccessLoading } = useFeatureAccess();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -303,6 +305,101 @@ export default function Profile() {
         </Button>
         
         <FeatureUnlockBanner />
+        
+        {/* Premium Features Section - Only shown when unlocked */}
+        {hasAccess && !featureAccessLoading && (
+          <Card className="mb-6 overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <CardTitle>Your Premium Features</CardTitle>
+              </div>
+              <CardDescription>
+                Congratulations! You've unlocked these powerful tools by contributing to the community
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* AI Figure Generator Card */}
+                <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Wand2 className="h-5 w-5" />
+                      </div>
+                      <h3 className="font-semibold">AI Figure Generator</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Generate scientific figures from reference images using AI
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="default"
+                      onClick={() => navigate('/canvas')}
+                      className="w-full mt-auto"
+                    >
+                      Open in Canvas
+                    </Button>
+                  </div>
+                </div>
+
+                {/* AI Icon Generator Card */}
+                <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <Sparkles className="h-5 w-5" />
+                      </div>
+                      <h3 className="font-semibold">AI Icon Generator</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Create custom scientific icons and symbols with AI
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="default"
+                      onClick={() => navigate('/canvas')}
+                      className="w-full mt-auto"
+                    >
+                      Open in Canvas
+                    </Button>
+                  </div>
+                </div>
+
+                {/* PowerPoint Generator Card */}
+                <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <h3 className="font-semibold">PowerPoint Maker</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Convert your canvas designs into PowerPoint presentations
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="default"
+                      onClick={() => navigate('/canvas')}
+                      className="w-full mt-auto"
+                    >
+                      Open in Canvas
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Info badge */}
+              <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                <p className="text-xs text-muted-foreground flex items-center gap-2">
+                  <Info className="h-3 w-3" />
+                  These features are available on the Canvas page. Click any button above to get started!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         
         <Card>
           <CardHeader>
