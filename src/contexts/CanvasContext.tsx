@@ -7,6 +7,7 @@ import { loadAllFonts } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
 import { GradientConfig, ShadowConfig } from "@/types/effects";
 import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
+import { safeDownloadDataUrl } from "@/lib/utils";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -814,148 +815,193 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   }, []);
 
   // Export operations
-  const exportAsPNG = useCallback((dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
+  const exportAsPNG = useCallback(async (dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
     if (!canvas) return;
 
     const originalSelection = canvas.getActiveObject();
-    
-    // If exporting selection only, temporarily hide non-selected objects
     const hiddenForSelection: FabricObject[] = [];
-    if (selectionOnly && originalSelection) {
+    const hidden: FabricObject[] = [];
+
+    try {
+      // If exporting selection only, temporarily hide non-selected objects
+      if (selectionOnly && originalSelection) {
+        canvas.getObjects().forEach((obj) => {
+          if (obj !== originalSelection && obj.visible && 
+              !(obj as any).isGridLine && !(obj as any).isRuler) {
+            hiddenForSelection.push(obj);
+            obj.visible = false;
+          }
+        });
+      }
+
+      // Temporarily hide guides, previews, handles, and eraser paths
       canvas.getObjects().forEach((obj) => {
-        if (obj !== originalSelection && obj.visible && 
-            !(obj as any).isGridLine && !(obj as any).isRuler) {
-          hiddenForSelection.push(obj);
-          obj.visible = false;
+        const o: any = obj as any;
+        if (
+          o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath || obj.globalCompositeOperation === 'destination-out'
+        ) {
+          if (obj.visible) {
+            hidden.push(obj);
+            obj.visible = false;
+          }
         }
       });
-    }
+      canvas.renderAll();
 
-    // Temporarily hide guides, previews, handles, and eraser paths
-    const hidden: FabricObject[] = [];
-    canvas.getObjects().forEach((obj) => {
-      const o: any = obj as any;
-      if (
-        o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath || obj.globalCompositeOperation === 'destination-out'
-      ) {
-        if (obj.visible) {
-          hidden.push(obj);
-          obj.visible = false;
-        }
+      // Calculate multiplier based on DPI (300 is base)
+      const multiplier = dpi / 300;
+      
+      // Guard against extreme dimensions
+      const outW = (canvas.width || 0) * multiplier;
+      const outH = (canvas.height || 0) * multiplier;
+      if (outW > 10000 || outH > 10000) {
+        toast.error('Export dimensions too large. Try a lower DPI setting.');
+        return;
       }
-    });
-    canvas.renderAll();
 
-    // Calculate multiplier based on DPI (300 is base)
-    const multiplier = dpi / 300;
-    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier });
-
-    // Restore visibility
-    hidden.forEach((o) => (o.visible = true));
-    hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.renderAll();
-
-    const link = document.createElement('a');
-    link.download = selectionOnly ? `selection-${dpi}dpi.png` : `diagram-${dpi}dpi.png`;
-    link.href = dataURL;
-    link.click();
-    toast.success(`Exported as PNG at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
+      const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier });
+      const filename = selectionOnly ? `selection-${dpi}dpi.png` : `diagram-${dpi}dpi.png`;
+      
+      await safeDownloadDataUrl(dataURL, filename);
+      toast.success(`Exported as PNG at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
+    } catch (err) {
+      if (err instanceof Error && /tainted|cross-origin/i.test(err.message)) {
+        toast.error("Export failed due to a cross-origin image. Re-add the image via upload or a URL with CORS enabled.");
+      } else {
+        toast.error(err instanceof Error ? err.message : 'Failed to export PNG. Try a lower DPI or smaller canvas.');
+      }
+    } finally {
+      // Restore visibility
+      hidden.forEach((o) => (o.visible = true));
+      hiddenForSelection.forEach((o) => (o.visible = true));
+      canvas.renderAll();
+    }
   }, [canvas]);
 
-  const exportAsPNGTransparent = useCallback((dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
+  const exportAsPNGTransparent = useCallback(async (dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
     if (!canvas) return;
 
     const originalSelection = canvas.getActiveObject();
-    
-    // If exporting selection only, temporarily hide non-selected objects
     const hiddenForSelection: FabricObject[] = [];
-    if (selectionOnly && originalSelection) {
-      canvas.getObjects().forEach((obj) => {
-        if (obj !== originalSelection && obj.visible && 
-            !(obj as any).isGridLine && !(obj as any).isRuler) {
-          hiddenForSelection.push(obj);
-          obj.visible = false;
-        }
-      });
-    }
-
-    // Temporarily hide guides, previews, handles, and eraser paths
     const hidden: FabricObject[] = [];
-    canvas.getObjects().forEach((obj) => {
-      const o: any = obj as any;
-      if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
-        if (obj.visible) {
-          hidden.push(obj);
-          obj.visible = false;
-        }
-      }
-    });
-
     const originalBg = canvas.backgroundColor;
-    canvas.backgroundColor = '';
-    canvas.renderAll();
 
-    // Calculate multiplier based on DPI (300 is base)
-    const multiplier = dpi / 300;
-    const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier });
+    try {
+      // If exporting selection only, temporarily hide non-selected objects
+      if (selectionOnly && originalSelection) {
+        canvas.getObjects().forEach((obj) => {
+          if (obj !== originalSelection && obj.visible && 
+              !(obj as any).isGridLine && !(obj as any).isRuler) {
+            hiddenForSelection.push(obj);
+            obj.visible = false;
+          }
+        });
+      }
 
-    // Restore background and guides
-    canvas.backgroundColor = originalBg;
-    hidden.forEach((o) => (o.visible = true));
-    hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.renderAll();
+      // Temporarily hide guides, previews, handles, and eraser paths
+      canvas.getObjects().forEach((obj) => {
+        const o: any = obj as any;
+        if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
+          if (obj.visible) {
+            hidden.push(obj);
+            obj.visible = false;
+          }
+        }
+      });
 
-    const link = document.createElement('a');
-    link.download = selectionOnly ? `selection-transparent-${dpi}dpi.png` : `diagram-transparent-${dpi}dpi.png`;
-    link.href = dataURL;
-    link.click();
-    toast.success(`Exported as PNG (transparent) at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
+      canvas.backgroundColor = null as any;
+      canvas.renderAll();
+
+      // Calculate multiplier based on DPI (300 is base)
+      const multiplier = dpi / 300;
+      
+      // Guard against extreme dimensions
+      const outW = (canvas.width || 0) * multiplier;
+      const outH = (canvas.height || 0) * multiplier;
+      if (outW > 10000 || outH > 10000) {
+        toast.error('Export dimensions too large. Try a lower DPI setting.');
+        return;
+      }
+
+      const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier });
+      const filename = selectionOnly ? `selection-transparent-${dpi}dpi.png` : `diagram-transparent-${dpi}dpi.png`;
+      
+      await safeDownloadDataUrl(dataURL, filename);
+      toast.success(`Exported as PNG (transparent) at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
+    } catch (err) {
+      if (err instanceof Error && /tainted|cross-origin/i.test(err.message)) {
+        toast.error("Export failed due to a cross-origin image. Re-add the image via upload or a URL with CORS enabled.");
+      } else {
+        toast.error(err instanceof Error ? err.message : 'Failed to export transparent PNG. Try a lower DPI or smaller canvas.');
+      }
+    } finally {
+      // Restore background and guides
+      canvas.backgroundColor = originalBg;
+      hidden.forEach((o) => (o.visible = true));
+      hiddenForSelection.forEach((o) => (o.visible = true));
+      canvas.renderAll();
+    }
   }, [canvas]);
 
-  const exportAsJPG = useCallback((dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
+  const exportAsJPG = useCallback(async (dpi: 150 | 300 | 600 = 300, selectionOnly: boolean = false) => {
     if (!canvas) return;
 
     const originalSelection = canvas.getActiveObject();
-    
-    // If exporting selection only, temporarily hide non-selected objects
     const hiddenForSelection: FabricObject[] = [];
-    if (selectionOnly && originalSelection) {
+    const hidden: FabricObject[] = [];
+
+    try {
+      // If exporting selection only, temporarily hide non-selected objects
+      if (selectionOnly && originalSelection) {
+        canvas.getObjects().forEach((obj) => {
+          if (obj !== originalSelection && obj.visible && 
+              !(obj as any).isGridLine && !(obj as any).isRuler) {
+            hiddenForSelection.push(obj);
+            obj.visible = false;
+          }
+        });
+      }
+
+      // Temporarily hide guides, previews, handles, and eraser paths
       canvas.getObjects().forEach((obj) => {
-        if (obj !== originalSelection && obj.visible && 
-            !(obj as any).isGridLine && !(obj as any).isRuler) {
-          hiddenForSelection.push(obj);
-          obj.visible = false;
+        const o: any = obj as any;
+        if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
+          if (obj.visible) {
+            hidden.push(obj);
+            obj.visible = false;
+          }
         }
       });
-    }
+      canvas.renderAll();
 
-    // Temporarily hide guides, previews, handles, and eraser paths
-    const hidden: FabricObject[] = [];
-    canvas.getObjects().forEach((obj) => {
-      const o: any = obj as any;
-      if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
-        if (obj.visible) {
-          hidden.push(obj);
-          obj.visible = false;
-        }
+      // Calculate multiplier based on DPI (300 is base)
+      const multiplier = dpi / 300;
+      
+      // Guard against extreme dimensions
+      const outW = (canvas.width || 0) * multiplier;
+      const outH = (canvas.height || 0) * multiplier;
+      if (outW > 10000 || outH > 10000) {
+        toast.error('Export dimensions too large. Try a lower DPI setting.');
+        return;
       }
-    });
-    canvas.renderAll();
 
-    // Calculate multiplier based on DPI (300 is base)
-    const multiplier = dpi / 300;
-    const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier });
-
-    // Restore visibility
-    hidden.forEach((o) => (o.visible = true));
-    hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.renderAll();
-
-    const link = document.createElement('a');
-    link.download = selectionOnly ? `selection-${dpi}dpi.jpg` : `diagram-${dpi}dpi.jpg`;
-    link.href = dataURL;
-    link.click();
-    toast.success(`Exported as JPG at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
+      const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier });
+      const filename = selectionOnly ? `selection-${dpi}dpi.jpg` : `diagram-${dpi}dpi.jpg`;
+      
+      await safeDownloadDataUrl(dataURL, filename);
+      toast.success(`Exported as JPG at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
+    } catch (err) {
+      if (err instanceof Error && /tainted|cross-origin/i.test(err.message)) {
+        toast.error("Export failed due to a cross-origin image. Re-add the image via upload or a URL with CORS enabled.");
+      } else {
+        toast.error(err instanceof Error ? err.message : 'Failed to export JPG. Try a lower DPI or smaller canvas.');
+      }
+    } finally {
+      // Restore visibility
+      hidden.forEach((o) => (o.visible = true));
+      hiddenForSelection.forEach((o) => (o.visible = true));
+      canvas.renderAll();
+    }
   }, [canvas]);
 
   const exportAsSVG = useCallback((selectionOnly: boolean = false) => {
