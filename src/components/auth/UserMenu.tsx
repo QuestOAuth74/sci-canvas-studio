@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { User, LogOut, Settings, ShieldCheck, Users, UserCircle, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 export const UserMenu = () => {
   const { user, isAdmin, signOut } = useAuth();
@@ -61,6 +62,9 @@ export const UserMenu = () => {
             Admin Panel
           </DropdownMenuItem>
         )}
+        <DropdownMenuSeparator />
+        <ThemeSwitcher />
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}>
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out

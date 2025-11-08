@@ -433,6 +433,96 @@ All colors MUST be HSL.
     --sidebar-border: 25 20% 25%;
     --sidebar-ring: 18 90% 60%;
   }
+
+  /* Professional Blue Theme - Light Mode */
+  .theme-blue {
+    --background: 210 20% 98%;
+    --foreground: 210 15% 25%;
+    --card: 210 20% 99%;
+    --card-foreground: 210 15% 25%;
+    --popover: 210 20% 99%;
+    --popover-foreground: 210 15% 25%;
+    
+    /* Primary - Professional Blue */
+    --primary: 210 70% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Navy Blue */
+    --secondary: 220 60% 45%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Muted - Light Blue-Gray */
+    --muted: 210 15% 94%;
+    --muted-foreground: 210 10% 45%;
+    
+    /* Accent - Light Sky Blue */
+    --accent: 200 70% 85%;
+    --accent-foreground: 210 15% 25%;
+    
+    /* Destructive - Soft Red */
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* UI Elements */
+    --border: 210 10% 85%;
+    --input: 210 20% 99%;
+    --ring: 210 70% 55%;
+    
+    /* Sidebar */
+    --sidebar-background: 210 15% 94%;
+    --sidebar-foreground: 210 15% 25%;
+    --sidebar-primary: 210 70% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 70% 85%;
+    --sidebar-accent-foreground: 210 15% 25%;
+    --sidebar-border: 210 10% 85%;
+    --sidebar-ring: 210 70% 55%;
+  }
+
+  /* Professional Blue Theme - Dark Mode */
+  .theme-blue.dark {
+    --background: 215 25% 12%;
+    --foreground: 210 20% 90%;
+    --card: 215 20% 16%;
+    --card-foreground: 210 20% 90%;
+    --popover: 215 20% 16%;
+    --popover-foreground: 210 20% 90%;
+    
+    /* Primary - Bright Blue */
+    --primary: 210 75% 65%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary - Cyan Blue */
+    --secondary: 200 65% 55%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Muted */
+    --muted: 215 15% 20%;
+    --muted-foreground: 210 15% 65%;
+    
+    /* Accent - Light Cyan */
+    --accent: 195 65% 75%;
+    --accent-foreground: 215 25% 12%;
+    
+    /* Destructive */
+    --destructive: 0 75% 65%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* UI Elements */
+    --border: 215 15% 25%;
+    --input: 215 15% 20%;
+    --ring: 210 75% 65%;
+    
+    /* Sidebar */
+    --sidebar-background: 215 20% 14%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 210 75% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 195 65% 75%;
+    --sidebar-accent-foreground: 215 25% 12%;
+    --sidebar-border: 215 15% 25%;
+    --sidebar-ring: 210 75% 65%;
+  }
 }
 
 @layer base {
