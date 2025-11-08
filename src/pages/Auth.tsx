@@ -511,6 +511,19 @@ export default function Auth() {
                     <p className="text-sm text-destructive">{signUpErrors.fieldOfStudy}</p>
                   )}
                 </div>
+                <div className="pt-2 pb-1">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    By entering my email address and clicking "Create Account", I agree to BioSketch's{' '}
+                    <a 
+                      href="/terms" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      privacy policy and terms of service
+                    </a>.
+                  </p>
+                </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
