@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
+import { FeatureUnlockBanner } from '@/components/community/FeatureUnlockBanner';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -300,6 +301,9 @@ export default function Profile() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Home
         </Button>
+        
+        <FeatureUnlockBanner />
+        
         <Card>
           <CardHeader>
             <CardTitle>Profile Settings</CardTitle>
