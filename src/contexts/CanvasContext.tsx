@@ -821,6 +821,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const originalSelection = canvas.getActiveObject();
     const hiddenForSelection: FabricObject[] = [];
     const hidden: FabricObject[] = [];
+    
+    const toastId = toast.loading(`Preparing PNG export at ${dpi} DPI...`);
 
     try {
       // If exporting selection only, temporarily hide non-selected objects
@@ -854,17 +856,41 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Guard against extreme dimensions
       const outW = (canvas.width || 0) * multiplier;
       const outH = (canvas.height || 0) * multiplier;
+      
+      // Estimate file size
+      const estimatedPixels = outW * outH;
+      const estimatedMB = (estimatedPixels * 4) / (1024 * 1024);
+      
+      if (estimatedMB > 100) {
+        toast.dismiss(toastId);
+        toast.error(`Export size too large (${estimatedMB.toFixed(0)}MB). Try a lower DPI or smaller canvas.`);
+        return;
+      }
+      
       if (outW > 10000 || outH > 10000) {
+        toast.dismiss(toastId);
         toast.error('Export dimensions too large. Try a lower DPI setting.');
         return;
       }
 
+      console.log(`Generating PNG at ${dpi} DPI, canvas size: ${canvas.width}x${canvas.height}, output: ${outW}x${outH}`);
       const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier });
+      console.log(`Data URL generated, length: ${dataURL.length} characters (${(dataURL.length / (1024 * 1024)).toFixed(2)} MB)`);
+      
       const filename = selectionOnly ? `selection-${dpi}dpi.png` : `diagram-${dpi}dpi.png`;
       
       await safeDownloadDataUrl(dataURL, filename);
+      toast.dismiss(toastId);
       toast.success(`Exported as PNG at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
     } catch (err) {
+      toast.dismiss(toastId);
+      console.error('PNG Export failed:', {
+        error: err,
+        canvasSize: { width: canvas.width, height: canvas.height },
+        dpi,
+        multiplier: dpi / 300
+      });
+      
       if (err instanceof Error && /tainted|cross-origin/i.test(err.message)) {
         toast.error("Export failed due to a cross-origin image. Re-add the image via upload or a URL with CORS enabled.");
       } else {
@@ -885,6 +911,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const hiddenForSelection: FabricObject[] = [];
     const hidden: FabricObject[] = [];
     const originalBg = canvas.backgroundColor;
+    
+    const toastId = toast.loading(`Preparing transparent PNG export at ${dpi} DPI...`);
 
     try {
       // If exporting selection only, temporarily hide non-selected objects
@@ -918,17 +946,41 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Guard against extreme dimensions
       const outW = (canvas.width || 0) * multiplier;
       const outH = (canvas.height || 0) * multiplier;
+      
+      // Estimate file size
+      const estimatedPixels = outW * outH;
+      const estimatedMB = (estimatedPixels * 4) / (1024 * 1024);
+      
+      if (estimatedMB > 100) {
+        toast.dismiss(toastId);
+        toast.error(`Export size too large (${estimatedMB.toFixed(0)}MB). Try a lower DPI or smaller canvas.`);
+        return;
+      }
+      
       if (outW > 10000 || outH > 10000) {
+        toast.dismiss(toastId);
         toast.error('Export dimensions too large. Try a lower DPI setting.');
         return;
       }
 
+      console.log(`Generating transparent PNG at ${dpi} DPI, canvas size: ${canvas.width}x${canvas.height}, output: ${outW}x${outH}`);
       const dataURL = canvas.toDataURL({ format: 'png', quality: 1, multiplier });
+      console.log(`Data URL generated, length: ${dataURL.length} characters (${(dataURL.length / (1024 * 1024)).toFixed(2)} MB)`);
+      
       const filename = selectionOnly ? `selection-transparent-${dpi}dpi.png` : `diagram-transparent-${dpi}dpi.png`;
       
       await safeDownloadDataUrl(dataURL, filename);
+      toast.dismiss(toastId);
       toast.success(`Exported as PNG (transparent) at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
     } catch (err) {
+      toast.dismiss(toastId);
+      console.error('Transparent PNG Export failed:', {
+        error: err,
+        canvasSize: { width: canvas.width, height: canvas.height },
+        dpi,
+        multiplier: dpi / 300
+      });
+      
       if (err instanceof Error && /tainted|cross-origin/i.test(err.message)) {
         toast.error("Export failed due to a cross-origin image. Re-add the image via upload or a URL with CORS enabled.");
       } else {
@@ -949,6 +1001,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const originalSelection = canvas.getActiveObject();
     const hiddenForSelection: FabricObject[] = [];
     const hidden: FabricObject[] = [];
+    
+    const toastId = toast.loading(`Preparing JPG export at ${dpi} DPI...`);
 
     try {
       // If exporting selection only, temporarily hide non-selected objects
@@ -980,17 +1034,41 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Guard against extreme dimensions
       const outW = (canvas.width || 0) * multiplier;
       const outH = (canvas.height || 0) * multiplier;
+      
+      // Estimate file size
+      const estimatedPixels = outW * outH;
+      const estimatedMB = (estimatedPixels * 0.5) / (1024 * 1024); // JPG uses ~0.5 bytes per pixel
+      
+      if (estimatedMB > 100) {
+        toast.dismiss(toastId);
+        toast.error(`Export size too large (${estimatedMB.toFixed(0)}MB). Try a lower DPI or smaller canvas.`);
+        return;
+      }
+      
       if (outW > 10000 || outH > 10000) {
+        toast.dismiss(toastId);
         toast.error('Export dimensions too large. Try a lower DPI setting.');
         return;
       }
 
+      console.log(`Generating JPG at ${dpi} DPI, canvas size: ${canvas.width}x${canvas.height}, output: ${outW}x${outH}`);
       const dataURL = canvas.toDataURL({ format: 'jpeg', quality: 1, multiplier });
+      console.log(`Data URL generated, length: ${dataURL.length} characters (${(dataURL.length / (1024 * 1024)).toFixed(2)} MB)`);
+      
       const filename = selectionOnly ? `selection-${dpi}dpi.jpg` : `diagram-${dpi}dpi.jpg`;
       
       await safeDownloadDataUrl(dataURL, filename);
+      toast.dismiss(toastId);
       toast.success(`Exported as JPG at ${dpi} DPI`, { duration: 1500, className: 'animate-fade-in' });
     } catch (err) {
+      toast.dismiss(toastId);
+      console.error('JPG Export failed:', {
+        error: err,
+        canvasSize: { width: canvas.width, height: canvas.height },
+        dpi,
+        multiplier: dpi / 300
+      });
+      
       if (err instanceof Error && /tainted|cross-origin/i.test(err.message)) {
         toast.error("Export failed due to a cross-origin image. Re-add the image via upload or a URL with CORS enabled.");
       } else {

@@ -47,6 +47,22 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
   const [dpi, setDpi] = useState<150 | 300 | 600>(300);
   const [selectionOnly, setSelectionOnly] = useState(false);
 
+  // Load preferences from localStorage when dialog opens
+  useEffect(() => {
+    if (open) {
+      const saved = localStorage.getItem('export_preferences');
+      if (saved) {
+        try {
+          const prefs = JSON.parse(saved);
+          if (prefs.format) setFormat(prefs.format);
+          if (prefs.dpi) setDpi(prefs.dpi);
+        } catch (e) {
+          console.error('Failed to load export preferences:', e);
+        }
+      }
+    }
+  }, [open]);
+
   // Calculate export dimensions based on DPI
   const calculateDimensions = (targetDpi: number) => {
     const multiplier = targetDpi / 300;
@@ -77,6 +93,8 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
   };
 
   const handleExport = () => {
+    // Save preferences to localStorage
+    localStorage.setItem('export_preferences', JSON.stringify({ format, dpi }));
     onExport(format, dpi, selectionOnly);
     onOpenChange(false);
   };

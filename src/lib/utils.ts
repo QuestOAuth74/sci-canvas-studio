@@ -24,8 +24,35 @@ export function sanitizeSVG(svg: string): string {
  * @returns Promise resolving to a Blob
  */
 export async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
-  const res = await fetch(dataUrl);
-  return await res.blob();
+  try {
+    // Try fetch first (cleaner for well-formed data URLs)
+    const res = await fetch(dataUrl);
+    return await res.blob();
+  } catch (fetchError) {
+    // Fallback: manual conversion (more reliable for large data URLs)
+    console.warn('Fetch failed, using manual conversion:', fetchError);
+    
+    const parts = dataUrl.split(',');
+    if (parts.length !== 2) {
+      throw new Error('Invalid data URL format');
+    }
+    
+    const mimeMatch = parts[0].match(/:(.*?);/);
+    if (!mimeMatch) {
+      throw new Error('Could not determine MIME type from data URL');
+    }
+    
+    const mime = mimeMatch[1];
+    const bstr = atob(parts[1]);
+    const n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    
+    for (let i = 0; i < n; i++) {
+      u8arr[i] = bstr.charCodeAt(i);
+    }
+    
+    return new Blob([u8arr], { type: mime });
+  }
 }
 
 /**
