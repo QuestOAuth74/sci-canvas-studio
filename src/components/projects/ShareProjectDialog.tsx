@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, X, AlertCircle } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Loader2, X, AlertCircle, Globe, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { generateProjectThumbnail } from '@/lib/thumbnailGenerator';
@@ -204,20 +205,42 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Public Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="public-toggle">Make this project public</Label>
-              <p className="text-sm text-muted-foreground">
-                Public projects appear in the community gallery
-              </p>
+          {/* Public Toggle - Enhanced */}
+          <Card className="border-2 hover:border-primary/50 transition-colors cursor-pointer">
+            <div className="p-4" onClick={() => setIsPublic(!isPublic)}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {isPublic ? (
+                    <Globe className="h-5 w-5 text-primary" />
+                  ) : (
+                    <Lock className="h-5 w-5 text-muted-foreground" />
+                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-base font-semibold cursor-pointer">
+                        Share to Community
+                      </Label>
+                      <Badge variant={isPublic ? "default" : "secondary"}>
+                        {isPublic ? "Public" : "Private"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {isPublic 
+                        ? "This project will be visible in the community gallery after approval"
+                        : "Only you can see this project"
+                      }
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="public-toggle"
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
             </div>
-            <Switch
-              id="public-toggle"
-              checked={isPublic}
-              onCheckedChange={setIsPublic}
-            />
-          </div>
+          </Card>
 
           {isPublic && (
             <>
