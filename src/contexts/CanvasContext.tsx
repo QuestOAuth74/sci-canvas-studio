@@ -1574,9 +1574,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const addCurvedText = useCallback((curvedText: CurvedText) => {
     if (!canvas) return;
     
+    // Mark as dirty to force fresh render
+    curvedText.dirty = true;
     canvas.add(curvedText);
     canvas.setActiveObject(curvedText);
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
     toast.success('Curved text added');
   }, [canvas, saveState]);

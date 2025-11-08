@@ -1,4 +1,4 @@
-import { FabricObject, util } from 'fabric';
+import { FabricObject, classRegistry } from 'fabric';
 
 export interface CurvedTextOptions {
   text?: string;
@@ -43,6 +43,10 @@ export class CurvedText extends FabricObject {
     
     this.width = this.diameter;
     this.height = this.diameter / 2;
+    
+    // Disable caching to prevent blank renders in Fabric v6
+    this.objectCaching = false;
+    this.noScaleCache = true;
     
     this.setControlsVisibility({
       mt: false,
@@ -147,6 +151,11 @@ export class CurvedText extends FabricObject {
     maxX = Math.min(w, maxX + padding);
     maxY = Math.min(h, maxY + padding);
     
+    // Guard against empty canvas (no pixels found)
+    if (maxX <= minX || maxY <= minY) {
+      return sourceCanvas;
+    }
+    
     const cropW = maxX - minX;
     const cropH = maxY - minY;
     
@@ -164,9 +173,11 @@ export class CurvedText extends FabricObject {
     // Generate the curved text canvas
     this.internalCanvas = this.getCircularText();
     
-    // Update dimensions based on cropped canvas
-    this.width = this.internalCanvas.width;
-    this.height = this.internalCanvas.height;
+    // Update dimensions only if valid
+    if (this.internalCanvas.width > 0 && this.internalCanvas.height > 0) {
+      this.width = this.internalCanvas.width;
+      this.height = this.internalCanvas.height;
+    }
     
     // Draw the canvas on the fabric canvas
     ctx.drawImage(
@@ -202,3 +213,6 @@ export class CurvedText extends FabricObject {
     );
   }
 }
+
+// Register the custom class with Fabric.js
+classRegistry.setClass(CurvedText, 'curvedText');

@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { GOOGLE_FONTS } from "@/lib/fontLoader";
+import { GOOGLE_FONTS, ensureFontLoaded } from "@/lib/fontLoader";
 import { CurvedText, CurvedTextOptions } from "@/lib/curvedText";
 
 interface CurvedTextDialogProps {
@@ -80,7 +80,10 @@ export const CurvedTextDialog = ({ open, onOpenChange, onAdd, existingText }: Cu
     setPreviewText(preview);
   }, [text, diameter, kerning, flipped, fontSize, fontFamily, fontWeight, fontStyle, color, open]);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
+    // Ensure font is loaded before creating curved text
+    await ensureFontLoaded(fontFamily);
+    
     const options: CurvedTextOptions = {
       text,
       diameter,
