@@ -200,6 +200,8 @@ export class CurvedLineTool {
     (group as any).mainPath = curvePath;
     (group as any).startMarker = startMarkerRef;
     (group as any).endMarker = endMarkerRef;
+    (group as any).startMarkerType = this.options.startMarker;
+    (group as any).endMarkerType = this.options.endMarker;
     (group as any).markerOptions = {
       startMarker: this.options.startMarker,
       endMarker: this.options.endMarker,
@@ -553,8 +555,23 @@ export class CurvedLineTool {
   private attachTransformSync(group: Group): void {
     const startMarker = (group as any).startMarker as Group | null;
     const endMarker = (group as any).endMarker as Group | null;
+    const startMarkerType = (group as any).startMarkerType as MarkerType;
+    const endMarkerType = (group as any).endMarkerType as MarkerType;
     
     if (!startMarker && !endMarker) return;
+
+    const getMarkerOffset = (markerType: MarkerType): number => {
+      switch (markerType) {
+        case 'arrow': return -12;      // Tip touches endpoint
+        case 'back-arrow': return 12;   // Tip touches endpoint  
+        case 'dot': return 4;           // Radius
+        case 'circle': return 6;        // Radius
+        case 'diamond': return 6;       // Half diagonal
+        case 'block': return 6;         // Half width
+        case 'bar': return 0;           // Perpendicular, no offset
+        default: return 0;
+      }
+    };
 
     const syncMarkers = () => {
       const localStart = (group as any).curvedLocalStart;
@@ -568,9 +585,20 @@ export class CurvedLineTool {
 
       if (startMarker) {
         const startAngle = this.calculateStartAngle(localStart, localControl, localEnd);
+        
+        // Calculate direction vector from control to start
+        const dx = localStart.x - localControl.x;
+        const dy = localStart.y - localControl.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Apply offset along the tangent direction
+        const offset = getMarkerOffset(startMarkerType);
+        const offsetX = distance > 0 ? (dx / distance) * offset : 0;
+        const offsetY = distance > 0 ? (dy / distance) * offset : 0;
+        
         startMarker.set({
-          left: localStart.x,
-          top: localStart.y,
+          left: localStart.x + offsetX,
+          top: localStart.y + offsetY,
           angle: startAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
@@ -579,9 +607,20 @@ export class CurvedLineTool {
 
       if (endMarker) {
         const endAngle = this.calculateEndAngle(localStart, localControl, localEnd);
+        
+        // Calculate direction vector from control to end
+        const dx = localEnd.x - localControl.x;
+        const dy = localEnd.y - localControl.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // Apply offset along the tangent direction
+        const offset = getMarkerOffset(endMarkerType);
+        const offsetX = distance > 0 ? (dx / distance) * offset : 0;
+        const offsetY = distance > 0 ? (dy / distance) * offset : 0;
+        
         endMarker.set({
-          left: localEnd.x,
-          top: localEnd.y,
+          left: localEnd.x + offsetX,
+          top: localEnd.y + offsetY,
           angle: endAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,

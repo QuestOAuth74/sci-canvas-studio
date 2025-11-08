@@ -433,8 +433,23 @@ export class OrthogonalLineTool {
   private attachTransformSync(group: Group): void {
     const startMarker = (group as any).startMarker as FabricObject | null;
     const endMarker = (group as any).endMarker as FabricObject | null;
+    const startMarkerType = (group as any).startMarkerType as MarkerType;
+    const endMarkerType = (group as any).endMarkerType as MarkerType;
     
     if (!startMarker && !endMarker) return;
+
+    const getMarkerOffset = (markerType: MarkerType): number => {
+      switch (markerType) {
+        case 'arrow': return -10;      // Tip touches endpoint
+        case 'back-arrow': return 10;   // Tip touches endpoint
+        case 'dot': return 5;           // Radius
+        case 'circle': return 6;        // Radius
+        case 'diamond': return 4;       // Half diagonal
+        case 'block': return 5;         // Half width
+        case 'bar': return 0;           // Perpendicular, no offset
+        default: return 0;
+      }
+    };
 
     const syncMarkers = () => {
       const localPoints = (group as any).orthogonalLineLocalPoints as FabricPoint[] | undefined;
@@ -450,11 +465,17 @@ export class OrthogonalLineTool {
         const localSecond = localPoints[1];
         const dx = localSecond.x - localStart.x;
         const dy = localSecond.y - localStart.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
         const localAngle = Math.atan2(dy, dx) * (180 / Math.PI);
         
+        // Calculate offset in local space
+        const offset = getMarkerOffset(startMarkerType);
+        const offsetX = distance > 0 ? (dx / distance) * offset : 0;
+        const offsetY = distance > 0 ? (dy / distance) * offset : 0;
+        
         startMarker.set({
-          left: localStart.x,
-          top: localStart.y,
+          left: localStart.x + offsetX,
+          top: localStart.y + offsetY,
           angle: localAngle + groupAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
@@ -466,11 +487,17 @@ export class OrthogonalLineTool {
         const localSecondLast = localPoints[localPoints.length - 2];
         const dx = localEnd.x - localSecondLast.x;
         const dy = localEnd.y - localSecondLast.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
         const localAngle = Math.atan2(dy, dx) * (180 / Math.PI);
         
+        // Calculate offset in local space
+        const offset = getMarkerOffset(endMarkerType);
+        const offsetX = distance > 0 ? (dx / distance) * offset : 0;
+        const offsetY = distance > 0 ? (dy / distance) * offset : 0;
+        
         endMarker.set({
-          left: localEnd.x,
-          top: localEnd.y,
+          left: localEnd.x + offsetX,
+          top: localEnd.y + offsetY,
           angle: localAngle + groupAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
@@ -593,6 +620,8 @@ export class OrthogonalLineTool {
       (finalObject as any).orthogonalLineWaypoints = this.waypoints;
       (finalObject as any).startMarker = objects.length >= 2 ? objects[1] : null;
       (finalObject as any).endMarker = objects.length >= 3 ? objects[objects.length - 1] : null;
+      (finalObject as any).startMarkerType = this.options.startMarker;
+      (finalObject as any).endMarkerType = this.options.endMarker;
       (finalObject as any).markerOptions = {
         startMarker: this.options.startMarker,
         endMarker: this.options.endMarker,
