@@ -82,7 +82,7 @@ export const ToolRatingWidget = () => {
   if (!isVisible || !showWidget) return null;
 
   return (
-    <Card className="fixed bottom-20 right-6 w-80 p-4 backdrop-blur-md bg-background/95 border-border shadow-lg z-40 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <Card className="fixed bottom-20 right-6 w-80 p-4 backdrop-blur-md bg-background/95 border-border shadow-lg z-[60] animate-in fade-in slide-in-from-bottom-4 duration-500">
       <Button
         variant="ghost"
         size="icon"
