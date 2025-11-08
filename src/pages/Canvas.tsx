@@ -107,6 +107,7 @@ const CanvasContent = () => {
     loadTemplate,
     addCurvedText,
     editCurvedText,
+    convertTextToCurvedText,
   } = useCanvas();
 
   // Track clipboard status via copy/cut actions
@@ -811,6 +812,7 @@ const CanvasContent = () => {
               setIsPropertiesPanelCollapsed(false);
               setRightSidebarTab("properties");
             }}
+            onConvertToCurvedText={convertTextToCurvedText}
           >
             <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
           </CanvasContextMenu>

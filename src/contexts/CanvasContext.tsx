@@ -154,6 +154,7 @@ interface CanvasContextType {
   // Curved text operations
   addCurvedText: (curvedText: CurvedText) => void;
   editCurvedText: (existingText: CurvedText, newProperties: CurvedText) => void;
+  convertTextToCurvedText: () => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -1605,6 +1606,50 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     toast.success('Curved text updated');
   }, [canvas, saveState]);
 
+  const convertTextToCurvedText = useCallback(() => {
+    if (!canvas) return;
+    
+    const activeObject = canvas.getActiveObject() as any;
+    if (!activeObject || (activeObject.type !== 'textbox' && activeObject.type !== 'i-text' && activeObject.type !== 'text')) {
+      toast.error('Please select a text object to convert');
+      return;
+    }
+
+    // Extract text properties
+    const textContent = activeObject.text || 'Curved Text';
+    const fontSize = activeObject.fontSize || 40;
+    const fontFamily = activeObject.fontFamily || 'Inter';
+    const fontWeight = activeObject.fontWeight || 'normal';
+    const fontStyle = activeObject.fontStyle || 'normal';
+    const fill = activeObject.fill || '#000000';
+    const left = activeObject.left || 100;
+    const top = activeObject.top || 100;
+
+    // Create curved text with same properties
+    const curvedText = new CurvedText(textContent, {
+      diameter: 400, // Default diameter
+      kerning: 0,
+      flipped: false,
+      fontSize,
+      fontFamily,
+      fontWeight,
+      fontStyle,
+      fill,
+      left,
+      top,
+    });
+
+    // Remove original text and add curved text
+    canvas.remove(activeObject);
+    curvedText.dirty = true;
+    canvas.add(curvedText);
+    canvas.setActiveObject(curvedText);
+    canvas.requestRenderAll();
+    saveState();
+    
+    toast.success('Converted to curved text');
+  }, [canvas, saveState]);
+
   const duplicateSelected = useCallback(async () => {
     if (!canvas || !selectedObject) return;
 
@@ -1827,6 +1872,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     loadTemplate,
     addCurvedText,
     editCurvedText,
+    convertTextToCurvedText,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

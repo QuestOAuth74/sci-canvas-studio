@@ -54,7 +54,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     isPinned,
     smoothenPath,
     recentColors,
-    addToRecentColors
+    addToRecentColors,
+    convertTextToCurvedText
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -1489,10 +1490,20 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                           ))}
                         </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              )}
+                     )}
+                   </div>
+                   
+                   {/* Convert to Curved Text Button */}
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     className="w-full"
+                     onClick={convertTextToCurvedText}
+                   >
+                     Convert to Curved Text
+                   </Button>
+                 </div>
+               )}
 
               <div className="pt-3 border-t">
                 <h3 className="font-semibold text-sm mb-3">Arrange</h3>
