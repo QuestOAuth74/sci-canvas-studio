@@ -875,6 +875,261 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
               </div>
             </TabsContent>
             
+            {/* Text Properties Tab */}
+            <TabsContent value="text" className="space-y-4 mt-0">
+              {(selectedObject && (selectedObject.type === 'textbox' || getTextObject(selectedObject))) && (
+                <div>
+                  <h3 className="font-semibold text-sm mb-3">Text Properties</h3>
+                  <div className="space-y-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Font Family</Label>
+                      <Select value={textFont} onValueChange={handleFontChange}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-[300px]">
+                          {GOOGLE_FONTS.map((font) => (
+                            <SelectItem 
+                              key={font.value} 
+                              value={font.value}
+                              className="text-xs"
+                              style={{ fontFamily: font.value }}
+                            >
+                              {font.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Size</Label>
+                        <Input 
+                          type="number" 
+                          value={textSize} 
+                          onChange={(e) => handleTextSizeChange(e.target.value)}
+                          className="h-8 text-xs" 
+                          min="8"
+                          max="200"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Color</Label>
+                        <Input 
+                          type="color" 
+                          value={textColor} 
+                          onChange={(e) => handleTextColorChange(e.target.value)}
+                          className="h-8" 
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Recent Colors for Text */}
+                    {recentColors.length > 0 && (
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">Recent Colors</Label>
+                        <div className="flex gap-1 flex-wrap">
+                          {recentColors.map((color, idx) => (
+                            <Button
+                              key={`text-${color}-${idx}`}
+                              variant="outline"
+                              size="icon"
+                              className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                              style={{ 
+                                backgroundColor: color,
+                                borderColor: textColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                              }}
+                              onClick={() => handleTextColorChange(color)}
+                              title={color}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Line Properties Tab */}
+            <TabsContent value="line" className="space-y-4 mt-0">
+              <LinePropertiesPanel />
+              
+              {/* Freeform Line Controls */}
+              {selectedObject && (selectedObject as any).isFreeformLine && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Freeform Line</h3>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Line Color</Label>
+                      <div className="grid grid-cols-6 gap-2">
+                        {COLOR_PALETTE.map((color) => (
+                          <button
+                            key={color}
+                            onClick={() => handleFreeformLineColorChange(color)}
+                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
+                            style={{ 
+                              backgroundColor: color,
+                              borderColor: freeformLineColor === color ? '#0D9488' : '#e5e7eb'
+                            }}
+                            title={color}
+                          />
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="color" 
+                          value={freeformLineColor}
+                          onChange={(e) => handleFreeformLineColorChange(e.target.value)}
+                          className="h-8 w-12 p-1" 
+                        />
+                        <Input 
+                          type="text" 
+                          value={freeformLineColor}
+                          onChange={(e) => handleFreeformLineColorChange(e.target.value)}
+                          className="h-8 text-xs flex-1" 
+                          placeholder="#000000"
+                        />
+                      </div>
+                      
+                      {/* Recent Colors */}
+                      {recentColors.length > 0 && (
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Recent</Label>
+                          <div className="flex gap-1 flex-wrap">
+                            {recentColors.map((color, idx) => (
+                              <Button
+                                key={`freeform-${color}-${idx}`}
+                                variant="outline"
+                                size="icon"
+                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
+                                style={{ 
+                                  backgroundColor: color,
+                                  borderColor: freeformLineColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
+                                }}
+                                onClick={() => handleFreeformLineColorChange(color)}
+                                title={color}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Line Thickness</Label>
+                        <span className="text-xs text-muted-foreground">{freeformLineThickness}px</span>
+                      </div>
+                      <Slider
+                        value={[freeformLineThickness]}
+                        onValueChange={handleFreeformLineThicknessChange}
+                        min={1}
+                        max={20}
+                        step={1}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Smoothing Strength</Label>
+                        <span className="text-xs text-muted-foreground">{smoothingStrength}%</span>
+                      </div>
+                      <Slider
+                        value={[smoothingStrength]}
+                        onValueChange={(value) => setSmoothingStrength(value[0])}
+                        min={0}
+                        max={100}
+                        step={10}
+                        className="w-full"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => smoothenPath(smoothingStrength)}
+                        className="w-full text-xs h-8"
+                      >
+                        Beautify Path
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Straighten lines and smooth curves for professional results
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">Start Marker</Label>
+                      <Select value={freeformStartMarker} onValueChange={(value) => handleFreeformStartMarkerChange(value as "none" | "dot" | "arrow")}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none" className="text-xs">None</SelectItem>
+                          <SelectItem value="dot" className="text-xs">Dot</SelectItem>
+                          <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">End Marker</Label>
+                      <Select value={freeformEndMarker} onValueChange={(value) => handleFreeformEndMarkerChange(value as "none" | "dot" | "arrow")}>
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none" className="text-xs">None</SelectItem>
+                          <SelectItem value="dot" className="text-xs">Dot</SelectItem>
+                          <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Curved Line Properties */}
+              {selectedObject && (selectedObject as any).isCurvedLine && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Curved Line Control</h3>
+                  <div className="space-y-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        const curveData = selectedObject as any;
+                        const controlHandle = curveData.controlHandle;
+                        const handleLines = curveData.handleLines;
+                        if (controlHandle) {
+                          controlHandle.visible = !controlHandle.visible;
+                          if (handleLines) {
+                            handleLines.forEach((line: any) => {
+                              line.visible = controlHandle.visible;
+                            });
+                          }
+                          canvas?.renderAll();
+                        }
+                      }}
+                    >
+                      {((selectedObject as any).controlHandle?.visible) ? 'Hide' : 'Show'} Control Point
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Drag the green control point to adjust the curve shape.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Arrange Tab */}
+            <TabsContent value="arrange" className="space-y-4 mt-0">
+              <div className="pt-3">
+                <h3 className="font-semibold text-sm mb-3">Arrange</h3>
+                <ArrangePanel />
+              </div>
+            </TabsContent>
+            
             <TabsContent value="style" className="space-y-4 mt-0">
               <StylePresets />
               <div className="h-px bg-border my-2" />
@@ -1263,250 +1518,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                 </div>
               )}
 
-              {/* Freeform Line Controls - Only show for freeform lines */}
-              {selectedObject && (selectedObject as any).isFreeformLine && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Freeform Line</h3>
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Line Color</Label>
-                      <div className="grid grid-cols-6 gap-2">
-                        {COLOR_PALETTE.map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => handleFreeformLineColorChange(color)}
-                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                            style={{ 
-                              backgroundColor: color,
-                              borderColor: freeformLineColor === color ? '#0D9488' : '#e5e7eb'
-                            }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          type="color" 
-                          value={freeformLineColor}
-                          onChange={(e) => handleFreeformLineColorChange(e.target.value)}
-                          className="h-8 w-12 p-1" 
-                        />
-                        <Input 
-                          type="text" 
-                          value={freeformLineColor}
-                          onChange={(e) => handleFreeformLineColorChange(e.target.value)}
-                          className="h-8 text-xs flex-1" 
-                          placeholder="#000000"
-                        />
-                      </div>
-                      
-                      {/* Recent Colors */}
-                      {recentColors.length > 0 && (
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Recent</Label>
-                          <div className="flex gap-1 flex-wrap">
-                            {recentColors.map((color, idx) => (
-                              <Button
-                                key={`freeform-${color}-${idx}`}
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                                style={{ 
-                                  backgroundColor: color,
-                                  borderColor: freeformLineColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                                }}
-                                onClick={() => handleFreeformLineColorChange(color)}
-                                title={color}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Line Thickness</Label>
-                        <span className="text-xs text-muted-foreground">{freeformLineThickness}px</span>
-                      </div>
-                      <Slider
-                        value={[freeformLineThickness]}
-                        onValueChange={handleFreeformLineThicknessChange}
-                        min={1}
-                        max={20}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Smoothing Strength</Label>
-                        <span className="text-xs text-muted-foreground">{smoothingStrength}%</span>
-                      </div>
-                      <Slider
-                        value={[smoothingStrength]}
-                        onValueChange={(value) => setSmoothingStrength(value[0])}
-                        min={0}
-                        max={100}
-                        step={10}
-                        className="w-full"
-                      />
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => smoothenPath(smoothingStrength)}
-                        className="w-full text-xs h-8"
-                      >
-                        Beautify Path
-                      </Button>
-                      <p className="text-xs text-muted-foreground">
-                        Straighten lines and smooth curves for professional results
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs">Start Marker</Label>
-                      <Select value={freeformStartMarker} onValueChange={(value) => handleFreeformStartMarkerChange(value as "none" | "dot" | "arrow")}>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none" className="text-xs">None</SelectItem>
-                          <SelectItem value="dot" className="text-xs">Dot</SelectItem>
-                          <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs">End Marker</Label>
-                      <Select value={freeformEndMarker} onValueChange={(value) => handleFreeformEndMarkerChange(value as "none" | "dot" | "arrow")}>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none" className="text-xs">None</SelectItem>
-                          <SelectItem value="dot" className="text-xs">Dot</SelectItem>
-                          <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {/* Curved Line Properties - Only show for curved lines */}
-              {selectedObject && (selectedObject as any).isCurvedLine && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Curved Line Control</h3>
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        const curveData = selectedObject as any;
-                        const controlHandle = curveData.controlHandle;
-                        const handleLines = curveData.handleLines;
-                        if (controlHandle) {
-                          controlHandle.visible = !controlHandle.visible;
-                          if (handleLines) {
-                            handleLines.forEach((line: any) => {
-                              line.visible = controlHandle.visible;
-                            });
-                          }
-                          canvas?.renderAll();
-                        }
-                      }}
-                    >
-                      {((selectedObject as any).controlHandle?.visible) ? 'Hide' : 'Show'} Control Point
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Drag the green control point to adjust the curve shape.
-                    </p>
-                  </div>
-                </div>
-              )}
-              
-              {/* Text Properties - Show for textbox or groups containing text */}
-              {(selectedObject && (selectedObject.type === 'textbox' || getTextObject(selectedObject))) && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Text</h3>
-                  <div className="space-y-2">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Font Family</Label>
-                      <Select value={textFont} onValueChange={handleFontChange}>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                          {GOOGLE_FONTS.map((font) => (
-                            <SelectItem 
-                              key={font.value} 
-                              value={font.value}
-                              className="text-xs"
-                              style={{ fontFamily: font.value }}
-                            >
-                              {font.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Size</Label>
-                        <Input 
-                          type="number" 
-                          value={textSize} 
-                          onChange={(e) => handleTextSizeChange(e.target.value)}
-                          className="h-8 text-xs" 
-                          min="8"
-                          max="200"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Color</Label>
-                        <Input 
-                          type="color" 
-                          value={textColor} 
-                          onChange={(e) => handleTextColorChange(e.target.value)}
-                          className="h-8" 
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Recent Colors for Text */}
-                    {recentColors.length > 0 && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Recent Colors</Label>
-                        <div className="flex gap-1 flex-wrap">
-                          {recentColors.map((color, idx) => (
-                            <Button
-                              key={`text-${color}-${idx}`}
-                              variant="outline"
-                              size="icon"
-                              className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                              style={{ 
-                                backgroundColor: color,
-                                borderColor: textColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                              }}
-                              onClick={() => handleTextColorChange(color)}
-                              title={color}
-                            />
-                     ))}
-                   </div>
-                 </div>
-                )}
-             </div>
-           </div>
-         )}
-
-              <div className="pt-3 border-t">
-                <h3 className="font-semibold text-sm mb-3">Arrange</h3>
-                <ArrangePanel />
-              </div>
             </TabsContent>
           </div>
         </Tabs>
