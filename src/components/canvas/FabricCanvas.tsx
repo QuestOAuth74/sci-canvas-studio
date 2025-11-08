@@ -264,7 +264,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           canvas.setActiveObject(cloned);
           clonedObjectRef.current = cloned;
           setIsDuplicating(true);
-          canvas.renderAll();
+          canvas.requestRenderAll();
         } catch (error) {
           console.error('Failed to clone object:', error);
         }
@@ -333,7 +333,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         
         canvas.add(group);
         canvas.setActiveObject(group);
-        canvas.renderAll();
+        canvas.requestRenderAll();
         toast.success("Icon added to canvas");
       } catch (error) {
         console.error("Error adding icon:", error);
@@ -379,7 +379,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           
           canvas.add(group);
           canvas.setActiveObject(group);
-          canvas.renderAll();
+          canvas.requestRenderAll();
           toast.success("Asset added to canvas");
         } else {
           // Handle as data URL image
@@ -400,7 +400,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             
             canvas.add(fabricImage);
             canvas.setActiveObject(fabricImage);
-            canvas.renderAll();
+            canvas.requestRenderAll();
             toast.success("Asset added to canvas");
           };
           
@@ -479,10 +479,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     try {
       canvas.setDimensions({
-        width: canvasDimensions.width,
-        height: canvasDimensions.height,
-      });
-      canvas.renderAll();
+      width: canvasDimensions.width,
+      height: canvasDimensions.height,
+    });
+    canvas.requestRenderAll();
     } catch (error) {
       console.error("Error setting canvas dimensions:", error);
     }
@@ -494,14 +494,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     const zoomLevel = zoom / 100;
     canvas.setZoom(zoomLevel);
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas, zoom]);
 
   // Handle background color changes
   useEffect(() => {
     if (!canvas) return;
     canvas.backgroundColor = backgroundColor;
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas, backgroundColor]);
 
   // Handle grid rendering - redraws on zoom changes to prevent double grid
@@ -557,7 +557,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       });
     }
 
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas, gridEnabled, zoom]);
 
   // Handle rulers - separate from grid so they scale with zoom
@@ -639,7 +639,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     }
 
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas, rulersEnabled]);
 
   // Handle freeform line drawing
@@ -685,7 +685,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           });
           
           canvas.setActiveObject(path);
-          canvas.renderAll();
+          canvas.requestRenderAll();
           if (onShapeCreated) onShapeCreated();
         }
       };
@@ -726,7 +726,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           (path as any).isEraserPath = true;
           path.selectable = false;
           path.evented = false;
-          canvas.renderAll();
+          canvas.requestRenderAll();
         }
       };
 
@@ -794,7 +794,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
                 
                 canvas.add(group);
                 canvas.setActiveObject(group);
-                canvas.renderAll();
+                canvas.requestRenderAll();
                 toast.success("SVG image added to canvas");
                 
                 // Auto-save to library
@@ -826,7 +826,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
                 
                 canvas.add(fabricImage);
                 canvas.setActiveObject(fabricImage);
-                canvas.renderAll();
+                canvas.requestRenderAll();
                 toast.success("Image added to canvas");
                 
                 // Auto-save to library
@@ -865,57 +865,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvas, activeTool]);
-
-  // Enhanced Pen Tool with smooth bezier curves (draw.io style)
-  useEffect(() => {
-    if (!canvas || activeTool !== "pen") {
-      // Clean up bezier tool when switching away
-      if (bezierToolRef.current) {
-        bezierToolRef.current.cancel();
-        bezierToolRef.current = null;
-      }
-      return;
-    }
-
-    // Initialize enhanced bezier tool
-    bezierToolRef.current = new EnhancedBezierTool(canvas, {
-      smooth: 0.5,
-      snap: true,
-    });
-
-    bezierToolRef.current.start();
-
-    const handleCanvasClick = (e: any) => {
-      const pointer = canvas.getPointer(e.e);
-      bezierToolRef.current?.addPoint(pointer.x, pointer.y);
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        bezierToolRef.current?.cancel();
-        toast.info("Bezier drawing cancelled");
-      } else if (e.key === "Enter") {
-        const path = bezierToolRef.current?.finish();
-        if (path) {
-          toast.success("Smooth bezier curve created!");
-          if (onShapeCreated) onShapeCreated();
-        }
-      }
-    };
-
-    canvas.on("mouse:down", handleCanvasClick);
-    window.addEventListener("keydown", handleKeyDown);
-
-    toast.info("Click to add points. Press Enter to finish, Escape to cancel.");
-
-    return () => {
-      canvas.off("mouse:down", handleCanvasClick);
-      window.removeEventListener("keydown", handleKeyDown);
-      if (bezierToolRef.current) {
-        bezierToolRef.current.cancel();
-      }
-    };
-  }, [canvas, activeTool, onShapeCreated]);
 
   // Enhanced Pen Tool with smooth bezier curves (draw.io style)
   useEffect(() => {
@@ -1468,11 +1417,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           setConnectorState({
             isDrawing: false,
             startX: null,
-            startY: null,
-          });
+          startY: null,
+        });
 
-          canvas.renderAll();
-          if (onShapeCreated) onShapeCreated();
+        canvas.requestRenderAll();
+        if (onShapeCreated) onShapeCreated();
           toast.success("Connector created!");
           return;
         }
@@ -3005,11 +2954,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           });
           canvas.add(defaultShape);
           canvas.setActiveObject(defaultShape);
-          break;
-      }
-      
-      canvas.renderAll();
-      if (onShapeCreated) onShapeCreated();
+        break;
+    }
+    
+    canvas.requestRenderAll();
+    if (onShapeCreated) onShapeCreated();
     };
 
     // Double-click handler to edit text inside labeled shape groups

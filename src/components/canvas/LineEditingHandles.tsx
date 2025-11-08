@@ -41,11 +41,11 @@ export const LineEditingHandles = () => {
     }
 
     return () => {
-      if (middleHandle) {
+      if (middleHandle && canvas) {
         canvas.remove(middleHandle);
       }
     };
-  }, [canvas, selectedObject]);
+  }, [canvas, selectedObject, middleHandle]);
 
   return null; // This component only manages handles, no render
 };

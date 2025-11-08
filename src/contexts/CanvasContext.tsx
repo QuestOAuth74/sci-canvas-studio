@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useMemo, useRef } from "react";
 import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, Gradient, Shadow } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { loadAllFonts } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
 import { GradientConfig, ShadowConfig } from "@/types/effects";
+import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -198,6 +199,18 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   
+  // Performance optimization: track if canvas has unsaved changes
+  const [isDirty, setIsDirty] = useState(false);
+  
+  // Render scheduler for batching renders
+  const renderScheduler = useRef<RenderScheduler | null>(null);
+  
+  useEffect(() => {
+    if (canvas) {
+      renderScheduler.current = new RenderScheduler(canvas);
+    }
+  }, [canvas]);
+  
   // Recent colors state (persisted to localStorage)
   const [recentColors, setRecentColors] = useState<string[]>(() => {
     const stored = localStorage.getItem('canvas_recent_colors');
@@ -234,14 +247,21 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setHistory(limitedHistory);
     setHistoryStep(limitedHistory.length - 1);
     setSaveStatus('unsaved');
+    setIsDirty(true); // Mark canvas as dirty for optimized auto-save
   }, [canvas, history, historyStep, MAX_HISTORY_SIZE]);
+  
+  // Throttled version of saveState for object modifications
+  const throttledSaveState = useMemo(
+    () => throttle(saveState, 500),
+    [saveState]
+  );
 
   const undo = useCallback(() => {
     if (!canvas || historyStep === 0) return;
     const prevState = history[historyStep - 1];
     if (prevState) {
       canvas.loadFromJSON(prevState).then(() => {
-        canvas.renderAll();
+        canvas.requestRenderAll();
         setHistoryStep(prev => prev - 1);
       });
     }
@@ -252,7 +272,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const nextState = history[historyStep + 1];
     if (nextState) {
       canvas.loadFromJSON(nextState).then(() => {
-        canvas.renderAll();
+        canvas.requestRenderAll();
         setHistoryStep(prev => prev + 1);
       });
     }
@@ -443,7 +463,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     if (activeObjects.length > 0) {
       activeObjects.forEach(obj => canvas.remove(obj));
       canvas.discardActiveObject();
-      canvas.renderAll();
+      canvas.requestRenderAll();
       saveState();
     }
   }, [canvas, saveState]);
@@ -454,7 +474,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     canvas.discardActiveObject();
     const selection = new (canvas.constructor as any).ActiveSelection(allObjects, { canvas });
     canvas.setActiveObject(selection);
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas]);
 
   // Zoom operations
@@ -463,7 +483,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const newZoom = Math.min(zoom + 10, 300);
     setZoom(newZoom);
     canvas.setZoom(newZoom / 100);
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas, zoom]);
 
   const zoomOut = useCallback(() => {
@@ -471,14 +491,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const newZoom = Math.max(zoom - 10, 10);
     setZoom(newZoom);
     canvas.setZoom(newZoom / 100);
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas, zoom]);
 
   const resetZoom = useCallback(() => {
     if (!canvas) return;
     setZoom(100);
     canvas.setZoom(1);
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas]);
 
   const zoomToFit = useCallback(() => {
@@ -538,7 +558,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       viewportCenterY - contentCenterY * scale
     ];
     
-    canvas.renderAll();
+    canvas.requestRenderAll();
     toast.success("Fit to screen");
   }, [canvas]);
 
@@ -550,7 +570,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     
     const minLeft = Math.min(...activeObjects.map(obj => obj.left || 0));
     activeObjects.forEach(obj => obj.set({ left: minLeft }));
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
   }, [canvas, saveState]);
 
@@ -563,7 +583,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     activeObjects.forEach(obj => {
       obj.set({ left: centerX - (obj.width || 0) / 2 });
     });
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
   }, [canvas, saveState]);
 
@@ -576,7 +596,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     activeObjects.forEach(obj => {
       obj.set({ left: maxRight - (obj.width || 0) });
     });
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
   }, [canvas, saveState]);
 
@@ -587,7 +607,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     
     const minTop = Math.min(...activeObjects.map(obj => obj.top || 0));
     activeObjects.forEach(obj => obj.set({ top: minTop }));
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
   }, [canvas, saveState]);
 
@@ -600,7 +620,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     activeObjects.forEach(obj => {
       obj.set({ top: centerY - (obj.height || 0) / 2 });
     });
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
   }, [canvas, saveState]);
 
@@ -613,7 +633,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     activeObjects.forEach(obj => {
       obj.set({ top: maxBottom - (obj.height || 0) });
     });
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
   }, [canvas, saveState]);
 
@@ -623,7 +643,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       activeObject.set({ flipX: !activeObject.flipX });
-      canvas.renderAll();
+      canvas.requestRenderAll();
       saveState();
       toast.success("Flipped horizontally");
     }
@@ -634,7 +654,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       activeObject.set({ flipY: !activeObject.flipY });
-      canvas.renderAll();
+      canvas.requestRenderAll();
       saveState();
       toast.success("Flipped vertically");
     }
@@ -646,7 +666,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       canvas.bringObjectToFront(activeObject);
-      canvas.renderAll();
+      canvas.requestRenderAll();
       saveState();
       toast.success("Moved to front layer");
     }
@@ -657,7 +677,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       canvas.sendObjectToBack(activeObject);
-      canvas.renderAll();
+      canvas.requestRenderAll();
       saveState();
       toast.success("Moved to back layer");
     }
@@ -668,7 +688,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       canvas.bringObjectForward(activeObject);
-      canvas.renderAll();
+      canvas.requestRenderAll();
       saveState();
       toast.success("Moved forward one layer");
     }
@@ -679,7 +699,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       canvas.sendObjectBackwards(activeObject);
-      canvas.renderAll();
+      canvas.requestRenderAll();
       saveState();
       toast.success("Moved backward one layer");
     }
@@ -706,7 +726,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Add the group
     canvas.add(group);
     canvas.setActiveObject(group);
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
     toast.success("Objects grouped");
   }, [canvas, saveState]);
@@ -824,7 +844,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       }
     });
-    canvas.renderAll();
+    canvas.requestRenderAll();
 
     // Calculate multiplier based on DPI (300 is base)
     const multiplier = dpi / 300;
@@ -833,7 +853,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.renderAll();
+    canvas.requestRenderAll();
 
     const link = document.createElement('a');
     link.download = selectionOnly ? `selection-${dpi}dpi.png` : `diagram-${dpi}dpi.png`;
@@ -873,7 +893,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const originalBg = canvas.backgroundColor;
     canvas.backgroundColor = '';
-    canvas.renderAll();
+    canvas.requestRenderAll();
 
     // Calculate multiplier based on DPI (300 is base)
     const multiplier = dpi / 300;
@@ -883,7 +903,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     canvas.backgroundColor = originalBg;
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.renderAll();
+    canvas.requestRenderAll();
 
     const link = document.createElement('a');
     link.download = selectionOnly ? `selection-transparent-${dpi}dpi.png` : `diagram-transparent-${dpi}dpi.png`;
@@ -920,7 +940,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       }
     });
-    canvas.renderAll();
+    canvas.requestRenderAll();
 
     // Calculate multiplier based on DPI (300 is base)
     const multiplier = dpi / 300;
@@ -929,7 +949,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.renderAll();
+    canvas.requestRenderAll();
 
     const link = document.createElement('a');
     link.download = selectionOnly ? `selection-${dpi}dpi.jpg` : `diagram-${dpi}dpi.jpg`;
@@ -966,14 +986,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       }
     });
-    canvas.renderAll();
+    canvas.requestRenderAll();
 
     const svg = canvas.toSVG();
 
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
-    canvas.renderAll();
+    canvas.requestRenderAll();
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
@@ -1170,7 +1190,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         });
         
         img.setCoords();
-        canvas.renderAll();
+        canvas.requestRenderAll();
         saveState();
         setCropMode(false);
         toast.success('Image cropped');
@@ -1237,7 +1257,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Apply the clipPath to the object
     object.set({ clipPath });
 
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
     setCropMode(false);
     
@@ -1260,7 +1280,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     
     try {
       smoothFabricPath(pathObj, strength);
-      canvas.renderAll();
+      canvas.requestRenderAll();
       saveState();
       toast.success("Path smoothed");
     } catch (error) {
@@ -1307,7 +1327,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     // Update coordinates and render
     activeObject.setCoords();
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
   }, [canvas, saveState]);
 
@@ -1444,7 +1464,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       });
       
-      canvas.renderAll();
+      canvas.requestRenderAll();
 
       // Update context state
       setCurrentProjectId(data.id);
@@ -1462,26 +1482,35 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas, user]);
 
-  // Auto-save every 30 seconds - using a ref to avoid dependency issues
+  // Optimized auto-save - only save if canvas is dirty
   useEffect(() => {
-    if (!canvas || !user || !currentProjectId) return;
+    if (!canvas || !user || !currentProjectId || !isDirty) return;
 
-    const autoSaveInterval = setInterval(() => {
-      // Call saveProject directly without depending on it
-      if (canvas && user) {
-        saveProject();
+    const debouncedSave = debounce(() => {
+      if (isDirty && canvas && user) {
+        // Use requestIdleCallback if available, fallback to setTimeout
+        const idleCallback = window.requestIdleCallback || ((cb: IdleRequestCallback) => setTimeout(cb, 1));
+        idleCallback(() => {
+          saveProject();
+          setIsDirty(false);
+        });
       }
-    }, 30000); // 30 seconds
+    }, 30000);
 
-    return () => clearInterval(autoSaveInterval);
-  }, [canvas, user, currentProjectId]); // Removed saveProject from deps to prevent interval resets
+    debouncedSave();
 
-  // Auto-recovery system
+    return () => {
+      // Cleanup handled by debounce
+    };
+  }, [canvas, user, currentProjectId, isDirty, saveProject]);
+
+  // Optimized auto-recovery - only save if dirty
   useEffect(() => {
-    if (!canvas) return;
+    if (!canvas || !isDirty) return;
 
-    const autoRecover = setInterval(() => {
-      if (saveStatus === 'unsaved') {
+    const debouncedRecover = debounce(() => {
+      if (saveStatus === 'unsaved' && isDirty) {
+        // Use toDatalessJSON for lighter serialization if available
         const state = canvas.toJSON();
         const recovery = {
           state,
@@ -1493,8 +1522,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
     }, 30000);
 
-    return () => clearInterval(autoRecover);
-  }, [canvas, saveStatus, projectName, currentProjectId]);
+    debouncedRecover();
+  }, [canvas, saveStatus, projectName, currentProjectId, isDirty]);
 
   // Warn on page unload if unsaved changes
   useEffect(() => {
@@ -1513,7 +1542,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     if (!canvas) return;
     
     canvas.loadFromJSON(recoveryData.state, () => {
-      canvas.renderAll();
+      canvas.requestRenderAll();
       toast.success('Canvas recovered successfully!');
       localStorage.removeItem('canvas_recovery');
       setSaveStatus('unsaved');
@@ -1556,7 +1585,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         }
       });
       
-      canvas.renderAll();
+      canvas.requestRenderAll();
       
       setProjectName(`Untitled from ${template.name}`);
       setCurrentProjectId(null);
@@ -1598,7 +1627,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       if (clones.length > 0) {
         const selection = new ActiveSelection(clones, { canvas });
         canvas.setActiveObject(selection);
-        canvas.renderAll();
+        canvas.requestRenderAll();
         flashCanvas('success');
         toast.success('Duplicated selection');
         saveState();
@@ -1611,7 +1640,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       });
       canvas.add(cloned);
       canvas.setActiveObject(cloned);
-      canvas.renderAll();
+      canvas.requestRenderAll();
       flashCanvas('success');
       toast.success('Duplicated object');
       saveState();
@@ -1625,7 +1654,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const deselectAll = useCallback(() => {
     if (!canvas) return;
     canvas.discardActiveObject();
-    canvas.renderAll();
+    canvas.requestRenderAll();
   }, [canvas]);
 
   const toggleLockSelected = useCallback(() => {
@@ -1637,7 +1666,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       selectable: currentLocked,
       evented: currentLocked,
     } as any);
-    canvas.renderAll();
+    canvas.requestRenderAll();
     toast.success(currentLocked ? 'Unlocked object' : 'Locked object');
     saveState();
   }, [canvas, selectedObject, saveState]);
@@ -1647,7 +1676,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     selectedObject.set({ visible: false });
     canvas.discardActiveObject();
-    canvas.renderAll();
+    canvas.requestRenderAll();
     toast.success('Object hidden (Cmd+H to show all)');
     saveState();
   }, [canvas, selectedObject, saveState]);
@@ -1662,7 +1691,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         count++;
       }
     });
-    canvas.renderAll();
+    canvas.requestRenderAll();
     if (count > 0) {
       toast.success(`Showed ${count} hidden object${count > 1 ? 's' : ''}`);
       saveState();
@@ -1674,7 +1703,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     const currentAngle = selectedObject.angle || 0;
     selectedObject.rotate(currentAngle + degrees);
-    canvas.renderAll();
+    canvas.requestRenderAll();
     saveState();
   }, [canvas, selectedObject, saveState]);
 
@@ -1689,7 +1718,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     });
     canvas.add(cloned);
     canvas.setActiveObject(cloned);
-    canvas.renderAll();
+    canvas.requestRenderAll();
     toast.success('Duplicated below');
     saveState();
   }, [canvas, selectedObject, saveState]);
