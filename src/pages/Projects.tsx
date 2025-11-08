@@ -3,13 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2 } from 'lucide-react';
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from '@/components/ui/pagination';
+import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2, Calendar, Ruler, Globe, Lock, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
+import noPreviewImage from '@/assets/no_preview.png';
 
 interface Project {
   id: string;
@@ -24,6 +34,7 @@ interface Project {
   keywords?: string[] | null;
   citations?: string | null;
   approval_status?: string | null;
+  thumbnail_url?: string | null;
 }
 
 export default function Projects() {
@@ -33,6 +44,8 @@ export default function Projects() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [shareDialogProject, setShareDialogProject] = useState<Project | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
     if (user) {
@@ -44,7 +57,7 @@ export default function Projects() {
     setLoading(true);
     const { data, error } = await supabase
       .from('canvas_projects')
-      .select('id, name, updated_at, paper_size, canvas_width, canvas_height, is_public, title, description, keywords, citations, approval_status')
+      .select('id, name, updated_at, paper_size, canvas_width, canvas_height, is_public, title, description, keywords, citations, approval_status, thumbnail_url')
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -84,15 +97,32 @@ export default function Projects() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  // Paginate filtered projects
+  const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
+  const paginatedProjects = filteredProjects.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="border-b glass-effect sticky top-0 z-10">
+      <header className="border-b glass-effect sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-2xl font-bold">My Projects</h1>
+            <div>
+              <h1 className="text-2xl font-bold">My Projects</h1>
+              <p className="text-sm text-muted-foreground">
+                {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
+              </p>
+            </div>
           </div>
           <UserMenu />
         </div>
@@ -116,8 +146,22 @@ export default function Projects() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="glass-card overflow-hidden">
+                <Skeleton className="w-full h-48" />
+                <div className="p-6 space-y-4">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-10 flex-1" />
+                    <Skeleton className="h-10 w-10" />
+                    <Skeleton className="h-10 w-10" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="glass-card text-center py-16">
@@ -128,56 +172,163 @@ export default function Projects() {
             <p className="text-muted-foreground mb-6">
               {searchQuery
                 ? 'Try a different search term'
-                : 'Create your first diagram to get started'}
+                : 'Create your first scientific diagram to get started'}
             </p>
             {!searchQuery && (
-              <Button onClick={createNewProject}>
+              <Button onClick={createNewProject} size="lg">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Project
               </Button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
-              <div key={project.id} className="glass-card">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold truncate mb-1">{project.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {format(new Date(project.updated_at), 'MMM d, yyyy h:mm a')}
-                  </p>
-                  <div className="text-sm text-muted-foreground mb-4">
-                    <p>Size: {project.canvas_width} × {project.canvas_height}px</p>
-                    <p>Paper: {project.paper_size}</p>
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {paginatedProjects.map((project) => (
+                <div 
+                  key={project.id} 
+                  className="glass-card overflow-hidden group hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                >
+                  {/* Thumbnail Section */}
+                  <div 
+                    className="relative h-48 bg-muted cursor-pointer overflow-hidden"
+                    onClick={() => openProject(project.id)}
+                  >
+                    <img
+                      src={project.thumbnail_url || noPreviewImage}
+                      alt={project.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                      <span className="text-white font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        Click to open
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => openProject(project.id)}
-                      className="flex-1"
-                    >
-                      <FolderOpen className="mr-2 h-4 w-4" />
-                      Open
-                    </Button>
-                    <Button
-                      onClick={() => setShareDialogProject(project)}
-                      variant="outline"
-                      size="icon"
-                      title={project.is_public ? 'Shared to community' : 'Share to community'}
-                    >
-                      <Share2 className={`h-4 w-4 ${project.is_public ? 'text-primary' : ''}`} />
-                    </Button>
-                    <Button
-                      onClick={() => deleteProject(project.id, project.name)}
-                      variant="destructive"
-                      size="icon"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+
+                  {/* Content Section */}
+                  <div className="p-6">
+                    {/* Title & Date */}
+                    <div className="mb-4">
+                      <h3 className="text-xl font-bold mb-2 truncate" title={project.name}>
+                        {project.name}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        <span>Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}</span>
+                      </div>
+                    </div>
+
+                    {/* Dimensions */}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                      <Ruler className="h-3.5 w-3.5" />
+                      <span className="font-mono">
+                        {project.canvas_width} × {project.canvas_height}px
+                      </span>
+                      <span className="text-xs">•</span>
+                      <span>{project.paper_size}</span>
+                    </div>
+
+                    {/* Status Badges */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.is_public ? (
+                        <Badge variant="default" className="gap-1">
+                          <Globe className="h-3 w-3" />
+                          Public
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="gap-1">
+                          <Lock className="h-3 w-3" />
+                          Private
+                        </Badge>
+                      )}
+                      
+                      {project.approval_status === 'approved' && (
+                        <Badge variant="default" className="gap-1 bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
+                          <CheckCircle className="h-3 w-3" />
+                          Approved
+                        </Badge>
+                      )}
+                      
+                      {project.approval_status === 'pending' && (
+                        <Badge variant="secondary" className="gap-1">
+                          <Clock className="h-3 w-3" />
+                          Pending Review
+                        </Badge>
+                      )}
+                      
+                      {project.approval_status === 'rejected' && (
+                        <Badge variant="destructive" className="gap-1">
+                          <XCircle className="h-3 w-3" />
+                          Rejected
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => openProject(project.id)}
+                        className="flex-1"
+                        size="lg"
+                      >
+                        <FolderOpen className="mr-2 h-4 w-4" />
+                        Open
+                      </Button>
+                      <Button
+                        onClick={() => setShareDialogProject(project)}
+                        variant="outline"
+                        size="lg"
+                        title={project.is_public ? 'Manage sharing' : 'Share to community'}
+                      >
+                        <Share2 className={`h-4 w-4 ${project.is_public ? 'text-primary' : ''}`} />
+                      </Button>
+                      <Button
+                        onClick={() => deleteProject(project.id, project.name)}
+                        variant="destructive"
+                        size="lg"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <Pagination className="mt-8">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </>
         )}
       </main>
 
