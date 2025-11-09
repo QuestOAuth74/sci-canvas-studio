@@ -191,7 +191,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [clipboard, setClipboard] = useState<ClipboardJSON | null>(null);
   
   const [zoom, setZoom] = useState(100);
-  const [gridEnabled, setGridEnabled] = useState(true);
+  const [gridEnabled, setGridEnabled] = useState(false);
   const [rulersEnabled, setRulersEnabled] = useState(true);
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(20);
