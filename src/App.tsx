@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
+import { MainLayout } from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import Canvas from "./pages/Canvas";
 import Admin from "./pages/Admin";
@@ -44,32 +45,32 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<MainLayout><Index /></MainLayout>} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+            <Route path="/projects" element={<MainLayout><ProtectedRoute><Projects /></ProtectedRoute></MainLayout>} />
+            <Route path="/profile" element={<MainLayout><ProtectedRoute><Profile /></ProtectedRoute></MainLayout>} />
+            <Route path="/community" element={<MainLayout><ProtectedRoute><Community /></ProtectedRoute></MainLayout>} />
             <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
-            <Route path="/my-submissions" element={<ProtectedRoute><MySubmissions /></ProtectedRoute>} />
-            <Route path="/testimonials" element={<Testimonials />} />
-            <Route path="/release-notes" element={<ReleaseNotes />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/share" element={<Share />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:slug" element={<BlogPost />} />
-            <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
-            <Route path="/admin/analytics" element={<AdminRoute><Analytics /></AdminRoute>} />
-            <Route path="/admin/email-notifications" element={<AdminRoute><EmailNotifications /></AdminRoute>} />
-            <Route path="/admin/powerpoint-generator" element={<AdminRoute><PowerPointGenerator /></AdminRoute>} />
-            <Route path="/admin/ai-settings" element={<AdminRoute><AISettings /></AdminRoute>} />
-            <Route path="/admin/rate-limits" element={<AdminRoute><RateLimits /></AdminRoute>} />
-            <Route path="/admin/blog" element={<AdminRoute><BlogManagement /></AdminRoute>} />
-            <Route path="/admin/blog/new" element={<AdminRoute><BlogEditor /></AdminRoute>} />
-            <Route path="/admin/blog/edit/:id" element={<AdminRoute><BlogEditor /></AdminRoute>} />
-            <Route path="/admin/blog/categories" element={<AdminRoute><BlogCategories /></AdminRoute>} />
-            <Route path="/admin/blog/tags" element={<AdminRoute><BlogTags /></AdminRoute>} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/my-submissions" element={<MainLayout><ProtectedRoute><MySubmissions /></ProtectedRoute></MainLayout>} />
+            <Route path="/testimonials" element={<MainLayout><Testimonials /></MainLayout>} />
+            <Route path="/release-notes" element={<MainLayout><ReleaseNotes /></MainLayout>} />
+            <Route path="/terms" element={<MainLayout><Terms /></MainLayout>} />
+            <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
+            <Route path="/share" element={<MainLayout><Share /></MainLayout>} />
+            <Route path="/blog" element={<MainLayout><Blog /></MainLayout>} />
+            <Route path="/blog/:slug" element={<MainLayout><BlogPost /></MainLayout>} />
+            <Route path="/admin" element={<MainLayout><AdminRoute><Admin /></AdminRoute></MainLayout>} />
+            <Route path="/admin/analytics" element={<MainLayout><AdminRoute><Analytics /></AdminRoute></MainLayout>} />
+            <Route path="/admin/email-notifications" element={<MainLayout><AdminRoute><EmailNotifications /></AdminRoute></MainLayout>} />
+            <Route path="/admin/powerpoint-generator" element={<MainLayout><AdminRoute><PowerPointGenerator /></AdminRoute></MainLayout>} />
+            <Route path="/admin/ai-settings" element={<MainLayout><AdminRoute><AISettings /></AdminRoute></MainLayout>} />
+            <Route path="/admin/rate-limits" element={<MainLayout><AdminRoute><RateLimits /></AdminRoute></MainLayout>} />
+            <Route path="/admin/blog" element={<MainLayout><AdminRoute><BlogManagement /></AdminRoute></MainLayout>} />
+            <Route path="/admin/blog/new" element={<MainLayout><AdminRoute><BlogEditor /></AdminRoute></MainLayout>} />
+            <Route path="/admin/blog/edit/:id" element={<MainLayout><AdminRoute><BlogEditor /></AdminRoute></MainLayout>} />
+            <Route path="/admin/blog/categories" element={<MainLayout><AdminRoute><BlogCategories /></AdminRoute></MainLayout>} />
+            <Route path="/admin/blog/tags" element={<MainLayout><AdminRoute><BlogTags /></AdminRoute></MainLayout>} />
+            <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </BrowserRouter>
         </TooltipProvider>

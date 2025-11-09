@@ -96,10 +96,6 @@ const Index = () => {
         keywords="scientific illustration, biomedical graphics, research illustration software, free science graphics, publication figures, scientific diagrams, biology illustration, medical graphics creator"
         structuredData={structuredData}
       />
-      {/* Header with User Menu */}
-      <header className="absolute top-0 right-0 p-4 z-20">
-        <UserMenu />
-      </header>
 
       <div className="container mx-auto px-4 py-12 md:py-20 relative z-10">
         <div className="max-w-6xl mx-auto space-y-16">
