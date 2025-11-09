@@ -112,24 +112,13 @@ export default function Projects() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <header className="border-b glass-effect sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold">My Projects</h1>
-              <p className="text-sm text-muted-foreground">
-                {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
-              </p>
-            </div>
-          </div>
-          <UserMenu />
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">My Projects</h1>
+          <p className="text-muted-foreground">
+            {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
+          </p>
+        </div>
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

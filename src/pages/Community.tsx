@@ -170,30 +170,15 @@ export default function Community() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-...
-      <header className="border-b glass-effect sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-2xl font-bold">Community Gallery</h1>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={loadProjects}
-              disabled={loading}
-            >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Refresh'}
-            </Button>
-          </div>
-          <UserMenu />
-        </div>
-      </header>
-
       <FeatureUnlockBanner />
 
       <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Community Gallery</h1>
+          <p className="text-muted-foreground">
+            Discover and share scientific diagrams with the community
+          </p>
+        </div>
         <div className="flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
