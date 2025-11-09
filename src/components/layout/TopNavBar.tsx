@@ -4,6 +4,7 @@ import { Microscope, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { AdminNotificationBell } from '@/components/admin/AdminNotificationBell';
+import { UserNotificationBell } from '@/components/UserNotificationBell';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
@@ -70,6 +71,13 @@ export const TopNavBar = () => {
             {isAdmin && (
               <div className="hidden md:block">
                 <AdminNotificationBell />
+              </div>
+            )}
+
+            {/* User Notification Bell */}
+            {user && (
+              <div className="hidden md:block">
+                <UserNotificationBell />
               </div>
             )}
 
