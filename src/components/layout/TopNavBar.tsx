@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Microscope, Menu, X } from 'lucide-react';
+import { Microscope, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { AdminNotificationBell } from '@/components/admin/AdminNotificationBell';
-import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
@@ -65,7 +64,7 @@ export const TopNavBar = () => {
             </div>
           </div>
 
-          {/* Right side - Notifications, Theme, User Menu */}
+          {/* Right side - Notifications, User Menu */}
           <div className="flex items-center gap-3">
             {/* Admin Notification Bell */}
             {isAdmin && (
@@ -73,11 +72,6 @@ export const TopNavBar = () => {
                 <AdminNotificationBell />
               </div>
             )}
-
-            {/* Desktop Theme Switcher */}
-            <div className="hidden md:block">
-              <ThemeSwitcher />
-            </div>
 
             {/* User Menu or Sign In */}
             <UserMenu showName={true} />
@@ -104,9 +98,6 @@ export const TopNavBar = () => {
                       </Button>
                     );
                   })}
-                  <div className="border-t border-border pt-4 mt-4">
-                    <ThemeSwitcher />
-                  </div>
                 </div>
               </SheetContent>
             </Sheet>
