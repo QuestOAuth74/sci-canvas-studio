@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Microscope, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { AdminNotificationBell } from '@/components/admin/AdminNotificationBell';
@@ -39,9 +39,11 @@ export const TopNavBar = () => {
               onClick={() => navigate('/')}
               className="flex items-center gap-2 group"
             >
-              <div className="p-2 bg-gradient-to-br from-primary to-primary/80 rounded-lg">
-                <Microscope className="h-5 w-5 text-primary-foreground" />
-              </div>
+              <img 
+                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
+                alt="BioSketch Logo"
+                className="h-10 w-10 object-contain group-hover:scale-105 transition-transform"
+              />
               <span className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                 BioSketch
               </span>

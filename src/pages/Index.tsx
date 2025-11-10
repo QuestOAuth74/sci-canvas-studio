@@ -442,7 +442,11 @@ const Index = () => {
               {/* About Column */}
               <div className="space-y-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <Microscope className="h-8 w-8 text-primary" />
+                  <img 
+                    src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
+                    alt="BioSketch Logo"
+                    className="h-12 w-12 object-contain"
+                  />
                   <h3 className="text-xl font-bold tracking-tight">BioSketch</h3>
                 </div>
                 <p className="text-sm font-medium text-muted-foreground leading-relaxed">
@@ -503,13 +507,6 @@ const Index = () => {
                 <p className="text-sm font-medium text-muted-foreground leading-relaxed mb-4">
                   Join researchers from leading institutions worldwide creating better science communication.
                 </p>
-                <img 
-                  src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
-                  alt="BioSketch Art"
-                  width="120"
-                  height="120"
-                  className="border-2 border-border/60 rounded-xl shadow-md"
-                />
               </div>
             </div>
 
