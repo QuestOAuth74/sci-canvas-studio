@@ -164,9 +164,12 @@ export const SignupToast = ({ count, topCountries = [], totalWithLocation = 0 }:
     const id = toast(
       renderToastContent(),
       {
-        duration: 8000,
+        duration: 3000,
         position: "bottom-right",
         className: "professional-signup-toast",
+        onAutoClose: () => {
+          setIsMinimized(true);
+        },
         style: {
           background: "#FFFFFF",
           border: "1px solid #E5E7EB",
