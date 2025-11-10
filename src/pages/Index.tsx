@@ -110,9 +110,13 @@ const Index = () => {
             {/* Logo and Title */}
             <div className="space-y-8">
               <div className="flex items-center justify-center gap-6 flex-wrap">
-                <div className="glass-shine p-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 border border-white/20 shadow-lg">
-                  <Microscope className="h-16 w-16 md:h-20 md:w-20 text-white" />
-                </div>
+            <div className="glass-shine p-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 border border-white/20 shadow-lg">
+              <img 
+                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
+                alt="BioSketch Logo"
+                className="h-16 w-16 md:h-20 md:w-20 object-contain"
+              />
+            </div>
                 <div className="relative">
                   <h1 className="text-7xl md:text-9xl font-black tracking-tighter relative">
                     <span className="marker-highlight text-foreground">
