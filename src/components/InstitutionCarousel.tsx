@@ -1,5 +1,3 @@
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
 import brown from "@/assets/institutions/brown.png";
 import harvardMed from "@/assets/institutions/harvard-med.png";
 import ucsd from "@/assets/institutions/uc-san-diego.png";
@@ -15,11 +13,14 @@ export function InstitutionCarousel() {
     { name: "Yale School of Medicine", logo: yaleMed },
   ];
 
+  // Duplicate institutions array for seamless loop
+  const duplicatedInstitutions = [...institutions, ...institutions];
+
   return (
-    <div className="py-12 animate-fade-in [animation-delay:200ms]">
-      <div className="max-w-5xl mx-auto px-4">
+    <div className="py-12 animate-fade-in [animation-delay:200ms] overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-black mb-3 tracking-tight">
             Trusted by Scientists From Leading Institutions
           </h2>
@@ -28,28 +29,30 @@ export function InstitutionCarousel() {
           </p>
         </div>
         
-        {/* Carousel */}
-        <Carousel
-          plugins={[Autoplay({ delay: 3000, stopOnInteraction: false })]}
-          className="relative"
-          opts={{ loop: true, align: "start" }}
-        >
-          <CarouselContent>
-            {institutions.map((inst, index) => (
-              <CarouselItem key={index} className="md:basis-1/3 lg:basis-1/4">
-                <div className="p-4">
-                  <div className="bg-card border-[3px] border-foreground rounded-xl neo-shadow p-6 h-32 flex items-center justify-center hover:neo-shadow-lg transition-all duration-300 group">
-                    <img
-                      src={inst.logo}
-                      alt={inst.name}
-                      className="max-h-20 max-w-full object-contain grayscale group-hover:grayscale-0 transition-all duration-300 opacity-60 group-hover:opacity-100"
-                    />
-                  </div>
+        {/* Marquee Container */}
+        <div className="relative">
+          {/* Gradient Overlays */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+          
+          {/* Scrolling Content */}
+          <div className="flex gap-8 animate-marquee hover:[animation-play-state:paused]">
+            {duplicatedInstitutions.map((inst, index) => (
+              <div
+                key={index}
+                className="flex-shrink-0 w-64"
+              >
+                <div className="bg-card border-2 border-border rounded-xl p-8 h-32 flex items-center justify-center transition-all duration-300 hover:border-primary hover:shadow-lg group">
+                  <img
+                    src={inst.logo}
+                    alt={inst.name}
+                    className="max-h-20 max-w-full object-contain grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+                  />
                 </div>
-              </CarouselItem>
+              </div>
             ))}
-          </CarouselContent>
-        </Carousel>
+          </div>
+        </div>
       </div>
     </div>
   );
