@@ -44,103 +44,63 @@ const Admin = () => {
                 <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hover:bg-primary/10">
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                BioSketch
-              </h1>
-              <span className="text-sm text-muted-foreground">Admin</span>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    BioSketch
+                  </h1>
+                  <span className="text-sm text-muted-foreground">Admin</span>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin/ai-settings")}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  AI Settings
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin/powerpoint-generator")}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  PowerPoint
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin/rate-limits")}
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Rate Limits
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin/analytics")}
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Analytics
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin/email-notifications")}
+                >
+                  <Mail className="h-4 w-4 mr-2" />
+                  Send Email
+                </Button>
+                <AdminNotificationBell />
+              </div>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => navigate("/admin/ai-settings")}
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              AI Settings
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/admin/powerpoint-generator")}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              PowerPoint
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/admin/rate-limits")}
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Rate Limits
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate("/admin/analytics")}
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Analytics
-            </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate("/admin/email-notifications")}
-          >
-            <Mail className="h-4 w-4 mr-2" />
-            Send Email
-          </Button>
-          <AdminNotificationBell />
-        </div>
-      </div>
-      </header>
+          </header>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Quick Navigation */}
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b mb-8 py-4 -mx-4 px-4">
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('submitted-projects')?.scrollIntoView({ behavior: 'smooth' })}>
-              Submitted Projects
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' })}>
-              Newsletter
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/blog')}>
-              Blog Management
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('testimonials')?.scrollIntoView({ behavior: 'smooth' })}>
-              Testimonials
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('icon-submissions')?.scrollIntoView({ behavior: 'smooth' })}>
-              Icon Submissions
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('community-uploads')?.scrollIntoView({ behavior: 'smooth' })}>
-              Community Uploads
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('upload-icons')?.scrollIntoView({ behavior: 'smooth' })}>
-              Upload Icons
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('manage-icons')?.scrollIntoView({ behavior: 'smooth' })}>
-              Manage Icons
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('clean-names')?.scrollIntoView({ behavior: 'smooth' })}>
-              Clean Names
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('sanitize')?.scrollIntoView({ behavior: 'smooth' })}>
-              Sanitizer
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}>
-              Categories
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('contact-messages')?.scrollIntoView({ behavior: 'smooth' })}>
-              Contact
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => document.getElementById('tool-feedback')?.scrollIntoView({ behavior: 'smooth' })}>
-              Tool Feedback
-            </Button>
-          </div>
-        </div>
-
-        <div className="space-y-12">
-          {/* Section 1: Submitted Projects */}
-          <section id="submitted-projects">
+          <main className="flex-1 overflow-auto">
+            <div className="p-8 space-y-12">
+              {/* Section 1: Submitted Projects */}
+              <section id="submitted-projects">
             <div className="mb-6">
               <h2 className="text-3xl font-bold tracking-tight">Submitted Projects</h2>
               <p className="text-muted-foreground">Review and manage community submitted projects</p>
@@ -272,10 +232,12 @@ const Admin = () => {
               <p className="text-muted-foreground">User ratings and feedback for the design tool</p>
             </div>
             <ToolFeedbackManager />
-          </section>
+              </section>
+            </div>
+          </main>
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
