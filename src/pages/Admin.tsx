@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BarChart3, Mail, FileText, Sparkles, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { IconUploader } from "@/components/admin/IconUploader";
 import { IconManager } from "@/components/admin/IconManager";
 import { IconCleanup } from "@/components/admin/IconCleanup";
@@ -24,18 +26,24 @@ const Admin = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
-      <SEOHead
-        title="Admin Dashboard - BioSketch"
-        description="BioSketch Admin Dashboard"
-        noindex={true}
-      />
-      <header className="border-b glass-effect shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hover:bg-primary/10">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+    <SidebarProvider defaultOpen={true}>
+      <div className="min-h-screen w-full flex bg-background">
+        <SEOHead
+          title="Admin Dashboard - BioSketch"
+          description="BioSketch Admin Dashboard"
+          noindex={true}
+        />
+        
+        <AdminSidebar />
+        
+        <div className="flex-1 flex flex-col">
+          <header className="sticky top-0 z-10 border-b glass-effect shadow-sm">
+            <div className="px-4 py-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger />
+                <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hover:bg-primary/10">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 BioSketch
