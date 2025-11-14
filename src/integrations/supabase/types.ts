@@ -281,6 +281,7 @@ export type Database = {
           id: string
           is_public: boolean | null
           keywords: string[] | null
+          like_count: number | null
           name: string
           original_project_id: string | null
           paper_size: string | null
@@ -303,6 +304,7 @@ export type Database = {
           id?: string
           is_public?: boolean | null
           keywords?: string[] | null
+          like_count?: number | null
           name?: string
           original_project_id?: string | null
           paper_size?: string | null
@@ -325,6 +327,7 @@ export type Database = {
           id?: string
           is_public?: boolean | null
           keywords?: string[] | null
+          like_count?: number | null
           name?: string
           original_project_id?: string | null
           paper_size?: string | null
