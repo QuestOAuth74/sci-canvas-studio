@@ -16,6 +16,7 @@ import { CommunityUploader } from "@/components/admin/CommunityUploader";
 import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
 import { ToolFeedbackManager } from "@/components/admin/ToolFeedbackManager";
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
+import { NewsletterSubscriptionsManager } from "@/components/admin/NewsletterSubscriptionsManager";
 import { Separator } from "@/components/ui/separator";
 import { SEOHead } from "@/components/SEO/SEOHead";
 
@@ -90,6 +91,9 @@ const Admin = () => {
             <Button variant="ghost" size="sm" onClick={() => document.getElementById('submitted-projects')?.scrollIntoView({ behavior: 'smooth' })}>
               Submitted Projects
             </Button>
+            <Button variant="ghost" size="sm" onClick={() => document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' })}>
+              Newsletter
+            </Button>
             <Button variant="ghost" size="sm" onClick={() => navigate('/admin/blog')}>
               Blog Management
             </Button>
@@ -134,6 +138,17 @@ const Admin = () => {
               <p className="text-muted-foreground">Review and manage community submitted projects</p>
             </div>
             <SubmittedProjects />
+          </section>
+
+          <Separator className="my-12" />
+
+          {/* Newsletter Subscriptions Section */}
+          <section id="newsletter">
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold tracking-tight">Newsletter Subscriptions</h2>
+              <p className="text-muted-foreground">Manage newsletter subscribers and view subscription analytics</p>
+            </div>
+            <NewsletterSubscriptionsManager />
           </section>
 
           <Separator className="my-12" />
