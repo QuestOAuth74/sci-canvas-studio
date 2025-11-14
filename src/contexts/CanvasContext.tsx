@@ -195,7 +195,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [rulersEnabled, setRulersEnabled] = useState(true);
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(20);
-  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
+  const [backgroundColor, setBackgroundColor] = useState("#f0f9ff");
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 1200, height: 800 });
   const [paperSize, setPaperSize] = useState("custom");
   

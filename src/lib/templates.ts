@@ -979,7 +979,7 @@ export const TEMPLATES: Template[] = [
           textAlign: "left",
         },
       ],
-      background: "#ffffff",
+      background: "#f0f9ff",
     },
     dimensions: { width: 800, height: 800 },
     paperSize: "letter",
