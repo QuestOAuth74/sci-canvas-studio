@@ -8,7 +8,6 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { NewsletterPopupModal } from "@/components/NewsletterPopupModal";
 import Index from "./pages/Index";
 import Canvas from "./pages/Canvas";
 import Admin from "./pages/Admin";
@@ -45,7 +44,6 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <NewsletterPopupModal />
             <Routes>
             <Route path="/" element={<MainLayout><Index /></MainLayout>} />
             <Route path="/auth" element={<Auth />} />
