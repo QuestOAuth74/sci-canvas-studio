@@ -63,17 +63,57 @@ export const NewsletterSubscriptionsManager = () => {
     try {
       setLoading(true);
       
-      // Fetch subscriptions with profile data
-      const { data, error } = await supabase
+      // Try fetching with explicit foreign key constraint name
+      let { data, error } = await supabase
         .from('email_subscriptions')
         .select(`
           *,
-          profiles:user_id (
+          profiles!email_subscriptions_user_id_fkey (
             full_name,
             country
           )
         `)
         .order('created_at', { ascending: false });
+
+      // Fallback: if relationship error, do two-step fetch
+      if (error && error.message.includes('could not find a relationship')) {
+        console.log('Falling back to two-step fetch due to schema cache issue');
+        
+        // Step 1: Get subscriptions
+        const { data: subsData, error: subsError } = await supabase
+          .from('email_subscriptions')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (subsError) throw subsError;
+        
+        // Step 2: Get profiles for non-null user_ids
+        const userIds = subsData
+          ?.filter(s => s.user_id)
+          .map(s => s.user_id) || [];
+        
+        let profilesMap: { [key: string]: any } = {};
+        if (userIds.length > 0) {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name, country')
+            .in('id', userIds);
+          
+          if (!profilesError && profilesData) {
+            profilesMap = profilesData.reduce((acc, profile) => {
+              acc[profile.id] = profile;
+              return acc;
+            }, {} as { [key: string]: any });
+          }
+        }
+        
+        // Merge profiles into subscriptions
+        data = subsData?.map(sub => ({
+          ...sub,
+          profiles: sub.user_id ? profilesMap[sub.user_id] : null
+        })) || [];
+        error = null;
+      }
 
       if (error) throw error;
 
