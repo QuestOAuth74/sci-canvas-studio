@@ -103,21 +103,19 @@ export const SpecialCharactersPalette = () => {
         ? textObj.selectionStart
         : currentText.length;
 
-    // Use Fabric's insertChars API when in editing mode for proper internal state sync
-    if (textObj.isEditing && typeof (textObj as any).insertChars === "function") {
-      (textObj as any).insertChars(char, cursorPos);
-    } else {
-      // Fallback for non-editing mode
-      const newText =
-        currentText.substring(0, cursorPos) +
-        char +
-        currentText.substring(cursorPos);
-      textObj.text = newText;
-      textObj.selectionStart = cursorPos + char.length;
-      textObj.selectionEnd = cursorPos + char.length;
-    }
+    // Manual text insertion to avoid insertChars duplication issues
+    const newText =
+      currentText.substring(0, cursorPos) +
+      char +
+      currentText.substring(cursorPos);
+    
+    textObj.text = newText;
+    
+    const newCursorPos = cursorPos + char.length;
+    textObj.selectionStart = newCursorPos;
+    textObj.selectionEnd = newCursorPos;
 
-    // Force Fabric to recalc dimensions and redraw
+    // Force Fabric to recalc dimensions and redraw immediately
     if (typeof (textObj as any).initDimensions === "function") {
       (textObj as any).initDimensions();
     }
