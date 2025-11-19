@@ -14,6 +14,7 @@ import { Omega } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox } from "fabric";
 import { toast } from "sonner";
+import { normalizeEditingTextFont } from "@/lib/fontLoader";
 
 const SPECIAL_CHARACTERS = {
   greek: {
@@ -92,6 +93,9 @@ export const SpecialCharactersPalette = () => {
       });
       return;
     }
+
+    // Normalize font BEFORE inserting to ensure special characters render
+    normalizeEditingTextFont(textObj);
 
     const currentText = textObj.text || "";
     const cursorPos =

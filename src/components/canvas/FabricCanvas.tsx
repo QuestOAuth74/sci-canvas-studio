@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush, Control, FabricObject, Gradient } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { loadAllFonts, getCanvasFontFamily, getBaseFontName, debugTextObject, fixInvisibleText, normalizeCanvasTextFonts } from "@/lib/fontLoader";
+import { loadAllFonts, getCanvasFontFamily, getBaseFontName, debugTextObject, fixInvisibleText, normalizeCanvasTextFonts, normalizeEditingTextFont } from "@/lib/fontLoader";
 import { createConnector } from "@/lib/connectorSystem";
 import { createSVGArrowMarker } from "@/lib/advancedLineSystem";
 import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
@@ -301,6 +301,21 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     canvas.on('selection:cleared', () => {
       setSelectedObject(null);
+    });
+
+    // Normalize fonts when text editing starts
+    canvas.on('text:editing:entered', (e: any) => {
+      if (e.target) {
+        normalizeEditingTextFont(e.target);
+        canvas.requestRenderAll();
+      }
+    });
+
+    // Normalize fonts when text content changes (safety net)
+    canvas.on('text:changed', (e: any) => {
+      if (e.target && (e.target.type === 'textbox' || e.target.type === 'text')) {
+        normalizeEditingTextFont(e.target);
+      }
     });
 
     // Alt+Drag duplication handlers
