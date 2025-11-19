@@ -313,8 +313,27 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     // Normalize fonts when text content changes (safety net)
     canvas.on('text:changed', (e: any) => {
-      if (e.target && (e.target.type === 'textbox' || e.target.type === 'text')) {
-        normalizeEditingTextFont(e.target);
+      const target = e.target;
+      if (target && (target.type === 'textbox' || target.type === 'text')) {
+        normalizeEditingTextFont(target);
+        target.dirty = true;
+        canvas.requestRenderAll();
+      }
+    });
+
+    // Finalize fonts and layout when exiting edit mode
+    canvas.on('text:editing:exited', (e: any) => {
+      const target = e.target;
+      if (target && (target.type === 'textbox' || target.type === 'text')) {
+        normalizeEditingTextFont(target);
+        if (typeof target.initDimensions === 'function') {
+          target.initDimensions();
+        }
+        if (typeof target.setCoords === 'function') {
+          target.setCoords();
+        }
+        target.dirty = true;
+        canvas.requestRenderAll();
       }
     });
 
