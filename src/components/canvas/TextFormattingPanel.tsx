@@ -480,14 +480,7 @@ export const TextFormattingPanel = () => {
       </Tooltip>
 
       {/* Special Characters */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <SpecialCharactersPalette />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Special Characters (α, β, ±, etc.)</p>
-        </TooltipContent>
-      </Tooltip>
+      <SpecialCharactersPalette />
 
       <div className="w-px h-6 bg-border mx-1" />
 
