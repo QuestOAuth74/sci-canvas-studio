@@ -3,7 +3,7 @@ import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, Active
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { loadAllFonts, getBaseFontName, getCanvasFontFamily } from "@/lib/fontLoader";
+import { loadAllFonts, getBaseFontName, getCanvasFontFamily, normalizeCanvasTextFonts } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
 import { GradientConfig, ShadowConfig } from "@/types/effects";
 import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
@@ -1591,15 +1591,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Reload images with CORS to prevent tainting
       reloadCanvasImagesWithCORS(canvas);
       
-      // Normalize all text fonts to use full font stacks
-      canvas.getObjects().forEach(obj => {
-        if (obj.type === 'textbox' || obj.type === 'text') {
-          const base = getBaseFontName((obj as any).fontFamily);
-          obj.set({ fontFamily: getCanvasFontFamily(base) });
-        }
-      });
-      
-      canvas.requestRenderAll();
+      // Normalize all text fonts to use full font stacks (including text in groups)
+      normalizeCanvasTextFonts(canvas);
 
       // Update context state
       setCurrentProjectId(data.id);
@@ -1677,15 +1670,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     canvas.loadFromJSON(recoveryData.state).then(() => {
       reloadCanvasImagesWithCORS(canvas);
       
-      // Normalize all text fonts to use full font stacks
-      canvas.getObjects().forEach(obj => {
-        if (obj.type === 'textbox' || obj.type === 'text') {
-          const base = getBaseFontName((obj as any).fontFamily);
-          obj.set({ fontFamily: getCanvasFontFamily(base) });
-        }
-      });
+      // Normalize all text fonts to use full font stacks (including text in groups)
+      normalizeCanvasTextFonts(canvas);
       
-      canvas.requestRenderAll();
       toast.success('Canvas recovered successfully!');
       localStorage.removeItem('canvas_recovery');
       setSaveStatus('unsaved');
@@ -1722,15 +1709,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Reload images with CORS to prevent tainting
       reloadCanvasImagesWithCORS(canvas);
       
-      // Normalize all text fonts to use full font stacks
-      canvas.getObjects().forEach(obj => {
-        if (obj.type === 'textbox' || obj.type === 'text') {
-          const base = getBaseFontName((obj as any).fontFamily);
-          obj.set({ fontFamily: getCanvasFontFamily(base) });
-        }
-      });
-      
-      canvas.requestRenderAll();
+      // Normalize all text fonts to use full font stacks (including text in groups)
+      normalizeCanvasTextFonts(canvas);
       
       setProjectName(`Untitled from ${template.name}`);
       setCurrentProjectId(null);

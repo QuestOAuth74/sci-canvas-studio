@@ -97,3 +97,67 @@ export const normalizeCanvasTextFonts = (canvas: any) => {
   });
   canvas.requestRenderAll();
 };
+
+// Debug helper to log text object properties for troubleshooting
+export const debugTextObject = (obj: any, label: string = "TextObject") => {
+  if (!obj) {
+    console.log(`[${label}] No object provided`);
+    return;
+  }
+
+  const textObj = obj.type === "textbox" || obj.type === "text" 
+    ? obj 
+    : (obj.type === "group" && obj.getObjects 
+        ? obj.getObjects().find((o: any) => o.type === "textbox" || o.type === "text")
+        : null);
+
+  if (!textObj) {
+    console.log(`[${label}] No text object in selection`);
+    return;
+  }
+
+  console.log(`[${label}] Text object properties:`, {
+    text: textObj.text,
+    fontFamily: textObj.fontFamily,
+    baseFont: getBaseFontName(textObj.fontFamily),
+    fill: textObj.fill,
+    opacity: textObj.opacity,
+    visible: textObj.visible,
+    fontSize: textObj.fontSize,
+    left: textObj.left,
+    top: textObj.top,
+  });
+};
+
+// Auto-fix invisible text objects (opacity/fill issues)
+export const fixInvisibleText = (obj: any, canvas: any): boolean => {
+  if (!obj || !canvas) return false;
+
+  const textObj = obj.type === "textbox" || obj.type === "text" 
+    ? obj 
+    : (obj.type === "group" && obj.getObjects 
+        ? obj.getObjects().find((o: any) => o.type === "textbox" || o.type === "text")
+        : null);
+
+  if (!textObj) return false;
+
+  let patched = false;
+
+  // Fix obviously bad opacity
+  if (typeof textObj.opacity === "number" && textObj.opacity < 0.05) {
+    textObj.opacity = 1;
+    patched = true;
+  }
+
+  // Fix obviously invisible fill
+  if (!textObj.fill || textObj.fill === "transparent" || textObj.fill === "none") {
+    textObj.fill = "#000000";
+    patched = true;
+  }
+
+  if (patched) {
+    canvas.requestRenderAll();
+  }
+
+  return patched;
+};
