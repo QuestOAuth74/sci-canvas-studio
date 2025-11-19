@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { useState } from "react";
@@ -16,7 +17,11 @@ export const QuickSettings = () => {
     snapToGrid,
     setSnapToGrid,
     gridSize,
-    setGridSize
+    setGridSize,
+    backgroundGradient,
+    setBackgroundGradient,
+    gridPattern,
+    setGridPattern,
   } = useCanvas();
   const [defaultStrokeWidth, setDefaultStrokeWidth] = useState(2);
 
@@ -37,13 +42,38 @@ export const QuickSettings = () => {
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="snap-grid" className="text-sm">Show Grid</Label>
+              <Label htmlFor="background-gradient" className="text-sm">Gradient Background</Label>
               <Switch 
-                id="snap-grid"
+                id="background-gradient"
+                checked={backgroundGradient} 
+                onCheckedChange={setBackgroundGradient} 
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Label htmlFor="show-grid" className="text-sm">Show Grid</Label>
+              <Switch 
+                id="show-grid"
                 checked={gridEnabled} 
                 onCheckedChange={setGridEnabled} 
               />
             </div>
+            
+            {gridEnabled && (
+              <div className="space-y-2 pl-4 border-l-2 border-muted">
+                <Label htmlFor="grid-pattern" className="text-sm">Grid Pattern</Label>
+                <Select value={gridPattern} onValueChange={(value: 'lines' | 'dots' | 'isometric') => setGridPattern(value)}>
+                  <SelectTrigger id="grid-pattern" className="h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lines">Lines</SelectItem>
+                    <SelectItem value="dots">Dots</SelectItem>
+                    <SelectItem value="isometric">Isometric</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <div className="flex items-center justify-between">
               <Label htmlFor="smart-guides" className="text-sm">Show Rulers</Label>
