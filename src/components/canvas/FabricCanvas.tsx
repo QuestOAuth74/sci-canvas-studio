@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush, Control, FabricObject, Gradient } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { loadAllFonts } from "@/lib/fontLoader";
+import { loadAllFonts, getCanvasFontFamily, getBaseFontName } from "@/lib/fontLoader";
 import { createConnector } from "@/lib/connectorSystem";
 import { createSVGArrowMarker } from "@/lib/advancedLineSystem";
 import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
@@ -251,6 +251,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     canvas.requestRenderAll();
     
     setCanvas(canvas);
+    
+    // Patch existing text objects with font stacks for special character support
+    canvas.getObjects("textbox").forEach((obj: any) => {
+      const base = getBaseFontName(obj.fontFamily);
+      obj.fontFamily = getCanvasFontFamily(base);
+    });
+    canvas.requestRenderAll();
 
     // Track selected objects
     canvas.on('selection:created', (e) => {
@@ -1526,7 +1533,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             originX: 'center',
             originY: 'center',
             width: textWidth,
-            fontFamily: textFont,
+            fontFamily: getCanvasFontFamily(textFont),
             selectable: true,
             evented: true,
             hoverCursor: 'text',
@@ -1615,7 +1622,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           top: pointer.y,
           width: 200,
           fontSize: 24,
-          fontFamily: textFont,
+          fontFamily: getCanvasFontFamily(textFont),
           textAlign: textAlign as any,
           underline: textUnderline,
           overline: textOverline,

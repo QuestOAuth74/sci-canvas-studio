@@ -27,7 +27,7 @@ import {
 import { useCanvas } from "@/contexts/CanvasContext";
 import { useEffect } from "react";
 import { Textbox } from "fabric";
-import { ensureFontLoaded } from "@/lib/fontLoader";
+import { ensureFontLoaded, getBaseFontName, getCanvasFontFamily } from "@/lib/fontLoader";
 import { toast } from "sonner";
 import { SpecialCharactersPalette } from "./SpecialCharactersPalette";
 
@@ -117,7 +117,8 @@ export const TextFormattingPanel = () => {
   useEffect(() => {
     const textObj = getTextObject(selectedObject);
     if (textObj) {
-      setTextFont(textObj.fontFamily || "Arial");
+      const baseFont = getBaseFontName(textObj.fontFamily);
+      setTextFont(baseFont);
       setTextAlign(textObj.textAlign || "left");
       setTextBold(textObj.fontWeight === "bold");
       setTextItalic(textObj.fontStyle === "italic");
@@ -154,11 +155,12 @@ export const TextFormattingPanel = () => {
       return;
     }
     
+    const canvasFont = getCanvasFontFamily(font);
     setTextFont(font);
     // Update selected text object if exists
     const textObj = getTextObject(selectedObject);
     if (canvas && textObj) {
-      textObj.set({ fontFamily: font });
+      textObj.set({ fontFamily: canvasFont });
       canvas.renderAll();
     }
   };
