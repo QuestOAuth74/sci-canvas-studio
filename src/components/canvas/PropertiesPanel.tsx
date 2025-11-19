@@ -727,7 +727,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   };
 
   return (
-    <div className="glass-panel flex flex-col h-full min-h-0">{/* Toggle button - always visible */}
+    <div className="glass-panel flex flex-col h-full min-h-0 bg-[#f0f9ff]/50">{/* Toggle button - always visible */}
       <div className="p-2 border-b border-border/40 flex items-center justify-between">
         <Button
           variant="ghost"

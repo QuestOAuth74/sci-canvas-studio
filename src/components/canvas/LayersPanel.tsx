@@ -157,7 +157,7 @@ export const LayersPanel = () => {
   );
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-[#f0f9ff]/50">
       {/* Search Bar */}
       <div className="p-2 space-y-2 border-b">
         <div className="relative">
