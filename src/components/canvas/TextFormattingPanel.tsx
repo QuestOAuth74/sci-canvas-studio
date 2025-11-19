@@ -29,6 +29,7 @@ import { useEffect } from "react";
 import { Textbox } from "fabric";
 import { ensureFontLoaded } from "@/lib/fontLoader";
 import { toast } from "sonner";
+import { SpecialCharactersPalette } from "./SpecialCharactersPalette";
 
 const GOOGLE_FONTS = [
   "Inter",
@@ -475,6 +476,16 @@ export const TextFormattingPanel = () => {
         </TooltipTrigger>
         <TooltipContent>
           <p>Superscript (x²)</p>
+        </TooltipContent>
+      </Tooltip>
+
+      {/* Special Characters */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <SpecialCharactersPalette />
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Special Characters (α, β, ±, etc.)</p>
         </TooltipContent>
       </Tooltip>
 
