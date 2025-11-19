@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush, Control, FabricObject } from "fabric";
+import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush, Control, FabricObject, Gradient } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { loadAllFonts } from "@/lib/fontLoader";
@@ -86,7 +86,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     setSelectedObject, 
     gridEnabled, 
     rulersEnabled, 
-    backgroundColor, 
+    backgroundColor,
+    backgroundGradient,
+    gridPattern,
     canvasDimensions, 
     zoom,
     textFont,
@@ -579,15 +581,35 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   // Handle background color changes
   useEffect(() => {
     if (!canvas) return;
-    canvas.backgroundColor = backgroundColor;
+    
+    if (backgroundGradient) {
+      // Create a subtle gradient from light to white
+      const gradient = new Gradient({
+        type: 'linear',
+        coords: {
+          x1: 0,
+          y1: 0,
+          x2: 0,
+          y2: canvas.height || 800,
+        },
+        colorStops: [
+          { offset: 0, color: '#f8f9fa' },
+          { offset: 1, color: '#ffffff' }
+        ]
+      });
+      canvas.backgroundColor = gradient;
+    } else {
+      canvas.backgroundColor = backgroundColor;
+    }
+    
     canvas.requestRenderAll();
-  }, [canvas, backgroundColor]);
+  }, [canvas, backgroundColor, backgroundGradient]);
 
   // Handle grid rendering - redraws on zoom changes to prevent double grid
   useEffect(() => {
     if (!canvas) return;
 
-    // Collect all grid lines to remove
+    // Collect all grid objects to remove
     const objectsToRemove = canvas.getObjects().filter(obj => (obj as any).isGridLine);
     
     // Remove them all at once
@@ -599,45 +621,123 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       const width = canvas.width || 1200;
       const height = canvas.height || 800;
 
-      const gridLines: Line[] = [];
+      const gridObjects: FabricObject[] = [];
 
-      // Vertical lines
-      for (let i = 0; i <= width / gridSize; i++) {
-        const line = new Line([i * gridSize, 0, i * gridSize, height], {
-          stroke: '#e0e0e0',
-          strokeWidth: 1,
-          selectable: false,
-          evented: false,
-          hoverCursor: 'default',
-          excludeFromExport: true,
-        });
-        (line as any).isGridLine = true;
-        gridLines.push(line);
+      if (gridPattern === 'lines') {
+        // Vertical lines
+        for (let i = 0; i <= width / gridSize; i++) {
+          const line = new Line([i * gridSize, 0, i * gridSize, height], {
+            stroke: '#e0e0e0',
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+            hoverCursor: 'default',
+            excludeFromExport: true,
+          });
+          (line as any).isGridLine = true;
+          gridObjects.push(line);
+        }
+
+        // Horizontal lines
+        for (let i = 0; i <= height / gridSize; i++) {
+          const line = new Line([0, i * gridSize, width, i * gridSize], {
+            stroke: '#e0e0e0',
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+            hoverCursor: 'default',
+            excludeFromExport: true,
+          });
+          (line as any).isGridLine = true;
+          gridObjects.push(line);
+        }
+      } else if (gridPattern === 'dots') {
+        // Dot grid
+        for (let i = 0; i <= width / gridSize; i++) {
+          for (let j = 0; j <= height / gridSize; j++) {
+            const dot = new Circle({
+              left: i * gridSize,
+              top: j * gridSize,
+              radius: 1.5,
+              fill: '#d0d0d0',
+              selectable: false,
+              evented: false,
+              hoverCursor: 'default',
+              excludeFromExport: true,
+              originX: 'center',
+              originY: 'center',
+            });
+            (dot as any).isGridLine = true;
+            gridObjects.push(dot);
+          }
+        }
+      } else if (gridPattern === 'isometric') {
+        // Isometric grid (30-degree angles)
+        const isoSize = gridSize * 2;
+        const angleRad = (30 * Math.PI) / 180;
+        
+        // Draw diagonal lines at +30 degrees
+        for (let i = -height; i <= width + height; i += isoSize) {
+          const startX = i;
+          const startY = 0;
+          const endX = i + height * Math.tan(angleRad);
+          const endY = height;
+          
+          const line = new Line([startX, startY, endX, endY], {
+            stroke: '#e0e0e0',
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+            hoverCursor: 'default',
+            excludeFromExport: true,
+          });
+          (line as any).isGridLine = true;
+          gridObjects.push(line);
+        }
+        
+        // Draw diagonal lines at -30 degrees
+        for (let i = -height; i <= width + height; i += isoSize) {
+          const startX = i;
+          const startY = 0;
+          const endX = i - height * Math.tan(angleRad);
+          const endY = height;
+          
+          const line = new Line([startX, startY, endX, endY], {
+            stroke: '#e0e0e0',
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+            hoverCursor: 'default',
+            excludeFromExport: true,
+          });
+          (line as any).isGridLine = true;
+          gridObjects.push(line);
+        }
+        
+        // Draw horizontal lines
+        for (let i = 0; i <= height / isoSize; i++) {
+          const line = new Line([0, i * isoSize, width, i * isoSize], {
+            stroke: '#e0e0e0',
+            strokeWidth: 1,
+            selectable: false,
+            evented: false,
+            hoverCursor: 'default',
+            excludeFromExport: true,
+          });
+          (line as any).isGridLine = true;
+          gridObjects.push(line);
+        }
       }
 
-      // Horizontal lines
-      for (let i = 0; i <= height / gridSize; i++) {
-        const line = new Line([0, i * gridSize, width, i * gridSize], {
-          stroke: '#e0e0e0',
-          strokeWidth: 1,
-          selectable: false,
-          evented: false,
-          hoverCursor: 'default',
-          excludeFromExport: true,
-        });
-        (line as any).isGridLine = true;
-        gridLines.push(line);
-      }
-
-      // Add all grid lines at once and send to back
-      gridLines.forEach(line => {
-        canvas.add(line);
-        canvas.sendObjectToBack(line);
+      // Add all grid objects at once and send to back
+      gridObjects.forEach(obj => {
+        canvas.add(obj);
+        canvas.sendObjectToBack(obj);
       });
     }
 
     canvas.requestRenderAll();
-  }, [canvas, gridEnabled, zoom]);
+  }, [canvas, gridEnabled, gridPattern, zoom]);
 
   // Handle rulers - separate from grid so they scale with zoom
   useEffect(() => {

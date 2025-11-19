@@ -28,6 +28,10 @@ interface CanvasContextType {
   setGridSize: (size: number) => void;
   backgroundColor: string;
   setBackgroundColor: (color: string) => void;
+  backgroundGradient: boolean;
+  setBackgroundGradient: (enabled: boolean) => void;
+  gridPattern: 'lines' | 'dots' | 'isometric';
+  setGridPattern: (pattern: 'lines' | 'dots' | 'isometric') => void;
   canvasDimensions: { width: number; height: number };
   setCanvasDimensions: (dimensions: { width: number; height: number }) => void;
   paperSize: string;
@@ -196,6 +200,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(20);
   const [backgroundColor, setBackgroundColor] = useState("#f0f9ff");
+  const [backgroundGradient, setBackgroundGradient] = useState(false);
+  const [gridPattern, setGridPattern] = useState<'lines' | 'dots' | 'isometric'>('lines');
   const [canvasDimensions, setCanvasDimensions] = useState({ width: 1200, height: 800 });
   const [paperSize, setPaperSize] = useState("custom");
   
@@ -2048,6 +2054,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setGridSize,
     backgroundColor,
     setBackgroundColor,
+    backgroundGradient,
+    setBackgroundGradient,
+    gridPattern,
+    setGridPattern,
     canvasDimensions,
     setCanvasDimensions,
     paperSize,
