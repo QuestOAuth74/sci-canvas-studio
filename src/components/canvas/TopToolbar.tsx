@@ -32,6 +32,7 @@ import { TextFormattingPanel } from "./TextFormattingPanel";
 import { ShapesDropdown } from "./ShapesDropdown";
 import { QuickSettings } from "./QuickSettings";
 import { FeatureAccessBadge } from "./FeatureAccessBadge";
+import { DarkModeToggle } from "./DarkModeToggle";
 import { useState } from "react";
 
 interface TopToolbarProps {
@@ -346,6 +347,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
+        <DarkModeToggle />
         <QuickSettings />
       </div>
     </div>
