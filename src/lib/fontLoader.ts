@@ -12,6 +12,7 @@ export const GOOGLE_FONTS = [
   "Crimson Text",
   "Source Sans 3",
   "Oswald",
+  "STIX Two Text",
 ];
 
 // Canvas font stacks with fallbacks for special character support
@@ -29,6 +30,7 @@ export const CANVAS_FONT_STACKS: Record<string, string> = {
   "Crimson Text": "'Crimson Text', Georgia, 'Times New Roman', serif",
   "Source Sans 3": "'Source Sans 3', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   Oswald: "Oswald, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  "STIX Two Text": "'STIX Two Text', 'Times New Roman', 'Cambria Math', serif",
 };
 
 // Get the full font stack for canvas text objects

@@ -27,25 +27,9 @@ import {
 import { useCanvas } from "@/contexts/CanvasContext";
 import { useEffect } from "react";
 import { Textbox } from "fabric";
-import { ensureFontLoaded, getBaseFontName, getCanvasFontFamily } from "@/lib/fontLoader";
+import { ensureFontLoaded, getBaseFontName, getCanvasFontFamily, GOOGLE_FONTS } from "@/lib/fontLoader";
 import { toast } from "sonner";
 import { SpecialCharactersPalette } from "./SpecialCharactersPalette";
-
-const GOOGLE_FONTS = [
-  "Inter",
-  "Roboto",
-  "Open Sans",
-  "Lato",
-  "Montserrat",
-  "Poppins",
-  "Raleway",
-  "Ubuntu",
-  "Playfair Display",
-  "Merriweather",
-  "Crimson Text",
-  "Source Sans 3",
-  "Oswald",
-];
 
 export const TextFormattingPanel = () => {
   const {
