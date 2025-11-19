@@ -268,6 +268,16 @@ export const TextFormattingPanel = () => {
       }
       
       canvas.renderAll();
+      
+      // Force layout recalculation for real-time rendering
+      if (typeof textObj.initDimensions === "function") {
+        textObj.initDimensions();
+      }
+      if (typeof textObj.setCoords === "function") {
+        textObj.setCoords();
+      }
+      textObj.dirty = true;
+      canvas.requestRenderAll();
     }
   };
 
@@ -311,6 +321,16 @@ export const TextFormattingPanel = () => {
       }
       
       canvas.renderAll();
+      
+      // Force layout recalculation for real-time rendering
+      if (typeof textObj.initDimensions === "function") {
+        textObj.initDimensions();
+      }
+      if (typeof textObj.setCoords === "function") {
+        textObj.setCoords();
+      }
+      textObj.dirty = true;
+      canvas.requestRenderAll();
     }
   };
 
