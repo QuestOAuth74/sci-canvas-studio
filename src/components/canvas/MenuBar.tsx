@@ -10,7 +10,9 @@ import {
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
 import { AboutDialog } from "./AboutDialog";
-import { useState } from "react";
+import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MenuBarProps {
   onTemplatesClick?: () => void;
@@ -18,6 +20,8 @@ interface MenuBarProps {
 
 export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
+  const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
   
   const {
     undo,
@@ -66,6 +70,17 @@ export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
   const handleOpenExportDialog = () => {
     setExportDialogOpen(true);
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data } = await supabase
+        .from('icon_categories')
+        .select('id, name')
+        .order('name');
+      if (data) setIconCategories(data);
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <>
@@ -150,6 +165,8 @@ export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
         <MenubarMenu>
           <MenubarTrigger className="font-medium">Help</MenubarTrigger>
           <MenubarContent>
+            <MenubarItem onClick={() => setIconSubmissionOpen(true)}>Suggest Icon/Feature</MenubarItem>
+            <MenubarSeparator />
             <MenubarItem onClick={() => setAboutOpen(true)}>Documentation</MenubarItem>
             <MenubarItem>Keyboard Shortcuts</MenubarItem>
             <MenubarSeparator />
@@ -159,6 +176,11 @@ export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
       </Menubar>
       
       <AboutDialog open={aboutOpen} onOpenChange={setAboutOpen} />
+      <IconSubmissionDialog 
+        open={iconSubmissionOpen}
+        onOpenChange={setIconSubmissionOpen}
+        categories={iconCategories}
+      />
     </>
   );
 };
