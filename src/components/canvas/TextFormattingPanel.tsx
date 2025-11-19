@@ -249,7 +249,13 @@ export const TextFormattingPanel = () => {
     }
     
     const textObj = getTextObject(selectedObject);
-    if (canvas && textObj && textObj.isEditing) {
+    if (canvas && textObj) {
+      // If not in editing mode, enter it and select all text
+      if (!textObj.isEditing) {
+        textObj.enterEditing();
+        textObj.selectAll();
+      }
+      
       const selectionStart = textObj.selectionStart || 0;
       const selectionEnd = textObj.selectionEnd || 0;
       const baseFontSize = textObj.fontSize || 16;
@@ -262,13 +268,13 @@ export const TextFormattingPanel = () => {
             deltaY: newSubscript ? baseFontSize * 0.3 : 0,
           }, i, i + 1);
         }
+      } else {
+        // No selection, set for future typing
+        textObj.setSelectionStyles({
+          fontSize: newSubscript ? baseFontSize * 0.7 : baseFontSize,
+          deltaY: newSubscript ? baseFontSize * 0.3 : 0,
+        });
       }
-      
-      // Set for future typing
-      textObj.setSelectionStyles({
-        fontSize: newSubscript ? baseFontSize * 0.7 : baseFontSize,
-        deltaY: newSubscript ? baseFontSize * 0.3 : 0,
-      });
       
       canvas.renderAll();
     }
@@ -283,7 +289,13 @@ export const TextFormattingPanel = () => {
     }
     
     const textObj = getTextObject(selectedObject);
-    if (canvas && textObj && textObj.isEditing) {
+    if (canvas && textObj) {
+      // If not in editing mode, enter it and select all text
+      if (!textObj.isEditing) {
+        textObj.enterEditing();
+        textObj.selectAll();
+      }
+      
       const selectionStart = textObj.selectionStart || 0;
       const selectionEnd = textObj.selectionEnd || 0;
       const baseFontSize = textObj.fontSize || 16;
@@ -296,13 +308,13 @@ export const TextFormattingPanel = () => {
             deltaY: newSuperscript ? -(baseFontSize * 0.3) : 0,
           }, i, i + 1);
         }
+      } else {
+        // No selection, set for future typing
+        textObj.setSelectionStyles({
+          fontSize: newSuperscript ? baseFontSize * 0.7 : baseFontSize,
+          deltaY: newSuperscript ? -(baseFontSize * 0.3) : 0,
+        });
       }
-      
-      // Set for future typing
-      textObj.setSelectionStyles({
-        fontSize: newSuperscript ? baseFontSize * 0.7 : baseFontSize,
-        deltaY: newSuperscript ? -(baseFontSize * 0.3) : 0,
-      });
       
       canvas.renderAll();
     }
