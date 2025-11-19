@@ -80,6 +80,27 @@ export const normalizeTextObjectFont = (obj: any) => {
   obj.fontFamily = stacked;
 };
 
+// Normalize a text object that is currently being edited
+export const normalizeEditingTextFont = (textObj: any): boolean => {
+  if (!textObj || (textObj.type !== "textbox" && textObj.type !== "text")) {
+    return false;
+  }
+  
+  const rawFamily = textObj.fontFamily as string | undefined;
+  if (!rawFamily) return false;
+  
+  const base = getBaseFontName(rawFamily);
+  const stacked = getCanvasFontFamily(base);
+  
+  // Only update if different to avoid unnecessary re-renders
+  if (textObj.fontFamily !== stacked) {
+    textObj.fontFamily = stacked;
+    return true;
+  }
+  
+  return false;
+};
+
 // Normalize all text objects on a canvas to use full font stacks
 export const normalizeCanvasTextFonts = (canvas: any) => {
   canvas.getObjects().forEach((obj: any) => {

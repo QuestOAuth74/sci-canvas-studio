@@ -28,7 +28,7 @@ import {
 import { useCanvas } from "@/contexts/CanvasContext";
 import { useEffect } from "react";
 import { Textbox } from "fabric";
-import { ensureFontLoaded, getBaseFontName, getCanvasFontFamily, GOOGLE_FONTS } from "@/lib/fontLoader";
+import { ensureFontLoaded, getBaseFontName, getCanvasFontFamily, GOOGLE_FONTS, normalizeEditingTextFont } from "@/lib/fontLoader";
 import { toast } from "sonner";
 import { SpecialCharactersPalette } from "./SpecialCharactersPalette";
 
@@ -238,6 +238,9 @@ export const TextFormattingPanel = () => {
     
     const textObj = getTextObject(selectedObject);
     if (canvas && textObj) {
+      // Normalize font BEFORE applying subscript for special character support
+      normalizeEditingTextFont(textObj);
+      
       // If not in editing mode, enter it and select all text
       if (!textObj.isEditing) {
         textObj.enterEditing();
@@ -278,6 +281,9 @@ export const TextFormattingPanel = () => {
     
     const textObj = getTextObject(selectedObject);
     if (canvas && textObj) {
+      // Normalize font BEFORE applying superscript for special character support
+      normalizeEditingTextFont(textObj);
+      
       // If not in editing mode, enter it and select all text
       if (!textObj.isEditing) {
         textObj.enterEditing();
