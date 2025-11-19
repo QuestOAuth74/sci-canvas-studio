@@ -112,6 +112,10 @@ interface CanvasContextType {
   setTextItalic: (italic: boolean) => void;
   textListType: 'none' | 'bullet' | 'numbered';
   setTextListType: (type: 'none' | 'bullet' | 'numbered') => void;
+  textSubscript: boolean;
+  setTextSubscript: (subscript: boolean) => void;
+  textSuperscript: boolean;
+  setTextSuperscript: (superscript: boolean) => void;
   
   // Pin/Lock operations
   pinObject: () => void;
@@ -240,6 +244,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [textBold, setTextBold] = useState(false);
   const [textItalic, setTextItalic] = useState(false);
   const [textListType, setTextListType] = useState<'none' | 'bullet' | 'numbered'>('none');
+  const [textSubscript, setTextSubscript] = useState(false);
+  const [textSuperscript, setTextSuperscript] = useState(false);
   
   // Pin state
   const [isPinned, setIsPinned] = useState(false);
@@ -2116,6 +2122,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setTextItalic,
     textListType,
     setTextListType,
+    textSubscript,
+    setTextSubscript,
+    textSuperscript,
+    setTextSuperscript,
     pinObject,
     unpinObject,
     togglePin,
