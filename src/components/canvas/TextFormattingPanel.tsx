@@ -18,6 +18,7 @@ import {
   ListOrdered,
   Subscript,
   Superscript,
+  FlaskConical,
 } from "lucide-react";
 import {
   Tooltip,
@@ -307,6 +308,31 @@ export const TextFormattingPanel = () => {
     }
   };
 
+  const handleScientificPreset = async () => {
+    const scientificFont = "STIX Two Text";
+    const loaded = await ensureFontLoaded(scientificFont);
+    if (!loaded) {
+      toast.error(`Font "${scientificFont}" failed to load`);
+      return;
+    }
+    
+    const canvasFont = getCanvasFontFamily(scientificFont);
+    setTextFont(scientificFont);
+    
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj) {
+      textObj.set({ 
+        fontFamily: canvasFont,
+        fontSize: 20,
+        lineHeight: 1.4,
+      });
+      canvas.renderAll();
+      toast.success("Scientific text style applied");
+    } else {
+      toast.info("Select a text object to apply scientific style");
+    }
+  };
+
   return (
     <div className="flex items-center gap-1">
       {/* Font Selection */}
@@ -467,6 +493,26 @@ export const TextFormattingPanel = () => {
 
       {/* Special Characters */}
       <SpecialCharactersPalette />
+
+      <div className="w-px h-6 bg-border mx-1" />
+
+      {/* Scientific Text Preset */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={handleScientificPreset}
+          >
+            <FlaskConical className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Scientific Text Style</p>
+          <p className="text-xs text-muted-foreground">STIX Two Text, optimized for formulas</p>
+        </TooltipContent>
+      </Tooltip>
 
       <div className="w-px h-6 bg-border mx-1" />
 
