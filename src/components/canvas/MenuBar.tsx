@@ -13,6 +13,8 @@ import { AboutDialog } from "./AboutDialog";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeCanvasTextFonts } from "@/lib/fontLoader";
+import { Type } from "lucide-react";
 
 interface MenuBarProps {
   onTemplatesClick?: () => void;
@@ -24,6 +26,7 @@ export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
   
   const {
+    canvas,
     undo,
     redo,
     cut,
@@ -69,6 +72,15 @@ export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
 
   const handleOpenExportDialog = () => {
     setExportDialogOpen(true);
+  };
+
+  const handleNormalizeFonts = () => {
+    if (!canvas) {
+      toast.error("No canvas available");
+      return;
+    }
+    normalizeCanvasTextFonts(canvas);
+    toast.success("Text fonts normalized for special character support");
   };
 
   useEffect(() => {
@@ -139,6 +151,11 @@ export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
           <MenubarContent>
             <MenubarItem onClick={() => setGridEnabled(!gridEnabled)}>
               {gridEnabled ? "✓ " : ""}Grid
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={handleNormalizeFonts}>
+              <Type className="mr-2 h-4 w-4" />
+              Normalize Fonts
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={zoomIn}>Zoom In</MenubarItem>
