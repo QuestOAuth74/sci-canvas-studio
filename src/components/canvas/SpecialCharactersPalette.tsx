@@ -4,6 +4,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Omega } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
@@ -79,15 +84,22 @@ export const SpecialCharactersPalette = () => {
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-        >
-          <Omega className="h-4 w-4" />
-        </Button>
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+            >
+              <Omega className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Special Characters (α, β, ±, etc.)</p>
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent className="w-80" align="start">
         <Tabs defaultValue="greek" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
