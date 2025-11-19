@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Omega } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox } from "fabric";
+import { toast } from "sonner";
 
 const SPECIAL_CHARACTERS = {
   greek: {
@@ -50,24 +51,30 @@ const SPECIAL_CHARACTERS = {
 };
 
 export const SpecialCharactersPalette = () => {
-  const { canvas, selectedObject } = useCanvas();
+  const { canvas } = useCanvas();
 
-  const getTextObject = (obj: any): Textbox | null => {
-    if (!obj) return null;
+  const findEditingTextObject = (canvas: any | null): Textbox | null => {
+    if (!canvas) return null;
 
-    // Direct text objects
-    if (obj.type === "textbox" || obj.type === "text") {
-      return obj as Textbox;
+    // 1) Prefer the active object if it's a text in editing mode
+    const active = canvas.getActiveObject() as any;
+    if (
+      active &&
+      (active.type === "textbox" || active.type === "text") &&
+      active.isEditing
+    ) {
+      return active as Textbox;
     }
 
-    // Groups or active selections that contain text
-    if (obj.type === "group" || obj.type === "activeSelection") {
-      const textObj = obj
-        .getObjects?.()
-        ?.find(
-          (o: any) => o.type === "textbox" || o.type === "text"
-        );
-      return (textObj as Textbox) || null;
+    // 2) Fallback: scan all objects for a text that is currently editing
+    const objects = canvas.getObjects() as any[];
+    for (const obj of objects) {
+      if (
+        (obj.type === "textbox" || obj.type === "text") &&
+        obj.isEditing
+      ) {
+        return obj as Textbox;
+      }
     }
 
     return null;
@@ -76,31 +83,22 @@ export const SpecialCharactersPalette = () => {
   const insertCharacter = (char: string) => {
     if (!canvas) return;
 
-    // Prefer the context-selected object, but fall back to Fabric's active object
-    const baseObj = selectedObject || canvas.getActiveObject();
-    const textObj = getTextObject(baseObj);
+    const textObj = findEditingTextObject(canvas);
 
     if (!textObj) {
-      // No suitable text object found in the current selection/group
+      // No text box is actively being edited — guide the user
+      toast.error("Double-click a text label to edit, then click a symbol to insert it.", {
+        duration: 2000,
+      });
       return;
     }
 
-    // Ensure we're in editing mode so selectionStart/End are valid
-    if (!textObj.isEditing) {
-      textObj.enterEditing();
-
-      // If no explicit cursor, put it at the end of the existing text
-      const len = textObj.text?.length ?? 0;
-      textObj.selectionStart = len;
-      textObj.selectionEnd = len;
-    }
-
+    const currentText = textObj.text || "";
     const cursorPos =
       typeof textObj.selectionStart === "number"
         ? textObj.selectionStart
-        : textObj.text?.length ?? 0;
+        : currentText.length;
 
-    const currentText = textObj.text || "";
     const newText =
       currentText.substring(0, cursorPos) +
       char +
@@ -130,7 +128,7 @@ export const SpecialCharactersPalette = () => {
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Special Characters (α, β, ±, etc.)</p>
+          <p>Special Characters - Double-click a label to edit first</p>
         </TooltipContent>
       </Tooltip>
       <PopoverContent className="w-80" align="start">
