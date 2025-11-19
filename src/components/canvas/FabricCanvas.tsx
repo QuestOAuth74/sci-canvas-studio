@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush, Control, FabricObject, Gradient } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { loadAllFonts, getCanvasFontFamily, getBaseFontName } from "@/lib/fontLoader";
+import { loadAllFonts, getCanvasFontFamily, getBaseFontName, debugTextObject, fixInvisibleText, normalizeCanvasTextFonts } from "@/lib/fontLoader";
 import { createConnector } from "@/lib/connectorSystem";
 import { createSVGArrowMarker } from "@/lib/advancedLineSystem";
 import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
@@ -140,14 +140,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           padding: 4,
         });
         
-        // Normalize fonts for text objects
+        // Normalize fonts for text objects using helper
         if (e.target.type === "textbox" || e.target.type === "text") {
           const textObj = e.target as any;
           const base = getBaseFontName(textObj.fontFamily);
           textObj.fontFamily = getCanvasFontFamily(base);
         }
         
-        // Also normalize text in groups
+        // Also normalize text in groups using helper
         if (e.target.type === "group" && (e.target as any).getObjects) {
           (e.target as any).getObjects().forEach((child: any) => {
             if (child.type === "textbox" || child.type === "text") {
@@ -269,20 +269,34 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     setCanvas(canvas);
     
-    // Patch existing text objects with font stacks for special character support
-    canvas.getObjects("textbox").forEach((obj: any) => {
-      const base = getBaseFontName(obj.fontFamily);
-      obj.fontFamily = getCanvasFontFamily(base);
-    });
-    canvas.requestRenderAll();
+    // Normalize all existing text objects with font stacks for special character support
+    normalizeCanvasTextFonts(canvas);
 
-    // Track selected objects
+    // Track selected objects with debug and auto-fix for invisible text
     canvas.on('selection:created', (e) => {
-      setSelectedObject(e.selected?.[0] || null);
+      const selected = e.selected?.[0] || null;
+      setSelectedObject(selected);
+      
+      // Debug text object properties
+      debugTextObject(selected, "Selection Created");
+      
+      // Auto-fix invisible text
+      if (selected && fixInvisibleText(selected, canvas)) {
+        toast.info("Fixed invisible text (reset opacity/fill)");
+      }
     });
     
     canvas.on('selection:updated', (e) => {
-      setSelectedObject(e.selected?.[0] || null);
+      const selected = e.selected?.[0] || null;
+      setSelectedObject(selected);
+      
+      // Debug text object properties
+      debugTextObject(selected, "Selection Updated");
+      
+      // Auto-fix invisible text
+      if (selected && fixInvisibleText(selected, canvas)) {
+        toast.info("Fixed invisible text (reset opacity/fill)");
+      }
     });
     
     canvas.on('selection:cleared', () => {
