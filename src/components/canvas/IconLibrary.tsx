@@ -465,9 +465,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           ) : (
             <>
               {!isLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Skeleton className="w-6 h-6 rounded-sm" />
-                </div>
+                <Skeleton className="absolute inset-1.5 rounded animate-pulse" />
               )}
               <img
                 src={thumbSrc}
