@@ -16,6 +16,8 @@ import {
   Italic,
   List,
   ListOrdered,
+  Subscript,
+  Superscript,
 } from "lucide-react";
 import {
   Tooltip,
@@ -60,6 +62,10 @@ export const TextFormattingPanel = () => {
     setTextItalic,
     textListType,
     setTextListType,
+    textSubscript,
+    setTextSubscript,
+    textSuperscript,
+    setTextSuperscript,
     canvas,
     selectedObject,
   } = useCanvas();
@@ -110,15 +116,34 @@ export const TextFormattingPanel = () => {
   useEffect(() => {
     const textObj = getTextObject(selectedObject);
     if (textObj) {
-      if (textObj.fontFamily) setTextFont(textObj.fontFamily);
-      if (textObj.textAlign) setTextAlign(textObj.textAlign);
-      setTextBold(textObj.fontWeight === 'bold');
-      setTextItalic(textObj.fontStyle === 'italic');
-      setTextUnderline(!!textObj.underline);
-      setTextOverline(!!textObj.overline);
-      setTextListType((textObj as any).listType || 'none');
+      setTextFont(textObj.fontFamily || "Arial");
+      setTextAlign(textObj.textAlign || "left");
+      setTextBold(textObj.fontWeight === "bold");
+      setTextItalic(textObj.fontStyle === "italic");
+      setTextUnderline(textObj.underline || false);
+      setTextOverline(textObj.overline || false);
+
+      // Detect subscript/superscript from current cursor position
+      if (textObj.isEditing) {
+        const cursorPos = textObj.selectionStart || 0;
+        const styles = textObj.getStyleAtPosition(cursorPos, false);
+        
+        const baseFontSize = textObj.fontSize || 16;
+        const deltaY = (styles as any)?.deltaY || 0;
+        const fontSize = (styles as any)?.fontSize || baseFontSize;
+        
+        // Check if current style is subscript or superscript
+        const isSubscript = deltaY > 0 && fontSize < baseFontSize;
+        const isSuperscript = deltaY < 0 && fontSize < baseFontSize;
+        
+        setTextSubscript(isSubscript);
+        setTextSuperscript(isSuperscript);
+      } else {
+        setTextSubscript(false);
+        setTextSuperscript(false);
+      }
     }
-  }, [selectedObject, setTextFont, setTextAlign, setTextBold, setTextItalic, setTextUnderline, setTextOverline, setTextListType]);
+  }, [selectedObject, setTextFont, setTextAlign, setTextBold, setTextItalic, setTextUnderline, setTextOverline, setTextListType, setTextSubscript, setTextSuperscript]);
 
   const handleFontChange = async (font: string) => {
     // Ensure font is loaded before applying
@@ -211,6 +236,74 @@ export const TextFormattingPanel = () => {
       // Store list type and update text
       (textObj as any).listType = type;
       textObj.set({ text: newText });
+      canvas.renderAll();
+    }
+  };
+
+  const handleSubscriptChange = () => {
+    const newSubscript = !textSubscript;
+    setTextSubscript(newSubscript);
+    
+    if (newSubscript) {
+      setTextSuperscript(false);
+    }
+    
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj && textObj.isEditing) {
+      const selectionStart = textObj.selectionStart || 0;
+      const selectionEnd = textObj.selectionEnd || 0;
+      const baseFontSize = textObj.fontSize || 16;
+      
+      if (selectionStart !== selectionEnd) {
+        // Apply to selection
+        for (let i = selectionStart; i < selectionEnd; i++) {
+          textObj.setSelectionStyles({
+            fontSize: newSubscript ? baseFontSize * 0.7 : baseFontSize,
+            deltaY: newSubscript ? baseFontSize * 0.3 : 0,
+          }, i, i + 1);
+        }
+      }
+      
+      // Set for future typing
+      textObj.setSelectionStyles({
+        fontSize: newSubscript ? baseFontSize * 0.7 : baseFontSize,
+        deltaY: newSubscript ? baseFontSize * 0.3 : 0,
+      });
+      
+      canvas.renderAll();
+    }
+  };
+
+  const handleSuperscriptChange = () => {
+    const newSuperscript = !textSuperscript;
+    setTextSuperscript(newSuperscript);
+    
+    if (newSuperscript) {
+      setTextSubscript(false);
+    }
+    
+    const textObj = getTextObject(selectedObject);
+    if (canvas && textObj && textObj.isEditing) {
+      const selectionStart = textObj.selectionStart || 0;
+      const selectionEnd = textObj.selectionEnd || 0;
+      const baseFontSize = textObj.fontSize || 16;
+      
+      if (selectionStart !== selectionEnd) {
+        // Apply to selection
+        for (let i = selectionStart; i < selectionEnd; i++) {
+          textObj.setSelectionStyles({
+            fontSize: newSuperscript ? baseFontSize * 0.7 : baseFontSize,
+            deltaY: newSuperscript ? -(baseFontSize * 0.3) : 0,
+          }, i, i + 1);
+        }
+      }
+      
+      // Set for future typing
+      textObj.setSelectionStyles({
+        fontSize: newSuperscript ? baseFontSize * 0.7 : baseFontSize,
+        deltaY: newSuperscript ? -(baseFontSize * 0.3) : 0,
+      });
+      
       canvas.renderAll();
     }
   };
@@ -337,6 +430,40 @@ export const TextFormattingPanel = () => {
           </Button>
         </TooltipTrigger>
         <TooltipContent>Overline</TooltipContent>
+      </Tooltip>
+
+      {/* Subscript */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={textSubscript ? "default" : "ghost"}
+            size="icon"
+            onClick={handleSubscriptChange}
+            className="h-8 w-8"
+          >
+            <Subscript className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Subscript (H₂O)</p>
+        </TooltipContent>
+      </Tooltip>
+
+      {/* Superscript */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={textSuperscript ? "default" : "ghost"}
+            size="icon"
+            onClick={handleSuperscriptChange}
+            className="h-8 w-8"
+          >
+            <Superscript className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Superscript (x²)</p>
+        </TooltipContent>
       </Tooltip>
 
       <div className="w-px h-6 bg-border mx-1" />
