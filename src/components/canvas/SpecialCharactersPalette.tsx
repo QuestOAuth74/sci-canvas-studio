@@ -51,6 +51,45 @@ const SPECIAL_CHARACTERS = {
   }
 };
 
+const CHARACTER_NAMES: Record<string, string> = {
+  // Greek lowercase
+  "α": "alpha", "β": "beta", "γ": "gamma", "δ": "delta", "ε": "epsilon", "ζ": "zeta",
+  "η": "eta", "θ": "theta", "ι": "iota", "κ": "kappa", "λ": "lambda", "μ": "mu",
+  "ν": "nu", "ξ": "xi", "ο": "omicron", "π": "pi", "ρ": "rho", "σ": "sigma",
+  "τ": "tau", "υ": "upsilon", "φ": "phi", "χ": "chi", "ψ": "psi", "ω": "omega",
+  // Greek uppercase
+  "Α": "Alpha", "Β": "Beta", "Γ": "Gamma", "Δ": "Delta", "Ε": "Epsilon", "Ζ": "Zeta",
+  "Η": "Eta", "Θ": "Theta", "Ι": "Iota", "Κ": "Kappa", "Λ": "Lambda", "Μ": "Mu",
+  "Ν": "Nu", "Ξ": "Xi", "Ο": "Omicron", "Π": "Pi", "Ρ": "Rho", "Σ": "Sigma",
+  "Τ": "Tau", "Υ": "Upsilon", "Φ": "Phi", "Χ": "Chi", "Ψ": "Psi", "Ω": "Omega",
+  // Math symbols
+  "±": "plus-minus", "∓": "minus-plus", "×": "multiplication", "÷": "division",
+  "≠": "not equal", "≈": "approximately equal", "≡": "identical to",
+  "≤": "less than or equal", "≥": "greater than or equal", "∞": "infinity",
+  "∫": "integral", "∑": "summation", "∏": "product", "√": "square root",
+  "∂": "partial derivative", "∇": "nabla", "∆": "increment", "∈": "element of",
+  "∉": "not element of", "⊂": "subset", "⊃": "superset", "∩": "intersection",
+  "∪": "union", "∧": "logical and", "∨": "logical or", "¬": "not",
+  "⊕": "direct sum", "⊗": "tensor product", "∝": "proportional to", "∴": "therefore",
+  // Arrows
+  "←": "left arrow", "→": "right arrow", "↑": "up arrow", "↓": "down arrow",
+  "↔": "left-right arrow", "↕": "up-down arrow", "⇐": "left double arrow",
+  "⇒": "right double arrow", "⇑": "up double arrow", "⇓": "down double arrow",
+  "⇔": "left-right double arrow", "⇕": "up-down double arrow",
+  "↖": "up-left arrow", "↗": "up-right arrow", "↘": "down-right arrow",
+  "↙": "down-left arrow", "⟲": "anticlockwise arrow", "⟳": "clockwise arrow",
+  "↺": "circular left", "↻": "circular right",
+  // Common symbols
+  "°": "degree", "′": "prime", "″": "double prime", "‰": "per mille",
+  "℃": "celsius", "℉": "fahrenheit", "Å": "angstrom", "µ": "micro",
+  "Ø": "diameter", "§": "section", "¶": "paragraph", "†": "dagger",
+  "‡": "double dagger", "©": "copyright", "®": "registered", "™": "trademark",
+  "‹": "single left angle", "›": "single right angle", "«": "left guillemet",
+  "»": "right guillemet", "–": "en dash", "—": "em dash", "…": "ellipsis",
+  "·": "middle dot", "•": "bullet", "◦": "white bullet", "▪": "black square",
+  "▫": "white square", "★": "star"
+};
+
 export const SpecialCharactersPalette = () => {
   const { canvas } = useCanvas();
 
@@ -157,15 +196,20 @@ export const SpecialCharactersPalette = () => {
             <TabsContent key={key} value={key} className="mt-2">
               <div className="grid grid-cols-10 gap-1 max-h-48 overflow-y-auto">
                 {category.symbols.map((symbol) => (
-                  <Button
-                    key={symbol}
-                    variant="outline"
-                    className="h-8 w-8 p-0 text-base hover:bg-primary hover:text-primary-foreground"
-                    onClick={() => insertCharacter(symbol)}
-                    title={symbol}
-                  >
-                    {symbol}
-                  </Button>
+                  <Tooltip key={symbol}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="h-8 w-8 p-0 text-base hover:bg-primary hover:text-primary-foreground"
+                        onClick={() => insertCharacter(symbol)}
+                      >
+                        {symbol}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="capitalize">{CHARACTER_NAMES[symbol] || symbol}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
               </div>
             </TabsContent>
