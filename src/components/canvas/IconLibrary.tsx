@@ -642,7 +642,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                   >
                                     <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                                   </div>
-                                  <Badge variant="gradient-orange" className="font-semibold">
+                                  <Badge variant="secondary" className="font-semibold">
                                     {category.name}
                                   </Badge>
                                 </div>
@@ -754,7 +754,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                               >
                                 <Star className="h-4 w-4" />
                               </div>
-                              <Badge variant="gradient" className="font-semibold">
+                              <Badge variant="secondary" className="font-semibold">
                                 {category.name}
                               </Badge>
                             </div>
