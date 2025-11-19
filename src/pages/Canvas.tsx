@@ -9,6 +9,7 @@ import { FabricCanvas } from "@/components/canvas/FabricCanvas";
 import { IconLibrary } from "@/components/canvas/IconLibrary";
 import { UserAssetsLibrary } from "@/components/canvas/UserAssetsLibrary";
 import { TopToolbar } from "@/components/canvas/TopToolbar";
+import { ContextualToolbar } from "@/components/canvas/ContextualToolbar";
 import { Toolbar } from "@/components/canvas/Toolbar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertiesPanel } from "@/components/canvas/PropertiesPanel";
@@ -683,6 +684,9 @@ const CanvasContent = () => {
           activeTool={activeTool}
           onToolChange={setActiveTool}
         />
+
+        {/* Contextual Toolbar */}
+        <ContextualToolbar />
 
         {/* Main Editor Area */}
         <div className="flex flex-1 min-h-0">
