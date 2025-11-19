@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Pin, PinOff, Eraser, Paintbrush } from "lucide-react";
 import { toast } from "sonner";
+import { ensureFontLoaded, getCanvasFontFamily } from "@/lib/fontLoader";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -204,11 +205,19 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     }
   }, [selectedObject]);
 
-  const handleFontChange = (font: string) => {
+  const handleFontChange = async (font: string) => {
+    const loaded = await ensureFontLoaded(font);
+    if (!loaded) {
+      toast.error(`Font "${font}" failed to load`);
+      return;
+    }
+    
+    const canvasFont = getCanvasFontFamily(font);
     setTextFont(font);
+    
     const textObj = getTextObject(selectedObject);
     if (canvas && textObj) {
-      textObj.set({ fontFamily: font });
+      textObj.set({ fontFamily: canvasFont });
       canvas.renderAll();
     }
   };

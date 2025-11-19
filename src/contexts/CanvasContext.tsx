@@ -3,7 +3,7 @@ import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, Active
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { loadAllFonts } from "@/lib/fontLoader";
+import { loadAllFonts, getBaseFontName, getCanvasFontFamily } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
 import { GradientConfig, ShadowConfig } from "@/types/effects";
 import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
@@ -1591,14 +1591,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Reload images with CORS to prevent tainting
       reloadCanvasImagesWithCORS(canvas);
       
-      // Force font re-application after loading
+      // Normalize all text fonts to use full font stacks
       canvas.getObjects().forEach(obj => {
         if (obj.type === 'textbox' || obj.type === 'text') {
-          const fontFamily = (obj as any).fontFamily;
-          if (fontFamily) {
-            // Re-set the font to trigger proper rendering
-            obj.set({ fontFamily });
-          }
+          const base = getBaseFontName((obj as any).fontFamily);
+          obj.set({ fontFamily: getCanvasFontFamily(base) });
         }
       });
       
@@ -1679,6 +1676,15 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     
     canvas.loadFromJSON(recoveryData.state).then(() => {
       reloadCanvasImagesWithCORS(canvas);
+      
+      // Normalize all text fonts to use full font stacks
+      canvas.getObjects().forEach(obj => {
+        if (obj.type === 'textbox' || obj.type === 'text') {
+          const base = getBaseFontName((obj as any).fontFamily);
+          obj.set({ fontFamily: getCanvasFontFamily(base) });
+        }
+      });
+      
       canvas.requestRenderAll();
       toast.success('Canvas recovered successfully!');
       localStorage.removeItem('canvas_recovery');
@@ -1716,12 +1722,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Reload images with CORS to prevent tainting
       reloadCanvasImagesWithCORS(canvas);
       
+      // Normalize all text fonts to use full font stacks
       canvas.getObjects().forEach(obj => {
         if (obj.type === 'textbox' || obj.type === 'text') {
-          const fontFamily = (obj as any).fontFamily;
-          if (fontFamily) {
-            obj.set({ fontFamily });
-          }
+          const base = getBaseFontName((obj as any).fontFamily);
+          obj.set({ fontFamily: getCanvasFontFamily(base) });
         }
       });
       
