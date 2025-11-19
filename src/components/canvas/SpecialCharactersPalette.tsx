@@ -52,34 +52,67 @@ const SPECIAL_CHARACTERS = {
 export const SpecialCharactersPalette = () => {
   const { canvas, selectedObject } = useCanvas();
 
-  const insertCharacter = (char: string) => {
-    if (!canvas || !selectedObject) return;
+  const getTextObject = (obj: any): Textbox | null => {
+    if (!obj) return null;
 
-    const textObj = selectedObject as Textbox;
-    if (textObj.type !== "textbox" && textObj.type !== "text") return;
-
-    // Enter editing mode if not already editing
-    if (!textObj.isEditing) {
-      textObj.enterEditing();
+    // Direct text objects
+    if (obj.type === "textbox" || obj.type === "text") {
+      return obj as Textbox;
     }
 
-    // Get cursor position
-    const cursorPos = textObj.selectionStart || 0;
-    
-    // Insert character at cursor position
+    // Groups or active selections that contain text
+    if (obj.type === "group" || obj.type === "activeSelection") {
+      const textObj = obj
+        .getObjects?.()
+        ?.find(
+          (o: any) => o.type === "textbox" || o.type === "text"
+        );
+      return (textObj as Textbox) || null;
+    }
+
+    return null;
+  };
+
+  const insertCharacter = (char: string) => {
+    if (!canvas) return;
+
+    // Prefer the context-selected object, but fall back to Fabric's active object
+    const baseObj = selectedObject || canvas.getActiveObject();
+    const textObj = getTextObject(baseObj);
+
+    if (!textObj) {
+      // No suitable text object found in the current selection/group
+      return;
+    }
+
+    // Ensure we're in editing mode so selectionStart/End are valid
+    if (!textObj.isEditing) {
+      textObj.enterEditing();
+
+      // If no explicit cursor, put it at the end of the existing text
+      const len = textObj.text?.length ?? 0;
+      textObj.selectionStart = len;
+      textObj.selectionEnd = len;
+    }
+
+    const cursorPos =
+      typeof textObj.selectionStart === "number"
+        ? textObj.selectionStart
+        : textObj.text?.length ?? 0;
+
     const currentText = textObj.text || "";
-    const newText = 
-      currentText.substring(0, cursorPos) + 
-      char + 
+    const newText =
+      currentText.substring(0, cursorPos) +
+      char +
       currentText.substring(cursorPos);
-    
+
     textObj.text = newText;
-    
-    // Move cursor after inserted character
-    textObj.selectionStart = cursorPos + 1;
-    textObj.selectionEnd = cursorPos + 1;
-    
-    canvas.renderAll();
+
+    const newCursorPos = cursorPos + char.length;
+    textObj.selectionStart = newCursorPos;
+    textObj.selectionEnd = newCursorPos;
+
+    canvas.requestRenderAll?.() ?? canvas.renderAll();
   };
 
   return (
