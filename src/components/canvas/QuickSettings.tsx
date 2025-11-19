@@ -35,7 +35,7 @@ export const QuickSettings = () => {
         </Button>
       </PopoverTrigger>
       
-      <PopoverContent className="w-80 bg-[#f0f9ff]" align="end">
+      <PopoverContent className="w-80 bg-[#f0f9ff] dark:bg-slate-800 dark:border-slate-700" align="end">
         <div className="space-y-4">
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Canvas Settings</h4>
