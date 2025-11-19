@@ -126,21 +126,38 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         centeredRotation: true,
       });
 
-      // Apply control styling to all objects added to canvas
-      canvas.on('object:added', (e) => {
-        if (e.target) {
-          e.target.set({
-            cornerColor: '#EF4444',        // Red square dots
-            cornerStrokeColor: '#ffffff',
-            cornerStyle: 'rect',           // Square corners
-            cornerSize: 8,
-            transparentCorners: false,
-            borderColor: '#EF4444',        // Red selection border
-            borderScaleFactor: 2,
-            padding: 4,
+    // Apply control styling to all objects added to canvas
+    canvas.on('object:added', (e) => {
+      if (e.target) {
+        e.target.set({
+          cornerColor: '#EF4444',
+          cornerStrokeColor: '#ffffff',
+          cornerStyle: 'rect',
+          cornerSize: 8,
+          transparentCorners: false,
+          borderColor: '#EF4444',
+          borderScaleFactor: 2,
+          padding: 4,
+        });
+        
+        // Normalize fonts for text objects
+        if (e.target.type === "textbox" || e.target.type === "text") {
+          const textObj = e.target as any;
+          const base = getBaseFontName(textObj.fontFamily);
+          textObj.fontFamily = getCanvasFontFamily(base);
+        }
+        
+        // Also normalize text in groups
+        if (e.target.type === "group" && (e.target as any).getObjects) {
+          (e.target as any).getObjects().forEach((child: any) => {
+            if (child.type === "textbox" || child.type === "text") {
+              const base = getBaseFontName(child.fontFamily);
+              child.fontFamily = getCanvasFontFamily(base);
+            }
           });
         }
-      });
+      }
+    });
 
     // Custom rotation control rendering (semi-circle with arrow like BioRender)
     const renderRotationControl = (

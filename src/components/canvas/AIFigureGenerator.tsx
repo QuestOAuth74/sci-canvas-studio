@@ -14,6 +14,7 @@ import { Canvas as FabricCanvas, FabricImage, Text as FabricText, Group, Rect, C
 import { createConnector } from "@/lib/connectorSystem";
 import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { useNavigate } from "react-router-dom";
+import { getCanvasFontFamily } from "@/lib/fontLoader";
 
 interface AIFigureGeneratorProps {
   canvas: FabricCanvas | null;
@@ -504,7 +505,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               top: y,
               fontSize,
               fill: '#000000',
-              fontFamily: 'Arial',
+              fontFamily: getCanvasFontFamily('Inter'),
               textAlign: obj.text_properties?.text_alignment || 'left',
               id: `node-${i}`, // Predictable ID for connectivity
             } as any);
@@ -576,7 +577,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               top: shapeHeight / 2,
               fontSize,
               fill: '#000000',
-              fontFamily: 'Arial',
+              fontFamily: getCanvasFontFamily('Inter'),
               textAlign: obj.text_properties?.text_alignment || 'center',
               originX: 'center',
               originY: 'center',
@@ -669,7 +670,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               top: y + offset.y,
               fontSize: 14,
               fill: '#000000',
-              fontFamily: 'Arial',
+              fontFamily: getCanvasFontFamily('Inter'),
             });
             canvas.add(text);
           }

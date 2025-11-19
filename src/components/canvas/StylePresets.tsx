@@ -4,7 +4,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Type, Square, Minus } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
-import { Textbox, FabricObject } from "fabric";
+import { Textbox, FabricObject, Group, Path } from "fabric";
+import { getBaseFontName, getCanvasFontFamily } from "@/lib/fontLoader";
 
 interface StylePreset {
   name: string;
@@ -117,7 +118,15 @@ export const StylePresets = () => {
 
       // Apply preset based on object type
       if (selectedObject.type === 'textbox' || selectedObject instanceof Textbox) {
-        selectedObject.set(preset.properties);
+        const props = { ...preset.properties };
+        
+        // Normalize font family to use full font stack
+        if (props.fontFamily) {
+          const base = getBaseFontName(props.fontFamily);
+          props.fontFamily = getCanvasFontFamily(base);
+        }
+        
+        selectedObject.set(props);
         canvas.renderAll();
         toast.success(`Applied ${preset.name} style`);
       } else if (isShapeWithTextGroup(selectedObject)) {

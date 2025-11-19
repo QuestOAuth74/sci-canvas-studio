@@ -69,3 +69,31 @@ export const ensureFontLoaded = async (fontFamily: string): Promise<boolean> => 
     return false;
   }
 };
+
+// Normalize a single text object's font to use full font stack
+export const normalizeTextObjectFont = (obj: any) => {
+  const rawFamily = obj.fontFamily as string | undefined;
+  if (!rawFamily) return;
+
+  const base = getBaseFontName(rawFamily);
+  const stacked = getCanvasFontFamily(base);
+  obj.fontFamily = stacked;
+};
+
+// Normalize all text objects on a canvas to use full font stacks
+export const normalizeCanvasTextFonts = (canvas: any) => {
+  canvas.getObjects().forEach((obj: any) => {
+    if (obj.type === "textbox" || obj.type === "text") {
+      normalizeTextObjectFont(obj);
+    }
+    // Also normalize text in groups
+    if (obj.type === "group" && obj.getObjects) {
+      obj.getObjects().forEach((child: any) => {
+        if (child.type === "textbox" || child.type === "text") {
+          normalizeTextObjectFont(child);
+        }
+      });
+    }
+  });
+  canvas.requestRenderAll();
+};
