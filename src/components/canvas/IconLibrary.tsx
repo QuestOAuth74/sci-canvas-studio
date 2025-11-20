@@ -56,6 +56,13 @@ const sanitizeSvg = (raw: string): string => {
       .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
       .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
     
+    // Replace hardcoded black fills with currentColor for theme adaptability
+    svg = svg.replace(/fill="#000000"/gi, 'fill="currentColor"');
+    svg = svg.replace(/fill="#000"/gi, 'fill="currentColor"');
+    svg = svg.replace(/fill="black"/gi, 'fill="currentColor"');
+    svg = svg.replace(/stroke="#000000"/gi, 'stroke="currentColor"');
+    svg = svg.replace(/stroke="#000"/gi, 'stroke="currentColor"');
+    
     // Ensure viewBox if missing and width/height exist
     if (!/viewBox=/i.test(svg)) {
       const w = svg.match(/\bwidth=["']?(\d+(\.\d+)?)\s*(px)?["']?/i);
@@ -67,6 +74,12 @@ const sanitizeSvg = (raw: string): string => {
         svg = svg.replace(/\b(width|height)=["'][^"']*["']/gi, "");
       }
     }
+    
+    // Add default fill color if no fill is specified
+    if (!/<svg[^>]*fill=/i.test(svg)) {
+      svg = svg.replace(/<svg([^>]*?)>/i, '<svg$1 fill="#374151">');
+    }
+    
     return svg;
   } catch {
     return raw;
@@ -453,7 +466,14 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       <div key={icon.id} className="relative group">
         <button
           onClick={() => handleIconClick(icon)}
-          className="w-full aspect-square border rounded overflow-hidden p-1.5 bg-muted/30 hover:bg-accent/30 hover:border-primary/50 transition-all hover:scale-105 hover:shadow-sm relative"
+          className="w-full aspect-square border-2 border-border/40 rounded overflow-hidden p-2 
+                     bg-white dark:bg-gray-900
+                     bg-[radial-gradient(circle,hsl(var(--muted))_1px,transparent_1px)] 
+                     bg-[length:10px_10px]
+                     hover:bg-accent/40 hover:border-primary/60 
+                     hover:shadow-md
+                     transition-all hover:scale-[1.08] 
+                     relative"
           title={icon.name}
         >
           {!hasThumbnail || isBroken ? (
@@ -466,7 +486,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           ) : (
             <>
               {!isLoaded && (
-                <Skeleton className="absolute inset-1.5 rounded animate-pulse" />
+                <Skeleton className="absolute inset-2 rounded animate-pulse" />
               )}
               <img
                 src={thumbSrc}
@@ -474,8 +494,13 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                 loading="lazy"
                 onLoad={() => onImgLoad(icon.id)}
                 onError={() => onImgError(icon.id)}
-                className={`w-full h-full object-contain transition-opacity duration-200 ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
-                style={{ imageRendering: "pixelated" }}
+                className={`w-full h-full object-contain transition-opacity duration-200 
+                           ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}
+                           mix-blend-multiply dark:mix-blend-screen`}
+                style={{ 
+                  imageRendering: "pixelated",
+                  filter: "contrast(0.9) brightness(1.1)"
+                }}
               />
             </>
           )}
@@ -484,13 +509,16 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
         {/* Hover Preview Tooltip */}
         {hasThumbnail && !isBroken && (
           <div className="absolute left-full ml-2 top-0 z-50 hidden group-hover:block pointer-events-none">
-            <div className="bg-popover border rounded-lg shadow-lg p-2 w-32 h-32">
+            <div className="bg-popover border-2 border-border rounded-lg shadow-lg p-3 w-36 h-36
+                           bg-[radial-gradient(circle,hsl(var(--muted))_1px,transparent_1px)] 
+                           bg-[length:10px_10px]">
               <img
                 src={thumbSrc}
                 alt={icon.name}
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen"
+                style={{ filter: "contrast(0.9) brightness(1.1)" }}
               />
-              <p className="text-[10px] text-center text-foreground mt-1 truncate">{icon.name}</p>
+              <p className="text-[10px] text-center text-foreground mt-1 truncate font-medium">{icon.name}</p>
             </div>
           </div>
         )}

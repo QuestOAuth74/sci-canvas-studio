@@ -174,16 +174,22 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                     new CustomEvent("addIconToCanvas", { detail: { svgData: icon.svgData } })
                   )
                 }
-                className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105 w-full"
+                className="aspect-square border-2 border-border/40 rounded p-2 w-full
+                           bg-white dark:bg-gray-900
+                           bg-[radial-gradient(circle,hsl(var(--muted))_1px,transparent_1px)] 
+                           bg-[length:10px_10px]
+                           hover:border-primary/60 hover:bg-accent/40 hover:shadow-md
+                           transition-all hover:scale-[1.08]"
                 title={icon.name}
               >
                   {icon.thumbnail && !brokenImages[icon.id] ? (
                   <img 
                     src={icon.thumbnail} 
                     alt={icon.name} 
-                    className="w-full h-full object-contain" 
+                    className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen" 
                     loading="lazy"
                     onError={() => handleImageError(icon.id)}
+                    style={{ filter: "contrast(0.9) brightness(1.1)" }}
                   />
                 ) : (
                   <img 
@@ -307,16 +313,22 @@ export const ShapesLibrary = ({ onShapeSelect }: ShapesLibraryProps) => {
                                       new CustomEvent("addIconToCanvas", { detail: { svgData: icon.svgData } })
                                     )
                                   }
-                                  className="aspect-square border border-border/40 hover:border-primary hover:bg-accent/30 rounded p-1 transition-all hover:scale-105 w-full"
+                                  className="aspect-square border-2 border-border/40 rounded p-2 w-full
+                                             bg-white dark:bg-gray-900
+                                             bg-[radial-gradient(circle,hsl(var(--muted))_1px,transparent_1px)] 
+                                             bg-[length:10px_10px]
+                                             hover:border-primary/60 hover:bg-accent/40 hover:shadow-md
+                                             transition-all hover:scale-[1.08]"
                                   title={icon.name}
                                 >
-                                  {icon.thumbnail && !brokenImages[icon.id] ? (
+                                    {icon.thumbnail && !brokenImages[icon.id] ? (
                                     <img 
                                       src={icon.thumbnail} 
                                       alt={icon.name} 
-                                      className="w-full h-full object-contain" 
+                                      className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen" 
                                       loading="lazy"
                                       onError={() => handleImageError(icon.id)}
+                                      style={{ filter: "contrast(0.9) brightness(1.1)" }}
                                     />
                                   ) : (
                                     <img 
