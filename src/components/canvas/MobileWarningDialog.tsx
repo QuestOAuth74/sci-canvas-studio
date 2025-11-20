@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Dialog,
@@ -8,71 +9,60 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Monitor, Tablet } from "lucide-react";
-
-const STORAGE_KEY = "biosketch_mobile_warning_dismissed";
+import { Monitor, Tablet, AlertTriangle } from "lucide-react";
 
 export function MobileWarningDialog() {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    // Check if user has already dismissed the warning
-    const dismissed = localStorage.getItem(STORAGE_KEY);
-    
-    // Show dialog if on mobile and hasn't been dismissed
-    if (isMobile && !dismissed) {
+    // Show dialog immediately if on mobile
+    if (isMobile) {
       setOpen(true);
     }
   }, [isMobile]);
 
-  const handleDismiss = () => {
-    localStorage.setItem(STORAGE_KEY, "true");
-    setOpen(false);
-  };
-
-  const handleContinue = () => {
-    setOpen(false);
+  const handleReturnHome = () => {
+    navigate("/");
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md stable-dialog" onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader className="space-y-4">
           <div className="flex justify-center gap-3 mb-2">
-            <Monitor className="w-12 h-12 text-primary" />
-            <Tablet className="w-12 h-12 text-primary" />
+            <AlertTriangle className="w-16 h-16 text-destructive" />
           </div>
           <DialogTitle className="text-center text-2xl">
-            Desktop or Tablet Recommended
+            Desktop or Tablet Required
           </DialogTitle>
           <DialogDescription className="text-center space-y-4">
-            <p className="text-base">
-              The Canvas editor is optimized for larger screens and works best on desktop or tablet devices.
+            <p className="text-base font-semibold text-foreground">
+              Illustration tools are not designed for mobile devices.
             </p>
             
-            <div className="text-left space-y-2 pt-2">
-              <p className="font-semibold text-foreground">Why?</p>
-              <ul className="space-y-1.5 text-sm list-disc list-inside">
-                <li>Full precision for detailed editing</li>
-                <li>Access to all tools and features</li>
-                <li>Keyboard shortcuts for faster workflow</li>
-                <li>Better performance with complex projects</li>
+            <div className="text-left space-y-2 pt-2 bg-muted/50 p-4 rounded-lg">
+              <p className="font-semibold text-foreground flex items-center gap-2">
+                <Monitor className="w-5 h-5" />
+                Please access this feature from:
+              </p>
+              <ul className="space-y-1.5 text-sm list-disc list-inside ml-2">
+                <li>Desktop computer</li>
+                <li>Laptop</li>
+                <li>Tablet device</li>
               </ul>
             </div>
 
-            <p className="text-sm pt-2">
-              You can continue on mobile, but the experience may be limited.
+            <p className="text-sm pt-2 text-muted-foreground">
+              This ensures you have the best experience with full access to all tools and features.
             </p>
           </DialogDescription>
         </DialogHeader>
         
-        <div className="flex flex-col gap-2 mt-4">
-          <Button onClick={handleDismiss} className="w-full">
-            I Understand
-          </Button>
-          <Button onClick={handleContinue} variant="ghost" className="w-full">
-            Continue Anyway
+        <div className="mt-4">
+          <Button onClick={handleReturnHome} className="w-full" size="lg">
+            Return to Homepage
           </Button>
         </div>
       </DialogContent>
