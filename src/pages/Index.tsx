@@ -133,20 +133,6 @@ const Index = () => {
                   </CarouselItem>
                   <CarouselItem>
                     <div className="rounded-2xl overflow-hidden border-2 shadow-xl hover:shadow-2xl transition-shadow">
-                      <video 
-                        src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
-                        className="w-full h-auto"
-                        controls
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        aria-label="BioSketch Canvas Demo Video"
-                      />
-                    </div>
-                  </CarouselItem>
-                  <CarouselItem>
-                    <div className="rounded-2xl overflow-hidden border-2 shadow-xl hover:shadow-2xl transition-shadow">
                       <img src={carousel2} alt="BioSketch Features Showcase" className="w-full h-auto" />
                     </div>
                   </CarouselItem>
@@ -154,6 +140,32 @@ const Index = () => {
                 <CarouselPrevious className="-left-6 md:-left-12 shadow-lg" />
                 <CarouselNext className="-right-6 md:-right-12 shadow-lg" />
               </Carousel>
+            </div>
+          </div>
+
+          {/* Demo Video Section */}
+          <div className="space-y-8 animate-fade-in [animation-delay:300ms]">
+            <div className="text-center space-y-3">
+              <h2 className="text-2xl md:text-3xl font-semibold">
+                See BioSketch in Action
+              </h2>
+              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                Watch how easy it is to create professional scientific illustrations
+              </p>
+            </div>
+            <div className="max-w-4xl mx-auto">
+              <div className="rounded-2xl overflow-hidden border-2 shadow-2xl bg-card">
+                <video 
+                  src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
+                  className="w-full h-auto"
+                  controls
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  aria-label="BioSketch Canvas Demo Video"
+                />
+              </div>
             </div>
           </div>
 
