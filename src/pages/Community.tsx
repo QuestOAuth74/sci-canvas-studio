@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/pagination';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { Breadcrumbs } from '@/components/SEO/Breadcrumbs';
+import { MobileWarningDialog } from '@/components/canvas/MobileWarningDialog';
 
 interface CommunityProject {
   id: string;
@@ -175,6 +176,7 @@ export default function Community() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <MobileWarningDialog />
       <SEOHead 
         title="Community Gallery - BioFigs" 
         description="Discover and share scientific diagrams with the BioFigs community. Browse thousands of high-quality medical and biological illustrations."
