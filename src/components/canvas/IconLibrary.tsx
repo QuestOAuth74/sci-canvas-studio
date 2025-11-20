@@ -56,14 +56,6 @@ const sanitizeSvg = (raw: string): string => {
       .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
       .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
     
-    // Normalize overly dark fills to a neutral mid-gray for better visibility
-    const neutralFill = 'hsl(220, 9%, 46%)';
-    svg = svg.replace(/fill="#000000"/gi, `fill="${neutralFill}"`);
-    svg = svg.replace(/fill="#000"/gi, `fill="${neutralFill}"`);
-    svg = svg.replace(/fill="black"/gi, `fill="${neutralFill}"`);
-    svg = svg.replace(/stroke="#000000"/gi, `stroke="${neutralFill}"`);
-    svg = svg.replace(/stroke="#000"/gi, `stroke="${neutralFill}"`);
-    
     // Ensure viewBox if missing and width/height exist
     if (!/viewBox=/i.test(svg)) {
       const w = svg.match(/\bwidth=["']?(\d+(\.\d+)?)\s*(px)?["']?/i);
@@ -71,16 +63,10 @@ const sanitizeSvg = (raw: string): string => {
       if (w && h) {
         const width = parseFloat(w[1]);
         const height = parseFloat(h[1]);
-        svg = svg.replace(/<svg([^>]*?)>/i, `<svg$1 viewBox="0 0 ${width} ${height}">`);
+        svg = svg.replace(/<svg([^>]*?)>/i, `<svg$1 viewBox=\"0 0 ${width} ${height}\">`);
         svg = svg.replace(/\b(width|height)=["'][^"']*["']/gi, "");
       }
     }
-    
-    // Add default fill color if no fill is specified
-    if (!/<svg[^>]*fill=/i.test(svg)) {
-      svg = svg.replace(/<svg([^>]*?)>/i, `<svg$1 fill="${neutralFill}">`);
-    }
-    
     return svg;
   } catch {
     return raw;
@@ -467,8 +453,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       <div key={icon.id} className="relative group">
         <button
           onClick={() => handleIconClick(icon)}
-          className="w-full aspect-square border-2 border-border/40 rounded overflow-hidden p-2 
-                     bg-white dark:bg-gray-900
+          className="w-full aspect-square border-2 border-border/40 rounded overflow-hidden p-2 bg-background 
                      bg-[radial-gradient(circle,hsl(var(--muted))_1px,transparent_1px)] 
                      bg-[length:10px_10px]
                      hover:bg-accent/40 hover:border-primary/60 
@@ -496,12 +481,8 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                 onLoad={() => onImgLoad(icon.id)}
                 onError={() => onImgError(icon.id)}
                 className={`w-full h-full object-contain transition-opacity duration-200 
-                           ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}
-                           mix-blend-multiply dark:mix-blend-screen`}
-                style={{ 
-                  imageRendering: "pixelated",
-                  filter: "contrast(0.9) brightness(1.1)"
-                }}
+                           ${isLoaded ? "opacity-100" : "opacity-0 blur-[1px]"}`}
+                style={{ imageRendering: "pixelated" }}
               />
             </>
           )}
@@ -516,8 +497,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
               <img
                 src={thumbSrc}
                 alt={icon.name}
-                className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-screen"
-                style={{ filter: "contrast(0.9) brightness(1.1)" }}
+                className="w-full h-full object-contain"
               />
               <p className="text-[10px] text-center text-foreground mt-1 truncate font-medium">{icon.name}</p>
             </div>
