@@ -6,13 +6,6 @@ import { loadAllFonts, getCanvasFontFamily, getBaseFontName, debugTextObject, fi
 import { createConnector } from "@/lib/connectorSystem";
 import { createSVGArrowMarker } from "@/lib/advancedLineSystem";
 import { ArrowMarkerType, RoutingStyle } from "@/types/connector";
-import { 
-  createSimpleArrowCallout, 
-  createCurvedArrowCallout, 
-  createLineCallout, 
-  createElbowCallout, 
-  createUnderlineCallout 
-} from "@/lib/annotationCalloutSystem";
 import { EnhancedBezierTool } from "@/lib/enhancedBezierTool";
 import { StraightLineTool } from "@/lib/straightLineTool";
 import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
@@ -74,17 +67,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     startY: null,
   });
 
-  const [annotationState, setAnnotationState] = useState<{
-    isDrawing: boolean;
-    anchorX: number | null;
-    anchorY: number | null;
-    style: string | null;
-  }>({
-    isDrawing: false,
-    anchorX: null,
-    anchorY: null,
-    style: null,
-  });
 
   const [isDuplicating, setIsDuplicating] = useState(false);
   const clonedObjectRef = useRef<FabricObject | null>(null);
@@ -1696,81 +1678,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
       }
       
-      // Handle annotation callout tools
-      if (activeTool.startsWith('annotation-callout-')) {
-        if (!annotationState.isDrawing) {
-          // First click: set anchor point
-          const style = activeTool.replace('annotation-callout-', '');
-          setAnnotationState({
-            isDrawing: true,
-            anchorX: pointer.x,
-            anchorY: pointer.y,
-            style: style,
-          });
-          toast.info("Click where you want the text label");
-          return;
-        } else {
-          // Second click: create callout
-          const style = annotationState.style;
-          let callout: Group;
-
-          if (style === 'simple-arrow') {
-            callout = createSimpleArrowCallout(
-              annotationState.anchorX!,
-              annotationState.anchorY!,
-              pointer.x,
-              pointer.y
-            );
-          } else if (style === 'curved-arrow') {
-            callout = createCurvedArrowCallout(
-              annotationState.anchorX!,
-              annotationState.anchorY!,
-              pointer.x,
-              pointer.y
-            );
-          } else if (style === 'line') {
-            callout = createLineCallout(
-              annotationState.anchorX!,
-              annotationState.anchorY!,
-              pointer.x,
-              pointer.y
-            );
-          } else if (style === 'elbow') {
-            callout = createElbowCallout(
-              annotationState.anchorX!,
-              annotationState.anchorY!,
-              pointer.x,
-              pointer.y
-            );
-          } else if (style === 'underline') {
-            callout = createUnderlineCallout(pointer.x, pointer.y);
-          } else {
-            // Default to simple arrow
-            callout = createSimpleArrowCallout(
-              annotationState.anchorX!,
-              annotationState.anchorY!,
-              pointer.x,
-              pointer.y
-            );
-          }
-
-          canvas.add(callout);
-          canvas.setActiveObject(callout);
-          canvas.requestRenderAll();
-          
-          // Reset state and switch to select tool
-          setAnnotationState({
-            isDrawing: false,
-            anchorX: null,
-            anchorY: null,
-            style: null,
-          });
-          if (onToolChange) onToolChange('select');
-          if (onShapeCreated) onShapeCreated();
-          toast.success("Annotation callout created! Edit the text.");
-          return;
-        }
-      }
       
       if (activeTool === "text") {
         const textDecoration = [];

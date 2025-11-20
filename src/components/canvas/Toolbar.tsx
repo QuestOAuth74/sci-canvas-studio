@@ -31,7 +31,7 @@ import { StraightLineTool } from "./StraightLineTool";
 import { OrthogonalLineTool } from "./OrthogonalLineTool";
 import { CurvedLineTool } from "./CurvedLineTool";
 import { ZoomCalloutTool } from "./ZoomCalloutTool";
-import { AnnotationCalloutTool } from "./AnnotationCalloutTool";
+
 import { PowerPointGenerator } from "./PowerPointGenerator";
 import { useRecentlyUsedTools } from "@/hooks/useRecentlyUsedTools";
 import { useEffect, useState } from "react";
@@ -223,16 +223,6 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipContent>
       </Tooltip>
       
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            <AnnotationCalloutTool onCalloutSelect={handleToolChange} activeTool={activeTool} />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Annotation Callouts</p>
-        </TooltipContent>
-      </Tooltip>
       
       <Separator className="my-1" />
       
