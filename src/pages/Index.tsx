@@ -133,6 +133,20 @@ const Index = () => {
                   </CarouselItem>
                   <CarouselItem>
                     <div className="rounded-2xl overflow-hidden border-2 shadow-xl hover:shadow-2xl transition-shadow">
+                      <video 
+                        src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
+                        className="w-full h-auto"
+                        controls
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        aria-label="BioSketch Canvas Demo Video"
+                      />
+                    </div>
+                  </CarouselItem>
+                  <CarouselItem>
+                    <div className="rounded-2xl overflow-hidden border-2 shadow-xl hover:shadow-2xl transition-shadow">
                       <img src={carousel2} alt="BioSketch Features Showcase" className="w-full h-auto" />
                     </div>
                   </CarouselItem>
