@@ -14,14 +14,15 @@ import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialo
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeCanvasTextFonts } from "@/lib/fontLoader";
-import { Type } from "lucide-react";
+import { Type, History } from "lucide-react";
 
 interface MenuBarProps {
   onTemplatesClick?: () => void;
   onPanelLabelClick?: () => void;
+  onVersionHistoryClick?: () => void;
 }
 
-export const MenuBar = ({ onTemplatesClick, onPanelLabelClick }: MenuBarProps = {}) => {
+export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
@@ -113,6 +114,11 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick }: MenuBarProps = 
               Save <MenubarShortcut>⌘S</MenubarShortcut>
             </MenubarItem>
             <MenubarItem onClick={handleSave}>Save As...</MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={onVersionHistoryClick}>
+              <History className="mr-2 h-4 w-4" />
+              Version History <MenubarShortcut>⌘H</MenubarShortcut>
+            </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={handleOpenExportDialog}>Export Image...</MenubarItem>
             <MenubarItem onClick={() => exportAsSVG()}>Export as SVG</MenubarItem>
