@@ -158,7 +158,6 @@ const Index = () => {
                 <video 
                   src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
                   className="w-full h-auto"
-                  controls
                   autoPlay
                   muted
                   loop
