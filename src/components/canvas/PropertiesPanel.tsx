@@ -80,13 +80,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [activeTab, setActiveTab] = useState<string>("diagram");
   const [showImageEraser, setShowImageEraser] = useState(false);
   
-  // Annotation callout properties
-  const [calloutText, setCalloutText] = useState("Label");
-  const [calloutFontSize, setCalloutFontSize] = useState(14);
-  const [calloutLineColor, setCalloutLineColor] = useState("#000000");
-  const [calloutArrowSize, setCalloutArrowSize] = useState(10);
-  const [calloutHasBackground, setCalloutHasBackground] = useState(false);
-  const [calloutBackgroundColor, setCalloutBackgroundColor] = useState("#ffffff");
 
   const COLOR_PALETTE = [
     "#3b82f6", // Blue
@@ -156,9 +149,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     return obj?.type === 'image';
   };
 
-  const isAnnotationCallout = (obj: any) => {
-    return obj?.type === 'group' && (obj as any).data?.isAnnotationCallout === true;
-  };
 
 
   // Update text properties when selected object changes
@@ -200,32 +190,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       setShowImageEraser(false);
     }
     
-    // Update callout properties when annotation callout is selected
-    if (selectedObject && isAnnotationCallout(selectedObject)) {
-      const group = selectedObject as Group;
-      const textObj = group.getObjects().find(obj => obj.type === 'textbox') as Textbox;
-      if (textObj) {
-        setCalloutText(textObj.text || "Label");
-        setCalloutFontSize(textObj.fontSize || 14);
-      }
-      const lineObj = group.getObjects().find(obj => obj.type === 'line' || obj.type === 'path');
-      if (lineObj) {
-        setCalloutLineColor((lineObj.stroke as string) || "#000000");
-      }
-      const arrowObj = group.getObjects().find(obj => obj.type === 'polygon');
-      if (arrowObj) {
-        // Arrow size can be approximated from polygon dimensions
-        const arrowBounds = arrowObj.getBoundingRect();
-        setCalloutArrowSize(Math.max(arrowBounds.width, arrowBounds.height) || 10);
-      }
-      const bgObj = group.getObjects().find(obj => obj.type === 'rect');
-      if (bgObj) {
-        setCalloutHasBackground(true);
-        setCalloutBackgroundColor((bgObj.fill as string) || "#ffffff");
-      } else {
-        setCalloutHasBackground(false);
-      }
-    }
   }, [selectedObject]);
 
   // Update active tab when selectedObject changes
@@ -234,9 +198,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       setActiveTab("diagram");
     } else {
       // Determine the best default tab based on object type
-      if (isAnnotationCallout(selectedObject)) {
-        setActiveTab("callout");
-      } else if (isTextObject(selectedObject)) {
+      if (isTextObject(selectedObject)) {
         setActiveTab("text");
       } else if (isLineObject(selectedObject)) {
         setActiveTab("line");
@@ -776,107 +738,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     }
   };
 
-  // Annotation callout handlers
-  const handleCalloutTextChange = (text: string) => {
-    setCalloutText(text);
-    if (canvas && selectedObject && isAnnotationCallout(selectedObject)) {
-      const group = selectedObject as Group;
-      const textObj = group.getObjects().find(obj => obj.type === 'textbox') as Textbox;
-      if (textObj) {
-        textObj.set({ text });
-        canvas.renderAll();
-      }
-    }
-  };
-
-  const handleCalloutFontSizeChange = (size: number) => {
-    setCalloutFontSize(size);
-    if (canvas && selectedObject && isAnnotationCallout(selectedObject)) {
-      const group = selectedObject as Group;
-      const textObj = group.getObjects().find(obj => obj.type === 'textbox') as Textbox;
-      if (textObj) {
-        textObj.set({ fontSize: size });
-        canvas.renderAll();
-      }
-    }
-  };
-
-  const handleCalloutLineColorChange = (color: string) => {
-    setCalloutLineColor(color);
-    if (canvas && selectedObject && isAnnotationCallout(selectedObject)) {
-      const group = selectedObject as Group;
-      const lineObj = group.getObjects().find(obj => obj.type === 'line' || obj.type === 'path');
-      const arrowObj = group.getObjects().find(obj => obj.type === 'polygon');
-      if (lineObj) {
-        lineObj.set({ stroke: color });
-      }
-      if (arrowObj) {
-        arrowObj.set({ fill: color });
-      }
-      canvas.renderAll();
-      addToRecentColors(color);
-    }
-  };
-
-  const handleCalloutArrowSizeChange = (size: number) => {
-    setCalloutArrowSize(size);
-    if (canvas && selectedObject && isAnnotationCallout(selectedObject)) {
-      const group = selectedObject as Group;
-      const arrowObj = group.getObjects().find(obj => obj.type === 'polygon') as Polygon;
-      if (arrowObj) {
-        const scale = size / 10; // 10 is default size
-        arrowObj.set({ scaleX: scale, scaleY: scale });
-        canvas.renderAll();
-      }
-    }
-  };
-
-  const handleCalloutBackgroundToggle = (enabled: boolean) => {
-    setCalloutHasBackground(enabled);
-    if (canvas && selectedObject && isAnnotationCallout(selectedObject)) {
-      const group = selectedObject as Group;
-      const objects = group.getObjects();
-      const bgObj = objects.find(obj => obj.type === 'rect');
-      const textObj = objects.find(obj => obj.type === 'textbox') as Textbox;
-      
-      if (enabled && !bgObj && textObj) {
-        // Add background
-        const padding = 4;
-        const bg = new Rect({
-          left: textObj.left! - padding,
-          top: textObj.top! - padding,
-          width: textObj.width! + padding * 2,
-          height: textObj.height! + padding * 2,
-          fill: calloutBackgroundColor,
-          stroke: calloutLineColor,
-          strokeWidth: 1,
-          rx: 4,
-          ry: 4,
-        });
-        group.add(bg);
-        // Move background to bottom of z-order
-        group.sendObjectToBack(bg);
-        canvas.renderAll();
-      } else if (!enabled && bgObj) {
-        // Remove background
-        group.remove(bgObj);
-        canvas.renderAll();
-      }
-    }
-  };
-
-  const handleCalloutBackgroundColorChange = (color: string) => {
-    setCalloutBackgroundColor(color);
-    if (canvas && selectedObject && isAnnotationCallout(selectedObject)) {
-      const group = selectedObject as Group;
-      const bgObj = group.getObjects().find(obj => obj.type === 'rect');
-      if (bgObj) {
-        bgObj.set({ fill: color });
-        canvas.renderAll();
-      }
-      addToRecentColors(color);
-    }
-  };
 
   return (
     <div className="glass-panel flex flex-col h-full min-h-0 bg-[#f0f9ff]/50">{/* Toggle button - always visible */}
@@ -930,7 +791,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full m-3" style={{ gridTemplateColumns: `repeat(${
               !selectedObject ? 2 : 
-              (isAnnotationCallout(selectedObject) ? 3 :
+              (
                isTextObject(selectedObject) ? 3 : 
                isLineObject(selectedObject) ? 3 : 2)
             }, minmax(0, 1fr))` }}>
@@ -938,11 +799,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
               
               {selectedObject && (
                 <>
-                  {isAnnotationCallout(selectedObject) && (
-                    <TabsTrigger value="callout" className="text-xs">Callout</TabsTrigger>
-                  )}
                 
-                  {(isShapeObject(selectedObject) || isImageObject(selectedObject) || (selectedObject.type === 'group' && !isAnnotationCallout(selectedObject))) && (
+                  {(isShapeObject(selectedObject) || isImageObject(selectedObject) || selectedObject.type === 'group') && (
                     <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
                   )}
                   
@@ -1286,121 +1144,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
               )}
             </TabsContent>
 
-            {/* Annotation Callout Tab */}
-            <TabsContent value="callout" className="space-y-4 mt-0">
-              {selectedObject && isAnnotationCallout(selectedObject) && (
-                <div>
-                  <h3 className="font-semibold text-sm mb-3">Callout Properties</h3>
-                  
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Text Content</Label>
-                      <Input 
-                        type="text" 
-                        value={calloutText} 
-                        onChange={(e) => handleCalloutTextChange(e.target.value)}
-                        className="h-8 text-xs" 
-                        placeholder="Label"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Font Size</Label>
-                        <span className="text-xs text-muted-foreground">{calloutFontSize}px</span>
-                      </div>
-                      <Slider
-                        value={[calloutFontSize]}
-                        onValueChange={(value) => handleCalloutFontSizeChange(value[0])}
-                        min={8}
-                        max={72}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Line Color</Label>
-                      <div className="grid grid-cols-6 gap-2 mb-2">
-                        {COLOR_PALETTE.map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => handleCalloutLineColorChange(color)}
-                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                            style={{ 
-                              backgroundColor: color,
-                              borderColor: calloutLineColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))'
-                            }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          type="color" 
-                          value={calloutLineColor}
-                          onChange={(e) => handleCalloutLineColorChange(e.target.value)}
-                          className="h-8 w-12 p-1" 
-                        />
-                        <Input 
-                          type="text" 
-                          value={calloutLineColor}
-                          onChange={(e) => handleCalloutLineColorChange(e.target.value)}
-                          className="h-8 text-xs flex-1" 
-                          placeholder="#000000"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Arrow Size</Label>
-                        <span className="text-xs text-muted-foreground">{calloutArrowSize}px</span>
-                      </div>
-                      <Slider
-                        value={[calloutArrowSize]}
-                        onValueChange={(value) => handleCalloutArrowSizeChange(value[0])}
-                        min={5}
-                        max={30}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="space-y-2 pt-2 border-t">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Text Background</Label>
-                        <Checkbox 
-                          checked={calloutHasBackground}
-                          onCheckedChange={(checked) => handleCalloutBackgroundToggle(checked as boolean)}
-                        />
-                      </div>
-                      
-                      {calloutHasBackground && (
-                        <div className="space-y-1.5 pl-4">
-                          <Label className="text-xs">Background Color</Label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              type="color" 
-                              value={calloutBackgroundColor}
-                              onChange={(e) => handleCalloutBackgroundColorChange(e.target.value)}
-                              className="h-8 w-12 p-1" 
-                            />
-                            <Input 
-                              type="text" 
-                              value={calloutBackgroundColor}
-                              onChange={(e) => handleCalloutBackgroundColorChange(e.target.value)}
-                              className="h-8 text-xs flex-1" 
-                              placeholder="#ffffff"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </TabsContent>
 
             {/* Arrange Tab */}
             <TabsContent value="arrange" className="space-y-4 mt-0">
