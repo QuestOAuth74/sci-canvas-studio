@@ -21,6 +21,7 @@ import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
 import { MobileWarningDialog } from "@/components/canvas/MobileWarningDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
+import { VersionHistory } from "@/components/canvas/VersionHistory";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { AIIconGenerator } from "@/components/canvas/AIIconGenerator";
@@ -57,6 +58,7 @@ const CanvasContent = () => {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [templatesDialogOpen, setTemplatesDialogOpen] = useState(false);
   const [panelLabelToolOpen, setPanelLabelToolOpen] = useState(false);
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
@@ -397,8 +399,15 @@ const CanvasContent = () => {
         flipVertical();
       }
 
-      // Show all hidden (Cmd/Ctrl + H)
-      if ((e.metaKey || e.ctrlKey) && e.key === 'h') {
+      // Version History (Cmd/Ctrl + H)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'h' && !e.shiftKey) {
+        e.preventDefault();
+        setVersionHistoryOpen(true);
+        return;
+      }
+
+      // Show all hidden (Cmd/Ctrl + Shift + H)
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'h') {
         e.preventDefault();
         showAllHidden();
       }
@@ -528,6 +537,19 @@ const CanvasContent = () => {
         onBlankCanvas={() => setTemplatesDialogOpen(false)}
       />
 
+      {/* Version History */}
+      <VersionHistory
+        open={versionHistoryOpen}
+        onOpenChange={setVersionHistoryOpen}
+        projectId={currentProjectId}
+        onVersionRestored={() => {
+          // Reload the project after restoration
+          if (currentProjectId) {
+            loadProject(currentProjectId);
+          }
+        }}
+      />
+
       {/* Save Upload Handler */}
       <SaveUploadHandler />
       
@@ -651,6 +673,7 @@ const CanvasContent = () => {
             <MenuBar 
               onTemplatesClick={() => setTemplatesDialogOpen(true)}
               onPanelLabelClick={() => setPanelLabelToolOpen(true)}
+              onVersionHistoryClick={() => setVersionHistoryOpen(true)}
             />
             <Tooltip>
               <TooltipTrigger asChild>
