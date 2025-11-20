@@ -155,15 +155,7 @@ const Index = () => {
             </div>
             <div className="max-w-4xl mx-auto">
               <div className="rounded-2xl overflow-hidden border-2 shadow-2xl bg-card">
-                <video 
-                  src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
-                  className="w-full h-auto"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  aria-label="BioSketch Canvas Demo Video"
-                />
+                <video src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4" className="w-full h-auto" autoPlay muted loop playsInline aria-label="BioSketch Canvas Demo Video" />
               </div>
             </div>
           </div>
@@ -245,26 +237,15 @@ const Index = () => {
           {/* Community Carousel */}
           <div className="space-y-8 animate-fade-in [animation-delay:400ms]">
             <div className="text-center space-y-3">
-              <h2 className="text-2xl md:text-3xl font-semibold">
-                See What Others Are Creating
-              </h2>
-              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                Explore publication-quality figures created by our research community
-              </p>
+              
+              
             </div>
             <CommunityCarousel />
           </div>
 
           {/* Blog Posts */}
           <div className="space-y-8 animate-fade-in [animation-delay:500ms]">
-            <div className="text-center space-y-3">
-              <h2 className="text-2xl md:text-3xl font-semibold">
-                Latest from Our Blog
-              </h2>
-              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                Tips, tutorials, and insights for scientific illustration
-              </p>
-            </div>
+            
             <BlogPostsCarousel />
           </div>
 
