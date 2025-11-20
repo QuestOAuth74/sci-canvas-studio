@@ -1352,28 +1352,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                       </div>
                     </div>
 
-                    {recentColors.length > 0 && (
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-muted-foreground">Recent Colors</Label>
-                        <div className="flex gap-1 flex-wrap">
-                          {recentColors.map((color, idx) => (
-                            <Button
-                              key={`callout-${color}-${idx}`}
-                              variant="outline"
-                              size="icon"
-                              className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                              style={{ 
-                                backgroundColor: color,
-                                borderColor: calloutLineColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                              }}
-                              onClick={() => handleCalloutLineColorChange(color)}
-                              title={color}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <Label className="text-xs">Arrow Size</Label>
