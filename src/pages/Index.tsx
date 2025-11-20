@@ -279,6 +279,98 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Footer */}
+      <footer className="border-t border-border bg-card/50 backdrop-blur-sm mt-20">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Brand Column */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Microscope className="h-6 w-6 text-primary" />
+                <span className="text-lg font-semibold">BioSketch</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Professional scientific illustration software for researchers worldwide.
+              </p>
+            </div>
+
+            {/* Product Links */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm uppercase tracking-wider">Product</h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <button onClick={() => navigate("/canvas")} className="text-muted-foreground hover:text-primary transition-colors">
+                    Canvas Editor
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/projects")} className="text-muted-foreground hover:text-primary transition-colors">
+                    My Projects
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/community")} className="text-muted-foreground hover:text-primary transition-colors">
+                    Community Gallery
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/blog")} className="text-muted-foreground hover:text-primary transition-colors">
+                    Blog
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Resources Links */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm uppercase tracking-wider">Resources</h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <button onClick={() => navigate("/testimonials")} className="text-muted-foreground hover:text-primary transition-colors">
+                    Testimonials
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/release-notes")} className="text-muted-foreground hover:text-primary transition-colors">
+                    Release Notes
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/contact")} className="text-muted-foreground hover:text-primary transition-colors">
+                    Contact Us
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            {/* Legal Links */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm uppercase tracking-wider">Legal</h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <button onClick={() => navigate("/terms")} className="text-muted-foreground hover:text-primary transition-colors">
+                    Terms of Service
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => navigate("/terms")} className="text-muted-foreground hover:text-primary transition-colors">
+                    Privacy Policy
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="max-w-6xl mx-auto mt-12 pt-8 border-t border-border">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
+              <p>© {new Date().getFullYear()} BioSketch. All rights reserved.</p>
+              <p>Built by scientists, for scientists.</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+
       {/* Signup Toast */}
       {signupData?.count && signupData.count > 0 && <SignupToast count={signupData.count} topCountries={signupData.topCountries} totalWithLocation={signupData.totalWithLocation} />}
 
