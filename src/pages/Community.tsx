@@ -4,15 +4,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { Loader2, Search, ArrowLeft } from 'lucide-react';
+import { Loader2, Search, ArrowLeft, Users, Eye, Heart, TrendingUp, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProjectCard } from '@/components/community/ProjectCard';
 import { ProjectPreviewModal } from '@/components/community/ProjectPreviewModal';
 import { CommunityFilters } from '@/components/community/CommunityFilters';
 import { FeatureUnlockBanner } from '@/components/community/FeatureUnlockBanner';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import {
   Pagination,
   PaginationContent,
@@ -55,13 +55,31 @@ export default function Community() {
   const [selectedProject, setSelectedProject] = useState<CommunityProject | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const ITEMS_PER_PAGE = 6;
+  const [stats, setStats] = useState({ totalProjects: 0, totalViews: 0, totalLikes: 0 });
+  const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
     if (user) {
       loadProjects();
+      loadStats();
     }
   }, [user, sortBy, currentPage]);
+
+  const loadStats = async () => {
+    const { data, error } = await supabase
+      .from('canvas_projects')
+      .select('view_count, like_count')
+      .eq('is_public', true)
+      .eq('approval_status', 'approved');
+
+    if (!error && data) {
+      setStats({
+        totalProjects: data.length,
+        totalViews: data.reduce((sum, p) => sum + (p.view_count || 0), 0),
+        totalLikes: data.reduce((sum, p) => sum + (p.like_count || 0), 0),
+      });
+    }
+  };
 
   const loadProjects = async () => {
     setLoading(true);
@@ -157,110 +175,191 @@ export default function Community() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <SEOHead 
+        title="Community Gallery - BioFigs" 
+        description="Discover and share scientific diagrams with the BioFigs community. Browse thousands of high-quality medical and biological illustrations."
+      />
+      <Breadcrumbs 
+        items={[
+          { name: 'Community', url: '/community' }
+        ]}
+      />
       <FeatureUnlockBanner />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Community Gallery</h1>
-          <p className="text-muted-foreground">
-            Discover and share scientific diagrams with the community
-          </p>
-        </div>
-        <div className="flex flex-col gap-6">
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Enhanced Header with Stats */}
+        <div className="mb-12">
+          <div className="mb-6">
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Community Gallery
+            </h1>
+            <p className="text-muted-foreground">
+              Discover and share scientific diagrams created by the community
+            </p>
+          </div>
+
+          {/* Stats Dashboard */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Projects</p>
+                    <p className="text-3xl font-bold mt-1">{stats.totalProjects}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Views</p>
+                    <p className="text-3xl font-bold mt-1">{stats.totalViews.toLocaleString()}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                    <Eye className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Likes</p>
+                    <p className="text-3xl font-bold mt-1">{stats.totalLikes.toLocaleString()}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                    <Heart className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Enhanced Search and Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
+                type="text"
                 placeholder="Search by title, description, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-12 text-base"
               />
             </div>
             <CommunityFilters sortBy={sortBy} onSortChange={setSortBy} />
           </div>
+        </div>
 
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="glass-card overflow-hidden p-4">
-                  <Skeleton className="h-48 w-full rounded-lg mb-4" />
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-2/3 mb-4" />
-                  <div className="flex items-center gap-2 mb-3">
-                    <Skeleton className="h-6 w-6 rounded-full" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                  <div className="flex items-center gap-4 mb-3">
-                    <Skeleton className="h-4 w-12" />
-                    <Skeleton className="h-4 w-12" />
-                    <Skeleton className="h-4 w-12" />
-                  </div>
+        {/* Loading State */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="overflow-hidden">
+                <Skeleton className="w-full aspect-[16/9]" />
+                <CardContent className="p-4 space-y-3">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
                   <div className="flex gap-2">
-                    <Skeleton className="h-5 w-16" />
-                    <Skeleton className="h-5 w-20" />
-                    <Skeleton className="h-5 w-14" />
+                    <Skeleton className="h-8 flex-1" />
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : filteredProjects.length === 0 ? (
-            <div className="glass-card text-center py-16">
-              <p className="text-muted-foreground">
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : displayProjects.length === 0 ? (
+          /* Enhanced Empty State */
+          <div className="text-center py-20">
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <Users className="w-12 h-12 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">
+                {searchQuery ? 'No projects found' : 'No community projects yet'}
+              </h2>
+              <p className="text-muted-foreground mb-8">
                 {searchQuery
-                  ? 'No projects found matching your search'
-                  : 'No public projects yet. Be the first to share!'}
+                  ? 'Try adjusting your search terms or filters'
+                  : 'Be the first to share your scientific illustration with the community'}
               </p>
             </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {displayProjects.map((project, index) => (
-                  <div key={project.id} className="animate-fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-                    <ProjectCard
-                      project={project}
-                      onPreview={() => setSelectedProject(project)}
-                      onLikeChange={loadProjects}
-                    />
-                  </div>
-                ))}
-              </div>
+          </div>
+        ) : (
+          <>
+            {/* Modern Project Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {displayProjects.map((project, index) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onPreview={() => setSelectedProject(project)}
+                  onLikeChange={loadProjects}
+                  index={index}
+                />
+              ))}
+            </div>
 
-              {totalPages > 1 && (
-                <Pagination className="mt-8">
+            {/* Enhanced Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-4">
+                <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious
+                      <PaginationPrevious 
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                       />
                     </PaginationItem>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(page)}
-                          isActive={currentPage === page}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
+                    
+                    {[...Array(Math.min(totalPages, 7))].map((_, i) => {
+                      let pageNum;
+                      if (totalPages <= 7) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 4) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 3) {
+                        pageNum = totalPages - 6 + i;
+                      } else {
+                        pageNum = currentPage - 3 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={i}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(pageNum)}
+                            isActive={currentPage === pageNum}
+                            className="cursor-pointer"
+                          >
+                            {pageNum}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
                     <PaginationItem>
-                      <PaginationNext
+                      <PaginationNext 
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
                       />
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>
-              )}
-            </>
-          )}
-        </div>
+              </div>
+            )}
+          </>
+        )}
       </main>
 
+      {/* Preview Modal */}
       {selectedProject && (
         <ProjectPreviewModal
           project={selectedProject}
