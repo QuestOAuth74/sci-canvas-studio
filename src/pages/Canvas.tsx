@@ -33,6 +33,7 @@ import { CustomCurvedLineDialog } from "@/components/canvas/CustomCurvedLineDial
 import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
 import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
 import { ToolRatingWidget } from "@/components/canvas/ToolRatingWidget";
+import { PanelLabelTool } from "@/components/canvas/PanelLabelTool";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -55,6 +56,7 @@ const CanvasContent = () => {
   const [customCurvedDialogOpen, setCustomCurvedDialogOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [templatesDialogOpen, setTemplatesDialogOpen] = useState(false);
+  const [panelLabelToolOpen, setPanelLabelToolOpen] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
@@ -538,6 +540,12 @@ const CanvasContent = () => {
           toast.success("Icon added to library!");
         }}
       />
+
+      {/* Panel Label Tool */}
+      <PanelLabelTool 
+        open={panelLabelToolOpen}
+        onOpenChange={setPanelLabelToolOpen}
+      />
       
       {/* Export Dialog */}
       <ExportDialog
@@ -633,7 +641,10 @@ const CanvasContent = () => {
                 Saving...
               </span>
             )}
-            <MenuBar onTemplatesClick={() => setTemplatesDialogOpen(true)} />
+            <MenuBar 
+              onTemplatesClick={() => setTemplatesDialogOpen(true)}
+              onPanelLabelClick={() => setPanelLabelToolOpen(true)}
+            />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
