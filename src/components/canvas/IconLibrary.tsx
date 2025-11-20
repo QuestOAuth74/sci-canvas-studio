@@ -56,12 +56,13 @@ const sanitizeSvg = (raw: string): string => {
       .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
       .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
     
-    // Replace hardcoded black fills with currentColor for theme adaptability
-    svg = svg.replace(/fill="#000000"/gi, 'fill="currentColor"');
-    svg = svg.replace(/fill="#000"/gi, 'fill="currentColor"');
-    svg = svg.replace(/fill="black"/gi, 'fill="currentColor"');
-    svg = svg.replace(/stroke="#000000"/gi, 'stroke="currentColor"');
-    svg = svg.replace(/stroke="#000"/gi, 'stroke="currentColor"');
+    // Normalize overly dark fills to a neutral mid-gray for better visibility
+    const neutralFill = 'hsl(220, 9%, 46%)';
+    svg = svg.replace(/fill="#000000"/gi, `fill="${neutralFill}"`);
+    svg = svg.replace(/fill="#000"/gi, `fill="${neutralFill}"`);
+    svg = svg.replace(/fill="black"/gi, `fill="${neutralFill}"`);
+    svg = svg.replace(/stroke="#000000"/gi, `stroke="${neutralFill}"`);
+    svg = svg.replace(/stroke="#000"/gi, `stroke="${neutralFill}"`);
     
     // Ensure viewBox if missing and width/height exist
     if (!/viewBox=/i.test(svg)) {
@@ -77,7 +78,7 @@ const sanitizeSvg = (raw: string): string => {
     
     // Add default fill color if no fill is specified
     if (!/<svg[^>]*fill=/i.test(svg)) {
-      svg = svg.replace(/<svg([^>]*?)>/i, '<svg$1 fill="#374151">');
+      svg = svg.replace(/<svg([^>]*?)>/i, `<svg$1 fill="${neutralFill}">`);
     }
     
     return svg;
