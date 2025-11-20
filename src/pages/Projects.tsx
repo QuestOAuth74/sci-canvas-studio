@@ -16,10 +16,11 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from '@/components/ui/pagination';
-import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2, Calendar, Ruler, Globe, Lock, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2, Calendar, Ruler, Globe, Lock, CheckCircle, XCircle, Clock, Eye, BarChart3, FileText, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import noPreviewImage from '@/assets/no_preview.png';
 
 interface Project {
@@ -46,7 +47,8 @@ export default function Projects() {
   const [searchQuery, setSearchQuery] = useState('');
   const [shareDialogProject, setShareDialogProject] = useState<Project | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 6;
+  const [filterStatus, setFilterStatus] = useState<'all' | 'public' | 'private'>('all');
+  const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
     if (user) {
@@ -94,9 +96,26 @@ export default function Projects() {
     }
   };
 
-  const filteredProjects = projects.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProjects = projects.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = 
+      filterStatus === 'all' ? true :
+      filterStatus === 'public' ? p.is_public === true :
+      filterStatus === 'private' ? p.is_public === false :
+      true;
+    return matchesSearch && matchesFilter;
+  });
+
+  // Calculate stats
+  const stats = {
+    total: projects.length,
+    public: projects.filter(p => p.is_public).length,
+    private: projects.filter(p => !p.is_public).length,
+    recent: projects.filter(p => {
+      const daysDiff = Math.floor((Date.now() - new Date(p.updated_at).getTime()) / (1000 * 60 * 60 * 24));
+      return daysDiff <= 7;
+    }).length,
+  };
 
   // Reset to page 1 when search changes
   useEffect(() => {
@@ -112,219 +131,368 @@ export default function Projects() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Projects</h1>
-          <p className="text-muted-foreground">
-            {filteredProjects.length} {filteredProjects.length === 1 ? 'project' : 'projects'}
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search projects..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Enhanced Header with Stats */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                My Projects
+              </h1>
+              <p className="text-muted-foreground">
+                Manage and organize your scientific illustrations
+              </p>
+            </div>
+            <Button 
+              onClick={createNewProject} 
+              size="lg"
+              className="gap-2 shadow-lg hover:shadow-xl transition-shadow"
+            >
+              <Plus className="w-5 h-5" />
+              New Project
+            </Button>
           </div>
-          <Button onClick={createNewProject} className="gap-2">
-            <Plus className="h-4 w-4" />
-            New Project
-          </Button>
+
+          {/* Stats Dashboard */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Projects</p>
+                    <p className="text-3xl font-bold mt-1">{stats.total}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Public</p>
+                    <p className="text-3xl font-bold mt-1">{stats.public}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <Globe className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Private</p>
+                    <p className="text-3xl font-bold mt-1">{stats.private}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                    <Lock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:border-primary/50 transition-colors">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Recent (7d)</p>
+                    <p className="text-3xl font-bold mt-1">{stats.recent}</p>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Enhanced Search and Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search projects by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-12 text-base"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant={filterStatus === 'all' ? 'default' : 'outline'}
+                onClick={() => setFilterStatus('all')}
+                size="sm"
+              >
+                All
+              </Button>
+              <Button
+                variant={filterStatus === 'public' ? 'default' : 'outline'}
+                onClick={() => setFilterStatus('public')}
+                size="sm"
+                className="gap-1"
+              >
+                <Globe className="w-3 h-3" />
+                Public
+              </Button>
+              <Button
+                variant={filterStatus === 'private' ? 'default' : 'outline'}
+                onClick={() => setFilterStatus('private')}
+                size="sm"
+                className="gap-1"
+              >
+                <Lock className="w-3 h-3" />
+                Private
+              </Button>
+            </div>
+          </div>
         </div>
 
+        {/* Loading State */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {[...Array(6)].map((_, i) => (
               <Card key={i} className="overflow-hidden">
-                <Skeleton className="h-48 w-full" />
-                <CardHeader>
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-full" />
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="w-full aspect-[16/9]" />
+                <CardContent className="p-4 space-y-3">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
                   <div className="flex gap-2">
-                    <Skeleton className="h-5 w-16" />
-                    <Skeleton className="h-5 w-20" />
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Skeleton className="h-9 flex-1" />
-                    <Skeleton className="h-9 w-9" />
-                    <Skeleton className="h-9 w-9" />
+                    <Skeleton className="h-8 flex-1" />
+                    <Skeleton className="h-8 flex-1" />
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : filteredProjects.length === 0 ? (
-          <div className="glass-card text-center py-16">
-            <FolderOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2">
-              {searchQuery ? 'No projects found' : 'No projects yet'}
-            </h3>
-            <p className="text-muted-foreground mb-6">
-              {searchQuery
-                ? 'Try a different search term'
-                : 'Create your first scientific diagram to get started'}
-            </p>
-            {!searchQuery && (
-              <Button onClick={createNewProject} size="lg">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Project
-              </Button>
-            )}
+          /* Enhanced Empty State */
+          <div className="text-center py-20">
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                <FolderOpen className="w-12 h-12 text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">
+                {searchQuery || filterStatus !== 'all' ? 'No projects found' : 'No projects yet'}
+              </h2>
+              <p className="text-muted-foreground mb-8">
+                {searchQuery || filterStatus !== 'all' 
+                  ? 'Try adjusting your search or filters'
+                  : 'Create your first scientific illustration to get started'}
+              </p>
+              {!searchQuery && filterStatus === 'all' && (
+                <>
+                  <Button 
+                    onClick={createNewProject} 
+                    size="lg"
+                    className="gap-2 shadow-lg"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Create Your First Project
+                  </Button>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 text-left">
+                    <Card className="border-2">
+                      <CardContent className="p-4">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                          <FileText className="w-5 h-5 text-primary" />
+                        </div>
+                        <h3 className="font-semibold mb-1">Choose Template</h3>
+                        <p className="text-sm text-muted-foreground">Start with a blank canvas or pre-designed template</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-2">
+                      <CardContent className="p-4">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                          <Sparkles className="w-5 h-5 text-primary" />
+                        </div>
+                        <h3 className="font-semibold mb-1">Design & Create</h3>
+                        <p className="text-sm text-muted-foreground">Add icons, shapes, and text to build your diagram</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-2">
+                      <CardContent className="p-4">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                          <Share2 className="w-5 h-5 text-primary" />
+                        </div>
+                        <h3 className="font-semibold mb-1">Export & Share</h3>
+                        <p className="text-sm text-muted-foreground">Download high-quality images or share publicly</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedProjects.map((project) => (
+            {/* Modern Project Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {paginatedProjects.map((project, index) => (
                 <Card 
                   key={project.id}
-                  className="hover:shadow-lg transition-shadow overflow-hidden"
+                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50 animate-fade-in"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {/* Thumbnail Section - matches Community exactly */}
-                  <div 
-                    className="h-48 bg-muted cursor-pointer relative group"
-                    onClick={() => openProject(project.id)}
-                  >
-                    <img
-                      src={project.thumbnail_url || noPreviewImage}
-                      alt={project.name}
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-white font-medium">Click to open</span>
-                    </div>
+                  {/* Thumbnail with Gradient Overlay */}
+                  <div className="relative overflow-hidden bg-muted">
+                    <AspectRatio ratio={16 / 9}>
+                      <img
+                        src={project.thumbnail_url || noPreviewImage}
+                        alt={project.name}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      
+                      {/* Status Corner Ribbon */}
+                      {project.approval_status && project.approval_status !== 'pending' && (
+                        <div className="absolute top-3 right-3">
+                          <Badge 
+                            variant={
+                              project.approval_status === 'approved' ? 'default' : 
+                              project.approval_status === 'rejected' ? 'destructive' : 
+                              'secondary'
+                            }
+                            className="shadow-lg"
+                          >
+                            {project.approval_status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
+                            {project.approval_status === 'rejected' && <XCircle className="w-3 h-3 mr-1" />}
+                            {project.approval_status}
+                          </Badge>
+                        </div>
+                      )}
+
+                      {/* Quick Action Overlay */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <Button
+                          onClick={() => openProject(project.id)}
+                          size="lg"
+                          className="shadow-xl"
+                        >
+                          <FolderOpen className="w-5 h-5 mr-2" />
+                          Open Project
+                        </Button>
+                      </div>
+                    </AspectRatio>
                   </div>
 
-                  {/* CardHeader - Project Name */}
-                  <CardHeader>
-                    <CardTitle className="line-clamp-1">{project.name}</CardTitle>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-1">
-                      <Calendar className="h-3.5 w-3.5" />
-                      <span>Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}</span>
-                    </div>
-                  </CardHeader>
+                  {/* Card Content */}
+                  <CardContent className="p-5">
+                    <div className="space-y-3">
+                      {/* Project Title */}
+                      <div>
+                        <h3 className="font-bold text-lg line-clamp-1 mb-1 group-hover:text-primary transition-colors">
+                          {project.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
+                        </p>
+                      </div>
 
-                  {/* CardContent - Metadata & Status */}
-                  <CardContent className="space-y-3">
-                    {/* Dimensions */}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Ruler className="h-3.5 w-3.5" />
-                      <span className="font-mono text-xs">
-                        {project.canvas_width} × {project.canvas_height}px
-                      </span>
-                      <span className="text-xs">•</span>
-                      <span className="text-xs">{project.paper_size}</span>
-                    </div>
+                      {/* Metadata Badges */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant="outline" className="gap-1">
+                          <Ruler className="w-3 h-3" />
+                          {project.canvas_width} × {project.canvas_height}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={`gap-1 ${project.is_public ? 'border-green-500/50 text-green-600 dark:text-green-400' : 'border-orange-500/50 text-orange-600 dark:text-orange-400'}`}
+                        >
+                          {project.is_public ? (
+                            <>
+                              <Globe className="w-3 h-3" />
+                              Public
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="w-3 h-3" />
+                              Private
+                            </>
+                          )}
+                        </Badge>
+                      </div>
 
-                    {/* Status Badges */}
-                    <div className="flex flex-wrap gap-2">
-                      {project.is_public ? (
-                        <Badge variant="default" className="gap-1 text-xs">
-                          <Globe className="h-3 w-3" />
-                          Public
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="gap-1 text-xs">
-                          <Lock className="h-3 w-3" />
-                          Private
-                        </Badge>
-                      )}
-                      
-                      {project.approval_status === 'approved' && (
-                        <Badge variant="default" className="gap-1 text-xs bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
-                          <CheckCircle className="h-3 w-3" />
-                          Approved
-                        </Badge>
-                      )}
-                      
-                      {project.approval_status === 'pending' && (
-                        <Badge variant="secondary" className="gap-1 text-xs">
-                          <Clock className="h-3 w-3" />
-                          Pending
-                        </Badge>
-                      )}
-                      
-                      {project.approval_status === 'rejected' && (
-                        <Badge variant="destructive" className="gap-1 text-xs">
-                          <XCircle className="h-3 w-3" />
-                          Rejected
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        onClick={() => openProject(project.id)}
-                        className="flex-1"
-                        size="sm"
-                      >
-                        <FolderOpen className="mr-1 h-3.5 w-3.5" />
-                        Open
-                      </Button>
-                      <Button
-                        onClick={() => setShareDialogProject(project)}
-                        variant="outline"
-                        size="sm"
-                        title={project.is_public ? 'Manage sharing' : 'Share to community'}
-                      >
-                        <Share2 className={`h-3.5 w-3.5 ${project.is_public ? 'text-primary' : ''}`} />
-                      </Button>
-                      <Button
-                        onClick={() => deleteProject(project.id, project.name)}
-                        variant="destructive"
-                        size="sm"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          onClick={() => openProject(project.id)}
+                          className="flex-1 gap-1"
+                          size="sm"
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                          Open
+                        </Button>
+                        <Button
+                          onClick={() => setShareDialogProject(project)}
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                        >
+                          <Share2 className="w-4 h-4" />
+                          Share
+                        </Button>
+                        <Button
+                          onClick={() => deleteProject(project.id, project.name)}
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* Enhanced Pagination */}
             {totalPages > 1 && (
-              <Pagination className="mt-8">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                    />
-                  </PaginationItem>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(page)}
-                        isActive={currentPage === page}
-                        className="cursor-pointer"
-                      >
-                        {page}
-                      </PaginationLink>
+              <div className="flex items-center justify-center gap-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
                     </PaginationItem>
-                  ))}
-                  
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+                    
+                    {[...Array(totalPages)].map((_, i) => (
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(i + 1)}
+                          isActive={currentPage === i + 1}
+                          className="cursor-pointer"
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             )}
           </>
         )}
       </main>
 
+      {/* Share Dialog */}
       {shareDialogProject && (
         <ShareProjectDialog
           project={shareDialogProject}
