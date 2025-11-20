@@ -17,47 +17,39 @@ import { SignupToast } from "@/components/SignupToast";
 import { InstitutionCarousel } from "@/components/InstitutionCarousel";
 import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 import { CommunityCarousel } from "@/components/community/CommunityCarousel";
-
 const Index = () => {
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth();
+  const {
+    user,
+    isAdmin
+  } = useAuth();
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{
+    id: string;
+    name: string;
+  }[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const { data: signupData } = useRecentSignups();
-
+  const {
+    data: signupData
+  } = useRecentSignups();
   useEffect(() => {
-    supabase
-      .from('icon_categories')
-      .select('id, name')
-      .order('name')
-      .then(({ data }) => setCategories(data || []));
+    supabase.from('icon_categories').select('id, name').order('name').then(({
+      data
+    }) => setCategories(data || []));
   }, []);
-
   const structuredData = {
     "@context": "https://schema.org",
-    "@graph": [
-      getWebApplicationSchema(),
-      getOrganizationSchema()
-    ]
+    "@graph": [getWebApplicationSchema(), getOrganizationSchema()]
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 relative overflow-hidden">
       {/* Subtle Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
         <div className="absolute top-20 left-10 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
       </div>
       
-      <SEOHead
-        title="BioSketch - Free Scientific Illustration Tool for Researchers"
-        description="Create stunning scientific illustrations with BioSketch - a free drag-and-drop tool for scientists and researchers. Build publication-ready figures with our extensive biomedical icon library."
-        canonical="https://biosketch.art/"
-        keywords="scientific illustration, biomedical graphics, research illustration software, free science graphics, publication figures, scientific diagrams, biology illustration, medical graphics creator"
-        structuredData={structuredData}
-      />
+      <SEOHead title="BioSketch - Free Scientific Illustration Tool for Researchers" description="Create stunning scientific illustrations with BioSketch - a free drag-and-drop tool for scientists and researchers. Build publication-ready figures with our extensive biomedical icon library." canonical="https://biosketch.art/" keywords="scientific illustration, biomedical graphics, research illustration software, free science graphics, publication figures, scientific diagrams, biology illustration, medical graphics creator" structuredData={structuredData} />
 
       <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
         <div className="max-w-6xl mx-auto space-y-20">
@@ -74,11 +66,7 @@ const Index = () => {
             <div className="space-y-6">
               <div className="flex items-center justify-center gap-6 flex-wrap">
                 <div className="p-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-xl">
-                  <img 
-                    src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
-                    alt="BioSketch Logo"
-                    className="h-16 w-16 md:h-20 md:w-20 object-contain"
-                  />
+                  <img src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0" alt="BioSketch Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain" />
                 </div>
                 <h1 className="text-6xl md:text-8xl font-black tracking-tight bg-gradient-to-r from-primary via-foreground to-accent bg-clip-text text-transparent">
                   BioSketch
@@ -96,48 +84,30 @@ const Index = () => {
             </div>
 
             {/* Welcome Message for Logged-in Users */}
-            {user && (
-              <div className="flex items-center justify-center gap-3 animate-fade-in">
+            {user && <div className="flex items-center justify-center gap-3 animate-fade-in">
                 <Hand className="h-7 w-7 text-primary" />
                 <p className="text-xl font-semibold">
                   Welcome back, {user.user_metadata?.full_name?.split(' ')[0] || 'there'}!
                 </p>
-              </div>
-            )}
+              </div>}
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap gap-4 justify-center items-center">
-              <Button 
-                size="lg" 
-                onClick={() => navigate(user ? "/projects" : "/auth")} 
-                className="min-w-[200px] h-12 text-base font-semibold shadow-lg hover:shadow-xl"
-              >
+              <Button size="lg" onClick={() => navigate(user ? "/projects" : "/auth")} className="min-w-[200px] h-12 text-base font-semibold shadow-lg hover:shadow-xl">
                 <Palette className="h-5 w-5 mr-2" />
                 {user ? 'Start Creating' : 'Get Started Free'}
               </Button>
               
-              {user && (
-                <>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => navigate("/projects")}
-                    className="min-w-[200px] h-12 text-base font-semibold"
-                  >
+              {user && <>
+                  <Button size="lg" variant="outline" onClick={() => navigate("/projects")} className="min-w-[200px] h-12 text-base font-semibold">
                     <FolderOpen className="h-5 w-5 mr-2" />
                     My Projects
                   </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={() => navigate("/community")}
-                    className="min-w-[200px] h-12 text-base font-semibold"
-                  >
+                  <Button size="lg" variant="outline" onClick={() => navigate("/community")} className="min-w-[200px] h-12 text-base font-semibold">
                     <Users className="h-5 w-5 mr-2" />
                     Community
                   </Button>
-                </>
-              )}
+                </>}
             </div>
           </div>
 
@@ -147,24 +117,18 @@ const Index = () => {
           {/* Showcase Carousel */}
           <div className="animate-fade-in [animation-delay:200ms]">
             <div className="max-w-5xl mx-auto">
-              <Carousel opts={{ loop: true }}>
+              <Carousel opts={{
+              loop: true
+            }}>
                 <CarouselContent>
                   <CarouselItem>
                     <div className="rounded-2xl overflow-hidden border-2 shadow-xl hover:shadow-2xl transition-shadow">
-                      <img 
-                        src={carousel1} 
-                        alt="BioSketch Interface Showcase" 
-                        className="w-full h-auto"
-                      />
+                      <img src={carousel1} alt="BioSketch Interface Showcase" className="w-full h-auto" />
                     </div>
                   </CarouselItem>
                   <CarouselItem>
                     <div className="rounded-2xl overflow-hidden border-2 shadow-xl hover:shadow-2xl transition-shadow">
-                      <img 
-                        src={carousel2} 
-                        alt="BioSketch Features Showcase" 
-                        className="w-full h-auto"
-                      />
+                      <img src={carousel2} alt="BioSketch Features Showcase" className="w-full h-auto" />
                     </div>
                   </CarouselItem>
                 </CarouselContent>
@@ -251,12 +215,8 @@ const Index = () => {
           {/* Community Carousel */}
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">
-                Community Creations
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Discover inspiring work from fellow researchers
-              </p>
+              
+              
             </div>
             <CommunityCarousel />
           </div>
@@ -275,8 +235,7 @@ const Index = () => {
           </div>
 
           {/* Final CTA */}
-          {!user && (
-            <div className="text-center py-12 space-y-6 animate-fade-in">
+          {!user && <div className="text-center py-12 space-y-6 animate-fade-in">
               <div className="space-y-3">
                 <h2 className="text-3xl md:text-4xl font-bold">
                   Ready to Create?
@@ -285,49 +244,24 @@ const Index = () => {
                   Join thousands of researchers using BioSketch for their scientific illustrations
                 </p>
               </div>
-              <Button 
-                size="lg" 
-                onClick={() => navigate("/auth")}
-                className="min-w-[240px] h-14 text-lg font-semibold shadow-xl hover:shadow-2xl"
-              >
+              <Button size="lg" onClick={() => navigate("/auth")} className="min-w-[240px] h-14 text-lg font-semibold shadow-xl hover:shadow-2xl">
                 <Sparkles className="h-5 w-5 mr-2" />
                 Get Started Free
               </Button>
-            </div>
-          )}
+            </div>}
         </div>
       </div>
 
       {/* Signup Toast */}
-      {signupData?.count && signupData.count > 0 && (
-        <SignupToast 
-          count={signupData.count}
-          topCountries={signupData.topCountries}
-          totalWithLocation={signupData.totalWithLocation}
-        />
-      )}
+      {signupData?.count && signupData.count > 0 && <SignupToast count={signupData.count} topCountries={signupData.topCountries} totalWithLocation={signupData.totalWithLocation} />}
 
       {/* Dialogs */}
-      {showSubmitDialog && (
-        <IconSubmissionDialog
-          open={showSubmitDialog}
-          onOpenChange={setShowSubmitDialog}
-          categories={categories}
-        />
-      )}
+      {showSubmitDialog && <IconSubmissionDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} categories={categories} />}
 
-      {showPreviewModal && selectedProject && (
-        <ProjectPreviewModal
-          project={selectedProject}
-          isOpen={showPreviewModal}
-          onClose={() => {
-            setShowPreviewModal(false);
-            setSelectedProject(null);
-          }}
-        />
-      )}
-    </div>
-  );
+      {showPreviewModal && selectedProject && <ProjectPreviewModal project={selectedProject} isOpen={showPreviewModal} onClose={() => {
+      setShowPreviewModal(false);
+      setSelectedProject(null);
+    }} />}
+    </div>;
 };
-
 export default Index;
