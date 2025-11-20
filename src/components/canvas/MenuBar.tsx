@@ -18,9 +18,10 @@ import { Type } from "lucide-react";
 
 interface MenuBarProps {
   onTemplatesClick?: () => void;
+  onPanelLabelClick?: () => void;
 }
 
-export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
+export const MenuBar = ({ onTemplatesClick, onPanelLabelClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
@@ -143,6 +144,19 @@ export const MenuBar = ({ onTemplatesClick }: MenuBarProps = {}) => {
               Delete <MenubarShortcut>⌫</MenubarShortcut>
             </MenubarItem>
             <MenubarItem onClick={selectAll}>Select All</MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+
+        <MenubarMenu>
+          <MenubarTrigger className="font-medium">Insert</MenubarTrigger>
+          <MenubarContent>
+            <MenubarItem onClick={onPanelLabelClick}>
+              Figure Panel Labels (A, B, C...)
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={onTemplatesClick}>
+              Templates
+            </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
 
