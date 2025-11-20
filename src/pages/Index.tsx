@@ -55,30 +55,30 @@ const Index = () => {
         <div className="max-w-6xl mx-auto space-y-20">
           
           {/* Hero Section */}
-          <div className="space-y-12 text-center animate-fade-in">
+          <div className="space-y-10 text-center animate-fade-in">
             {/* Top Badge */}
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <span className="font-semibold text-foreground">Free for Scientists & Researchers</span>
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-card border border-border shadow-sm">
+              <Microscope className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">Trusted by Researchers Worldwide</span>
             </div>
             
             {/* Logo and Branding */}
             <div className="space-y-6">
-              <div className="flex items-center justify-center gap-6 flex-wrap">
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-xl">
-                  <img src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0" alt="BioSketch Logo" className="h-16 w-16 md:h-20 md:w-20 object-contain" />
+              <div className="flex items-center justify-center gap-5 flex-wrap">
+                <div className="p-5 rounded-xl bg-card border border-border shadow-sm">
+                  <img src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0" alt="BioSketch Logo" className="h-14 w-14 md:h-16 md:w-16 object-contain" />
                 </div>
-                <h1 className="text-6xl md:text-8xl font-black tracking-tight bg-gradient-to-r from-primary via-foreground to-accent bg-clip-text text-transparent">
+                <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground">
                   BioSketch
                 </h1>
               </div>
               
-              <div className="max-w-3xl mx-auto space-y-4">
-                <h2 className="text-2xl md:text-4xl font-bold leading-tight">
-                  Create Stunning Scientific Illustrations
+              <div className="max-w-4xl mx-auto space-y-5">
+                <h2 className="text-xl md:text-3xl font-semibold leading-tight text-foreground">
+                  Professional Scientific Illustration Software
                 </h2>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                  The intuitive drag-and-drop tool for researchers. Build publication-ready figures with our extensive biomedical icon library.
+                <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                  Design publication-quality figures for research papers, presentations, and grants. Trusted by scientists at leading institutions worldwide.
                 </p>
               </div>
             </div>
@@ -92,19 +92,19 @@ const Index = () => {
               </div>}
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 justify-center items-center">
-              <Button size="lg" onClick={() => navigate(user ? "/projects" : "/auth")} className="min-w-[200px] h-12 text-base font-semibold shadow-lg hover:shadow-xl">
-                <Palette className="h-5 w-5 mr-2" />
-                {user ? 'Start Creating' : 'Get Started Free'}
+            <div className="flex flex-wrap gap-3 justify-center items-center pt-2">
+              <Button size="lg" onClick={() => navigate(user ? "/projects" : "/auth")} className="min-w-[180px] h-11 text-base font-medium">
+                <Palette className="h-4 w-4 mr-2" />
+                {user ? 'Start Creating' : 'Start Free'}
               </Button>
               
               {user && <>
-                  <Button size="lg" variant="outline" onClick={() => navigate("/projects")} className="min-w-[200px] h-12 text-base font-semibold">
-                    <FolderOpen className="h-5 w-5 mr-2" />
+                  <Button size="lg" variant="outline" onClick={() => navigate("/projects")} className="min-w-[180px] h-11 text-base font-medium">
+                    <FolderOpen className="h-4 w-4 mr-2" />
                     My Projects
                   </Button>
-                  <Button size="lg" variant="outline" onClick={() => navigate("/community")} className="min-w-[200px] h-12 text-base font-semibold">
-                    <Users className="h-5 w-5 mr-2" />
+                  <Button size="lg" variant="outline" onClick={() => navigate("/community")} className="min-w-[180px] h-11 text-base font-medium">
+                    <Users className="h-4 w-4 mr-2" />
                     Community
                   </Button>
                 </>}
@@ -112,7 +112,12 @@ const Index = () => {
           </div>
 
           {/* Institution Logos */}
-          <InstitutionCarousel />
+          <div className="space-y-4">
+            <p className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              Trusted by Researchers at Leading Institutions
+            </p>
+            <InstitutionCarousel />
+          </div>
 
           {/* Showcase Carousel */}
           <div className="animate-fade-in [animation-delay:200ms]">
@@ -139,74 +144,74 @@ const Index = () => {
           </div>
 
           {/* Feature Cards */}
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl md:text-4xl font-bold mb-3">
-                Everything You Need
+          <div className="space-y-10">
+            <div className="text-center space-y-3">
+              <h2 className="text-2xl md:text-3xl font-semibold">
+                Professional-Grade Features
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Professional tools designed specifically for scientific illustration
+              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                Comprehensive toolset for creating publication-ready scientific figures
               </p>
             </div>
             
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="group p-8 rounded-2xl border-2 hover:border-primary/50 transition-all hover:shadow-xl bg-card">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <Zap className="h-7 w-7 text-primary" />
+            <div className="grid md:grid-cols-3 gap-5">
+              <div className="group p-6 rounded-xl border border-border hover:border-primary/30 transition-all hover:shadow-md bg-card">
+                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+                  <Zap className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Intuitive Interface</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Drag-and-drop canvas editor designed for scientists. Create complex diagrams in minutes, not hours.
+                <h3 className="text-lg font-semibold mb-2">Intuitive Canvas Editor</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Drag-and-drop interface optimized for scientific workflows. Create complex diagrams efficiently.
                 </p>
               </div>
 
-              <div className="group p-8 rounded-2xl border-2 hover:border-primary/50 transition-all hover:shadow-xl bg-card">
-                <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <Microscope className="h-7 w-7 text-blue-600 dark:text-blue-400" />
+              <div className="group p-6 rounded-xl border border-border hover:border-primary/30 transition-all hover:shadow-md bg-card">
+                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+                  <Microscope className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">6,000+ Scientific Icons</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Extensive library of biomedical icons covering molecular biology, medicine, lab equipment, and more.
+                <h3 className="text-lg font-semibold mb-2">6,000+ Scientific Icons</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Comprehensive biomedical icon library covering molecular biology, medicine, and laboratory equipment.
                 </p>
               </div>
 
-              <div className="group p-8 rounded-2xl border-2 hover:border-primary/50 transition-all hover:shadow-xl bg-card">
-                <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <Shield className="h-7 w-7 text-green-600 dark:text-green-400" />
+              <div className="group p-6 rounded-xl border border-border hover:border-primary/30 transition-all hover:shadow-md bg-card">
+                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+                  <Shield className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Publication Ready</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Export high-resolution PNG, JPG, and SVG files perfect for journals, presentations, and posters.
+                <h3 className="text-lg font-semibold mb-2">Publication-Quality Export</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  High-resolution PNG, JPG, and vector SVG formats suitable for journals and presentations.
                 </p>
               </div>
 
-              <div className="group p-8 rounded-2xl border-2 hover:border-primary/50 transition-all hover:shadow-xl bg-card">
-                <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <Share2 className="h-7 w-7 text-purple-600 dark:text-purple-400" />
+              <div className="group p-6 rounded-xl border border-border hover:border-primary/30 transition-all hover:shadow-md bg-card">
+                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+                  <Share2 className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Share & Collaborate</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Share your work with the community, get inspired by others, and collaborate with colleagues.
+                <h3 className="text-lg font-semibold mb-2">Collaboration & Sharing</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Share figures with colleagues and explore community-created scientific illustrations.
                 </p>
               </div>
 
-              <div className="group p-8 rounded-2xl border-2 hover:border-primary/50 transition-all hover:shadow-xl bg-card">
-                <div className="w-14 h-14 rounded-full bg-orange-500/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <Sparkles className="h-7 w-7 text-orange-600 dark:text-orange-400" />
+              <div className="group p-6 rounded-xl border border-border hover:border-primary/30 transition-all hover:shadow-md bg-card">
+                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+                  <Sparkles className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">AI-Powered Tools</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  Generate custom scientific figures and icons using AI to speed up your illustration workflow.
+                <h3 className="text-lg font-semibold mb-2">AI-Assisted Generation</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Generate custom scientific figures and icons using AI to accelerate your research workflow.
                 </p>
               </div>
 
-              <div className="group p-8 rounded-2xl border-2 hover:border-primary/50 transition-all hover:shadow-xl bg-card">
-                <div className="w-14 h-14 rounded-full bg-pink-500/10 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <MessageCircleHeart className="h-7 w-7 text-pink-600 dark:text-pink-400" />
+              <div className="group p-6 rounded-xl border border-border hover:border-primary/30 transition-all hover:shadow-md bg-card">
+                <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center mb-4 group-hover:bg-primary/10 transition-colors">
+                  <MessageCircleHeart className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="text-xl font-bold mb-3">Free Forever</h3>
-                <p className="text-muted-foreground leading-relaxed">
-                  No credit card required. Built by scientists, for scientists. Supporting the research community.
+                <h3 className="text-lg font-semibold mb-2">Free for Researchers</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  No subscription required. Built by scientists to support the global research community.
                 </p>
               </div>
             </div>
@@ -231,18 +236,18 @@ const Index = () => {
           </div>
 
           {/* Final CTA */}
-          {!user && <div className="text-center py-12 space-y-6 animate-fade-in">
+          {!user && <div className="text-center py-16 space-y-5 animate-fade-in">
               <div className="space-y-3">
-                <h2 className="text-3xl md:text-4xl font-bold">
-                  Ready to Create?
+                <h2 className="text-2xl md:text-3xl font-semibold">
+                  Start Creating Today
                 </h2>
-                <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                  Join thousands of researchers using BioSketch for their scientific illustrations
+                <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                  Join researchers worldwide who trust BioSketch for their scientific illustrations
                 </p>
               </div>
-              <Button size="lg" onClick={() => navigate("/auth")} className="min-w-[240px] h-14 text-lg font-semibold shadow-xl hover:shadow-2xl">
-                <Sparkles className="h-5 w-5 mr-2" />
-                Get Started Free
+              <Button size="lg" onClick={() => navigate("/auth")} className="min-w-[200px] h-12 text-base font-medium">
+                <Palette className="h-4 w-4 mr-2" />
+                Create Free Account
               </Button>
             </div>}
         </div>
