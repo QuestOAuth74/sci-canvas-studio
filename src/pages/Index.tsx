@@ -243,19 +243,27 @@ const Index = () => {
           </div>
 
           {/* Community Carousel */}
-          <div className="space-y-6">
-            <div className="text-center">
-              
-              
+          <div className="space-y-8 animate-fade-in [animation-delay:400ms]">
+            <div className="text-center space-y-3">
+              <h2 className="text-2xl md:text-3xl font-semibold">
+                See What Others Are Creating
+              </h2>
+              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                Explore publication-quality figures created by our research community
+              </p>
             </div>
             <CommunityCarousel />
           </div>
 
           {/* Blog Posts */}
-          <div className="space-y-6">
-            <div className="text-center">
-              
-              
+          <div className="space-y-8 animate-fade-in [animation-delay:500ms]">
+            <div className="text-center space-y-3">
+              <h2 className="text-2xl md:text-3xl font-semibold">
+                Latest from Our Blog
+              </h2>
+              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                Tips, tutorials, and insights for scientific illustration
+              </p>
             </div>
             <BlogPostsCarousel />
           </div>
