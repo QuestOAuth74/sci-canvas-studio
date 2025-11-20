@@ -339,6 +339,13 @@ const CanvasContent = () => {
         return;
       }
 
+      // Save Project (Cmd/Ctrl + S)
+      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+        e.preventDefault();
+        saveProject(true);
+        return;
+      }
+
       // Undo/Redo
       if ((e.metaKey || e.ctrlKey) && e.key === 'z' && e.shiftKey) {
         e.preventDefault();
@@ -677,7 +684,7 @@ const CanvasContent = () => {
             )}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button onClick={saveProject} disabled={isSaving} variant="default" size="sm" className="h-9 shadow-sm">
+                <Button onClick={() => saveProject(true)} disabled={isSaving} variant="default" size="sm" className="h-9 shadow-sm">
                   <Save className="h-3.5 w-3.5 mr-1.5" />
                   Save
                 </Button>

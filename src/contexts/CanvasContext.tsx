@@ -10,6 +10,7 @@ import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
 import { safeDownloadDataUrl, reloadCanvasImagesWithCORS } from "@/lib/utils";
 import { removeBackground } from "@/lib/backgroundRemoval";
 import { HistoryManager } from "@/lib/historyManager";
+import { createVersion, isSignificantChange, cleanupVersions } from "@/lib/versionManager";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -41,7 +42,7 @@ interface CanvasContextType {
   projectName: string;
   setProjectName: (name: string) => void;
   isSaving: boolean;
-  saveProject: () => Promise<void>;
+  saveProject: (isManualSave?: boolean) => Promise<void>;
   loadProject: (id: string) => Promise<void>;
   saveStatus: 'saved' | 'saving' | 'unsaved';
   
@@ -1468,7 +1469,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   }, [canvas, saveState]);
 
   // Project save/load operations
-  const saveProject = useCallback(async () => {
+  const saveProject = useCallback(async (isManualSave = false) => {
     if (!canvas || !user) {
       toast.error("Please sign in to save projects");
       return;
@@ -1516,6 +1517,41 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
 
       if (currentProjectId) {
+        // Check if we should create a version snapshot
+        let shouldCreateVersion = isManualSave;
+        
+        if (!shouldCreateVersion) {
+          // For auto-saves, check if changes are significant
+          const { data: currentProject } = await supabase
+            .from('canvas_projects')
+            .select('canvas_data')
+            .eq('id', currentProjectId)
+            .single();
+          
+          if (currentProject) {
+            shouldCreateVersion = isSignificantChange(currentProject.canvas_data, canvasData);
+          }
+        }
+
+        // Create version snapshot before updating main project
+        if (shouldCreateVersion) {
+          try {
+            await createVersion({
+              projectId: currentProjectId,
+              userId: user.id,
+              canvasData,
+              canvasWidth: canvasDimensions.width,
+              canvasHeight: canvasDimensions.height,
+              paperSize,
+              isAutoSave: !isManualSave,
+            });
+            console.log('Version snapshot created');
+          } catch (versionError) {
+            console.error('Failed to create version snapshot:', versionError);
+            // Don't fail the save if version creation fails
+          }
+        }
+
         // Update existing project
         const { error } = await supabase
           .from('canvas_projects')
@@ -1523,6 +1559,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
           .eq('id', currentProjectId);
 
         if (error) throw error;
+        
+        // Cleanup old versions in the background
+        cleanupVersions(currentProjectId).catch(err => 
+          console.error('Version cleanup failed:', err)
+        );
+        
         setSaveStatus('saved');
         toast.success("Project saved", { duration: 1000, className: 'animate-fade-in' });
       } else {

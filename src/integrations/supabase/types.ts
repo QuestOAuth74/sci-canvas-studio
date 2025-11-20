@@ -789,6 +789,62 @@ export type Database = {
           },
         ]
       }
+      project_versions: {
+        Row: {
+          canvas_data: Json
+          canvas_height: number
+          canvas_width: number
+          created_at: string | null
+          id: string
+          is_auto_save: boolean | null
+          paper_size: string | null
+          project_id: string
+          restore_count: number | null
+          thumbnail_url: string | null
+          user_id: string
+          version_name: string | null
+          version_number: number
+        }
+        Insert: {
+          canvas_data: Json
+          canvas_height: number
+          canvas_width: number
+          created_at?: string | null
+          id?: string
+          is_auto_save?: boolean | null
+          paper_size?: string | null
+          project_id: string
+          restore_count?: number | null
+          thumbnail_url?: string | null
+          user_id: string
+          version_name?: string | null
+          version_number: number
+        }
+        Update: {
+          canvas_data?: Json
+          canvas_height?: number
+          canvas_width?: number
+          created_at?: string | null
+          id?: string
+          is_auto_save?: boolean | null
+          paper_size?: string | null
+          project_id?: string
+          restore_count?: number | null
+          thumbnail_url?: string | null
+          user_id?: string
+          version_name?: string | null
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       testimonials: {
         Row: {
           country: string
