@@ -18,6 +18,7 @@ import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Pin, PinOff, Eraser, Paintbrush } from "lucide-react";
 import { toast } from "sonner";
 import { ensureFontLoaded, getCanvasFontFamily } from "@/lib/fontLoader";
+import { isTextOnPath, getTextOnPathData, updateTextOnPath, isValidPath } from "@/lib/textOnPath";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -129,7 +130,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   // Helper functions to determine object types for context-aware panel
   const isTextObject = (obj: any) => {
     return obj?.type === 'textbox' || 
-           (obj?.type === 'group' && obj.getObjects().some((o: any) => o.type === 'textbox'));
+           (obj?.type === 'group' && obj.getObjects().some((o: any) => o.type === 'textbox')) ||
+           isTextOnPath(obj);
   };
 
   const isLineObject = (obj: any) => {
@@ -968,6 +970,119 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+              
+              {/* Text on Path Properties */}
+              {selectedObject && isTextOnPath(selectedObject) && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Text on Path</h3>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Path Offset</Label>
+                      <Slider
+                        value={[getTextOnPathData(selectedObject)?.offset || 0]}
+                        onValueChange={(value) => {
+                          if (!canvas || !selectedObject) return;
+                          const pathData = getTextOnPathData(selectedObject);
+                          if (!pathData) return;
+                          
+                          // Find a path object on canvas to update with
+                          const objects = canvas.getObjects();
+                          const pathObj = objects.find(obj => isValidPath(obj));
+                          
+                          if (pathObj) {
+                            try {
+                              canvas.remove(selectedObject);
+                              const updated = updateTextOnPath(selectedObject as any, pathObj, { offset: value[0] });
+                              canvas.add(updated);
+                              canvas.setActiveObject(updated);
+                              canvas.requestRenderAll();
+                            } catch (error) {
+                              console.error('Failed to update offset:', error);
+                              toast.error('Failed to update offset');
+                            }
+                          }
+                        }}
+                        min={-100}
+                        max={100}
+                        step={5}
+                        className="w-full"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {getTextOnPathData(selectedObject)?.offset || 0}px
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-xs">Position Along Path</Label>
+                      <Slider
+                        value={[(getTextOnPathData(selectedObject)?.alignmentOffset || 0) * 100]}
+                        onValueChange={(value) => {
+                          if (!canvas || !selectedObject) return;
+                          const pathData = getTextOnPathData(selectedObject);
+                          if (!pathData) return;
+                          
+                          const objects = canvas.getObjects();
+                          const pathObj = objects.find(obj => isValidPath(obj));
+                          
+                          if (pathObj) {
+                            try {
+                              canvas.remove(selectedObject);
+                              const updated = updateTextOnPath(selectedObject as any, pathObj, { 
+                                alignmentOffset: value[0] / 100 
+                              });
+                              canvas.add(updated);
+                              canvas.setActiveObject(updated);
+                              canvas.requestRenderAll();
+                            } catch (error) {
+                              console.error('Failed to update position:', error);
+                              toast.error('Failed to update position');
+                            }
+                          }
+                        }}
+                        min={0}
+                        max={100}
+                        step={5}
+                        className="w-full"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {Math.round((getTextOnPathData(selectedObject)?.alignmentOffset || 0) * 100)}%
+                      </p>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (!canvas || !selectedObject) return;
+                        const pathData = getTextOnPathData(selectedObject);
+                        if (!pathData) return;
+                        
+                        const objects = canvas.getObjects();
+                        const pathObj = objects.find(obj => isValidPath(obj));
+                        
+                        if (pathObj) {
+                          try {
+                            canvas.remove(selectedObject);
+                            const updated = updateTextOnPath(selectedObject as any, pathObj, { 
+                              flipText: !pathData.flipText 
+                            });
+                            canvas.add(updated);
+                            canvas.setActiveObject(updated);
+                            canvas.requestRenderAll();
+                            toast.success('Text orientation flipped');
+                          } catch (error) {
+                            console.error('Failed to flip text:', error);
+                            toast.error('Failed to flip text');
+                          }
+                        }
+                      }}
+                      className="w-full"
+                    >
+                      Flip Text Orientation
+                    </Button>
                   </div>
                 </div>
               )}
