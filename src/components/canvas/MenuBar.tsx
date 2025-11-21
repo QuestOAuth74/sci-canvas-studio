@@ -14,7 +14,8 @@ import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialo
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeCanvasTextFonts } from "@/lib/fontLoader";
-import { Type, History } from "lucide-react";
+import { Type, History, GraduationCap } from "lucide-react";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 interface MenuBarProps {
   onTemplatesClick?: () => void;
@@ -26,6 +27,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
+  const { startOnboarding } = useOnboarding();
   
   const {
     canvas,
@@ -202,6 +204,11 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         <MenubarMenu>
           <MenubarTrigger className="font-medium">Help</MenubarTrigger>
           <MenubarContent>
+            <MenubarItem onClick={startOnboarding}>
+              <GraduationCap className="mr-2 h-4 w-4" />
+              Restart Tutorial
+            </MenubarItem>
+            <MenubarSeparator />
             <MenubarItem onClick={() => setIconSubmissionOpen(true)}>Suggest Icon/Feature</MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={() => setAboutOpen(true)}>Documentation</MenubarItem>
