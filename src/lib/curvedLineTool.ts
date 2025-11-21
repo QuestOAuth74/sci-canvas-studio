@@ -670,15 +670,76 @@ export function reconnectCurvedLines(canvas: Canvas): void {
     // Skip if already has a control handle (shouldn't happen after cleanup)
     if (curveData.controlHandle && canvas.contains(curveData.controlHandle)) return;
     
-    // Extract stored coordinates
-    const start = curveData.curvedLineStart;
-    const end = curveData.curvedLineEnd;
-    const controlPoint = curveData.curvedLineControlPoint;
+    const group = obj as Group;
+    let start: { x: number; y: number } | null = null;
+    let controlPoint: { x: number; y: number } | null = null;
+    let end: { x: number; y: number } | null = null;
+    
+    // Attempt 1: Derive from mainPath geometry + group transform
+    const mainPath = curveData.mainPath as Path | undefined;
+    if (mainPath && Array.isArray((mainPath as any).path)) {
+      try {
+        const commands = (mainPath as any).path as any[];
+        const moveCmd = commands.find((cmd: any) => cmd[0] === 'M');
+        const quadCmd = commands.find((cmd: any) => cmd[0] === 'Q');
+        
+        if (moveCmd && quadCmd) {
+          const startLocal = new FabricPoint(moveCmd[1], moveCmd[2]);
+          const controlLocal = new FabricPoint(quadCmd[1], quadCmd[2]);
+          const endLocal = new FabricPoint(quadCmd[3], quadCmd[4]);
+          
+          const matrix = group.calcTransformMatrix();
+          const startWorld = util.transformPoint(startLocal, matrix);
+          const controlWorld = util.transformPoint(controlLocal, matrix);
+          const endWorld = util.transformPoint(endLocal, matrix);
+          
+          start = { x: startWorld.x, y: startWorld.y };
+          controlPoint = { x: controlWorld.x, y: controlWorld.y };
+          end = { x: endWorld.x, y: endWorld.y };
+        }
+      } catch (e) {
+        console.warn('Failed to parse mainPath, falling back to local coordinates', e);
+      }
+    }
+    
+    // Attempt 2: Fallback to curvedLocal* coordinates + group transform
+    if (!start && curveData.curvedLocalStart && curveData.curvedLocalEnd && curveData.curvedLocalControl) {
+      try {
+        const matrix = group.calcTransformMatrix();
+        const startWorld = util.transformPoint(curveData.curvedLocalStart, matrix);
+        const controlWorld = util.transformPoint(curveData.curvedLocalControl, matrix);
+        const endWorld = util.transformPoint(curveData.curvedLocalEnd, matrix);
+        
+        start = { x: startWorld.x, y: startWorld.y };
+        controlPoint = { x: controlWorld.x, y: controlWorld.y };
+        end = { x: endWorld.x, y: endWorld.y };
+      } catch (e) {
+        console.warn('Failed to transform local coordinates', e);
+      }
+    }
+    
+    // Attempt 3: Last resort - use stored world coordinates
+    if (!start && curveData.curvedLineStart && curveData.curvedLineEnd && curveData.curvedLineControlPoint) {
+      console.warn('Using stored world coordinates as fallback (may be stale after transforms)');
+      start = curveData.curvedLineStart;
+      end = curveData.curvedLineEnd;
+      controlPoint = curveData.curvedLineControlPoint;
+    }
     
     if (!start || !end || !controlPoint) {
       console.warn('Curved line missing coordinate data, skipping reconnect');
       return;
     }
+    
+    // Update stored properties to keep them in sync
+    curveData.curvedLineStart = start;
+    curveData.curvedLineEnd = end;
+    curveData.curvedLineControlPoint = controlPoint;
+    
+    const inv = util.invertTransform(group.calcTransformMatrix());
+    curveData.curvedLocalStart = util.transformPoint(new FabricPoint(start.x, start.y), inv);
+    curveData.curvedLocalEnd = util.transformPoint(new FabricPoint(end.x, end.y), inv);
+    curveData.curvedLocalControl = util.transformPoint(new FabricPoint(controlPoint.x, controlPoint.y), inv);
     
     // Create control handle
     const controlHandle = new Circle({
