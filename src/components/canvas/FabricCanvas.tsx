@@ -310,6 +310,27 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Track selected objects with debug and auto-fix for invisible text
     canvas.on('selection:created', (e) => {
       const selected = e.selected?.[0] || null;
+      
+      // If a control handle or guide line is selected, keep the parent curved line selected instead
+      if (selected && ((selected as any).isControlHandle || (selected as any).isHandleLine)) {
+        const parentCurve = canvas.getObjects().find(obj => {
+          const curveData = obj as any;
+          return curveData.isCurvedLine && 
+                 (curveData.controlHandle === selected || 
+                  curveData.handleLines?.includes(selected));
+        });
+        
+        if (parentCurve) {
+          canvas.setActiveObject(parentCurve);
+          setSelectedObject(parentCurve);
+          manageCurvedLineHandles(parentCurve);
+        } else {
+          setSelectedObject(null);
+          manageCurvedLineHandles(null);
+        }
+        return;
+      }
+      
       setSelectedObject(selected);
       manageCurvedLineHandles(selected);
       
@@ -324,6 +345,27 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     canvas.on('selection:updated', (e) => {
       const selected = e.selected?.[0] || null;
+      
+      // If a control handle or guide line is selected, keep the parent curved line selected instead
+      if (selected && ((selected as any).isControlHandle || (selected as any).isHandleLine)) {
+        const parentCurve = canvas.getObjects().find(obj => {
+          const curveData = obj as any;
+          return curveData.isCurvedLine && 
+                 (curveData.controlHandle === selected || 
+                  curveData.handleLines?.includes(selected));
+        });
+        
+        if (parentCurve) {
+          canvas.setActiveObject(parentCurve);
+          setSelectedObject(parentCurve);
+          manageCurvedLineHandles(parentCurve);
+        } else {
+          setSelectedObject(null);
+          manageCurvedLineHandles(null);
+        }
+        return;
+      }
+      
       setSelectedObject(selected);
       manageCurvedLineHandles(selected);
       

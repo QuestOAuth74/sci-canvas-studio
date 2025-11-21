@@ -412,7 +412,7 @@ export class CurvedLineTool {
       strokeWidth: 2,
       originX: 'center',
       originY: 'center',
-      selectable: false,
+      selectable: true,
       evented: true,
       hasControls: false,
       hasBorders: false,
