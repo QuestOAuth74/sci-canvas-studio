@@ -139,7 +139,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Separator className="my-1" />
       
       {/* Shapes Section */}
-      <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+      <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide" data-onboarding="shapes-dropdown">
         Shapes
       </div>
       
@@ -168,7 +168,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Separator className="my-1" />
       
       {/* Lines Section */}
-      <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+      <div className="px-2 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wide" data-onboarding="lines-section">
         Lines
       </div>
       
