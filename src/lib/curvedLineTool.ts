@@ -197,11 +197,6 @@ export class CurvedLineTool {
     (group as any).curvedLineControlPoint = { x: this.controlPoint.x, y: this.controlPoint.y };
     (group as any).controlHandle = controlHandle;
     (group as any).handleLines = [line1, line2];
-    
-    // Add back references for robustness
-    (controlHandle as any).parentCurvedLine = group;
-    (line1 as any).parentCurvedLine = group;
-    (line2 as any).parentCurvedLine = group;
     (group as any).mainPath = curvePath;
     (group as any).startMarker = startMarkerRef;
     (group as any).endMarker = endMarkerRef;
@@ -419,30 +414,9 @@ export class CurvedLineTool {
       hasControls: false,
       hasBorders: false,
       hoverCursor: 'move',
-      visible: false,
     });
 
     (handle as any).isControlHandle = true;
-    
-    // Add hover effects
-    handle.on('mouseover', () => {
-      handle.set({
-        scaleX: 1.25,
-        scaleY: 1.25,
-        fill: '#059669', // Darker emerald green on hover
-      });
-      this.canvas.requestRenderAll();
-    });
-
-    handle.on('mouseout', () => {
-      handle.set({
-        scaleX: 1,
-        scaleY: 1,
-        fill: '#10b981', // Back to original emerald green
-      });
-      this.canvas.requestRenderAll();
-    });
-    
     return handle;
   }
 
@@ -453,7 +427,6 @@ export class CurvedLineTool {
       strokeDashArray: [5, 3],
       selectable: false,
       evented: false,
-      visible: false,
     });
 
     const line2 = new Line([control.x, control.y, end.x, end.y], {
@@ -462,7 +435,6 @@ export class CurvedLineTool {
       strokeDashArray: [5, 3],
       selectable: false,
       evented: false,
-      visible: false,
     });
 
     (line1 as any).isHandleLine = true;

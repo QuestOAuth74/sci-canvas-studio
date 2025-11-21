@@ -1481,16 +1481,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Hide guides and eraser paths so they are not persisted as visible in saved data
       const hidden: FabricObject[] = [];
       canvas.getObjects().forEach((obj) => {
-        if (
-          (obj as any).isGridLine || 
-          (obj as any).isRuler || 
-          (obj as any).isEraserPath ||
-          (obj as any).isControlHandle ||
-          (obj as any).isHandleLine ||
-          (obj as any).isGuideLine ||
-          (obj as any).isPortIndicator ||
-          (obj as any).isFeedback
-        ) {
+        if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
           if (obj.visible) {
             hidden.push(obj);
             obj.visible = false;
@@ -1644,14 +1635,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
-      
-      // Clean up any control handles or guide lines that may have been saved
-      canvas.getObjects().forEach((obj: any) => {
-        if (obj.isControlHandle || obj.isHandleLine || obj.isGuideLine || 
-            obj.isPortIndicator || obj.isFeedback) {
-          canvas.remove(obj);
-        }
-      });
 
       // Update context state
       setCurrentProjectId(data.id);
@@ -1732,14 +1715,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
       
-      // Clean up any control handles or guide lines
-      canvas.getObjects().forEach((obj: any) => {
-        if (obj.isControlHandle || obj.isHandleLine || obj.isGuideLine || 
-            obj.isPortIndicator || obj.isFeedback) {
-          canvas.remove(obj);
-        }
-      });
-      
       toast.success('Canvas recovered successfully!');
       localStorage.removeItem('canvas_recovery');
       setSaveStatus('unsaved');
@@ -1778,14 +1753,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
-      
-      // Clean up any control handles or guide lines
-      canvas.getObjects().forEach((obj: any) => {
-        if (obj.isControlHandle || obj.isHandleLine || obj.isGuideLine || 
-            obj.isPortIndicator || obj.isFeedback) {
-          canvas.remove(obj);
-        }
-      });
       
       setProjectName(`Untitled from ${template.name}`);
       setCurrentProjectId(null);
