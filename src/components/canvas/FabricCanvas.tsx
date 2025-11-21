@@ -309,71 +309,59 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     // Track selected objects with debug and auto-fix for invisible text
     canvas.on('selection:created', (e) => {
-      const selected = e.selected?.[0] || null;
+      const rawSelected = e.selected?.[0] || null;
+      let uiSelected: FabricObject | null = rawSelected;
       
-      // If a control handle or guide line is selected, keep the parent curved line selected instead
-      if (selected && ((selected as any).isControlHandle || (selected as any).isHandleLine)) {
+      // If a control handle or guide line is selected, map to parent curved line for the UI
+      if (rawSelected && ((rawSelected as any).isControlHandle || (rawSelected as any).isHandleLine)) {
         const parentCurve = canvas.getObjects().find(obj => {
           const curveData = obj as any;
           return curveData.isCurvedLine && 
-                 (curveData.controlHandle === selected || 
-                  curveData.handleLines?.includes(selected));
-        });
+                 (curveData.controlHandle === rawSelected || 
+                  curveData.handleLines?.includes(rawSelected));
+        }) as FabricObject | undefined;
         
-        if (parentCurve) {
-          canvas.setActiveObject(parentCurve);
-          setSelectedObject(parentCurve);
-          manageCurvedLineHandles(parentCurve);
-        } else {
-          setSelectedObject(null);
-          manageCurvedLineHandles(null);
-        }
-        return;
+        uiSelected = parentCurve ?? null;
       }
       
-      setSelectedObject(selected);
-      manageCurvedLineHandles(selected);
+      // UI uses uiSelected (parent curve for handles)
+      setSelectedObject(uiSelected);
+      manageCurvedLineHandles(uiSelected);
       
       // Debug text object properties
-      debugTextObject(selected, "Selection Created");
+      debugTextObject(uiSelected, "Selection Created");
       
       // Auto-fix invisible text
-      if (selected && fixInvisibleText(selected, canvas)) {
+      if (uiSelected && fixInvisibleText(uiSelected, canvas)) {
         toast.info("Fixed invisible text (reset opacity/fill)");
       }
     });
     
     canvas.on('selection:updated', (e) => {
-      const selected = e.selected?.[0] || null;
+      const rawSelected = e.selected?.[0] || null;
+      let uiSelected: FabricObject | null = rawSelected;
       
-      // If a control handle or guide line is selected, keep the parent curved line selected instead
-      if (selected && ((selected as any).isControlHandle || (selected as any).isHandleLine)) {
+      // If a control handle or guide line is selected, map to parent curved line for the UI
+      if (rawSelected && ((rawSelected as any).isControlHandle || (rawSelected as any).isHandleLine)) {
         const parentCurve = canvas.getObjects().find(obj => {
           const curveData = obj as any;
           return curveData.isCurvedLine && 
-                 (curveData.controlHandle === selected || 
-                  curveData.handleLines?.includes(selected));
-        });
+                 (curveData.controlHandle === rawSelected || 
+                  curveData.handleLines?.includes(rawSelected));
+        }) as FabricObject | undefined;
         
-        if (parentCurve) {
-          canvas.setActiveObject(parentCurve);
-          setSelectedObject(parentCurve);
-          manageCurvedLineHandles(parentCurve);
-        } else {
-          setSelectedObject(null);
-          manageCurvedLineHandles(null);
-        }
-        return;
+        uiSelected = parentCurve ?? null;
       }
       
-      setSelectedObject(selected);
-      manageCurvedLineHandles(selected);
+      // UI uses uiSelected (parent curve for handles)
+      setSelectedObject(uiSelected);
+      manageCurvedLineHandles(uiSelected);
       
       // Debug text object properties
-      debugTextObject(selected, "Selection Updated");
+      debugTextObject(uiSelected, "Selection Updated");
       
       // Auto-fix invisible text
-      if (selected && fixInvisibleText(selected, canvas)) {
+      if (uiSelected && fixInvisibleText(uiSelected, canvas)) {
         toast.info("Fixed invisible text (reset opacity/fill)");
       }
     });
