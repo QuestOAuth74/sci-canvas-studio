@@ -199,6 +199,11 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   // Update active tab when selectedObject changes
   useEffect(() => {
+    // Don't update properties for control handles or guide lines
+    if (selectedObject && ((selectedObject as any).isControlHandle || (selectedObject as any).isHandleLine)) {
+      return;
+    }
+    
     if (!selectedObject) {
       setActiveTab("diagram");
     } else {

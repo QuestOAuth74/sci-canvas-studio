@@ -274,10 +274,44 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Normalize all existing text objects with font stacks for special character support
     normalizeCanvasTextFonts(canvas);
 
+    // Helper function to manage curved line control handle visibility
+    const manageCurvedLineHandles = (selectedObj: FabricObject | null) => {
+      // First, hide ALL curved line handles on the canvas
+      canvas.getObjects().forEach((obj) => {
+        if ((obj as any).isCurvedLine) {
+          const curveData = obj as any;
+          if (curveData.controlHandle) {
+            curveData.controlHandle.visible = false;
+          }
+          if (curveData.handleLines) {
+            curveData.handleLines.forEach((line: any) => {
+              line.visible = false;
+            });
+          }
+        }
+      });
+
+      // Then, show handles only for the selected curved line
+      if (selectedObj && (selectedObj as any).isCurvedLine) {
+        const curveData = selectedObj as any;
+        if (curveData.controlHandle) {
+          curveData.controlHandle.visible = true;
+        }
+        if (curveData.handleLines) {
+          curveData.handleLines.forEach((line: any) => {
+            line.visible = true;
+          });
+        }
+      }
+      
+      canvas.requestRenderAll();
+    };
+
     // Track selected objects with debug and auto-fix for invisible text
     canvas.on('selection:created', (e) => {
       const selected = e.selected?.[0] || null;
       setSelectedObject(selected);
+      manageCurvedLineHandles(selected);
       
       // Debug text object properties
       debugTextObject(selected, "Selection Created");
@@ -291,6 +325,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     canvas.on('selection:updated', (e) => {
       const selected = e.selected?.[0] || null;
       setSelectedObject(selected);
+      manageCurvedLineHandles(selected);
       
       // Debug text object properties
       debugTextObject(selected, "Selection Updated");
@@ -303,6 +338,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     canvas.on('selection:cleared', () => {
       setSelectedObject(null);
+      manageCurvedLineHandles(null);
     });
 
     // Normalize fonts when text editing starts
