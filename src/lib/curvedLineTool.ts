@@ -190,7 +190,7 @@ export class CurvedLineTool {
       subTargetCheck: false, // Prevent selecting individual marker elements
     });
 
-    // Store custom properties
+    // Store custom properties - ensuring these are serialized
     (group as any).isCurvedLine = true;
     (group as any).curvedLineStart = { x: this.startPoint.x, y: this.startPoint.y };
     (group as any).curvedLineEnd = { x: endPoint.x, y: endPoint.y };
@@ -207,6 +207,7 @@ export class CurvedLineTool {
       endMarker: this.options.endMarker,
       lineStyle: this.options.lineStyle,
     };
+    (group as any).curvedLineVersion = 2; // Version for migration tracking
     
     // Store local coordinates for transform sync
     const inv = util.invertTransform(group.calcTransformMatrix());
@@ -657,8 +658,96 @@ export class CurvedLineTool {
 }
 
 /**
+ * Helper: Detect if an object looks like an orphan control handle by visual appearance
+ */
+function looksLikeOrphanHandle(obj: any): boolean {
+  // Green circle handle
+  if (obj.type === 'circle' && 
+      obj.radius >= 7 && obj.radius <= 9 &&
+      (obj.fill === '#10b981' || obj.fill === 'rgb(16, 185, 129)') &&
+      (obj.stroke === '#ffffff' || obj.stroke === 'rgb(255, 255, 255)')) {
+    return true;
+  }
+  
+  // Green dashed line
+  if (obj.type === 'line' &&
+      (obj.stroke === '#10b981' || obj.stroke === 'rgb(16, 185, 129)') &&
+      obj.strokeDashArray && obj.strokeDashArray.length > 0) {
+    return true;
+  }
+  
+  return false;
+}
+
+/**
+ * Cleanup all orphan handles and guide lines from canvas.
+ * Removes objects with transient flags OR objects that visually match handle/guide appearance.
+ */
+export function cleanupOrphanHandles(canvas: Canvas): void {
+  const toRemove: any[] = [];
+  
+  canvas.getObjects().forEach((obj) => {
+    const objData = obj as any;
+    
+    // Remove by flag
+    if (objData.isControlHandle || 
+        objData.isHandleLine || 
+        objData.isGuideLine ||
+        objData.isPortIndicator ||
+        objData.isFeedback) {
+      toRemove.push(obj);
+      return;
+    }
+    
+    // Remove by visual appearance (for legacy data without flags)
+    if (looksLikeOrphanHandle(objData)) {
+      toRemove.push(obj);
+    }
+  });
+  
+  toRemove.forEach(obj => canvas.remove(obj));
+  
+  if (toRemove.length > 0) {
+    console.log(`Cleaned up ${toRemove.length} orphan handle(s)`);
+  }
+}
+
+/**
+ * Derive control point coordinates from mainPath geometry and group transform.
+ * This ensures accurate positioning even after the group has been moved/scaled.
+ */
+function deriveControlPointFromPath(group: Group, mainPath: Path): Point | null {
+  try {
+    const pathData = mainPath.path;
+    if (!pathData || pathData.length < 2) return null;
+    
+    // Extract Q command for quadratic Bezier: ['Q', cx, cy, ex, ey]
+    let controlX = 0, controlY = 0;
+    
+    for (const command of pathData) {
+      if (command[0] === 'Q' && command.length >= 5) {
+        controlX = command[1] as number;
+        controlY = command[2] as number;
+        break;
+      }
+    }
+    
+    if (controlX === 0 && controlY === 0) return null;
+    
+    // Convert path-local coordinates to world coordinates
+    const localPoint = new FabricPoint(controlX, controlY);
+    const worldPoint = util.transformPoint(localPoint, group.calcTransformMatrix());
+    
+    return { x: worldPoint.x, y: worldPoint.y };
+  } catch (error) {
+    console.warn('Failed to derive control point from path:', error);
+    return null;
+  }
+}
+
+/**
  * Reconnect all curved lines on the canvas after loading from JSON.
- * This recreates control handles, guide lines, and event handlers.
+ * This recreates control handles, guide lines, and event handlers using live path geometry.
  */
 export function reconnectCurvedLines(canvas: Canvas): void {
   canvas.getObjects().forEach((obj) => {
@@ -670,15 +759,73 @@ export function reconnectCurvedLines(canvas: Canvas): void {
     // Skip if already has a control handle (shouldn't happen after cleanup)
     if (curveData.controlHandle && canvas.contains(curveData.controlHandle)) return;
     
-    // Extract stored coordinates
-    const start = curveData.curvedLineStart;
-    const end = curveData.curvedLineEnd;
-    const controlPoint = curveData.curvedLineControlPoint;
+    const group = obj as Group;
+    const mainPath = curveData.mainPath as Path;
     
-    if (!start || !end || !controlPoint) {
-      console.warn('Curved line missing coordinate data, skipping reconnect');
+    if (!mainPath) {
+      console.warn('Curved line missing mainPath, skipping reconnect');
       return;
     }
+    
+    // Derive control point from path geometry (more reliable than stored coordinates)
+    const derivedControl = deriveControlPointFromPath(group, mainPath);
+    let controlPoint = derivedControl;
+    
+    // Fallback to stored coordinates if derivation fails
+    if (!controlPoint) {
+      controlPoint = curveData.curvedLineControlPoint;
+      if (!controlPoint) {
+        console.warn('Curved line missing control point data, skipping reconnect');
+        return;
+      }
+    }
+    
+    // Update stored coordinate to match derived position
+    curveData.curvedLineControlPoint = controlPoint;
+    
+    // Derive start/end from path or use stored
+    let start = curveData.curvedLineStart;
+    let end = curveData.curvedLineEnd;
+    
+    // Try to extract from path if not stored
+    if ((!start || !end) && mainPath.path && mainPath.path.length >= 2) {
+      try {
+        const pathData = mainPath.path;
+        // M command: ['M', x, y]
+        if (pathData[0][0] === 'M') {
+          const localStart = new FabricPoint(pathData[0][1] as number, pathData[0][2] as number);
+          const worldStart = util.transformPoint(localStart, group.calcTransformMatrix());
+          start = { x: worldStart.x, y: worldStart.y };
+        }
+        
+        // Find Q command end point
+        for (const command of pathData) {
+          if (command[0] === 'Q' && command.length >= 5) {
+            const localEnd = new FabricPoint(command[3] as number, command[4] as number);
+            const worldEnd = util.transformPoint(localEnd, group.calcTransformMatrix());
+            end = { x: worldEnd.x, y: worldEnd.y };
+            break;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to derive start/end from path:', error);
+      }
+    }
+    
+    if (!start || !end) {
+      console.warn('Curved line missing start/end data, skipping reconnect');
+      return;
+    }
+    
+    // Update stored coordinates
+    curveData.curvedLineStart = start;
+    curveData.curvedLineEnd = end;
+    
+    // Recompute local coordinates with current transform
+    const inv = util.invertTransform(group.calcTransformMatrix());
+    curveData.curvedLocalStart = util.transformPoint(new FabricPoint(start.x, start.y), inv);
+    curveData.curvedLocalEnd = util.transformPoint(new FabricPoint(end.x, end.y), inv);
+    curveData.curvedLocalControl = util.transformPoint(new FabricPoint(controlPoint.x, controlPoint.y), inv);
     
     // Create control handle
     const controlHandle = new Circle({
@@ -703,20 +850,20 @@ export function reconnectCurvedLines(canvas: Canvas): void {
     const line1 = new Line([start.x, start.y, controlPoint.x, controlPoint.y], {
       stroke: '#10b981',
       strokeWidth: 1,
-      strokeDashArray: [5, 5],
+      strokeDashArray: [5, 3],
       selectable: false,
       evented: false,
-      visible: false, // Start hidden
+      visible: false,
     });
     (line1 as any).isHandleLine = true;
     
     const line2 = new Line([controlPoint.x, controlPoint.y, end.x, end.y], {
       stroke: '#10b981',
       strokeWidth: 1,
-      strokeDashArray: [5, 5],
+      strokeDashArray: [5, 3],
       selectable: false,
       evented: false,
-      visible: false, // Start hidden
+      visible: false,
     });
     (line2 as any).isHandleLine = true;
     
@@ -727,7 +874,7 @@ export function reconnectCurvedLines(canvas: Canvas): void {
     // Add to canvas
     canvas.add(line1, line2, controlHandle);
     
-    // Re-attach event handler for dragging
+    // Re-attach event handler for dragging (same logic as setupControlHandleDrag)
     controlHandle.on('moving', () => {
       const newControl = { x: controlHandle.left!, y: controlHandle.top! };
       curveData.curvedLineControlPoint = newControl;
@@ -749,10 +896,8 @@ export function reconnectCurvedLines(canvas: Canvas): void {
       
       // Update the main curve path
       const pathData = `M ${start.x} ${start.y} Q ${newControl.x} ${newControl.y} ${end.x} ${end.y}`;
-      const mainPath = curveData.mainPath as Path;
       
       if (mainPath) {
-        const group = obj as Group;
         const objects = group.getObjects();
         const pathIndex = objects.indexOf(mainPath);
         
@@ -771,11 +916,11 @@ export function reconnectCurvedLines(canvas: Canvas): void {
         }
       }
       
-      // Force group to recalculate
-      (obj as Group).setCoords();
+      // Force group to recalculate bounds and coordinates
+      group.setCoords();
       
-      // Recompute local coordinates
-      const inv = util.invertTransform((obj as Group).calcTransformMatrix());
+      // Recompute inverse transform with current group matrix
+      const inv = util.invertTransform(group.calcTransformMatrix());
       curveData.curvedLocalStart = util.transformPoint(new FabricPoint(start.x, start.y), inv);
       curveData.curvedLocalEnd = util.transformPoint(new FabricPoint(end.x, end.y), inv);
       curveData.curvedLocalControl = util.transformPoint(new FabricPoint(newControl.x, newControl.y), inv);
