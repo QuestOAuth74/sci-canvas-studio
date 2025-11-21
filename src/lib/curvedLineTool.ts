@@ -414,6 +414,7 @@ export class CurvedLineTool {
       hasControls: false,
       hasBorders: false,
       hoverCursor: 'move',
+      visible: false,
     });
 
     (handle as any).isControlHandle = true;
@@ -427,6 +428,7 @@ export class CurvedLineTool {
       strokeDashArray: [5, 3],
       selectable: false,
       evented: false,
+      visible: false,
     });
 
     const line2 = new Line([control.x, control.y, end.x, end.y], {
@@ -435,6 +437,7 @@ export class CurvedLineTool {
       strokeDashArray: [5, 3],
       selectable: false,
       evented: false,
+      visible: false,
     });
 
     (line1 as any).isHandleLine = true;
