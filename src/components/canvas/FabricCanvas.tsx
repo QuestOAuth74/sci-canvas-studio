@@ -277,6 +277,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Helper functions for curved line control handle visibility
     const hideAllCurvedLineHandles = () => {
       canvas.getObjects().forEach((obj: any) => {
+        // Primary path: hide via curved-line groups
         if (obj.isCurvedLine) {
           if (obj.controlHandle) {
             obj.controlHandle.visible = false;
@@ -284,6 +285,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           if (obj.handleLines) {
             obj.handleLines.forEach((line: any) => line.visible = false);
           }
+        }
+
+        // Safety path: hide any stray/orphan handles or guide lines
+        if (obj.isControlHandle || obj.isHandleLine) {
+          obj.visible = false;
         }
       });
     };
@@ -344,6 +350,30 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       // Hide all curved line handles when nothing is selected
       hideAllCurvedLineHandles();
       canvas.renderAll();
+    });
+
+    // Clean up handles when curved line is removed
+    canvas.on('object:removed', (e) => {
+      const target: any = e.target;
+      if (!target) return;
+
+      // If a curved line group is removed, also remove its control handle and guide lines
+      if (target.isCurvedLine) {
+        if (target.controlHandle && target.controlHandle.canvas) {
+          canvas.remove(target.controlHandle);
+        }
+        if (Array.isArray(target.handleLines)) {
+          target.handleLines.forEach((line: any) => {
+            if (line && line.canvas) {
+              canvas.remove(line);
+            }
+          });
+        }
+      }
+
+      // As a safety net, hide any remaining curved-line handles
+      hideAllCurvedLineHandles();
+      canvas.requestRenderAll();
     });
 
     // Normalize fonts when text editing starts
