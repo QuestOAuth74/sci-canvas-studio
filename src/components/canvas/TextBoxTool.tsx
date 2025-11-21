@@ -11,6 +11,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Square, AlignLeft, AlignCenter, AlignRight, AlignJustify } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { createTextBox } from "@/lib/textBoxTool";
@@ -33,9 +40,83 @@ const ALIGN_OPTIONS = [
   { value: "justify", icon: AlignJustify, label: "Justify" },
 ];
 
+const TEXT_BOX_PRESETS = {
+  custom: {
+    name: "Custom",
+    text: "Enter text here...",
+    width: 300,
+    height: 150,
+    fontSize: 16,
+    fontFamily: "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    textAlign: "left",
+    backgroundColor: "#ffffff",
+    borderColor: "#000000",
+    borderWidth: 1,
+    padding: 15,
+    fontColor: "#000000",
+  },
+  title: {
+    name: "Title",
+    text: "Title Text",
+    width: 400,
+    height: 100,
+    fontSize: 32,
+    fontFamily: "Georgia, serif",
+    textAlign: "center",
+    backgroundColor: "#f8fafc",
+    borderColor: "#1e40af",
+    borderWidth: 2,
+    padding: 20,
+    fontColor: "#1e293b",
+  },
+  annotation: {
+    name: "Annotation",
+    text: "Add your annotation here",
+    width: 250,
+    height: 120,
+    fontSize: 14,
+    fontFamily: "Arial, Helvetica, sans-serif",
+    textAlign: "left",
+    backgroundColor: "#fffbeb",
+    borderColor: "#f59e0b",
+    borderWidth: 1.5,
+    padding: 12,
+    fontColor: "#78350f",
+  },
+  caption: {
+    name: "Caption",
+    text: "Figure caption or description",
+    width: 350,
+    height: 80,
+    fontSize: 13,
+    fontFamily: "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    textAlign: "center",
+    backgroundColor: "#f1f5f9",
+    borderColor: "#64748b",
+    borderWidth: 0,
+    padding: 10,
+    fontColor: "#334155",
+  },
+  note: {
+    name: "Note",
+    text: "Important note or disclaimer",
+    width: 320,
+    height: 140,
+    fontSize: 14,
+    fontFamily: "Verdana, Geneva, sans-serif",
+    textAlign: "left",
+    backgroundColor: "#dbeafe",
+    borderColor: "#3b82f6",
+    borderWidth: 1,
+    padding: 15,
+    fontColor: "#1e3a8a",
+  },
+};
+
 export const TextBoxTool = () => {
   const { canvas } = useCanvas();
   const [open, setOpen] = useState(false);
+  const [selectedPreset, setSelectedPreset] = useState("custom");
   const [text, setText] = useState("Enter text here...");
   const [width, setWidth] = useState(300);
   const [height, setHeight] = useState(150);
@@ -47,6 +128,24 @@ export const TextBoxTool = () => {
   const [borderWidth, setBorderWidth] = useState(1);
   const [padding, setPadding] = useState(15);
   const [fontColor, setFontColor] = useState("#000000");
+
+  const applyPreset = (presetKey: string) => {
+    const preset = TEXT_BOX_PRESETS[presetKey as keyof typeof TEXT_BOX_PRESETS];
+    if (!preset) return;
+
+    setText(preset.text);
+    setWidth(preset.width);
+    setHeight(preset.height);
+    setFontSize(preset.fontSize);
+    setFontFamily(preset.fontFamily);
+    setTextAlign(preset.textAlign);
+    setBackgroundColor(preset.backgroundColor);
+    setBorderColor(preset.borderColor);
+    setBorderWidth(preset.borderWidth);
+    setPadding(preset.padding);
+    setFontColor(preset.fontColor);
+    setSelectedPreset(presetKey);
+  };
 
   const handleAddTextBox = () => {
     if (!canvas) {
@@ -101,13 +200,33 @@ export const TextBoxTool = () => {
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Preset Selector */}
+          <div className="space-y-2">
+            <Label htmlFor="preset">Text Box Style</Label>
+            <Select value={selectedPreset} onValueChange={applyPreset}>
+              <SelectTrigger id="preset" className="w-full">
+                <SelectValue placeholder="Select a style..." />
+              </SelectTrigger>
+              <SelectContent className="z-[9999] bg-background">
+                {Object.entries(TEXT_BOX_PRESETS).map(([key, preset]) => (
+                  <SelectItem key={key} value={key}>
+                    {preset.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Text Content */}
           <div className="space-y-2">
             <Label htmlFor="text">Text Content</Label>
             <Textarea
               id="text"
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => {
+                setText(e.target.value);
+                setSelectedPreset("custom");
+              }}
               placeholder="Enter your text..."
               rows={4}
             />
@@ -119,7 +238,10 @@ export const TextBoxTool = () => {
               <Label>Width: {width}px</Label>
               <Slider
                 value={[width]}
-                onValueChange={([value]) => setWidth(value)}
+                onValueChange={([value]) => {
+                  setWidth(value);
+                  setSelectedPreset("custom");
+                }}
                 min={150}
                 max={800}
                 step={10}
@@ -129,7 +251,10 @@ export const TextBoxTool = () => {
               <Label>Height: {height}px</Label>
               <Slider
                 value={[height]}
-                onValueChange={([value]) => setHeight(value)}
+                onValueChange={([value]) => {
+                  setHeight(value);
+                  setSelectedPreset("custom");
+                }}
                 min={80}
                 max={600}
                 step={10}
@@ -144,7 +269,10 @@ export const TextBoxTool = () => {
               <select
                 id="font"
                 value={fontFamily}
-                onChange={(e) => setFontFamily(e.target.value)}
+                onChange={(e) => {
+                  setFontFamily(e.target.value);
+                  setSelectedPreset("custom");
+                }}
                 className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
                 {FONTS.map((font) => (
@@ -158,7 +286,10 @@ export const TextBoxTool = () => {
               <Label>Font Size: {fontSize}px</Label>
               <Slider
                 value={[fontSize]}
-                onValueChange={([value]) => setFontSize(value)}
+                onValueChange={([value]) => {
+                  setFontSize(value);
+                  setSelectedPreset("custom");
+                }}
                 min={12}
                 max={48}
                 step={1}
@@ -174,13 +305,19 @@ export const TextBoxTool = () => {
                 id="fontColor"
                 type="color"
                 value={fontColor}
-                onChange={(e) => setFontColor(e.target.value)}
+                onChange={(e) => {
+                  setFontColor(e.target.value);
+                  setSelectedPreset("custom");
+                }}
                 className="h-10 w-20 rounded border border-input cursor-pointer"
               />
               <input
                 type="text"
                 value={fontColor}
-                onChange={(e) => setFontColor(e.target.value)}
+                onChange={(e) => {
+                  setFontColor(e.target.value);
+                  setSelectedPreset("custom");
+                }}
                 className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
             </div>
@@ -195,7 +332,10 @@ export const TextBoxTool = () => {
                   key={option.value}
                   variant={textAlign === option.value ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setTextAlign(option.value)}
+                  onClick={() => {
+                    setTextAlign(option.value);
+                    setSelectedPreset("custom");
+                  }}
                   title={option.label}
                 >
                   <option.icon className="h-4 w-4" />
@@ -213,13 +353,19 @@ export const TextBoxTool = () => {
                   id="bgColor"
                   type="color"
                   value={backgroundColor}
-                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  onChange={(e) => {
+                    setBackgroundColor(e.target.value);
+                    setSelectedPreset("custom");
+                  }}
                   className="h-10 w-20 rounded border border-input cursor-pointer"
                 />
                 <input
                   type="text"
                   value={backgroundColor}
-                  onChange={(e) => setBackgroundColor(e.target.value)}
+                  onChange={(e) => {
+                    setBackgroundColor(e.target.value);
+                    setSelectedPreset("custom");
+                  }}
                   className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
               </div>
@@ -231,13 +377,19 @@ export const TextBoxTool = () => {
                   id="borderColor"
                   type="color"
                   value={borderColor}
-                  onChange={(e) => setBorderColor(e.target.value)}
+                  onChange={(e) => {
+                    setBorderColor(e.target.value);
+                    setSelectedPreset("custom");
+                  }}
                   className="h-10 w-20 rounded border border-input cursor-pointer"
                 />
                 <input
                   type="text"
                   value={borderColor}
-                  onChange={(e) => setBorderColor(e.target.value)}
+                  onChange={(e) => {
+                    setBorderColor(e.target.value);
+                    setSelectedPreset("custom");
+                  }}
                   className="flex-1 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
                 />
               </div>
@@ -250,7 +402,10 @@ export const TextBoxTool = () => {
               <Label>Border Width: {borderWidth}px</Label>
               <Slider
                 value={[borderWidth]}
-                onValueChange={([value]) => setBorderWidth(value)}
+                onValueChange={([value]) => {
+                  setBorderWidth(value);
+                  setSelectedPreset("custom");
+                }}
                 min={0}
                 max={5}
                 step={0.5}
@@ -260,7 +415,10 @@ export const TextBoxTool = () => {
               <Label>Padding: {padding}px</Label>
               <Slider
                 value={[padding]}
-                onValueChange={([value]) => setPadding(value)}
+                onValueChange={([value]) => {
+                  setPadding(value);
+                  setSelectedPreset("custom");
+                }}
                 min={5}
                 max={50}
                 step={5}
