@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Copy, Trash2, GripVertical } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { throttle } from "@/lib/performanceUtils";
 
 export const ContextualToolbar = () => {
   const { selectedObject, canvas } = useCanvas();
@@ -30,14 +31,16 @@ export const ContextualToolbar = () => {
     }
   }, []);
 
-  // Handle dragging
+  // Handle dragging with performance optimization
   useEffect(() => {
     if (!isDragging) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const toolbarWidth = toolbarRef.current?.offsetWidth || 800;
-      const toolbarHeight = toolbarRef.current?.offsetHeight || 60;
+    // Cache DOM measurements once when drag starts
+    const toolbarWidth = toolbarRef.current?.offsetWidth || 800;
+    const toolbarHeight = toolbarRef.current?.offsetHeight || 60;
 
+    // Throttle to 16ms (~60fps)
+    const handleMouseMove = throttle((e: MouseEvent) => {
       let newX = e.clientX - dragOffset.x;
       let newY = e.clientY - dragOffset.y;
 
@@ -46,7 +49,7 @@ export const ContextualToolbar = () => {
       newY = Math.max(0, Math.min(newY, window.innerHeight - toolbarHeight));
 
       setPosition({ x: newX, y: newY });
-    };
+    }, 16);
 
     const handleMouseUp = () => {
       setIsDragging(false);
@@ -118,17 +121,39 @@ export const ContextualToolbar = () => {
     canvas.requestRenderAll();
   };
 
+  // Memoize child components to prevent re-renders during drag
+  const textControls = useMemo(() => {
+    if (!isTextObject) return null;
+    return (
+      <>
+        <TextFormattingPanel />
+        <Separator orientation="vertical" className="h-8" />
+      </>
+    );
+  }, [isTextObject, selectedObject]);
+
+  const lineControls = useMemo(() => {
+    if (!isConnector) return null;
+    return (
+      <>
+        <LinePropertiesPanel />
+        <Separator orientation="vertical" className="h-8" />
+      </>
+    );
+  }, [isConnector, selectedObject]);
+
   return (
     <div 
       ref={toolbarRef}
-      className="fixed z-40 glass-effect-premium rounded-lg shadow-lg hover:shadow-xl p-3 flex items-center gap-4 max-w-5xl transition-all duration-300"
+      className="fixed z-40 glass-effect-premium rounded-lg shadow-lg hover:shadow-xl p-3 flex items-center gap-4 max-w-5xl"
       style={{ 
-        left: `${position.x}px`, 
-        top: `${position.y}px`,
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        transition: isDragging ? 'none' : 'all 0.3s',
         cursor: isDragging ? 'grabbing' : 'default',
         boxShadow: isDragging 
           ? '0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(59, 130, 246, 0.3)' 
-          : undefined
+          : undefined,
+        willChange: isDragging ? 'transform' : 'auto',
       }}
     >
       {/* Drag Handle */}
@@ -142,20 +167,10 @@ export const ContextualToolbar = () => {
       
       <Separator orientation="vertical" className="h-8" />
       {/* Text Controls */}
-      {isTextObject && (
-        <>
-          <TextFormattingPanel />
-          <Separator orientation="vertical" className="h-8" />
-        </>
-      )}
+      {textControls}
 
       {/* Line/Connector Controls */}
-      {isConnector && (
-        <>
-          <LinePropertiesPanel />
-          <Separator orientation="vertical" className="h-8" />
-        </>
-      )}
+      {lineControls}
 
       {/* Shape Controls */}
       {isShape && (
