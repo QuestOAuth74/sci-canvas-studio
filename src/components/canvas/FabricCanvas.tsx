@@ -372,6 +372,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
+    // Handle text box resize
+    canvas.on('object:modified', (e) => {
+      const obj = e.target;
+      if (obj && obj.type === 'group') {
+        const { isTextBox, handleTextBoxResize } = require('@/lib/textBoxTool');
+        if (isTextBox(obj)) {
+          handleTextBoxResize(obj);
+          canvas.requestRenderAll();
+        }
+      }
+    });
+
     // Snap-to-grid removed per user request: free movement while dragging and on release
     // (previous object:modified snapping handler deleted)
 

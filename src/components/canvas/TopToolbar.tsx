@@ -34,6 +34,7 @@ import { QuickSettings } from "./QuickSettings";
 import { FeatureAccessBadge } from "./FeatureAccessBadge";
 import { DarkModeToggle } from "./DarkModeToggle";
 import { TextOnPathTool } from "./TextOnPathTool";
+import { TextBoxTool } from "./TextBoxTool";
 import { useState } from "react";
 
 interface TopToolbarProps {
@@ -260,6 +261,8 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       <Separator orientation="vertical" className="h-6 mx-1" />
 
       <TextOnPathTool />
+
+      <TextBoxTool />
 
       <Separator orientation="vertical" className="h-6 mx-1" />
 

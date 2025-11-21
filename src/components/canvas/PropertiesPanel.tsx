@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,6 +20,7 @@ import { ChevronLeft, ChevronRight, Pin, PinOff, Eraser, Paintbrush } from "luci
 import { toast } from "sonner";
 import { ensureFontLoaded, getCanvasFontFamily } from "@/lib/fontLoader";
 import { isTextOnPath, getTextOnPathData, updateTextOnPath, isValidPath } from "@/lib/textOnPath";
+import { isTextBox, getTextBoxData, updateTextBox } from "@/lib/textBoxTool";
 
 const GOOGLE_FONTS = [
   { value: "Inter", label: "Inter" },
@@ -131,7 +133,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const isTextObject = (obj: any) => {
     return obj?.type === 'textbox' || 
            (obj?.type === 'group' && obj.getObjects().some((o: any) => o.type === 'textbox')) ||
-           isTextOnPath(obj);
+           isTextOnPath(obj) ||
+           isTextBox(obj);
   };
 
   const isLineObject = (obj: any) => {
@@ -1083,6 +1086,146 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                     >
                       Flip Text Orientation
                     </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Text Box Properties */}
+              {selectedObject && isTextBox(selectedObject) && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Text Box Properties</h3>
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <Label className="text-xs">Text Content</Label>
+                      <Textarea
+                        value={getTextBoxData(selectedObject).text}
+                        onChange={(e) => {
+                          if (!canvas) return;
+                          try {
+                            updateTextBox(selectedObject as any, { text: e.target.value });
+                            canvas.requestRenderAll();
+                          } catch (error) {
+                            console.error('Failed to update text:', error);
+                          }
+                        }}
+                        rows={4}
+                        className="text-xs"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Width: {Math.round(getTextBoxData(selectedObject).width)}px</Label>
+                        <Slider
+                          value={[getTextBoxData(selectedObject).width]}
+                          onValueChange={([value]) => {
+                            if (!canvas) return;
+                            try {
+                              updateTextBox(selectedObject as any, { width: value });
+                              canvas.requestRenderAll();
+                            } catch (error) {
+                              console.error('Failed to update width:', error);
+                            }
+                          }}
+                          min={150}
+                          max={800}
+                          step={10}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Height: {Math.round(getTextBoxData(selectedObject).height)}px</Label>
+                        <Slider
+                          value={[getTextBoxData(selectedObject).height]}
+                          onValueChange={([value]) => {
+                            if (!canvas) return;
+                            try {
+                              updateTextBox(selectedObject as any, { height: value });
+                              canvas.requestRenderAll();
+                            } catch (error) {
+                              console.error('Failed to update height:', error);
+                            }
+                          }}
+                          min={80}
+                          max={600}
+                          step={10}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">Padding: {getTextBoxData(selectedObject).padding}px</Label>
+                      <Slider
+                        value={[getTextBoxData(selectedObject).padding]}
+                        onValueChange={([value]) => {
+                          if (!canvas) return;
+                          try {
+                            updateTextBox(selectedObject as any, { padding: value });
+                            canvas.requestRenderAll();
+                          } catch (error) {
+                            console.error('Failed to update padding:', error);
+                          }
+                        }}
+                        min={5}
+                        max={50}
+                        step={5}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Background</Label>
+                        <Input
+                          type="color"
+                          value={getTextBoxData(selectedObject).backgroundColor}
+                          onChange={(e) => {
+                            if (!canvas) return;
+                            try {
+                              updateTextBox(selectedObject as any, { backgroundColor: e.target.value });
+                              canvas.requestRenderAll();
+                            } catch (error) {
+                              console.error('Failed to update background:', error);
+                            }
+                          }}
+                          className="h-8"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Border</Label>
+                        <Input
+                          type="color"
+                          value={getTextBoxData(selectedObject).borderColor}
+                          onChange={(e) => {
+                            if (!canvas) return;
+                            try {
+                              updateTextBox(selectedObject as any, { borderColor: e.target.value });
+                              canvas.requestRenderAll();
+                            } catch (error) {
+                              console.error('Failed to update border:', error);
+                            }
+                          }}
+                          className="h-8"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">Border Width: {getTextBoxData(selectedObject).borderWidth}px</Label>
+                      <Slider
+                        value={[getTextBoxData(selectedObject).borderWidth]}
+                        onValueChange={([value]) => {
+                          if (!canvas) return;
+                          try {
+                            updateTextBox(selectedObject as any, { borderWidth: value });
+                            canvas.requestRenderAll();
+                          } catch (error) {
+                            console.error('Failed to update border width:', error);
+                          }
+                        }}
+                        min={0}
+                        max={5}
+                        step={0.5}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
