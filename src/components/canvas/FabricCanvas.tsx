@@ -15,6 +15,7 @@ import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { loadImageWithCORS } from "@/lib/utils";
 import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling";
 import { calculateObjectComplexity, applyComplexityOptimizations, shouldSimplifyControls } from "@/lib/objectComplexity";
+import { isTextBox, handleTextBoxResize } from "@/lib/textBoxTool";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -372,15 +373,23 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Handle text box resize
-    canvas.on('object:modified', (e) => {
-      const obj = e.target;
-      if (obj && obj.type === 'group') {
-        const { isTextBox, handleTextBoxResize } = require('@/lib/textBoxTool');
-        if (isTextBox(obj)) {
+    // Handle text box resize - track scaling state to avoid feedback loops
+    let isScalingTextBox = false;
+
+    canvas.on('object:scaling', (e) => {
+      if (e.target && isTextBox(e.target)) {
+        isScalingTextBox = true;
+      }
+    });
+
+    canvas.on('mouse:up', () => {
+      if (isScalingTextBox) {
+        const obj = canvas.getActiveObject();
+        if (obj && isTextBox(obj)) {
           handleTextBoxResize(obj);
           canvas.requestRenderAll();
         }
+        isScalingTextBox = false;
       }
     });
 
