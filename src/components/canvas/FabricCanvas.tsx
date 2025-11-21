@@ -15,7 +15,7 @@ import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { loadImageWithCORS } from "@/lib/utils";
 import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling";
 import { calculateObjectComplexity, applyComplexityOptimizations, shouldSimplifyControls } from "@/lib/objectComplexity";
-import { isTextBox, handleTextBoxResize } from "@/lib/textBoxTool";
+import { isTextBox, handleTextBoxResize, getTextBoxTextElement } from "@/lib/textBoxTool";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -390,6 +390,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           canvas.requestRenderAll();
         }
         isScalingTextBox = false;
+      }
+    });
+
+    // Handle double-click to edit text box content
+    canvas.on('mouse:dblclick', (e) => {
+      const obj = e.target;
+      if (obj && isTextBox(obj)) {
+        const textElement = getTextBoxTextElement(obj);
+        if (textElement) {
+          canvas.setActiveObject(textElement);
+          textElement.enterEditing();
+          textElement.selectAll();
+          canvas.requestRenderAll();
+        }
       }
     });
 
