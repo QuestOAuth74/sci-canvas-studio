@@ -235,19 +235,23 @@ const Index = () => {
           </div>
 
           {/* Community Carousel */}
-          <div className="space-y-8 animate-fade-in [animation-delay:400ms]">
-            <div className="text-center space-y-3">
-              
-              
+          {user && (
+            <div className="space-y-8 animate-fade-in [animation-delay:400ms]">
+              <div className="text-center space-y-3">
+                
+                
+              </div>
+              <CommunityCarousel />
             </div>
-            <CommunityCarousel />
-          </div>
+          )}
 
           {/* Blog Posts */}
-          <div className="space-y-8 animate-fade-in [animation-delay:500ms]">
-            
-            <BlogPostsCarousel />
-          </div>
+          {user && (
+            <div className="space-y-8 animate-fade-in [animation-delay:500ms]">
+              
+              <BlogPostsCarousel />
+            </div>
+          )}
 
           {/* Final CTA */}
           {!user && <div className="text-center py-16 space-y-5 animate-fade-in">
