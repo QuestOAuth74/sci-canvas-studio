@@ -159,6 +159,14 @@ const CanvasContent = () => {
   // Check for recovery on load
   useEffect(() => {
     if (!canvas) return;
+    
+    // Don't offer recovery when loading a specific project from URL
+    const projectId = searchParams.get("project");
+    if (projectId) {
+      // Clear any stale recovery data when loading explicit project
+      localStorage.removeItem('canvas_recovery');
+      return;
+    }
 
     const recovery = checkForRecovery();
     if (recovery) {
@@ -173,7 +181,7 @@ const CanvasContent = () => {
         }
       );
     }
-  }, [canvas, checkForRecovery, recoverCanvas]);
+  }, [canvas, checkForRecovery, recoverCanvas, searchParams]);
 
 
   const handleExport = () => {

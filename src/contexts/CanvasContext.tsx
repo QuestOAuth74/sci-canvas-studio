@@ -1668,6 +1668,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       });
 
       toast.success("Project loaded");
+      
+      // Clear any stale recovery data since we just loaded fresh from database
+      localStorage.removeItem('canvas_recovery');
     } catch (error: any) {
       console.error('Load error:', error);
       toast.error(error.message || "Failed to load project");
