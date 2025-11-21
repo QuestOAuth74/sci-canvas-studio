@@ -508,9 +508,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0">
+    <div className="flex flex-col h-full min-h-0 panel-gradient sidebar-shadow-right">
       {/* Toggle button - always visible */}
-      <div className="p-2 border-b flex items-center justify-between">
+      <div className="p-2 border-b bg-background/30 backdrop-blur-sm flex items-center justify-between">
         <Button
           variant="ghost"
           size="icon"
@@ -525,7 +525,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
         <>
-          <div className="p-4 border-b space-y-3">
+          <div className="p-4 border-b bg-background/30 backdrop-blur-sm space-y-3">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Icon Library</h2>
