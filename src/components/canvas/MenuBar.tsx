@@ -15,7 +15,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeCanvasTextFonts } from "@/lib/fontLoader";
 import { Type, History, GraduationCap } from "lucide-react";
-import { useOnboarding } from "@/hooks/useOnboarding";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 
 interface MenuBarProps {
   onTemplatesClick?: () => void;

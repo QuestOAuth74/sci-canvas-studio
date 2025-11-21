@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { X, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
-import { useOnboarding } from '@/hooks/useOnboarding';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 export const OnboardingTutorial = () => {
   const {
