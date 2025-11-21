@@ -78,6 +78,11 @@ export const ContextualToolbar = () => {
     return null;
   }
 
+  // Don't show toolbar for control handles or guide lines
+  if ((selectedObject as any).isControlHandle || (selectedObject as any).isHandleLine) {
+    return null;
+  }
+
   const objectType = selectedObject.type;
   const isTextObject = objectType === "textbox" || objectType === "text";
   const isConnector = (selectedObject as any).data?.isConnector === true;

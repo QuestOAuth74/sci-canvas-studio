@@ -217,7 +217,10 @@ export class CurvedLineTool {
     // Attach transform sync to main group
     this.attachTransformSync(group);
 
-    // Add control handle and lines to canvas
+    // Add control handle and lines to canvas (initialize as hidden)
+    controlHandle.visible = false;
+    line1.visible = false;
+    line2.visible = false;
     this.canvas.add(line1, line2, controlHandle);
 
     // Setup control handle drag behavior
@@ -409,7 +412,7 @@ export class CurvedLineTool {
       strokeWidth: 2,
       originX: 'center',
       originY: 'center',
-      selectable: true,
+      selectable: false,
       evented: true,
       hasControls: false,
       hasBorders: false,
