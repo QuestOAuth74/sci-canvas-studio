@@ -77,6 +77,36 @@ export const ContextualToolbar = () => {
     }
   };
 
+  // Compute derived values before hooks
+  const objectType = selectedObject?.type;
+  const isTextObject = objectType === "textbox" || objectType === "text";
+  const isConnector = (selectedObject as any)?.data?.isConnector === true;
+  const isShape = ["rect", "circle", "ellipse", "triangle", "polygon"].includes(objectType || "");
+  const isImage = objectType === "image";
+  const isGroup = objectType === "group" || objectType === "activeSelection";
+
+  // Memoize child components to prevent re-renders during drag
+  const textControls = useMemo(() => {
+    if (!isTextObject) return null;
+    return (
+      <>
+        <TextFormattingPanel />
+        <Separator orientation="vertical" className="h-8" />
+      </>
+    );
+  }, [isTextObject, selectedObject]);
+
+  const lineControls = useMemo(() => {
+    if (!isConnector) return null;
+    return (
+      <>
+        <LinePropertiesPanel />
+        <Separator orientation="vertical" className="h-8" />
+      </>
+    );
+  }, [isConnector, selectedObject]);
+
+  // Early returns after hooks
   if (!selectedObject) {
     return null;
   }
@@ -85,13 +115,6 @@ export const ContextualToolbar = () => {
   if ((selectedObject as any).isControlHandle || (selectedObject as any).isHandleLine) {
     return null;
   }
-
-  const objectType = selectedObject.type;
-  const isTextObject = objectType === "textbox" || objectType === "text";
-  const isConnector = (selectedObject as any).data?.isConnector === true;
-  const isShape = ["rect", "circle", "ellipse", "triangle", "polygon"].includes(objectType || "");
-  const isImage = objectType === "image";
-  const isGroup = objectType === "group" || objectType === "activeSelection";
 
   const handleDelete = () => {
     if (canvas && selectedObject) {
@@ -120,27 +143,6 @@ export const ContextualToolbar = () => {
     selectedObject.set({ opacity: value[0] / 100 });
     canvas.requestRenderAll();
   };
-
-  // Memoize child components to prevent re-renders during drag
-  const textControls = useMemo(() => {
-    if (!isTextObject) return null;
-    return (
-      <>
-        <TextFormattingPanel />
-        <Separator orientation="vertical" className="h-8" />
-      </>
-    );
-  }, [isTextObject, selectedObject]);
-
-  const lineControls = useMemo(() => {
-    if (!isConnector) return null;
-    return (
-      <>
-        <LinePropertiesPanel />
-        <Separator orientation="vertical" className="h-8" />
-      </>
-    );
-  }, [isConnector, selectedObject]);
 
   return (
     <div 
