@@ -98,7 +98,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
 
   return (
     <>
-      <Menubar className="border-none bg-transparent shadow-none">
+      <Menubar className="border-none bg-transparent shadow-none" data-onboarding="menu-bar">
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-accent/60 transition-all duration-200">File</MenubarTrigger>
           <MenubarContent>

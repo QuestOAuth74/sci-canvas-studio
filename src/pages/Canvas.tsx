@@ -35,6 +35,7 @@ import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
 import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
 import { ToolRatingWidget } from "@/components/canvas/ToolRatingWidget";
 import { PanelLabelTool } from "@/components/canvas/PanelLabelTool";
+import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -512,6 +513,8 @@ const CanvasContent = () => {
   }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow]);
 
   return (
+      <>
+      <OnboardingTutorial />
       <div className="h-screen bg-background flex flex-col">
       {/* Mobile Warning Dialog */}
       <MobileWarningDialog />
@@ -885,6 +888,7 @@ const CanvasContent = () => {
       {/* Rating Widget */}
       <ToolRatingWidget />
     </div>
+    </>
   );
 };
 

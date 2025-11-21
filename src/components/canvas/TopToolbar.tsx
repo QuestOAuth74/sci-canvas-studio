@@ -76,7 +76,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
   };
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 glass-effect-premium toolbar-floating border-b transition-all duration-200">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 glass-effect-premium toolbar-floating border-b transition-all duration-200" data-onboarding="toolbar">
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>

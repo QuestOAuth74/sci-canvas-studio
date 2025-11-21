@@ -508,7 +508,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 panel-gradient sidebar-shadow-right">
+    <div className="flex flex-col h-full min-h-0 panel-gradient sidebar-shadow-right" data-onboarding="icon-library">
       {/* Toggle button - always visible */}
       <div className="p-2 border-b bg-background/30 backdrop-blur-sm flex items-center justify-between">
         <Button
