@@ -96,22 +96,37 @@ export const OnboardingTutorial = () => {
   return (
     <>
       {/* Overlay backdrop */}
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[9998] animate-fade-in" />
+      <div className="fixed inset-0 bg-black/40 z-[9998] animate-fade-in" />
 
       {/* Highlight spotlight */}
       {highlightRect && !isCenterPosition && (
-        <div
-          className="fixed z-[9999] pointer-events-none animate-scale-in"
-          style={{
-            top: highlightRect.top - 8,
-            left: highlightRect.left - 8,
-            width: highlightRect.width + 16,
-            height: highlightRect.height + 16,
-            border: '3px solid hsl(var(--primary))',
-            borderRadius: '8px',
-            boxShadow: '0 0 0 4px hsl(var(--primary) / 0.2), 0 0 32px hsl(var(--primary) / 0.4)',
-          }}
-        />
+        <>
+          {/* Clear spotlight cutout area */}
+          <div
+            className="fixed z-[9999] pointer-events-none animate-scale-in"
+            style={{
+              top: highlightRect.top - 12,
+              left: highlightRect.left - 12,
+              width: highlightRect.width + 24,
+              height: highlightRect.height + 24,
+              borderRadius: '12px',
+              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+            }}
+          />
+          {/* Highlight border */}
+          <div
+            className="fixed z-[10000] pointer-events-none animate-scale-in"
+            style={{
+              top: highlightRect.top - 8,
+              left: highlightRect.left - 8,
+              width: highlightRect.width + 16,
+              height: highlightRect.height + 16,
+              border: '3px solid hsl(var(--primary))',
+              borderRadius: '8px',
+              boxShadow: '0 0 0 4px hsl(var(--primary) / 0.3), 0 0 48px hsl(var(--primary) / 0.6)',
+            }}
+          />
+        </>
       )}
 
       {/* Tutorial card */}
