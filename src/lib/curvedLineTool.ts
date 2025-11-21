@@ -418,6 +418,26 @@ export class CurvedLineTool {
     });
 
     (handle as any).isControlHandle = true;
+    
+    // Add hover effects
+    handle.on('mouseover', () => {
+      handle.set({
+        scaleX: 1.25,
+        scaleY: 1.25,
+        fill: '#059669', // Darker emerald green on hover
+      });
+      this.canvas.requestRenderAll();
+    });
+
+    handle.on('mouseout', () => {
+      handle.set({
+        scaleX: 1,
+        scaleY: 1,
+        fill: '#10b981', // Back to original emerald green
+      });
+      this.canvas.requestRenderAll();
+    });
+    
     return handle;
   }
 
