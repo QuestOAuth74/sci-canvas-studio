@@ -274,10 +274,39 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Normalize all existing text objects with font stacks for special character support
     normalizeCanvasTextFonts(canvas);
 
+    // Helper functions for curved line control handle visibility
+    const hideAllCurvedLineHandles = () => {
+      canvas.getObjects().forEach((obj: any) => {
+        if (obj.isCurvedLine) {
+          if (obj.controlHandle) {
+            obj.controlHandle.visible = false;
+          }
+          if (obj.handleLines) {
+            obj.handleLines.forEach((line: any) => line.visible = false);
+          }
+        }
+      });
+    };
+
+    const showCurvedLineHandles = (obj: any) => {
+      if (obj && obj.isCurvedLine) {
+        if (obj.controlHandle) {
+          obj.controlHandle.visible = true;
+        }
+        if (obj.handleLines) {
+          obj.handleLines.forEach((line: any) => line.visible = true);
+        }
+      }
+    };
+
     // Track selected objects with debug and auto-fix for invisible text
     canvas.on('selection:created', (e) => {
       const selected = e.selected?.[0] || null;
       setSelectedObject(selected);
+      
+      // Manage curved line control handles
+      hideAllCurvedLineHandles();
+      showCurvedLineHandles(selected);
       
       // Debug text object properties
       debugTextObject(selected, "Selection Created");
@@ -286,11 +315,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (selected && fixInvisibleText(selected, canvas)) {
         toast.info("Fixed invisible text (reset opacity/fill)");
       }
+      
+      canvas.renderAll();
     });
     
     canvas.on('selection:updated', (e) => {
       const selected = e.selected?.[0] || null;
       setSelectedObject(selected);
+      
+      // Manage curved line control handles
+      hideAllCurvedLineHandles();
+      showCurvedLineHandles(selected);
       
       // Debug text object properties
       debugTextObject(selected, "Selection Updated");
@@ -299,10 +334,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (selected && fixInvisibleText(selected, canvas)) {
         toast.info("Fixed invisible text (reset opacity/fill)");
       }
+      
+      canvas.renderAll();
     });
     
     canvas.on('selection:cleared', () => {
       setSelectedObject(null);
+      
+      // Hide all curved line handles when nothing is selected
+      hideAllCurvedLineHandles();
+      canvas.renderAll();
     });
 
     // Normalize fonts when text editing starts
