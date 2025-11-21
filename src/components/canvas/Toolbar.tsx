@@ -75,7 +75,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2 border-r bg-card">
+    <div className="flex flex-col gap-1 p-2 border-r panel-gradient sidebar-shadow-right">
       {/* Recently Used Section */}
       {recentTools.length > 0 && (
         <>
@@ -90,12 +90,14 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
             return (
               <Tooltip key={`recent-${toolId}`}>
                 <TooltipTrigger asChild>
-                  <Button
-                    variant={activeTool === toolId ? "default" : "ghost"}
-                    size="icon"
-                    onClick={() => handleToolChange(toolId)}
-                    className="w-10 h-10 relative"
-                  >
+              <Button
+                variant={activeTool === toolId ? "default" : "ghost"}
+                size="icon"
+                onClick={() => handleToolChange(toolId)}
+                className={`w-10 h-10 relative transition-all duration-200 ${
+                  activeTool === toolId ? 'shadow-md' : 'hover:scale-105 hover:shadow-sm'
+                }`}
+              >
                     <toolInfo.icon className="h-5 w-5" />
                     <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-primary" />
                   </Button>
@@ -121,7 +123,9 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               variant={activeTool === tool.id ? "default" : "ghost"}
               size="icon"
               onClick={() => handleToolChange(tool.id)}
-              className="w-10 h-10"
+              className={`w-10 h-10 transition-all duration-200 ${
+                activeTool === tool.id ? 'shadow-md' : 'hover:scale-105 hover:shadow-sm'
+              }`}
             >
               <tool.icon className="h-5 w-5" />
             </Button>

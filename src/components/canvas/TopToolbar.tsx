@@ -76,11 +76,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
   };
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 glass-effect border-b shadow-md">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 glass-effect-premium toolbar-floating border-b transition-all duration-200">
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={undo}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={undo}>
               <Undo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -89,7 +89,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={redo}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={redo}>
               <Redo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -102,7 +102,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={cut}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={cut}>
               <Scissors className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -111,7 +111,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={copy}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={copy}>
               <Copy className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -120,7 +120,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={paste}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={paste}>
               <Clipboard className="h-4 w-4" />
             </Button>
           </TooltipTrigger>

@@ -340,6 +340,43 @@ All colors MUST be HSL.
       animation: none !important;
     }
   }
+
+  /* Premium Canvas UI Effects */
+  .glass-effect-premium {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  .toolbar-floating {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08),
+                0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .sidebar-shadow-left {
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .sidebar-shadow-right {
+    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.06);
+  }
+
+  .btn-interactive {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-interactive:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .panel-gradient {
+    background: linear-gradient(to bottom, 
+      hsl(var(--background)), 
+      hsl(var(--muted) / 0.05), 
+      hsl(var(--background)));
+  }
 }
 
 @layer base {

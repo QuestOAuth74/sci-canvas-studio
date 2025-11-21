@@ -116,20 +116,23 @@ export const ContextualToolbar = () => {
   return (
     <div 
       ref={toolbarRef}
-      className="fixed z-40 bg-background/95 backdrop-blur-sm border border-border rounded-lg shadow-lg p-3 flex items-center gap-4 max-w-5xl transition-shadow hover:shadow-xl"
+      className="fixed z-40 glass-effect-premium rounded-lg shadow-lg hover:shadow-xl p-3 flex items-center gap-4 max-w-5xl transition-all duration-300"
       style={{ 
         left: `${position.x}px`, 
         top: `${position.y}px`,
-        cursor: isDragging ? 'grabbing' : 'default'
+        cursor: isDragging ? 'grabbing' : 'default',
+        boxShadow: isDragging 
+          ? '0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(59, 130, 246, 0.3)' 
+          : undefined
       }}
     >
       {/* Drag Handle */}
       <div 
-        className="drag-handle cursor-grab active:cursor-grabbing hover:bg-accent/50 rounded px-1 py-2 -ml-1 flex items-center"
+        className="drag-handle cursor-grab active:cursor-grabbing hover:bg-primary/10 rounded px-1 py-2 -ml-1 flex items-center transition-all duration-200"
         onMouseDown={handleMouseDown}
         title="Drag to reposition"
       >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
+        <GripVertical className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
       </div>
       
       <Separator orientation="vertical" className="h-8" />

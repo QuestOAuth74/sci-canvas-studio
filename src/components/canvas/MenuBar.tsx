@@ -100,7 +100,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
     <>
       <Menubar className="border-none bg-transparent shadow-none">
         <MenubarMenu>
-          <MenubarTrigger className="font-medium">File</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-accent/60 transition-all duration-200">File</MenubarTrigger>
           <MenubarContent>
             <MenubarItem onClick={handleNew}>
               New <MenubarShortcut>⌘N</MenubarShortcut>
@@ -127,7 +127,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium">Edit</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-accent/60 transition-all duration-200">Edit</MenubarTrigger>
           <MenubarContent>
             <MenubarItem onClick={undo}>
               Undo <MenubarShortcut>⌘Z</MenubarShortcut>
