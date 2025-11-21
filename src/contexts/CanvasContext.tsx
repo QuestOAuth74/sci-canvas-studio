@@ -11,7 +11,6 @@ import { safeDownloadDataUrl, reloadCanvasImagesWithCORS } from "@/lib/utils";
 import { removeBackground } from "@/lib/backgroundRemoval";
 import { HistoryManager } from "@/lib/historyManager";
 import { createVersion, isSignificantChange, cleanupVersions } from "@/lib/versionManager";
-import { reconnectCurvedLines } from "@/lib/curvedLineTool";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -1644,16 +1643,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
 
-      // Remove any transient UI elements that shouldn't have been saved
-      canvas.getObjects().forEach((obj) => {
-        if ((obj as any).isControlHandle || 
-            (obj as any).isHandleLine || 
-            (obj as any).isGuideLine ||
-            (obj as any).isPortIndicator ||
-            (obj as any).isFeedback) {
-          canvas.remove(obj);
-        }
-      });
+      // Enhanced cleanup: Remove transient UI elements by flag AND visual appearance
+      const { cleanupOrphanHandles, reconnectCurvedLines } = await import('@/lib/curvedLineTool');
+      cleanupOrphanHandles(canvas);
 
       // Reconnect all curved lines with their control handles
       reconnectCurvedLines(canvas);
@@ -1734,22 +1726,15 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const recoverCanvas = useCallback((recoveryData: any) => {
     if (!canvas) return;
     
-    canvas.loadFromJSON(recoveryData.state).then(() => {
+    canvas.loadFromJSON(recoveryData.state).then(async () => {
       reloadCanvasImagesWithCORS(canvas);
       
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
 
-      // Remove any transient UI elements that shouldn't have been saved
-      canvas.getObjects().forEach((obj) => {
-        if ((obj as any).isControlHandle || 
-            (obj as any).isHandleLine || 
-            (obj as any).isGuideLine ||
-            (obj as any).isPortIndicator ||
-            (obj as any).isFeedback) {
-          canvas.remove(obj);
-        }
-      });
+      // Enhanced cleanup: Remove transient UI elements by flag AND visual appearance
+      const { cleanupOrphanHandles, reconnectCurvedLines } = await import('@/lib/curvedLineTool');
+      cleanupOrphanHandles(canvas);
 
       // Reconnect all curved lines with their control handles
       reconnectCurvedLines(canvas);
@@ -1793,16 +1778,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
 
-      // Remove any transient UI elements that shouldn't have been saved
-      canvas.getObjects().forEach((obj) => {
-        if ((obj as any).isControlHandle || 
-            (obj as any).isHandleLine || 
-            (obj as any).isGuideLine ||
-            (obj as any).isPortIndicator ||
-            (obj as any).isFeedback) {
-          canvas.remove(obj);
-        }
-      });
+      // Enhanced cleanup: Remove transient UI elements by flag AND visual appearance
+      const { cleanupOrphanHandles, reconnectCurvedLines } = await import('@/lib/curvedLineTool');
+      cleanupOrphanHandles(canvas);
 
       // Reconnect all curved lines with their control handles
       reconnectCurvedLines(canvas);

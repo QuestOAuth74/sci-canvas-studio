@@ -87,6 +87,23 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
     toast.success("Text fonts normalized for special character support");
   };
 
+  const handleRepairCurvedLines = async () => {
+    if (!canvas) {
+      toast.error("No canvas available");
+      return;
+    }
+    
+    try {
+      const { cleanupOrphanHandles, reconnectCurvedLines } = await import('@/lib/curvedLineTool');
+      cleanupOrphanHandles(canvas);
+      reconnectCurvedLines(canvas);
+      toast.success("Curved lines repaired successfully");
+    } catch (error) {
+      console.error('Failed to repair curved lines:', error);
+      toast.error("Failed to repair curved lines");
+    }
+  };
+
   useEffect(() => {
     const fetchCategories = async () => {
       const { data } = await supabase
@@ -178,6 +195,9 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
             <MenubarItem onClick={handleNormalizeFonts}>
               <Type className="mr-2 h-4 w-4" />
               Normalize Fonts
+            </MenubarItem>
+            <MenubarItem onClick={handleRepairCurvedLines}>
+              Repair Curved Lines
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={zoomIn}>Zoom In</MenubarItem>
