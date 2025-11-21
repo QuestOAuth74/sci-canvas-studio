@@ -655,3 +655,134 @@ export class CurvedLineTool {
     }
   }
 }
+
+/**
+ * Reconnect all curved lines on the canvas after loading from JSON.
+ * This recreates control handles, guide lines, and event handlers.
+ */
+export function reconnectCurvedLines(canvas: Canvas): void {
+  canvas.getObjects().forEach((obj) => {
+    const curveData = obj as any;
+    
+    // Only process curved line groups
+    if (!curveData.isCurvedLine) return;
+    
+    // Skip if already has a control handle (shouldn't happen after cleanup)
+    if (curveData.controlHandle && canvas.contains(curveData.controlHandle)) return;
+    
+    // Extract stored coordinates
+    const start = curveData.curvedLineStart;
+    const end = curveData.curvedLineEnd;
+    const controlPoint = curveData.curvedLineControlPoint;
+    
+    if (!start || !end || !controlPoint) {
+      console.warn('Curved line missing coordinate data, skipping reconnect');
+      return;
+    }
+    
+    // Create control handle
+    const controlHandle = new Circle({
+      left: controlPoint.x,
+      top: controlPoint.y,
+      radius: 8,
+      fill: '#10b981',
+      stroke: '#ffffff',
+      strokeWidth: 2,
+      originX: 'center',
+      originY: 'center',
+      selectable: true,
+      evented: true,
+      hasControls: false,
+      hasBorders: false,
+      hoverCursor: 'move',
+      visible: false, // Start hidden
+    });
+    (controlHandle as any).isControlHandle = true;
+    
+    // Create guide lines
+    const line1 = new Line([start.x, start.y, controlPoint.x, controlPoint.y], {
+      stroke: '#10b981',
+      strokeWidth: 1,
+      strokeDashArray: [5, 5],
+      selectable: false,
+      evented: false,
+      visible: false, // Start hidden
+    });
+    (line1 as any).isHandleLine = true;
+    
+    const line2 = new Line([controlPoint.x, controlPoint.y, end.x, end.y], {
+      stroke: '#10b981',
+      strokeWidth: 1,
+      strokeDashArray: [5, 5],
+      selectable: false,
+      evented: false,
+      visible: false, // Start hidden
+    });
+    (line2 as any).isHandleLine = true;
+    
+    // Store references in the group
+    curveData.controlHandle = controlHandle;
+    curveData.handleLines = [line1, line2];
+    
+    // Add to canvas
+    canvas.add(line1, line2, controlHandle);
+    
+    // Re-attach event handler for dragging
+    controlHandle.on('moving', () => {
+      const newControl = { x: controlHandle.left!, y: controlHandle.top! };
+      curveData.curvedLineControlPoint = newControl;
+      
+      // Update handle lines
+      line1.set({
+        x1: start.x,
+        y1: start.y,
+        x2: newControl.x,
+        y2: newControl.y,
+      });
+      
+      line2.set({
+        x1: newControl.x,
+        y1: newControl.y,
+        x2: end.x,
+        y2: end.y,
+      });
+      
+      // Update the main curve path
+      const pathData = `M ${start.x} ${start.y} Q ${newControl.x} ${newControl.y} ${end.x} ${end.y}`;
+      const mainPath = curveData.mainPath as Path;
+      
+      if (mainPath) {
+        const group = obj as Group;
+        const objects = group.getObjects();
+        const pathIndex = objects.indexOf(mainPath);
+        
+        if (pathIndex !== -1) {
+          const newPath = new Path(pathData, {
+            stroke: mainPath.stroke,
+            strokeWidth: mainPath.strokeWidth,
+            fill: '',
+            strokeDashArray: mainPath.strokeDashArray,
+            strokeUniform: true,
+          });
+          
+          group.remove(mainPath);
+          group.insertAt(pathIndex, newPath);
+          curveData.mainPath = newPath;
+        }
+      }
+      
+      // Force group to recalculate
+      (obj as Group).setCoords();
+      
+      // Recompute local coordinates
+      const inv = util.invertTransform((obj as Group).calcTransformMatrix());
+      curveData.curvedLocalStart = util.transformPoint(new FabricPoint(start.x, start.y), inv);
+      curveData.curvedLocalEnd = util.transformPoint(new FabricPoint(end.x, end.y), inv);
+      curveData.curvedLocalControl = util.transformPoint(new FabricPoint(newControl.x, newControl.y), inv);
+      
+      canvas.requestRenderAll();
+    });
+  });
+  
+  canvas.requestRenderAll();
+}

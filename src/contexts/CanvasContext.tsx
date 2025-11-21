@@ -11,6 +11,7 @@ import { safeDownloadDataUrl, reloadCanvasImagesWithCORS } from "@/lib/utils";
 import { removeBackground } from "@/lib/backgroundRemoval";
 import { HistoryManager } from "@/lib/historyManager";
 import { createVersion, isSignificantChange, cleanupVersions } from "@/lib/versionManager";
+import { reconnectCurvedLines } from "@/lib/curvedLineTool";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -1478,10 +1479,17 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setIsSaving(true);
     setSaveStatus('saving');
     try {
-      // Hide guides and eraser paths so they are not persisted as visible in saved data
+      // Hide guides, eraser paths, and control handles so they are not persisted as visible in saved data
       const hidden: FabricObject[] = [];
       canvas.getObjects().forEach((obj) => {
-        if ((obj as any).isGridLine || (obj as any).isRuler || (obj as any).isEraserPath) {
+        if ((obj as any).isGridLine || 
+            (obj as any).isRuler || 
+            (obj as any).isEraserPath ||
+            (obj as any).isControlHandle ||
+            (obj as any).isHandleLine ||
+            (obj as any).isGuideLine ||
+            (obj as any).isPortIndicator ||
+            (obj as any).isFeedback) {
           if (obj.visible) {
             hidden.push(obj);
             obj.visible = false;
@@ -1636,6 +1644,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
 
+      // Remove any transient UI elements that shouldn't have been saved
+      canvas.getObjects().forEach((obj) => {
+        if ((obj as any).isControlHandle || 
+            (obj as any).isHandleLine || 
+            (obj as any).isGuideLine ||
+            (obj as any).isPortIndicator ||
+            (obj as any).isFeedback) {
+          canvas.remove(obj);
+        }
+      });
+
+      // Reconnect all curved lines with their control handles
+      reconnectCurvedLines(canvas);
+
       // Update context state
       setCurrentProjectId(data.id);
       setProjectName(data.name);
@@ -1714,6 +1736,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
+
+      // Remove any transient UI elements that shouldn't have been saved
+      canvas.getObjects().forEach((obj) => {
+        if ((obj as any).isControlHandle || 
+            (obj as any).isHandleLine || 
+            (obj as any).isGuideLine ||
+            (obj as any).isPortIndicator ||
+            (obj as any).isFeedback) {
+          canvas.remove(obj);
+        }
+      });
+
+      // Reconnect all curved lines with their control handles
+      reconnectCurvedLines(canvas);
       
       toast.success('Canvas recovered successfully!');
       localStorage.removeItem('canvas_recovery');
@@ -1753,6 +1789,20 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       
       // Normalize all text fonts to use full font stacks (including text in groups)
       normalizeCanvasTextFonts(canvas);
+
+      // Remove any transient UI elements that shouldn't have been saved
+      canvas.getObjects().forEach((obj) => {
+        if ((obj as any).isControlHandle || 
+            (obj as any).isHandleLine || 
+            (obj as any).isGuideLine ||
+            (obj as any).isPortIndicator ||
+            (obj as any).isFeedback) {
+          canvas.remove(obj);
+        }
+      });
+
+      // Reconnect all curved lines with their control handles
+      reconnectCurvedLines(canvas);
       
       setProjectName(`Untitled from ${template.name}`);
       setCurrentProjectId(null);
