@@ -29,7 +29,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     title: 'Browse Icons',
     description: 'Access our library of scientific icons and symbols to enhance your diagrams.',
     target: '[data-onboarding="icon-library"]',
-    position: 'bottom'
+    position: 'right'
   },
   {
     id: 'connectors',
