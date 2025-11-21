@@ -235,7 +235,7 @@ const Index = () => {
           </div>
 
           {/* Community Carousel */}
-          {user && (
+          {user ? (
             <div className="space-y-8 animate-fade-in [animation-delay:400ms]">
               <div className="text-center space-y-3">
                 
@@ -243,13 +243,49 @@ const Index = () => {
               </div>
               <CommunityCarousel />
             </div>
+          ) : (
+            <div className="space-y-6 animate-fade-in [animation-delay:400ms]">
+              <div className="text-center space-y-4 p-12 rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-accent/5">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <Users className="h-8 w-8 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-semibold">Discover Community Creations</h3>
+                  <p className="text-muted-foreground max-w-lg mx-auto">
+                    Explore thousands of scientific illustrations created by researchers worldwide. Get inspired and learn from the community.
+                  </p>
+                </div>
+                <Button size="lg" onClick={() => navigate("/auth")} className="mt-4">
+                  <Palette className="h-4 w-4 mr-2" />
+                  Sign Up to Explore
+                </Button>
+              </div>
+            </div>
           )}
 
           {/* Blog Posts */}
-          {user && (
+          {user ? (
             <div className="space-y-8 animate-fade-in [animation-delay:500ms]">
               
               <BlogPostsCarousel />
+            </div>
+          ) : (
+            <div className="space-y-6 animate-fade-in [animation-delay:500ms]">
+              <div className="text-center space-y-4 p-12 rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-accent/5 to-primary/5">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-semibold">Learn from Expert Articles</h3>
+                  <p className="text-muted-foreground max-w-lg mx-auto">
+                    Access tutorials, tips, and scientific illustration best practices. Stay updated with the latest features and techniques.
+                  </p>
+                </div>
+                <Button size="lg" onClick={() => navigate("/auth")} className="mt-4">
+                  <Palette className="h-4 w-4 mr-2" />
+                  Sign Up to Learn
+                </Button>
+              </div>
             </div>
           )}
 
