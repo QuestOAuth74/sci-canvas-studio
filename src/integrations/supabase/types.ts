@@ -864,6 +864,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "project_collaboration_invitations_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_collaboration_invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "project_collaboration_invitations_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
