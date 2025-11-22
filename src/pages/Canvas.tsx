@@ -738,9 +738,6 @@ const CanvasContent = () => {
           onToolChange={setActiveTool}
         />
 
-        {/* Contextual Toolbar */}
-        <ContextualToolbar />
-
         {/* Main Editor Area */}
         <div className="flex flex-1 min-h-0">
           {/* Left Sidebar - Icon Categories & Assets */}
