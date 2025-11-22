@@ -7,14 +7,72 @@ All colors MUST be HSL.
 */
 
 @layer utilities {
+  /* Professional Polish - Micro-interactions */
+  .smooth-transition {
+    transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-scale {
+    @apply smooth-transition;
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+
+  .hover-lift {
+    @apply smooth-transition;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Success Animation */
+  @keyframes success-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.9;
+      transform: scale(1.05);
+    }
+  }
+
+  .success-pulse {
+    animation: success-pulse 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Loading Shimmer */
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .loading-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+  }
+
   /* Soft Modern Theme Utilities */
   .glass-effect {
-    @apply bg-white/90 backdrop-blur-md border border-border/50;
+    @apply bg-white/90 backdrop-blur-md border border-border/50 smooth-transition;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
   
   .dark .glass-effect {
-    @apply bg-card/80 backdrop-blur-md border border-white/5;
+    @apply bg-card/80 backdrop-blur-md border border-white/5 smooth-transition;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   }
 
@@ -35,13 +93,11 @@ All colors MUST be HSL.
   }
   
   .soft-card {
-    @apply bg-card rounded-xl border border-border/50 soft-shadow;
-    transition: all 0.2s ease;
+    @apply bg-card rounded-xl border border-border/50 soft-shadow smooth-transition;
   }
   
   .soft-card:hover {
-    @apply soft-shadow-lg;
-    transform: translateY(-2px);
+    @apply soft-shadow-lg hover-lift;
   }
   
   .scientific-gradient {

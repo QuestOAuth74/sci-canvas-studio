@@ -1573,7 +1573,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         );
         
         setSaveStatus('saved');
-        toast.success("Project saved", { duration: 1000, className: 'animate-fade-in' });
+        toast.success("Project saved", { 
+          duration: 1000, 
+          className: 'success-pulse animate-fade-in' 
+        });
       } else {
         // Create new project
         const { data, error } = await supabase
@@ -1586,7 +1589,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         if (data) {
           setCurrentProjectId(data.id);
           setSaveStatus('saved');
-          toast.success("Project created and saved", { duration: 1500, className: 'animate-fade-in' });
+          toast.success("Project created and saved", { 
+            duration: 1500, 
+            className: 'success-pulse animate-fade-in' 
+          });
         }
       }
     } catch (error: any) {
