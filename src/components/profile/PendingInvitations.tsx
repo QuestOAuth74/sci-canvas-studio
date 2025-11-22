@@ -110,7 +110,11 @@ export function PendingInvitations() {
                 <Button
                   size="sm"
                   onClick={() => {
-                    acceptInvitation.mutate(invitation.id);
+                    acceptInvitation.mutate(invitation.id, {
+                      onSuccess: () => {
+                        navigate(`/canvas?project=${invitation.project_id}`);
+                      },
+                    });
                   }}
                   disabled={acceptInvitation.isPending || declineInvitation.isPending}
                   className="flex-1"
