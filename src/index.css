@@ -397,6 +397,92 @@ All colors MUST be HSL.
     }
   }
 
+  /* Typography Utilities */
+  
+  /* Display Text Utilities */
+  .text-display-1 {
+    font-size: var(--font-size-6xl);
+    font-weight: var(--font-weight-extrabold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .text-display-2 {
+    font-size: var(--font-size-5xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  /* Heading Utilities */
+  .text-heading-1 {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .text-heading-2 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  .text-heading-3 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  /* Body Text Utilities */
+  .text-body-lg {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-relaxed);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  .text-body {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  .text-body-sm {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  /* UI Text Utilities */
+  .text-ui-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+  }
+
+  .text-ui-caption {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-normal);
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Scientific Text Utilities */
+  .text-scientific {
+    font-family: 'STIX Two Text', 'Times New Roman', 'Cambria Math', serif;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-loose);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
   /* Premium Canvas UI Effects */
   .glass-effect-premium {
     background: rgba(255, 255, 255, 0.7);
@@ -436,7 +522,79 @@ All colors MUST be HSL.
 }
 
 @layer base {
+  /* 
+  =================================
+  TYPOGRAPHY SYSTEM REFERENCE
+  =================================
+  
+  Type Scale (Major Third - 1.250 ratio):
+  - Display 1: 60px / 3.75rem (hero titles)
+  - Display 2: 48px / 3rem (page titles)
+  - H1: 36px / 2.25rem
+  - H2: 30px / 1.875rem
+  - H3: 24px / 1.5rem
+  - H4: 20px / 1.25rem
+  - H5: 18px / 1.125rem
+  - H6: 16px / 1rem
+  - Body Large: 18px / 1.125rem
+  - Body: 16px / 1rem
+  - Body Small: 14px / 0.875rem
+  - Caption: 12px / 0.75rem
+  
+  Font Weights:
+  - Normal: 400 (body text)
+  - Medium: 500 (emphasized text)
+  - Semibold: 600 (h3-h6, buttons)
+  - Bold: 700 (h1-h2)
+  - Extrabold: 800 (display text)
+  
+  Line Heights:
+  - Tight: 1.25 (large headings)
+  - Snug: 1.375 (medium headings)
+  - Normal: 1.5 (body text)
+  - Relaxed: 1.625 (large body text)
+  - Loose: 2 (scientific text)
+  
+  Usage Examples:
+  <h1 className="text-display-1">Hero Title</h1>
+  <h2 className="text-heading-1">Section Title</h2>
+  <p className="text-body-lg">Large body text</p>
+  <label className="text-ui-label">Form Label</label>
+  <span className="text-ui-caption">Helper text</span>
+  */
+
   :root {
+    /* Typography System - Type Scale (Major Third 1.250) */
+    --font-size-xs: 0.75rem;      /* 12px */
+    --font-size-sm: 0.875rem;     /* 14px */
+    --font-size-base: 1rem;       /* 16px */
+    --font-size-lg: 1.125rem;     /* 18px */
+    --font-size-xl: 1.25rem;      /* 20px */
+    --font-size-2xl: 1.5rem;      /* 24px */
+    --font-size-3xl: 1.875rem;    /* 30px */
+    --font-size-4xl: 2.25rem;     /* 36px */
+    --font-size-5xl: 3rem;        /* 48px */
+    --font-size-6xl: 3.75rem;     /* 60px */
+    
+    /* Font Weight System */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+    
+    /* Line Height System */
+    --line-height-tight: 1.25;
+    --line-height-snug: 1.375;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.625;
+    --line-height-loose: 2;
+    
+    /* Letter Spacing System */
+    --letter-spacing-tight: -0.02em;
+    --letter-spacing-normal: -0.011em;
+    --letter-spacing-wide: 0.025em;
+    
     /* Soft Purple/Lavender Theme */
     --background: 260 30% 98%;
     --foreground: 260 15% 25%;
@@ -716,31 +874,57 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-inter;
     font-feature-settings: "cv11", "ss01";
-    letter-spacing: -0.011em;
+    letter-spacing: var(--letter-spacing-normal);
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-sans font-semibold;
-    letter-spacing: -0.02em;
-  }
-  
+  /* Systematic Typography - Base Headings */
   h1 {
-    @apply text-4xl md:text-5xl tracking-tight;
+    font-size: var(--font-size-5xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
   }
 
   h2 {
-    @apply text-3xl md:text-4xl;
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    letter-spacing: var(--letter-spacing-tight);
   }
 
   h3 {
-    @apply text-2xl md:text-3xl;
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  h4 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-tight);
+  }
+
+  h5 {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  h6 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-normal);
   }
 }
 
 /* Modern Blog Content Styles */
 .blog-content-modern {
-  font-size: 1.125rem;
-  line-height: 1.75;
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
   color: hsl(var(--foreground));
   max-width: 75ch;
 }
@@ -750,7 +934,7 @@ All colors MUST be HSL.
   float: left;
   font-size: 4.5rem;
   line-height: 0.85;
-  font-weight: 900;
+  font-weight: var(--font-weight-extrabold);
   margin: 0.1em 0.15em 0 0;
   padding: 0.2em 0.3em;
   background: hsl(var(--primary));
@@ -761,13 +945,14 @@ All colors MUST be HSL.
 
 /* Enhanced Headings */
 .blog-content-modern h2 {
-  font-size: 2.5rem;
-  font-weight: 900;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
   margin-top: 3rem;
   margin-bottom: 1.5rem;
   position: relative;
   padding-bottom: 0.5rem;
-  letter-spacing: -0.03em;
 }
 
 .blog-content-modern h2::after {
@@ -782,13 +967,14 @@ All colors MUST be HSL.
 }
 
 .blog-content-modern h3 {
-  font-size: 2rem;
-  font-weight: 800;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-tight);
   margin-top: 2.5rem;
   margin-bottom: 1rem;
   position: relative;
   padding-left: 1.5rem;
-  letter-spacing: -0.02em;
 }
 
 .blog-content-modern h3::before {
@@ -800,8 +986,9 @@ All colors MUST be HSL.
 }
 
 .blog-content-modern h4 {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
   margin-top: 2rem;
   margin-bottom: 0.75rem;
   color: hsl(var(--primary));
@@ -812,10 +999,10 @@ All colors MUST be HSL.
   position: relative;
   padding: 2rem 2rem 2rem 4rem;
   margin: 3rem 0;
-  font-size: 1.5rem;
+  font-size: var(--font-size-2xl);
   font-style: italic;
-  font-weight: 600;
-  line-height: 1.6;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
   background: hsl(var(--accent) / 0.1);
   border: 4px solid hsl(var(--foreground));
   box-shadow: 8px 8px 0px hsl(var(--foreground));
@@ -871,7 +1058,7 @@ All colors MUST be HSL.
 /* Enhanced Links */
 .blog-content-modern a {
   color: hsl(var(--primary));
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
   position: relative;
   transition: all 0.3s ease;
@@ -917,7 +1104,7 @@ All colors MUST be HSL.
   color: hsl(var(--primary));
   padding: 0.2em 0.5em;
   border-radius: 4px;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   border: 2px solid hsl(var(--primary) / 0.3);
   font-size: 0.9em;
 }
@@ -925,9 +1112,9 @@ All colors MUST be HSL.
 /* First Paragraph Enhancement */
 .blog-content-modern > p:first-of-type,
 .blog-content-modern .drop-cap {
-  font-size: 1.35rem;
-  font-weight: 500;
-  line-height: 1.7;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-relaxed);
   margin-bottom: 2rem;
 }
 
@@ -954,7 +1141,7 @@ All colors MUST be HSL.
 /* Paragraph spacing */
 .blog-content-modern p {
   margin-bottom: 1.75rem;
-  line-height: 1.8;
+  line-height: var(--line-height-relaxed);
 }
 
 /* Horizontal Rule */
@@ -981,7 +1168,7 @@ All colors MUST be HSL.
 
 /* Strong/Bold text */
 .blog-content-modern strong {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: hsl(var(--foreground));
 }
 
@@ -994,19 +1181,19 @@ All colors MUST be HSL.
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .blog-content-modern {
-    font-size: 1rem;
+    font-size: var(--font-size-base);
   }
   
   .blog-content-modern h2 {
-    font-size: 2rem;
+    font-size: var(--font-size-3xl);
   }
   
   .blog-content-modern h3 {
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
   }
   
   .blog-content-modern blockquote {
-    font-size: 1.25rem;
+    font-size: var(--font-size-xl);
     padding: 1.5rem 1.5rem 1.5rem 3rem;
   }
   
@@ -1040,7 +1227,7 @@ All colors MUST be HSL.
 }
 
 .ProseMirror table th {
-  font-weight: bold;
+  font-weight: var(--font-weight-bold);
   text-align: left;
   background-color: hsl(var(--muted));
 }
