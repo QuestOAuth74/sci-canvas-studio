@@ -1298,14 +1298,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_collaboration_invitation: {
-        Args: { _invitation_token: string }
-        Returns: {
-          project_id: string
-          project_name: string
-          role: Database["public"]["Enums"]["collaboration_role"]
-        }[]
-      }
       can_user_generate: { Args: { _user_id: string }; Returns: Json }
       cleanup_old_login_attempts: { Args: never; Returns: undefined }
       clone_project: {

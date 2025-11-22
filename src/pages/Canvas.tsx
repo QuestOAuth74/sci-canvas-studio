@@ -195,51 +195,77 @@ const CanvasContent = () => {
       if (!invitationToken) return;
 
       try {
+        // Check if user is logged in
         if (!user) {
-          navigate(
-            `/auth?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`
-          );
+          // Redirect to login with return URL
+          navigate(`/auth?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
           return;
         }
 
-        // Call the secure RPC function to accept the invitation
-        const { data, error } = await supabase.rpc(
-          'accept_collaboration_invitation',
-          { _invitation_token: invitationToken }
-        );
+        // Find invitation
+        const { data: invitation, error: fetchError } = await supabase
+          .from('project_collaboration_invitations')
+          .select('*')
+          .eq('invitation_token', invitationToken)
+          .eq('status', 'pending')
+          .single();
 
-        if (error) {
-          console.error('Invitation accept error:', error);
-          
-          // Map Postgres error messages to user-friendly toasts
-          const errorMessage = error.message.toLowerCase();
-          if (errorMessage.includes('invalid or expired')) {
-            toast.error('Invalid or expired invitation');
-          } else if (errorMessage.includes('expired')) {
-            toast.error('This invitation has expired');
-          } else if (errorMessage.includes('authenticated')) {
-            toast.error('You must be logged in to accept invitations');
-          } else {
-            toast.error('Failed to accept invitation');
-          }
-          
-          navigate('/canvas', { replace: true });
-          return;
-        }
-
-        const accepted = data && data[0];
-        if (!accepted) {
+        if (fetchError || !invitation) {
           toast.error('Invalid or expired invitation');
           navigate('/canvas', { replace: true });
           return;
         }
 
-        toast.success(`Invitation accepted! You are now a ${accepted.role} on this project.`);
+        // Check if invitation has expired
+        if (new Date(invitation.expires_at) < new Date()) {
+          toast.error('This invitation has expired');
+          navigate('/canvas', { replace: true });
+          return;
+        }
+
+        // Check if user is already a collaborator
+        const { data: existingCollab } = await supabase
+          .from('project_collaborators')
+          .select('id')
+          .eq('project_id', invitation.project_id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingCollab) {
+          toast.info('You are already a collaborator on this project');
+          navigate(`/canvas?project=${invitation.project_id}`, { replace: true });
+          return;
+        }
+
+        // Accept invitation - create collaborator record
+        const { error: acceptError } = await supabase
+          .from('project_collaborators')
+          .insert({
+            project_id: invitation.project_id,
+            user_id: user.id,
+            role: invitation.role,
+            invited_by: invitation.inviter_id,
+            accepted_at: new Date().toISOString()
+          });
+
+        if (acceptError) throw acceptError;
+
+        // Update invitation status
+        await supabase
+          .from('project_collaboration_invitations')
+          .update({
+            status: 'accepted',
+            responded_at: new Date().toISOString()
+          })
+          .eq('id', invitation.id);
+
+        toast.success('Invitation accepted! You can now collaborate on this project.');
         
-        // Small delay to ensure database commit
+        // Small delay to ensure database transaction commits
         await new Promise(resolve => setTimeout(resolve, 200));
         
-        navigate(`/canvas?project=${accepted.project_id}`, { replace: true });
+        // Navigate to project - let normal project loading effect handle it
+        navigate(`/canvas?project=${invitation.project_id}`, { replace: true });
       } catch (error: any) {
         console.error('Error accepting invitation:', error);
         toast.error('Failed to accept invitation');
