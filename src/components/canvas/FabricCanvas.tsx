@@ -187,7 +187,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
       );
       
-      const size = 24;
+      const size = 36; // Temporarily enlarged for visibility
       const isHovering = fabricObject.canvas?.getActiveObject() === fabricObject;
       
       // Fade out when not hovering
@@ -203,10 +203,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
       ctx.shadowOffsetY = 1;
       
-      // Draw circular background (dark)
-      ctx.fillStyle = '#1a1a1a';
+      // Draw circular background - BRIGHT MAGENTA FOR DEBUG VISIBILITY
+      ctx.fillStyle = '#ff00ff';
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3; // Thicker border for visibility
       
       ctx.beginPath();
       ctx.arc(0, 0, size / 2, 0, Math.PI * 2); // Full circle
@@ -416,10 +416,21 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (!obj.controls) obj.controls = {};
       if (!obj.controls.mtr) {
         obj.controls.mtr = mtrControl;
-        obj.hasRotatingPoint = true;
-        obj.hasControls = true;
       }
+      obj.hasRotatingPoint = true;
+      obj.hasControls = true;
+      obj.rotatingPointOffset = 45;
+      obj.setCoords();
     };
+
+    // Apply rotation control to all existing objects
+    canvas.getObjects().forEach((obj: FabricObject) => {
+      const customObj = obj as any;
+      if (!customObj.isControlHandle && !customObj.isHandleLine && !customObj.isGuideLine) {
+        ensureChemixRotationControl(obj);
+      }
+    });
+    canvas.requestRenderAll();
 
     // Helper function to manage curved line control handle visibility
     const manageCurvedLineHandles = (selectedObj: FabricObject | null) => {
