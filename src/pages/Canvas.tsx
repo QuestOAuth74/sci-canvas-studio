@@ -635,8 +635,8 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="glass-effect border-b">
-        <div className="px-4 py-3 flex items-center justify-between">
+      <header className="glass-effect border-b shadow-sm">
+        <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
               src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
@@ -660,14 +660,14 @@ const CanvasContent = () => {
                   onKeyDown={handleNameKeyDown}
                   onBlur={saveName}
                   autoFocus
-                  className="h-9 text-base font-semibold tracking-tight max-w-[300px] glass-effect"
+                  className="h-8 text-base font-semibold tracking-tight max-w-[300px] bg-background/50 border-primary/30 focus:border-primary"
                   maxLength={100}
                 />
               </div>
             ) : (
               <button
                 onClick={startEditingName}
-                className="text-xl font-semibold tracking-tight hover:bg-accent/50 px-3 py-1.5 rounded-md border border-transparent hover:border-border/40 transition-all"
+                className="text-lg font-semibold tracking-tight hover:bg-accent/50 px-2.5 py-1 rounded border border-transparent hover:border-border/40 transition-all"
                 title="Click to rename"
               >
                 {projectName}
