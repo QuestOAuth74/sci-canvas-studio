@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { Resend } from "npm:resend@4.0.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,10 +22,8 @@ serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
     const payload: CommentNotificationPayload = await req.json();
     console.log("Processing comment notification:", payload);
@@ -147,41 +144,6 @@ serve(async (req: Request) => {
       } else {
         notifications.push({ userId, subject });
       }
-
-      // Send email if Resend is configured
-      if (resend) {
-        const { data: recipient } = await supabase
-          .from("profiles")
-          .select("email, full_name")
-          .eq("id", userId)
-          .single();
-
-        if (recipient?.email) {
-          emailPromises.push(
-            resend.emails.send({
-              from: "BioSketch <notifications@resend.dev>",
-              to: [recipient.email],
-              subject,
-              html: `
-                <h2>${subject}</h2>
-                <p>${message}</p>
-                <p><a href="${supabaseUrl.replace('.supabase.co', '.lovable.app')}/canvas?project=${payload.project_id}">View project</a></p>
-                <hr />
-                <p style="color: #666; font-size: 12px;">You received this notification because you're collaborating on this project or were mentioned in a comment.</p>
-              `
-            }).catch(error => {
-              console.error("Error sending email:", error);
-              return null;
-            })
-          );
-        }
-      }
-    }
-
-    // Wait for all emails to send
-    if (emailPromises.length > 0) {
-      await Promise.all(emailPromises);
-      console.log(`Sent ${emailPromises.length} email notifications`);
     }
 
     console.log(`Created ${notifications.length} notifications for comment ${payload.comment_id}`);
@@ -189,8 +151,7 @@ serve(async (req: Request) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        notifications: notifications.length,
-        emails_sent: emailPromises.length
+        notifications: notifications.length
       }),
       {
         status: 200,
