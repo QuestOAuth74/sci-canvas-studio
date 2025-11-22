@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { X, Sparkles, AlignCenter, Grid3x3, Layers } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { X, Sparkles, AlignCenter, Grid3x3, Layers, Link, Keyboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCanvas } from "@/contexts/CanvasContext";
 
@@ -18,6 +18,7 @@ export const SmartSuggestions = () => {
   const [dismissedSuggestions, setDismissedSuggestions] = useState<Set<string>>(
     new Set(JSON.parse(localStorage.getItem('dismissedSuggestions') || '[]'))
   );
+  const operationCountRef = useRef(0);
 
   useEffect(() => {
     if (!canvas) return;
@@ -26,6 +27,38 @@ export const SmartSuggestions = () => {
       const objects = canvas.getObjects().filter((obj: any) => 
         !obj.isControlHandle && !obj.isHandleLine && !obj.isGuideLine
       );
+
+      // Count shapes (excluding text, lines, connectors, icons)
+      const shapes = objects.filter((obj: any) => 
+        ['rect', 'circle', 'ellipse', 'polygon', 'triangle'].includes(obj.type?.toLowerCase())
+      );
+
+      // Count connectors/lines
+      const connectors = objects.filter((obj: any) => 
+        obj.isCurvedLine || obj.isOrthogonalLine || obj.isStraightLine || obj.type === 'line'
+      );
+
+      // Suggestion: Use connectors when multiple shapes exist
+      if (shapes.length >= 2 && connectors.length === 0 && !dismissedSuggestions.has('use-connectors')) {
+        setCurrentSuggestion({
+          id: 'use-connectors',
+          icon: Link,
+          title: 'Connect Your Shapes',
+          message: 'Link related shapes together using connectors from the Line Tools menu.',
+        });
+        return;
+      }
+
+      // Suggestion: Use keyboard shortcuts after several manual operations
+      if (operationCountRef.current >= 8 && !dismissedSuggestions.has('keyboard-shortcuts')) {
+        setCurrentSuggestion({
+          id: 'keyboard-shortcuts',
+          icon: Keyboard,
+          title: 'Try Keyboard Shortcuts',
+          message: 'Speed up your workflow! Press Ctrl+C to copy, Ctrl+V to paste, Delete to remove objects, and more.',
+        });
+        return;
+      }
 
       // Suggestion: Use alignment guides when multiple objects exist
       if (objects.length >= 3 && !gridEnabled && !dismissedSuggestions.has('alignment-guides')) {
@@ -68,18 +101,29 @@ export const SmartSuggestions = () => {
       setCurrentSuggestion(null);
     };
 
+    const trackOperation = () => {
+      operationCountRef.current += 1;
+      checkForSuggestions();
+    };
+
     checkForSuggestions();
     
     canvas.on('object:added', checkForSuggestions);
     canvas.on('selection:created', checkForSuggestions);
     canvas.on('selection:updated', checkForSuggestions);
     canvas.on('selection:cleared', checkForSuggestions);
+    canvas.on('object:moving', trackOperation);
+    canvas.on('object:scaling', trackOperation);
+    canvas.on('object:rotating', trackOperation);
 
     return () => {
       canvas.off('object:added', checkForSuggestions);
       canvas.off('selection:created', checkForSuggestions);
       canvas.off('selection:updated', checkForSuggestions);
       canvas.off('selection:cleared', checkForSuggestions);
+      canvas.off('object:moving', trackOperation);
+      canvas.off('object:scaling', trackOperation);
+      canvas.off('object:rotating', trackOperation);
     };
   }, [canvas, gridEnabled, dismissedSuggestions, selectedObject]);
 
