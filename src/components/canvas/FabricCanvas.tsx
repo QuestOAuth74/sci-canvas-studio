@@ -476,6 +476,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Snap-to-grid removed per user request: free movement while dragging and on release
     // (previous object:modified snapping handler deleted)
 
+    // Add drag feedback for better micro-interactions
+    canvas.on('object:moving', (e) => {
+      if (e.target) {
+        e.target.set({ opacity: 0.85 }); // Slightly transparent while dragging
+      }
+    });
+
+    canvas.on('object:modified', (e) => {
+      if (e.target) {
+        e.target.set({ opacity: 1 }); // Restore full opacity after drag
+        canvas.requestRenderAll();
+      }
+    });
+
     canvas.on('mouse:move', (e) => {
       if (e.e.altKey && canvas.getActiveObject() && activeTool === 'select') {
         canvas.setCursor('copy');

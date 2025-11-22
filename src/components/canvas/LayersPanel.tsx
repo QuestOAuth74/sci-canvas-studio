@@ -157,17 +157,17 @@ export const LayersPanel = () => {
   );
 
   return (
-    <div className="h-full flex flex-col panel-gradient sidebar-shadow-left">
+    <div className="h-full flex flex-col panel-gradient sidebar-shadow-left smooth-transition">
       {/* Header */}
-      <div className="p-2 border-b bg-accent/20 backdrop-blur-sm">
+      <div className="p-2 border-b bg-accent/20 backdrop-blur-sm smooth-transition">
         <h2 className="text-sm font-semibold text-foreground tracking-tight mb-2">Layers</h2>
-        <div className="relative mb-2">
+        <div className="relative mb-2 smooth-transition">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder="Search layers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 pl-8 text-xs bg-background/50"
+            className="h-8 pl-8 text-xs bg-background/50 smooth-transition hover:bg-background/70"
           />
         </div>
       </div>

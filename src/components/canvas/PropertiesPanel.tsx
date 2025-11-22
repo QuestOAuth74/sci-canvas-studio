@@ -755,8 +755,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
 
   return (
-    <div className="glass-panel flex flex-col h-full min-h-0 panel-gradient sidebar-shadow-left" data-onboarding="properties-panel">{/* Toggle button - always visible */}
-      <div className="p-2 border-b border-border/40 bg-accent/20 backdrop-blur-sm flex items-center justify-between">
+    <div className="glass-panel flex flex-col h-full min-h-0 panel-gradient sidebar-shadow-left smooth-transition" data-onboarding="properties-panel">{/* Toggle button - always visible */}
+      <div className="p-2 border-b border-border/40 bg-accent/20 backdrop-blur-sm flex items-center justify-between smooth-transition">
         <h2 className="text-sm font-semibold text-foreground tracking-tight">Properties</h2>
         <Button
           variant="ghost"
@@ -771,10 +771,10 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
-        <ScrollArea type="always" className="flex-1 min-h-0">
+        <ScrollArea type="always" className="flex-1 min-h-0 animate-fade-in">
           {/* Pin Object Section - shown when object is selected */}
           {selectedObject && (
-            <div className="p-3 border-b border-border/40 bg-accent/10">
+            <div className="p-3 border-b border-border/40 bg-accent/10 smooth-transition hover:bg-accent/20">
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pin Object</Label>
                 <Button
