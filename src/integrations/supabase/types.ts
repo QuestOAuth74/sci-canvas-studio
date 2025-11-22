@@ -828,6 +828,7 @@ export type Database = {
           invitee_email: string
           invitee_id: string | null
           inviter_id: string
+          last_email_sent_at: string | null
           personal_message: string | null
           project_id: string
           responded_at: string | null
@@ -842,6 +843,7 @@ export type Database = {
           invitee_email: string
           invitee_id?: string | null
           inviter_id: string
+          last_email_sent_at?: string | null
           personal_message?: string | null
           project_id: string
           responded_at?: string | null
@@ -856,6 +858,7 @@ export type Database = {
           invitee_email?: string
           invitee_id?: string | null
           inviter_id?: string
+          last_email_sent_at?: string | null
           personal_message?: string | null
           project_id?: string
           responded_at?: string | null

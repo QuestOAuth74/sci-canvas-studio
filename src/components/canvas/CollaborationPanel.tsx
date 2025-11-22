@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserPlus, Users, MessageSquare, MoreVertical, Crown, Shield, Eye, Trash2, X } from 'lucide-react';
+import { UserPlus, Users, MessageSquare, MoreVertical, Crown, Shield, Eye, Trash2, X, Mail, Copy } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { InviteCollaboratorDialog } from './InviteCollaboratorDialog';
 import { ProjectCommentsSection } from './ProjectCommentsSection';
@@ -132,6 +132,29 @@ export function CollaborationPanel({ projectId, projectName, isOwner, onClose }:
     } catch (error: any) {
       console.error('Error removing collaborator:', error);
       toast.error('Failed to remove collaborator');
+    }
+  };
+
+  const handleResendInvitation = async (invitationId: string, email: string) => {
+    try {
+      toast.loading('Resending invitation email...');
+      
+      const { error } = await supabase.functions.invoke(
+        'send-collaboration-invitation',
+        { body: { invitationId } }
+      );
+
+      if (error) {
+        toast.error('Failed to resend invitation email');
+        console.error('Resend error:', error);
+        return;
+      }
+
+      toast.success(`Invitation resent to ${email}`);
+      loadCollaborationData();
+    } catch (error: any) {
+      console.error('Error resending invitation:', error);
+      toast.error('Failed to resend invitation');
     }
   };
 
@@ -325,16 +348,31 @@ export function CollaborationPanel({ projectId, projectName, isOwner, onClose }:
                           </div>
                           <p className="text-xs text-muted-foreground">
                             Invited {formatDistanceToNow(new Date(invite.created_at), { addSuffix: true })}
+                            {invite.last_email_sent_at && (
+                              <> • Resent {formatDistanceToNow(new Date(invite.last_email_sent_at), { addSuffix: true })}</>
+                            )}
                           </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 text-xs"
-                          onClick={() => handleCancelInvitation(invite.id, invite.invitee_email)}
-                        >
-                          Cancel
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => handleResendInvitation(invite.id, invite.invitee_email)}
+                            title="Resend invitation email"
+                          >
+                            <Mail className="h-3 w-3 mr-1" />
+                            Resend
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                            onClick={() => handleCancelInvitation(invite.id, invite.invitee_email)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </>
