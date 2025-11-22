@@ -10,7 +10,9 @@ import { AuthorCard } from "@/components/blog/AuthorCard";
 import { RelatedPosts } from "@/components/blog/RelatedPosts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, Eye, Calendar } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Clock, Eye, Calendar, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 
@@ -97,93 +99,113 @@ const BlogPost = () => {
         {JSON.stringify(structuredData)}
       </script>
 
-      <div className="min-h-screen bg-background grid-background">
-        {/* Hero Banner */}
-        <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 border-b-[4px] border-foreground">
+      <div className="min-h-screen bg-background">
+        {/* Hero Section - Clean and Modern */}
+        <div className="border-b border-border bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4 py-6">
-            <Button
-              asChild
-              className="border-[3px] border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[6px_6px_0px_0px_hsl(var(--foreground))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-200 font-bold"
-            >
-              <Link to="/blog">
-                <ArrowLeft className="mr-2 h-5 w-5" />
-                Back to Blog
-              </Link>
-            </Button>
+            <div className="flex items-center justify-between">
+              <Button
+                asChild
+                variant="ghost"
+                className="hover:bg-muted transition-colors"
+              >
+                <Link to="/blog">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Blog
+                </Link>
+              </Button>
+              
+              <Breadcrumbs items={breadcrumbItems} />
+            </div>
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-8">
-          <Breadcrumbs items={breadcrumbItems} />
-
-          <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Main Content */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 animate-fade-in">
               <article>
-                {/* Header with Neo-Brutalism Style */}
-                <header className="mb-10 bg-card border-[4px] border-foreground p-8 shadow-[8px_8px_0px_0px_hsl(var(--foreground))] rounded-none relative overflow-hidden">
-                  {/* Decorative elements */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16" />
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/10 -ml-12 -mb-12 rotate-45" />
+                {/* Modern Header Section */}
+                <header className="mb-8">
+                  {/* Categories and Tags */}
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {post.categories?.map((cat: any) => (
+                      <Badge 
+                        key={cat.category.id}
+                        variant="default"
+                        className="smooth-transition hover-scale"
+                      >
+                        {cat.category.name}
+                      </Badge>
+                    ))}
+                    {post.tags?.map((tag: any) => (
+                      <Badge 
+                        key={tag.tag.id}
+                        variant="secondary"
+                        className="smooth-transition hover-scale"
+                      >
+                        #{tag.tag.name}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <h1 className="text-heading-1 mb-6 leading-tight">
+                    {post.title}
+                  </h1>
                   
-                  <div className="relative z-10">
-                    {/* Categories and Tags */}
-                    <div className="flex flex-wrap gap-2 mb-6">
-                      {post.categories?.map((cat: any) => (
-                        <Badge 
-                          key={cat.category.id}
-                          className="bg-primary text-primary-foreground border-[2px] border-foreground shadow-[3px_3px_0px_0px_hsl(var(--foreground))] font-bold text-sm px-3 py-1"
-                        >
-                          {cat.category.name}
-                        </Badge>
-                      ))}
-                      {post.tags?.map((tag: any) => (
-                        <Badge 
-                          key={tag.tag.id}
-                          className="bg-accent text-accent-foreground border-[2px] border-foreground shadow-[3px_3px_0px_0px_hsl(var(--foreground))] font-bold text-sm px-3 py-1"
-                        >
-                          #{tag.tag.name}
-                        </Badge>
-                      ))}
-                    </div>
+                  {post.excerpt && (
+                    <p className="text-body-lg text-muted-foreground mb-8 leading-relaxed">
+                      {post.excerpt}
+                    </p>
+                  )}
 
-                    <h1 className="text-4xl md:text-6xl font-black mb-6 text-foreground leading-tight">
-                      {post.title}
-                    </h1>
-                    
-                    {post.excerpt && (
-                      <p className="text-xl md:text-2xl text-foreground/80 mb-6 font-semibold leading-relaxed">
-                        {post.excerpt}
-                      </p>
-                    )}
-
-                    {/* Meta Info */}
-                    <div className="flex flex-wrap items-center gap-4">
-                      {post.published_at && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-background border-[3px] border-foreground rounded-lg shadow-[3px_3px_0px_0px_hsl(var(--foreground))] font-bold text-sm">
-                          <Calendar className="h-4 w-4 text-primary" />
-                          <time dateTime={post.published_at}>
-                            {format(new Date(post.published_at), 'MMMM d, yyyy')}
-                          </time>
-                        </div>
-                      )}
-                      {post.reading_time && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-background border-[3px] border-foreground rounded-lg shadow-[3px_3px_0px_0px_hsl(var(--foreground))] font-bold text-sm">
-                          <Clock className="h-4 w-4 text-secondary" />
-                          {post.reading_time} min read
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 px-4 py-2 bg-background border-[3px] border-foreground rounded-lg shadow-[3px_3px_0px_0px_hsl(var(--foreground))] font-bold text-sm">
-                        <Eye className="h-4 w-4 text-accent" />
-                        {post.view_count} views
+                  {/* Meta Info - Clean Cards */}
+                  <div className="flex flex-wrap items-center gap-3 mb-8">
+                    {post.published_at && (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-lg text-sm smooth-transition hover:bg-muted">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <time dateTime={post.published_at}>
+                          {format(new Date(post.published_at), 'MMM d, yyyy')}
+                        </time>
                       </div>
+                    )}
+                    {post.reading_time && (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-lg text-sm smooth-transition hover:bg-muted">
+                        <Clock className="h-4 w-4 text-primary" />
+                        {post.reading_time} min read
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-lg text-sm smooth-transition hover:bg-muted">
+                      <Eye className="h-4 w-4 text-primary" />
+                      {post.view_count.toLocaleString()} views
                     </div>
                   </div>
+
+                  {/* Author Info Inline */}
+                  {post.author && (
+                    <div className="flex items-center gap-3 p-4 bg-muted/30 border border-border rounded-lg">
+                      {post.author.avatar_url ? (
+                        <img 
+                          src={post.author.avatar_url} 
+                          alt={post.author.full_name || 'Author'} 
+                          className="w-12 h-12 rounded-full object-cover border-2 border-primary/20"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <User className="h-6 w-6 text-primary" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-semibold text-sm">Written by</p>
+                        <p className="text-foreground">{post.author.full_name || 'BioSketch Team'}</p>
+                      </div>
+                    </div>
+                  )}
                 </header>
 
-                {/* Featured Image with Neo-Brutalism Frame */}
+                {/* Featured Image - Modern Frame */}
                 {post.featured_image_url && (
-                  <div className="mb-10 border-[6px] border-foreground shadow-[12px_12px_0px_0px_hsl(var(--foreground))] overflow-hidden bg-card">
+                  <div className="mb-10 rounded-lg overflow-hidden border border-border shadow-lg hover-lift smooth-transition">
                     <img
                       src={post.featured_image_url}
                       alt={post.featured_image_alt || post.title}
@@ -192,21 +214,34 @@ const BlogPost = () => {
                   </div>
                 )}
 
-                {/* Content with Enhanced Styling */}
-                <div className="bg-card border-[4px] border-foreground p-8 md:p-12 shadow-[8px_8px_0px_0px_hsl(var(--foreground))] mb-10">
-                  <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-black prose-headings:text-foreground prose-p:text-foreground/90 prose-p:font-medium prose-a:text-primary prose-a:font-bold prose-strong:text-foreground prose-strong:font-black">
+                {/* Content with Professional Styling */}
+                <Card className="p-8 md:p-12 mb-10 border border-border shadow-sm">
+                  <div className="prose prose-lg max-w-none dark:prose-invert 
+                    prose-headings:scroll-mt-24 prose-headings:font-bold
+                    prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6
+                    prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4
+                    prose-p:text-foreground/90 prose-p:leading-relaxed prose-p:mb-6
+                    prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                    prose-strong:text-foreground prose-strong:font-semibold
+                    prose-code:text-primary prose-code:bg-muted prose-code:px-2 prose-code:py-1 prose-code:rounded
+                    prose-pre:bg-muted prose-pre:border prose-pre:border-border
+                    prose-img:rounded-lg prose-img:shadow-md
+                    prose-ul:my-6 prose-ol:my-6
+                    prose-li:my-2">
                     <BlogContentRenderer content={post.content} />
                   </div>
-                </div>
+                </Card>
 
-                {/* Share Section */}
-                <div className="bg-gradient-to-br from-primary/5 to-secondary/5 border-[4px] border-foreground p-8 shadow-[8px_8px_0px_0px_hsl(var(--foreground))] mb-10">
-                  <h3 className="text-2xl font-black mb-4 text-foreground">Share This Post</h3>
+                <Separator className="my-12" />
+
+                {/* Share Section - Modern Card */}
+                <Card className="p-8 mb-10 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                  <h3 className="text-heading-3 mb-4">Share This Post</h3>
                   <ShareButtons
                     url={window.location.href}
                     title={post.title}
                   />
-                </div>
+                </Card>
 
                 {/* Author Card */}
                 {post.author && (
@@ -217,7 +252,7 @@ const BlogPost = () => {
 
                 {/* Related Posts */}
                 {relatedPosts && relatedPosts.length > 0 && (
-                  <div className="border-t-[4px] border-foreground pt-10">
+                  <div className="pt-12 border-t border-border">
                     <RelatedPosts posts={relatedPosts} />
                   </div>
                 )}
