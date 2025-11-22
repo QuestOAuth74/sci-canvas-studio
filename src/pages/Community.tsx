@@ -22,7 +22,6 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { SEOHead } from '@/components/SEO/SEOHead';
-import { Breadcrumbs } from '@/components/SEO/Breadcrumbs';
 import { MobileWarningDialog } from '@/components/canvas/MobileWarningDialog';
 
 interface CommunityProject {
@@ -180,11 +179,6 @@ export default function Community() {
       <SEOHead 
         title="Community Gallery - BioFigs" 
         description="Discover and share scientific diagrams with the BioFigs community. Browse thousands of high-quality medical and biological illustrations."
-      />
-      <Breadcrumbs 
-        items={[
-          { name: 'Community', url: '/community' }
-        ]}
       />
       <FeatureUnlockBanner />
 
