@@ -10,6 +10,10 @@ import { ArrangePanel } from "./ArrangePanel";
 import { LinePropertiesPanel } from "./LinePropertiesPanel";
 import { StylePresets } from "./StylePresets";
 import { ImageEraserDialog } from "./ImageEraserDialog";
+import { DiagramSettingsSection } from "./properties/DiagramSettingsSection";
+import { TextPropertiesSection } from "./properties/TextPropertiesSection";
+import { ShapePropertiesSection } from "./properties/ShapePropertiesSection";
+import { ColorPickerSection } from "./properties/ColorPickerSection";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
@@ -17,6 +21,7 @@ import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as Fab
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { ChevronLeft, ChevronRight, Pin, PinOff, Eraser, Paintbrush } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import { ensureFontLoaded, getCanvasFontFamily } from "@/lib/fontLoader";
 import { isTextOnPath, getTextOnPathData, updateTextOnPath, isValidPath } from "@/lib/textOnPath";
@@ -831,156 +836,34 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
             </TabsList>
           
           <div className="px-3 pb-4">
-            <TabsContent value="diagram" className="space-y-4 mt-0">
-              <div className="space-y-3 p-3 rounded-lg bg-accent/5 border border-border/30">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">View</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="grid" className="text-xs">Grid</Label>
-                    <Checkbox 
-                      id="grid" 
-                      checked={gridEnabled}
-                      onCheckedChange={(checked) => setGridEnabled(checked as boolean)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="rulers" className="text-xs">Rulers</Label>
-                    <Checkbox 
-                      id="rulers" 
-                      checked={rulersEnabled}
-                      onCheckedChange={(checked) => setRulersEnabled(checked as boolean)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg bg-accent/5 border border-border/30">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Background</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="bg-color-toggle" className="text-xs">Custom Color</Label>
-                    <Checkbox 
-                      id="bg-color-toggle"
-                      checked={showBgColor}
-                      onCheckedChange={(checked) => setShowBgColor(checked as boolean)}
-                    />
-                  </div>
-                  {showBgColor && (
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        type="color" 
-                        value={backgroundColor}
-                        onChange={(e) => setBackgroundColor(e.target.value)}
-                        className="h-8 w-12 p-1" 
-                      />
-                      <Input 
-                        type="text" 
-                        value={backgroundColor}
-                        onChange={(e) => setBackgroundColor(e.target.value)}
-                        className="h-8 text-xs flex-1" 
-                        placeholder="#ffffff"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-3 p-3 rounded-lg bg-accent/5 border border-border/30">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Paper Size</h3>
-                <Select value={paperSize} onValueChange={handlePaperSizeChange}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAPER_SIZES.map((size) => (
-                      <SelectItem key={size.id} value={size.id} className="text-xs">
-                        <div className="flex flex-col">
-                          <span className="font-medium">{size.name}</span>
-                          <span className="text-xs text-muted-foreground">{size.description}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="text-xs text-muted-foreground">
-                  Canvas: {canvasDimensions.width} × {canvasDimensions.height}px
-                </div>
-              </div>
+            <TabsContent value="diagram" className="space-y-2 mt-0">
+              <DiagramSettingsSection
+                gridEnabled={gridEnabled}
+                setGridEnabled={setGridEnabled}
+                rulersEnabled={rulersEnabled}
+                setRulersEnabled={setRulersEnabled}
+                backgroundColor={backgroundColor}
+                setBackgroundColor={setBackgroundColor}
+                paperSize={paperSize}
+                setPaperSize={handlePaperSizeChange}
+                canvasDimensions={canvasDimensions}
+                showBgColor={showBgColor}
+                setShowBgColor={setShowBgColor}
+              />
             </TabsContent>
             
             {/* Text Properties Tab */}
-            <TabsContent value="text" className="space-y-4 mt-0">
+            <TabsContent value="text" className="space-y-2 mt-0">
               {(selectedObject && (selectedObject.type === 'textbox' || getTextObject(selectedObject))) && (
-                <div>
-                  <h3 className="font-semibold text-sm mb-3">Text Properties</h3>
-                  <div className="space-y-2">
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Font Family</Label>
-                      <Select value={textFont} onValueChange={handleFontChange}>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-[300px]">
-                          {GOOGLE_FONTS.map((font) => (
-                            <SelectItem 
-                              key={font.value} 
-                              value={font.value}
-                              className="text-xs"
-                              style={{ fontFamily: font.value }}
-                            >
-                              {font.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Size</Label>
-                        <Input 
-                          type="number" 
-                          value={textSize} 
-                          onChange={(e) => handleTextSizeChange(e.target.value)}
-                          className="h-8 text-xs" 
-                          min="8"
-                          max="200"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs">Color</Label>
-                        <Input 
-                          type="color" 
-                          value={textColor} 
-                          onChange={(e) => handleTextColorChange(e.target.value)}
-                          className="h-8" 
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Recent Colors for Text */}
-                    {recentColors.length > 0 && (
-                      <div className="space-y-1">
-                        <Label className="text-xs text-muted-foreground">Recent Colors</Label>
-                        <div className="flex gap-1 flex-wrap">
-                          {recentColors.map((color, idx) => (
-                            <Button
-                              key={`text-${color}-${idx}`}
-                              variant="outline"
-                              size="icon"
-                              className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                              style={{ 
-                                backgroundColor: color,
-                                borderColor: textColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                              }}
-                              onClick={() => handleTextColorChange(color)}
-                              title={color}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <TextPropertiesSection
+                  textFont={textFont}
+                  textSize={textSize}
+                  textColor={textColor}
+                  onFontChange={handleFontChange}
+                  onSizeChange={handleTextSizeChange}
+                  onColorChange={handleTextColorChange}
+                  recentColors={recentColors}
+                />
               )}
               
               {/* Text on Path Properties */}
@@ -1243,135 +1126,100 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
               
               {/* Freeform Line Controls */}
               {selectedObject && (selectedObject as any).isFreeformLine && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Freeform Line</h3>
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Line Color</Label>
-                      <div className="grid grid-cols-6 gap-2">
-                        {COLOR_PALETTE.map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => handleFreeformLineColorChange(color)}
-                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                            style={{ 
-                              backgroundColor: color,
-                              borderColor: freeformLineColor === color ? '#0D9488' : '#e5e7eb'
-                            }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          type="color" 
-                          value={freeformLineColor}
-                          onChange={(e) => handleFreeformLineColorChange(e.target.value)}
-                          className="h-8 w-12 p-1" 
-                        />
-                        <Input 
-                          type="text" 
-                          value={freeformLineColor}
-                          onChange={(e) => handleFreeformLineColorChange(e.target.value)}
-                          className="h-8 text-xs flex-1" 
-                          placeholder="#000000"
-                        />
-                      </div>
-                      
-                      {/* Recent Colors */}
-                      {recentColors.length > 0 && (
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Recent</Label>
-                          <div className="flex gap-1 flex-wrap">
-                            {recentColors.map((color, idx) => (
-                              <Button
-                                key={`freeform-${color}-${idx}`}
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                                style={{ 
-                                  backgroundColor: color,
-                                  borderColor: freeformLineColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                                }}
-                                onClick={() => handleFreeformLineColorChange(color)}
-                                title={color}
-                              />
-                            ))}
+                <Accordion type="multiple" defaultValue={["color", "thickness"]} className="w-full">
+                  <AccordionItem value="color" className="border-none">
+                    <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
+                      <span className="text-xs font-semibold uppercase tracking-wider">Line Color</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3 pt-1">
+                      <ColorPickerSection
+                        label="Color"
+                        value={freeformLineColor}
+                        onChange={handleFreeformLineColorChange}
+                        recentColors={recentColors}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="thickness" className="border-none">
+                    <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
+                      <span className="text-xs font-semibold uppercase tracking-wider">Line Thickness</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3 pt-1">
+                      <div className="space-y-3">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs">Thickness</Label>
+                            <span className="text-xs font-mono text-muted-foreground">{freeformLineThickness}px</span>
                           </div>
+                          <Slider
+                            value={[freeformLineThickness]}
+                            onValueChange={handleFreeformLineThicknessChange}
+                            min={1}
+                            max={20}
+                            step={1}
+                            className="w-full"
+                          />
                         </div>
-                      )}
-                    </div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Line Thickness</Label>
-                        <span className="text-xs text-muted-foreground">{freeformLineThickness}px</span>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs">Smoothing</Label>
+                            <span className="text-xs font-mono text-muted-foreground">{smoothingStrength}%</span>
+                          </div>
+                          <Slider
+                            value={[smoothingStrength]}
+                            onValueChange={(value) => setSmoothingStrength(value[0])}
+                            min={0}
+                            max={100}
+                            step={10}
+                            className="w-full"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => smoothenPath(smoothingStrength)}
+                            className="w-full text-xs h-8"
+                          >
+                            <Paintbrush className="h-3.5 w-3.5 mr-1.5" />
+                            Beautify Path
+                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            Straighten lines and smooth curves
+                          </p>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs">Start Marker</Label>
+                          <Select value={freeformStartMarker} onValueChange={(value) => handleFreeformStartMarkerChange(value as "none" | "dot" | "arrow")}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none" className="text-xs">None</SelectItem>
+                              <SelectItem value="dot" className="text-xs">Dot</SelectItem>
+                              <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs">End Marker</Label>
+                          <Select value={freeformEndMarker} onValueChange={(value) => handleFreeformEndMarkerChange(value as "none" | "dot" | "arrow")}>
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none" className="text-xs">None</SelectItem>
+                              <SelectItem value="dot" className="text-xs">Dot</SelectItem>
+                              <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <Slider
-                        value={[freeformLineThickness]}
-                        onValueChange={handleFreeformLineThicknessChange}
-                        min={1}
-                        max={20}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Smoothing Strength</Label>
-                        <span className="text-xs text-muted-foreground">{smoothingStrength}%</span>
-                      </div>
-                      <Slider
-                        value={[smoothingStrength]}
-                        onValueChange={(value) => setSmoothingStrength(value[0])}
-                        min={0}
-                        max={100}
-                        step={10}
-                        className="w-full"
-                      />
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => smoothenPath(smoothingStrength)}
-                        className="w-full text-xs h-8"
-                      >
-                        Beautify Path
-                      </Button>
-                      <p className="text-xs text-muted-foreground">
-                        Straighten lines and smooth curves for professional results
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs">Start Marker</Label>
-                      <Select value={freeformStartMarker} onValueChange={(value) => handleFreeformStartMarkerChange(value as "none" | "dot" | "arrow")}>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none" className="text-xs">None</SelectItem>
-                          <SelectItem value="dot" className="text-xs">Dot</SelectItem>
-                          <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-xs">End Marker</Label>
-                      <Select value={freeformEndMarker} onValueChange={(value) => handleFreeformEndMarkerChange(value as "none" | "dot" | "arrow")}>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none" className="text-xs">None</SelectItem>
-                          <SelectItem value="dot" className="text-xs">Dot</SelectItem>
-                          <SelectItem value="arrow" className="text-xs">Arrow</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               )}
               
               {/* Curved Line Properties */}
@@ -1410,9 +1258,9 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
 
             {/* Arrange Tab */}
-            <TabsContent value="arrange" className="space-y-4 mt-0">
-              <div className="pt-3">
-                <h3 className="font-semibold text-sm mb-3">Arrange</h3>
+            <TabsContent value="arrange" className="space-y-2 mt-0">
+              <div className="p-3 bg-accent/5 rounded-lg border border-border/30">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Arrange</h3>
                 <ArrangePanel />
               </div>
             </TabsContent>
@@ -1424,450 +1272,239 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
               {/* Icon Color & Tone - Only show for SVG groups (icons) */}
               {selectedObject && selectedObject.type === 'group' && !isShapeWithTextGroup(selectedObject) && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Icon Styling</h3>
-                  <Tabs value={iconToneMode} onValueChange={(v) => setIconToneMode(v as "direct" | "tone")}>
-                    <TabsList className="grid w-full grid-cols-2 mb-3">
-                      <TabsTrigger value="direct" className="text-xs">Direct Color</TabsTrigger>
-                      <TabsTrigger value="tone" className="text-xs">Color Tone</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="direct" className="space-y-3 mt-0">
-                      <div className="space-y-2">
-                        <Label className="text-xs">Color</Label>
-                        <div className="grid grid-cols-6 gap-2">
-                          {COLOR_PALETTE.map((color) => (
-                            <button
-                              key={color}
-                              onClick={() => handleIconColorChange(color)}
-                              className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                              style={{ 
-                                backgroundColor: color,
-                                borderColor: iconColor === color ? '#0D9488' : '#e5e7eb'
-                              }}
-                              title={color}
-                            />
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            type="color" 
-                            value={iconColor}
-                            onChange={(e) => handleIconColorChange(e.target.value)}
-                            className="h-8 w-12 p-1" 
-                          />
-                          <Input 
-                            type="text" 
-                            value={iconColor}
-                            onChange={(e) => handleIconColorChange(e.target.value)}
-                            className="h-8 text-xs flex-1" 
-                            placeholder="#000000"
-                          />
-                        </div>
+                <Accordion type="multiple" defaultValue={["icon-color"]} className="w-full mt-3 border-t pt-3">
+                  <AccordionItem value="icon-color" className="border-none">
+                    <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
+                      <span className="text-xs font-semibold uppercase tracking-wider">Icon Styling</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3 pt-1">
+                      <Tabs value={iconToneMode} onValueChange={(v) => setIconToneMode(v as "direct" | "tone")}>
+                        <TabsList className="grid w-full grid-cols-2 mb-3 bg-accent/20">
+                          <TabsTrigger value="direct" className="text-xs">Direct Color</TabsTrigger>
+                          <TabsTrigger value="tone" className="text-xs">Color Tone</TabsTrigger>
+                        </TabsList>
                         
-                        {/* Recent Colors */}
-                        {recentColors.length > 0 && (
-                          <div className="space-y-1">
-                            <Label className="text-xs text-muted-foreground">Recent</Label>
-                            <div className="flex gap-1 flex-wrap">
-                              {recentColors.map((color, idx) => (
+                        <TabsContent value="direct" className="space-y-3 mt-0">
+                          <ColorPickerSection
+                            label="Icon Color"
+                            value={iconColor}
+                            onChange={handleIconColorChange}
+                            recentColors={recentColors}
+                          />
+                        </TabsContent>
+                        
+                        <TabsContent value="tone" className="space-y-3 mt-0">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium">Tone Presets</Label>
+                            <div className="grid grid-cols-3 gap-2">
+                              {TONE_PRESETS.map((preset) => (
                                 <Button
-                                  key={`icon-${color}-${idx}`}
+                                  key={preset.name}
                                   variant="outline"
-                                  size="icon"
-                                  className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                                  style={{ 
-                                    backgroundColor: color,
-                                    borderColor: iconColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                                  }}
-                                  onClick={() => handleIconColorChange(color)}
-                                  title={color}
-                                />
+                                  size="sm"
+                                  onClick={() => handleIconToneChange(preset.color)}
+                                  className="h-9 text-xs gap-1"
+                                >
+                                  <span>{preset.emoji}</span>
+                                  <span>{preset.name}</span>
+                                </Button>
                               ))}
                             </div>
                           </div>
-                        )}
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="tone" className="space-y-3 mt-0">
-                      <div className="space-y-2">
-                        <Label className="text-xs">Tone Presets</Label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {TONE_PRESETS.map((preset) => (
-                            <Button
-                              key={preset.name}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleIconToneChange(preset.color)}
-                              className="h-8 text-xs gap-1"
-                            >
-                              <span>{preset.emoji}</span>
-                              <span>{preset.name}</span>
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label className="text-xs">Custom Tone Color</Label>
-                        <div className="grid grid-cols-6 gap-2">
-                          {COLOR_PALETTE.map((color) => (
-                            <button
-                              key={color}
-                              onClick={() => handleIconToneChange(color)}
-                              className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                              style={{ 
-                                backgroundColor: color,
-                                borderColor: iconToneColor === color ? '#0D9488' : '#e5e7eb'
-                              }}
-                              title={color}
+                          
+                          <ColorPickerSection
+                            label="Custom Tone Color"
+                            value={iconToneColor}
+                            onChange={handleIconToneChange}
+                            recentColors={[]}
+                          />
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-xs">Tone Intensity</Label>
+                              <span className="text-xs font-mono text-muted-foreground">{Math.round(iconToneIntensity * 100)}%</span>
+                            </div>
+                            <Slider
+                              value={[iconToneIntensity * 100]}
+                              onValueChange={([value]) => handleIconToneIntensityChange(value / 100)}
+                              min={0}
+                              max={100}
+                              step={5}
+                              className="w-full"
                             />
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            type="color" 
-                            value={iconToneColor}
-                            onChange={(e) => handleIconToneChange(e.target.value)}
-                            className="h-8 w-12 p-1" 
-                          />
-                          <Input 
-                            type="text" 
-                            value={iconToneColor}
-                            onChange={(e) => handleIconToneChange(e.target.value)}
-                            className="h-8 text-xs flex-1" 
-                            placeholder="#3b82f6"
-                          />
-                        </div>
-                      </div>
+                          </div>
 
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-xs">Tone Intensity</Label>
-                          <span className="text-xs text-muted-foreground">{Math.round(iconToneIntensity * 100)}%</span>
-                        </div>
-                        <Input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.05"
-                          value={iconToneIntensity}
-                          onChange={(e) => handleIconToneIntensityChange(parseFloat(e.target.value))}
-                          className="h-8"
-                        />
-                      </div>
-
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={handleRemoveIconTone}
-                        className="w-full text-xs h-8"
-                      >
-                        Remove Tone
-                      </Button>
-                    </TabsContent>
-                  </Tabs>
-                </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={handleRemoveIconTone}
+                            className="w-full text-xs h-9"
+                          >
+                            Remove Tone
+                          </Button>
+                        </TabsContent>
+                      </Tabs>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               )}
 
               {/* Image Color Tone - Only show for images */}
               {selectedObject && (selectedObject.type === 'image' || selectedObject instanceof FabricImage) && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Image Color Tone</h3>
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label className="text-xs">Tone Color</Label>
-                      <div className="grid grid-cols-6 gap-2">
-                        {COLOR_PALETTE.map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => handleImageToneChange(color)}
-                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                            style={{ 
-                              backgroundColor: color,
-                              borderColor: imageToneColor === color ? '#0D9488' : '#e5e7eb'
-                            }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          type="color" 
+                <Accordion type="multiple" defaultValue={["image-tone"]} className="w-full mt-3 border-t pt-3">
+                  <AccordionItem value="image-tone" className="border-none">
+                    <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
+                      <span className="text-xs font-semibold uppercase tracking-wider">Image Color Tone</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3 pt-1">
+                      <div className="space-y-3">
+                        <ColorPickerSection
+                          label="Tone Color"
                           value={imageToneColor}
-                          onChange={(e) => handleImageToneChange(e.target.value)}
-                          className="h-8 w-12 p-1" 
+                          onChange={handleImageToneChange}
+                          recentColors={recentColors}
                         />
-                        <Input 
-                          type="text" 
-                          value={imageToneColor}
-                          onChange={(e) => handleImageToneChange(e.target.value)}
-                          className="h-8 text-xs flex-1" 
-                          placeholder="#3b82f6"
-                        />
-                      </div>
-                      
-                      {/* Recent Colors */}
-                      {recentColors.length > 0 && (
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Recent</Label>
-                          <div className="flex gap-1 flex-wrap">
-                            {recentColors.map((color, idx) => (
-                              <Button
-                                key={`image-tone-${color}-${idx}`}
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                                style={{ 
-                                  backgroundColor: color,
-                                  borderColor: imageToneColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                                }}
-                                onClick={() => handleImageToneChange(color)}
-                                title={color}
-                              />
-                            ))}
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs">Tone Intensity</Label>
+                            <span className="text-xs font-mono text-muted-foreground">{Math.round(imageToneOpacity * 100)}%</span>
                           </div>
+                          <Slider
+                            value={[imageToneOpacity * 100]}
+                            onValueChange={([value]) => handleImageToneOpacityChange(value / 100)}
+                            min={0}
+                            max={100}
+                            step={5}
+                            className="w-full"
+                          />
                         </div>
-                      )}
-                    </div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Tone Intensity</Label>
-                        <span className="text-xs text-muted-foreground">{Math.round(imageToneOpacity * 100)}%</span>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={handleRemoveImageTone}
+                          className="w-full text-xs h-9"
+                        >
+                          Remove Tone
+                        </Button>
                       </div>
-                      <Input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={imageToneOpacity}
-                        onChange={(e) => handleImageToneOpacityChange(parseFloat(e.target.value))}
-                        className="h-8"
-                      />
-                    </div>
-
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleRemoveImageTone}
-                      className="w-full text-xs h-8"
-                    >
-                      Remove Tone
-                    </Button>
-                  </div>
+                    </AccordionContent>
+                  </AccordionItem>
                   
                   {/* Background Removal */}
-                  <div className="space-y-2 pt-4 border-t">
-                    <Label className="text-sm font-medium">Background Removal</Label>
-                    
-                    {!showImageEraser && (
-                      <>
-                        <Button 
-                          onClick={() => setShowImageEraser(true)}
-                          className="w-full"
-                          variant="outline"
-                          size="sm"
-                        >
-                          <Paintbrush className="mr-2 h-4 w-4" />
-                          Manual Eraser
-                        </Button>
-                        <p className="text-xs text-muted-foreground">
-                          Manually erase parts of the image with a brush tool.
-                        </p>
-                      </>
-                    )}
-                    
-                    <ImageEraserDialog
-                      open={showImageEraser}
-                      onOpenChange={setShowImageEraser}
-                      image={selectedObject instanceof FabricImage ? selectedObject : null}
-                      onComplete={async (dataUrl) => {
-                        if (!canvas) return;
-                        
-                        try {
-                          // Create new image with erased background
-                          const newImg = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
-                          
-                          // Preserve all properties from original
-                          newImg.set({
-                            left: selectedObject.left,
-                            top: selectedObject.top,
-                            scaleX: selectedObject.scaleX,
-                            scaleY: selectedObject.scaleY,
-                            angle: selectedObject.angle,
-                            opacity: selectedObject.opacity,
-                            flipX: selectedObject.flipX,
-                            flipY: selectedObject.flipY,
-                          });
-                          
-                          // Replace old image with new one at same z-index
-                          const objects = canvas.getObjects();
-                          const index = objects.indexOf(selectedObject);
-                          canvas.remove(selectedObject);
-                          if (index >= 0) {
-                            canvas.insertAt(index, newImg);
-                          } else {
-                            canvas.add(newImg);
-                          }
-                          canvas.setActiveObject(newImg);
-                          canvas.renderAll();
-                          
-                          toast.success('Manual erasure applied!');
-                        } catch (error) {
-                          console.error('Failed to apply erased image:', error);
-                          toast.error('Failed to apply changes');
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
+                  <AccordionItem value="background" className="border-none">
+                    <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
+                      <span className="text-xs font-semibold uppercase tracking-wider">Background Removal</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3 pt-1">
+                      <div className="space-y-2">
+                        {!showImageEraser && (
+                          <>
+                            <Button 
+                              onClick={() => setShowImageEraser(true)}
+                              className="w-full"
+                              variant="outline"
+                              size="sm"
+                            >
+                              <Paintbrush className="mr-2 h-4 w-4" />
+                              Manual Eraser
+                            </Button>
+                            <p className="text-xs text-muted-foreground">
+                              Manually erase parts of the image with a brush tool
+                            </p>
+                          </>
+                        )}
+                        <ImageEraserDialog
+                          open={showImageEraser}
+                          onOpenChange={setShowImageEraser}
+                          image={selectedObject instanceof FabricImage ? selectedObject : null}
+                          onComplete={async (dataUrl) => {
+                            if (!canvas) return;
+                            
+                            try {
+                              // Create new image with erased background
+                              const newImg = await FabricImage.fromURL(dataUrl, { crossOrigin: 'anonymous' });
+                              
+                              // Preserve all properties from original
+                              newImg.set({
+                                left: selectedObject.left,
+                                top: selectedObject.top,
+                                scaleX: selectedObject.scaleX,
+                                scaleY: selectedObject.scaleY,
+                                angle: selectedObject.angle,
+                                opacity: selectedObject.opacity,
+                                flipX: selectedObject.flipX,
+                                flipY: selectedObject.flipY,
+                              });
+                              
+                              // Replace old image with new one at same z-index
+                              const objects = canvas.getObjects();
+                              const index = objects.indexOf(selectedObject);
+                              canvas.remove(selectedObject);
+                              if (index >= 0) {
+                                canvas.insertAt(index, newImg);
+                              } else {
+                                canvas.add(newImg);
+                              }
+                              canvas.setActiveObject(newImg);
+                              canvas.renderAll();
+                              
+                              toast.success('Manual erasure applied!');
+                            } catch (error) {
+                              console.error('Failed to apply erased image:', error);
+                              toast.error('Failed to apply changes');
+                            }
+                          }}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               )}
 
               {/* Shape Colors - Only show for non-text, non-image objects */}
               {selectedObject && selectedObject.type !== 'textbox' && selectedObject.type !== 'image' && !(selectedObject instanceof FabricImage) && !(selectedObject as any).isFreeformLine && (selectedObject.type !== 'group' || isShapeWithTextGroup(selectedObject)) && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Shape Colors</h3>
-                  <div className="space-y-3">
-                    {/* Fill Color */}
-                    <div className="space-y-2">
-                      <Label className="text-xs">Fill Color</Label>
-                      <div className="grid grid-cols-6 gap-2">
-                        {COLOR_PALETTE.map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => handleShapeFillColorChange(color)}
-                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                            style={{ 
-                              backgroundColor: color,
-                              borderColor: shapeFillColor === color ? '#0D9488' : '#e5e7eb'
-                            }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          type="color" 
-                          value={shapeFillColor}
-                          onChange={(e) => handleShapeFillColorChange(e.target.value)}
-                          className="h-8 w-12 p-1" 
-                        />
-                        <Input 
-                          type="text" 
-                          value={shapeFillColor}
-                          onChange={(e) => handleShapeFillColorChange(e.target.value)}
-                          className="h-8 text-xs flex-1" 
-                          placeholder="#3b82f6"
-                        />
-                      </div>
-                      
-                      {/* Recent Colors */}
-                      {recentColors.length > 0 && (
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Recent</Label>
-                          <div className="flex gap-1 flex-wrap">
-                            {recentColors.map((color, idx) => (
-                              <Button
-                                key={`shape-fill-${color}-${idx}`}
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                                style={{ 
-                                  backgroundColor: color,
-                                  borderColor: shapeFillColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                                }}
-                                onClick={() => handleShapeFillColorChange(color)}
-                                title={color}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Stroke Color */}
-                    <div className="space-y-2">
-                      <Label className="text-xs">Stroke Color</Label>
-                      <div className="grid grid-cols-6 gap-2">
-                        {COLOR_PALETTE.map((color) => (
-                          <button
-                            key={color}
-                            onClick={() => handleShapeStrokeColorChange(color)}
-                            className="w-8 h-8 rounded border-2 border-border hover:scale-110 transition-transform"
-                            style={{ 
-                              backgroundColor: color,
-                              borderColor: shapeStrokeColor === color ? '#0D9488' : '#e5e7eb'
-                            }}
-                            title={color}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          type="color" 
-                          value={shapeStrokeColor}
-                          onChange={(e) => handleShapeStrokeColorChange(e.target.value)}
-                          className="h-8 w-12 p-1" 
-                        />
-                        <Input 
-                          type="text" 
-                          value={shapeStrokeColor}
-                          onChange={(e) => handleShapeStrokeColorChange(e.target.value)}
-                          className="h-8 text-xs flex-1" 
-                          placeholder="#000000"
-                        />
-                      </div>
-                      
-                      {/* Recent Colors */}
-                      {recentColors.length > 0 && (
-                        <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Recent</Label>
-                          <div className="flex gap-1 flex-wrap">
-                            {recentColors.map((color, idx) => (
-                              <Button
-                                key={`shape-stroke-${color}-${idx}`}
-                                variant="outline"
-                                size="icon"
-                                className="h-6 w-6 p-0 border-2 hover:scale-110 transition-transform"
-                                style={{ 
-                                  backgroundColor: color,
-                                  borderColor: shapeStrokeColor === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
-                                }}
-                                onClick={() => handleShapeStrokeColorChange(color)}
-                                title={color}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <ShapePropertiesSection
+                  fillColor={shapeFillColor}
+                  strokeColor={shapeStrokeColor}
+                  onFillChange={handleShapeFillColorChange}
+                  onStrokeChange={handleShapeStrokeColorChange}
+                  recentColors={recentColors}
+                />
               )}
 
               {/* Eraser Controls - Only show when eraser tool is active */}
               {activeTool === "eraser" && (
-                <div className="pt-3 border-t">
-                  <h3 className="font-semibold text-sm mb-3">Eraser</h3>
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-xs">Eraser Size</Label>
-                        <span className="text-xs text-muted-foreground">{eraserWidth}px</span>
+                <Accordion type="single" defaultValue="eraser" className="w-full">
+                  <AccordionItem value="eraser" className="border-none">
+                    <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
+                      <div className="flex items-center gap-2">
+                        <Eraser className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold uppercase tracking-wider">Eraser</span>
                       </div>
-                      <Slider
-                        value={[eraserWidth]}
-                        onValueChange={handleEraserWidthChange}
-                        min={5}
-                        max={100}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3 pt-1">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Eraser Size</Label>
+                          <span className="text-xs font-mono text-muted-foreground">{eraserWidth}px</span>
+                        </div>
+                        <Slider
+                          value={[eraserWidth]}
+                          onValueChange={handleEraserWidthChange}
+                          min={5}
+                          max={100}
+                          step={1}
+                          className="w-full"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Adjust the size of the eraser brush
+                        </p>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               )}
 
             </TabsContent>
