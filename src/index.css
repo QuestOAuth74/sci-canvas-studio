@@ -1,8 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,7 +12,7 @@ All colors MUST be HSL.
     @apply bg-white/90 backdrop-blur-md border border-border/50;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
-
+  
   .dark .glass-effect {
     @apply bg-card/80 backdrop-blur-md border border-white/5;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -38,21 +33,21 @@ All colors MUST be HSL.
   .soft-shadow-xl {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
-
+  
   .soft-card {
     @apply bg-card rounded-xl border border-border/50 soft-shadow;
     transition: all 0.2s ease;
   }
-
+  
   .soft-card:hover {
     @apply soft-shadow-lg;
     transform: translateY(-2px);
   }
-
+  
   .scientific-gradient {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
   }
-
+  
   /* Animated Gradient Background */
   @keyframes gradientShift {
     0%, 100% {
@@ -62,7 +57,7 @@ All colors MUST be HSL.
       background-position: 100% 50%;
     }
   }
-
+  
   .animated-gradient {
     background: linear-gradient(
       135deg,
@@ -75,7 +70,7 @@ All colors MUST be HSL.
     background-size: 300% 300%;
     animation: gradientShift 8s ease infinite;
   }
-
+  
   /* Floating Animation */
   @keyframes float {
     0%, 100% {
@@ -88,11 +83,11 @@ All colors MUST be HSL.
       transform: translateY(-10px) rotate(-2deg);
     }
   }
-
+  
   .float-animation {
     animation: float 6s ease-in-out infinite;
   }
-
+  
   /* Glossy Feature Card */
   /* Enhanced Glassmorphism Utilities */
   .glass-effect {
@@ -168,11 +163,11 @@ All colors MUST be HSL.
     transform: none !important;
     box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
   }
-
+  
   .glossy-feature-card:hover {
     box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
   }
-
+  
   .glossy-feature-card::before {
     content: '';
     position: absolute;
@@ -183,7 +178,7 @@ All colors MUST be HSL.
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 100%);
     pointer-events: none;
   }
-
+  
   .glossy-feature-card::after {
     content: '';
     position: absolute;
@@ -387,126 +382,93 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Soft Purple/Lavender Theme */
-    --background: 0 0% 96%;
-    --foreground: 0 0% 9%;
-    --card: 0 0% 98%;
-    --card-foreground: 0 0% 9%;
-    --popover: 0 0% 89%;
-    --popover-foreground: 0 0% 9%;
-
+    --background: 260 30% 98%;
+    --foreground: 260 15% 25%;
+    --card: 260 20% 99%;
+    --card-foreground: 260 15% 25%;
+    --popover: 260 20% 99%;
+    --popover-foreground: 260 15% 25%;
+    
     /* Primary - Soft Purple */
-    --primary: 243 75% 58%;
-    --primary-foreground: 225 100% 96%;
-
+    --primary: 260 60% 65%;
+    --primary-foreground: 0 0% 100%;
+    
     /* Secondary - Deep Purple */
-    --secondary: 0 0% 32%;
-    --secondary-foreground: 0 0% 98%;
-
+    --secondary: 270 50% 55%;
+    --secondary-foreground: 0 0% 100%;
+    
     /* Muted - Light Purple-Gray */
-    --muted: 0 0% 63%;
-    --muted-foreground: 0 0% 9%;
-
+    --muted: 260 15% 94%;
+    --muted-foreground: 260 10% 45%;
+    
     /* Accent - Light Lavender */
-    --accent: 250 100% 97%;
-    --accent-foreground: 258 89% 66%;
-
+    --accent: 280 70% 90%;
+    --accent-foreground: 260 15% 25%;
+    
     /* Destructive - Soft Red */
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 85% 97%;
-
+    --destructive: 0 70% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
     /* UI Elements */
-    --border: 0 0% 83%;
-    --input: 0 0% 83%;
-    --ring: 243 75% 58%;
-    --radius: 1.25rem;
-
+    --border: 240 10% 85%;
+    --input: 260 20% 99%;
+    --ring: 260 60% 65%;
+    --radius: 0.75rem;
+    
     /* Sidebar */
     --sidebar-background: 260 15% 94%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 243 75% 58%;
-    --sidebar-primary-foreground: 225 100% 96%;
-    --sidebar-accent: 0 0% 32%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 83%;
-    --sidebar-ring: 243 75% 58%;
-    --chart-1: 234 89% 73%;
-    --chart-2: 255 91% 76%;
-    --chart-3: 270 95% 75%;
-    --chart-4: 238 83% 66%;
-    --chart-5: 0 0% 45%;
-    --sidebar: 0 0% 98%;
-    --font-sans: 'Lato', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-    --font-serif: 'EB Garamond', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-    --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
-    --tracking-normal: 0em;
-    --spacing: 0.25rem;
+    --sidebar-foreground: 260 15% 25%;
+    --sidebar-primary: 260 60% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 280 70% 90%;
+    --sidebar-accent-foreground: 260 15% 25%;
+    --sidebar-border: 240 10% 85%;
+    --sidebar-ring: 260 60% 65%;
   }
 
   .dark {
     /* Dark Mode - Soft Purple Theme */
-    --background: 0 0% 9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 14%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 25%;
-    --popover-foreground: 0 0% 98%;
-
+    --background: 260 25% 12%;
+    --foreground: 260 20% 90%;
+    --card: 260 20% 16%;
+    --card-foreground: 260 20% 90%;
+    --popover: 260 20% 16%;
+    --popover-foreground: 260 20% 90%;
+    
     /* Primary - Brighter Purple */
-    --primary: 234 89% 73%;
-    --primary-foreground: 243 47% 20%;
-
+    --primary: 260 65% 70%;
+    --primary-foreground: 0 0% 100%;
+    
     /* Secondary - Deeper Purple */
-    --secondary: 0 0% 45%;
-    --secondary-foreground: 0 0% 98%;
-
+    --secondary: 270 55% 60%;
+    --secondary-foreground: 0 0% 100%;
+    
     /* Muted */
-    --muted: 0 0% 45%;
-    --muted-foreground: 0 0% 98%;
-
+    --muted: 260 15% 20%;
+    --muted-foreground: 260 15% 65%;
+    
     /* Accent - Lavender */
-    --accent: 261 72% 22%;
-    --accent-foreground: 255 91% 76%;
-
+    --accent: 280 60% 75%;
+    --accent-foreground: 260 25% 12%;
+    
     /* Destructive */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 85% 97%;
-
+    --destructive: 0 75% 65%;
+    --destructive-foreground: 0 0% 100%;
+    
     /* UI Elements */
-    --border: 0 0% 32%;
-    --input: 0 0% 32%;
-    --ring: 234 89% 73%;
-
+    --border: 260 15% 25%;
+    --input: 260 15% 20%;
+    --ring: 260 65% 70%;
+    
     /* Sidebar */
     --sidebar-background: 260 20% 14%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 234 89% 73%;
-    --sidebar-primary-foreground: 243 47% 20%;
-    --sidebar-accent: 255 91% 76%;
-    --sidebar-accent-foreground: 261 72% 22%;
-    --sidebar-border: 0 0% 32%;
-    --sidebar-ring: 234 89% 73%;
-    --chart-1: 229 93% 81%;
-    --chart-2: 252 94% 85%;
-    --chart-3: 269 97% 85%;
-    --chart-4: 234 89% 73%;
-    --chart-5: 0 0% 45%;
-    --sidebar: 0 0% 14%;
-    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --sidebar-foreground: 260 20% 90%;
+    --sidebar-primary: 260 65% 70%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 280 60% 75%;
+    --sidebar-accent-foreground: 260 25% 12%;
+    --sidebar-border: 25 20% 25%;
+    --sidebar-ring: 18 90% 60%;
   }
 
   /* Professional Blue Theme - Light Mode */
@@ -517,32 +479,32 @@ All colors MUST be HSL.
     --card-foreground: 210 15% 25%;
     --popover: 210 20% 99%;
     --popover-foreground: 210 15% 25%;
-
+    
     /* Primary - Professional Blue */
     --primary: 210 70% 55%;
     --primary-foreground: 0 0% 100%;
-
+    
     /* Secondary - Navy Blue */
     --secondary: 220 60% 45%;
     --secondary-foreground: 0 0% 100%;
-
+    
     /* Muted - Light Blue-Gray */
     --muted: 210 15% 94%;
     --muted-foreground: 210 10% 45%;
-
+    
     /* Accent - Light Sky Blue */
     --accent: 200 70% 85%;
     --accent-foreground: 210 15% 25%;
-
+    
     /* Destructive - Soft Red */
     --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
-
+    
     /* UI Elements */
     --border: 210 10% 85%;
     --input: 210 20% 99%;
     --ring: 210 70% 55%;
-
+    
     /* Sidebar */
     --sidebar-background: 210 15% 94%;
     --sidebar-foreground: 210 15% 25%;
@@ -562,32 +524,32 @@ All colors MUST be HSL.
     --card-foreground: 210 20% 90%;
     --popover: 215 20% 16%;
     --popover-foreground: 210 20% 90%;
-
+    
     /* Primary - Bright Blue */
     --primary: 210 75% 65%;
     --primary-foreground: 0 0% 100%;
-
+    
     /* Secondary - Cyan Blue */
     --secondary: 200 65% 55%;
     --secondary-foreground: 0 0% 100%;
-
+    
     /* Muted */
     --muted: 215 15% 20%;
     --muted-foreground: 210 15% 65%;
-
+    
     /* Accent - Light Cyan */
     --accent: 195 65% 75%;
     --accent-foreground: 215 25% 12%;
-
+    
     /* Destructive */
     --destructive: 0 75% 65%;
     --destructive-foreground: 0 0% 100%;
-
+    
     /* UI Elements */
     --border: 215 15% 25%;
     --input: 215 15% 20%;
     --ring: 210 75% 65%;
-
+    
     /* Sidebar */
     --sidebar-background: 215 20% 14%;
     --sidebar-foreground: 210 20% 90%;
@@ -607,32 +569,32 @@ All colors MUST be HSL.
     --card-foreground: 30 20% 25%;       /* Dark brown */
     --popover: 35 20% 97%;
     --popover-foreground: 30 20% 25%;
-
+    
     /* Primary - Warm Amber/Orange */
     --primary: 38 85% 55%;               /* Rich amber */
     --primary-foreground: 0 0% 100%;
-
+    
     /* Secondary - Deep Brown */
     --secondary: 25 45% 40%;             /* Chocolate brown */
     --secondary-foreground: 0 0% 100%;
-
+    
     /* Muted - Warm Tan */
     --muted: 35 20% 90%;                 /* Light tan */
     --muted-foreground: 30 15% 45%;      /* Medium brown */
-
+    
     /* Accent - Golden Yellow */
     --accent: 45 75% 70%;                /* Warm gold */
     --accent-foreground: 30 20% 25%;
-
+    
     /* Destructive - Warm Red */
     --destructive: 10 70% 55%;
     --destructive-foreground: 0 0% 100%;
-
+    
     /* UI Elements */
     --border: 35 15% 82%;                /* Warm border */
     --input: 35 20% 97%;
     --ring: 38 85% 55%;
-
+    
     /* Sidebar */
     --sidebar-background: 35 20% 90%;
     --sidebar-foreground: 30 20% 25%;
@@ -652,32 +614,32 @@ All colors MUST be HSL.
     --card-foreground: 40 30% 85%;
     --popover: 25 18% 18%;
     --popover-foreground: 40 30% 85%;
-
+    
     /* Primary - Bright Amber */
     --primary: 40 80% 60%;               /* Glowing amber */
     --primary-foreground: 0 0% 100%;
-
+    
     /* Secondary - Golden Yellow */
     --secondary: 45 70% 55%;             /* Warm gold */
     --secondary-foreground: 25 20% 14%;
-
+    
     /* Muted */
     --muted: 25 15% 22%;                 /* Dark tan */
     --muted-foreground: 40 20% 65%;
-
+    
     /* Accent - Peach */
     --accent: 30 65% 70%;                /* Light warm peach */
     --accent-foreground: 25 20% 14%;
-
+    
     /* Destructive */
     --destructive: 10 75% 60%;
     --destructive-foreground: 0 0% 100%;
-
+    
     /* UI Elements */
     --border: 25 15% 26%;
     --input: 25 15% 22%;
     --ring: 40 80% 60%;
-
+    
     /* Sidebar */
     --sidebar-background: 25 18% 16%;
     --sidebar-foreground: 40 30% 85%;
@@ -705,7 +667,7 @@ All colors MUST be HSL.
     @apply font-sans font-semibold;
     letter-spacing: -0.02em;
   }
-
+  
   h1 {
     @apply text-4xl md:text-5xl tracking-tight;
   }
@@ -978,24 +940,24 @@ All colors MUST be HSL.
   .blog-content-modern {
     font-size: 1rem;
   }
-
+  
   .blog-content-modern h2 {
     font-size: 2rem;
   }
-
+  
   .blog-content-modern h3 {
     font-size: 1.5rem;
   }
-
+  
   .blog-content-modern blockquote {
     font-size: 1.25rem;
     padding: 1.5rem 1.5rem 1.5rem 3rem;
   }
-
+  
   .blog-content-modern blockquote::before {
     font-size: 3.5rem;
   }
-
+  
   .blog-content-modern .drop-cap::first-letter {
     font-size: 3.5rem;
     padding: 0.15em 0.25em;
@@ -1051,14 +1013,4 @@ All colors MUST be HSL.
   width: 4px;
   background-color: hsl(var(--primary));
   pointer-events: none;
-}
-/* ---break---
-*/
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
 }
