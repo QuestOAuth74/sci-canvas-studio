@@ -237,6 +237,68 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       ctx.fill();
       
       ctx.restore();
+      
+      // Draw rotation angle label if object is being rotated
+      if ((fabricObject as any).isRotating) {
+        ctx.save();
+        
+        // Position label above the rotation handle
+        const labelY = top - 25;
+        
+        // Normalize angle to 0-360 range
+        let normalizedAngle = Math.round(fabricObject.angle || 0) % 360;
+        if (normalizedAngle < 0) normalizedAngle += 360;
+        
+        const angleText = `${normalizedAngle}°`;
+        
+        // Measure text for background sizing
+        ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
+        const textMetrics = ctx.measureText(angleText);
+        const textWidth = textMetrics.width;
+        const textHeight = 14;
+        
+        const padding = 6;
+        const bgWidth = textWidth + padding * 2;
+        const bgHeight = textHeight + padding * 2;
+        
+        // Draw background with shadow
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowOffsetY = 2;
+        
+        ctx.fillStyle = '#1a1a1a';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        
+        const cornerRadius = 4;
+        const bgX = left - bgWidth / 2;
+        const bgY = labelY - bgHeight / 2;
+        
+        ctx.beginPath();
+        ctx.moveTo(bgX + cornerRadius, bgY);
+        ctx.lineTo(bgX + bgWidth - cornerRadius, bgY);
+        ctx.quadraticCurveTo(bgX + bgWidth, bgY, bgX + bgWidth, bgY + cornerRadius);
+        ctx.lineTo(bgX + bgWidth, bgY + bgHeight - cornerRadius);
+        ctx.quadraticCurveTo(bgX + bgWidth, bgY + bgHeight, bgX + bgWidth - cornerRadius, bgY + bgHeight);
+        ctx.lineTo(bgX + cornerRadius, bgY + bgHeight);
+        ctx.quadraticCurveTo(bgX, bgY + bgHeight, bgX, bgY + bgHeight - cornerRadius);
+        ctx.lineTo(bgX, bgY + cornerRadius);
+        ctx.quadraticCurveTo(bgX, bgY, bgX + cornerRadius, bgY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Reset shadow for text
+        ctx.shadowBlur = 0;
+        
+        // Draw angle text
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(angleText, left, labelY);
+        
+        ctx.restore();
+      }
     };
 
     // Rotation action handler
@@ -247,8 +309,19 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       const angle = Math.atan2(ey, ex) * (180 / Math.PI) - 90;
       
       target.angle = angle;
+      (target as any).isRotating = true;
+      target.canvas?.requestRenderAll();
       return true;
     };
+    
+    // Track when rotation ends to hide angle label
+    canvas.on('mouse:up', () => {
+      const activeObj = canvas.getActiveObject();
+      if (activeObj && (activeObj as any).isRotating) {
+        (activeObj as any).isRotating = false;
+        canvas.requestRenderAll();
+      }
+    });
 
     // Create the Chemix-style rotation control
     const mtrControl = new Control({
