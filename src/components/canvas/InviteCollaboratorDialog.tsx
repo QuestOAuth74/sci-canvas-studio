@@ -171,7 +171,7 @@ export function InviteCollaboratorDialog({
       // Check for existing pending invitation
       const { data: existingInvite } = await supabase
         .from('project_collaboration_invitations')
-        .select('id')
+        .select('id, created_at, last_email_sent_at')
         .eq('project_id', projectId)
         .eq('invitee_email', inviteeEmail.toLowerCase())
         .eq('status', 'pending')
@@ -179,7 +179,12 @@ export function InviteCollaboratorDialog({
         .maybeSingle();
 
       if (existingInvite) {
-        toast.error('A pending invitation already exists for this email');
+        const lastSent = existingInvite.last_email_sent_at || existingInvite.created_at;
+        const hoursAgo = Math.round((Date.now() - new Date(lastSent).getTime()) / (1000 * 60 * 60));
+        toast.error(
+          `A pending invitation already exists for this email (sent ${hoursAgo}h ago). Use the "Resend" button in the Pending Invitations section to resend it, or cancel it first.`,
+          { duration: 5000 }
+        );
         return;
       }
 

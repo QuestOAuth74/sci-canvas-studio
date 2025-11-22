@@ -140,6 +140,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Collaboration invitation email sent successfully:", emailResponse);
 
+    // Update last_email_sent_at timestamp for tracking
+    const { error: updateError } = await supabase
+      .from("project_collaboration_invitations")
+      .update({ last_email_sent_at: new Date().toISOString() })
+      .eq("id", invitationId);
+
+    if (updateError) {
+      console.warn("Failed to update last_email_sent_at:", updateError);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true,
