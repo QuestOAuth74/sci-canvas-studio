@@ -3,7 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye, User, Globe, GraduationCap } from "lucide-react";
+import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye, User, Globe, GraduationCap, Download } from "lucide-react";
+import { toast } from "sonner";
+import { exportUsersToExcel } from "@/lib/excelExport";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -110,6 +112,22 @@ const Analytics = () => {
       setSortDirection("desc");
     }
     setCurrentPage(1); // Reset to first page on sort
+  };
+
+  const handleExportToExcel = () => {
+    if (!analyticsData) return;
+    
+    try {
+      exportUsersToExcel(analyticsData);
+      toast.success("Export successful", {
+        description: `Exported ${analyticsData.length} users to Excel`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error("Export failed", {
+        description: "Failed to export user data. Please try again.",
+      });
+    }
   };
 
   // Calculate pagination
@@ -337,7 +355,17 @@ const Analytics = () => {
         {/* Data Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl font-semibold">User Details</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold">User Details</CardTitle>
+              <Button
+                onClick={handleExportToExcel}
+                disabled={!analyticsData || analyticsData.length === 0}
+                className="gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Export to Excel ({totalUsers} users)
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
