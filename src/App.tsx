@@ -10,11 +10,12 @@ import { AdminRoute } from "@/components/auth/AdminRoute";
 import { MainLayout } from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import Canvas from "./pages/Canvas";
+import Community from "./pages/Community";
+import AuthorProfile from "./pages/AuthorProfile";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import Projects from "./pages/Projects";
 import Profile from "./pages/Profile";
-import Community from "./pages/Community";
 import Testimonials from "./pages/Testimonials";
 import MySubmissions from "./pages/MySubmissions";
 import ReleaseNotes from "./pages/ReleaseNotes";
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/projects" element={<MainLayout><ProtectedRoute><Projects /></ProtectedRoute></MainLayout>} />
             <Route path="/profile" element={<MainLayout><ProtectedRoute><Profile /></ProtectedRoute></MainLayout>} />
             <Route path="/community" element={<MainLayout><ProtectedRoute><Community /></ProtectedRoute></MainLayout>} />
+            <Route path="/author/:userId" element={<MainLayout><ProtectedRoute><AuthorProfile /></ProtectedRoute></MainLayout>} />
             <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
             <Route path="/my-submissions" element={<MainLayout><ProtectedRoute><MySubmissions /></ProtectedRoute></MainLayout>} />
             <Route path="/testimonials" element={<MainLayout><Testimonials /></MainLayout>} />

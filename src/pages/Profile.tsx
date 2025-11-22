@@ -34,6 +34,7 @@ export default function Profile() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [quote, setQuote] = useState('');
+  const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [country, setCountry] = useState('');
   const [fieldOfStudy, setFieldOfStudy] = useState('');
@@ -194,6 +195,7 @@ export default function Profile() {
         setFullName(data.full_name || '');
         setEmail(data.email || user?.email || '');
         setQuote(data.quote || '');
+        setBio(data.bio || '');
         setAvatarUrl(data.avatar_url || '');
         setCountry(data.country || '');
         setFieldOfStudy(data.field_of_study || '');
@@ -260,6 +262,7 @@ export default function Profile() {
           full_name: fullName,
           email: email,
           quote: quote,
+          bio: bio,
           avatar_url: avatarUrl,
           country: country,
           field_of_study: fieldOfStudy,
@@ -452,6 +455,26 @@ export default function Profile() {
                   />
                   <p className="text-xs text-muted-foreground">
                     {quote.length}/200 characters
+                  </p>
+                </div>
+
+                {/* Author Bio */}
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Author Bio</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Write a brief bio about yourself and your work. This will be displayed on your public author profile page..."
+                    rows={5}
+                    maxLength={500}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {bio.length}/500 characters
+                  </p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Info className="h-3 w-3" />
+                    Your bio will be visible on your public author profile if you have approved community projects
                   </p>
                 </div>
 
