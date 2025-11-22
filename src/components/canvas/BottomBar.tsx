@@ -27,14 +27,14 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
   const hint = TOOL_HINTS[activeTool] || "Select a tool from the left toolbar to get started.";
   
   return (
-    <div className="h-10 glass-effect-premium border-t shadow-[0_-2px_8px_rgba(0,0,0,0.04)] flex items-center px-4 gap-4 justify-between">
+    <div className="h-10 bg-gradient-to-r from-background via-muted/10 to-background border-t-2 border-primary/10 shadow-lg flex items-center px-4 gap-4 justify-between">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-7 w-7 btn-interactive">
+        <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/10 hover:scale-110 transition-all duration-200">
           <Plus className="h-4 w-4" />
         </Button>
         
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs hover:bg-accent transition-all duration-200">
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs bg-muted/50 hover:bg-muted/70 rounded-md transition-all duration-200">
             Page-1
             <ChevronDown className="h-3 w-3 ml-1" />
           </Button>
@@ -42,9 +42,11 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
       </div>
 
       {/* Context-Aware Tool Hint */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-1 justify-center">
-        <Lightbulb className="h-3.5 w-3.5 text-primary" />
-        <span>{hint}</span>
+      <div className="flex items-center gap-2 text-xs flex-1 justify-center">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 rounded-md border border-primary/10">
+          <Lightbulb className="h-3.5 w-3.5 text-primary" />
+          <span className="text-foreground font-medium">{hint}</span>
+        </div>
       </div>
 
       <div className="w-32" /> {/* Spacer for balance */}

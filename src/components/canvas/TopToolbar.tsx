@@ -76,13 +76,13 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
   };
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 glass-effect-premium toolbar-floating border-b shadow-md transition-all duration-200" data-onboarding="toolbar">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gradient-to-b from-background/95 to-muted/50 backdrop-blur-xl border-b-2 border-primary/5 shadow-xl transition-all duration-200" data-onboarding="toolbar">
       {/* Edit Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Edit</span>
+        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Edit</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={undo}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={undo}>
               <Undo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -91,7 +91,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={redo}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={redo}>
               <Redo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -100,7 +100,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={cut}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={cut}>
               <Scissors className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -109,7 +109,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={copy}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={copy}>
               <Copy className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -118,7 +118,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={paste}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={paste}>
               <Clipboard className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -126,11 +126,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
 
       {/* Align Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Align</span>
+        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Align</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={alignLeft}>
@@ -159,11 +159,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
 
       {/* Layer Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Layer</span>
+        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Layer</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={bringToFront}>
@@ -201,11 +201,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
 
       {/* Group Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Group</span>
+        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Group</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={groupSelected}>
@@ -225,11 +225,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
 
       {/* View Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">View</span>
+        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">View</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
@@ -267,11 +267,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </>
       )}
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
 
       {/* Zoom Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Zoom</span>
+        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Zoom</span>
         <Tooltip>
           <TooltipTrigger asChild>
               <Button 
@@ -310,21 +310,21 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
 
       <div className="flex-1 flex items-center justify-center">
         {saveStatus === 'saved' && (
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-green-500/10 rounded-md border border-green-500/20">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
-            All changes saved
+            <span className="text-green-700 dark:text-green-400 font-medium">All changes saved</span>
           </span>
         )}
         {saveStatus === 'saving' && (
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 rounded-md border border-yellow-500/20">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
-            Saving...
+            <span className="text-yellow-700 dark:text-yellow-400 font-medium">Saving...</span>
           </span>
         )}
         {saveStatus === 'unsaved' && (
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-400"></span>
-            Not saved
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-md border border-border/40">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
+            <span className="text-muted-foreground font-medium">Not saved</span>
           </span>
         )}
       </div>
@@ -332,14 +332,14 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={zoomOut}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/10 transition-all" onClick={zoomOut}>
               <ZoomOut className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Zoom Out</TooltipContent>
         </Tooltip>
         
-        <span className="text-xs font-medium px-2 min-w-[3rem] text-center">{zoom}%</span>
+        <span className="text-xs font-semibold px-3 py-1 bg-muted/80 rounded-md min-w-[3rem] text-center">{zoom}%</span>
         
         <Tooltip>
           <TooltipTrigger asChild>

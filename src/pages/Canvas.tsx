@@ -636,17 +636,24 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="glass-effect border-b shadow-sm">
+      <header className="bg-gradient-to-r from-background via-muted/10 to-background border-b-2 border-primary/10 shadow-lg">
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img 
-              src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
-              alt="BioSketch" 
-              className="h-8 object-contain"
-            />
+            <div className="bg-muted/30 rounded-lg p-1.5">
+              <img 
+                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
+                alt="BioSketch" 
+                className="h-8 object-contain"
+              />
+            </div>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="h-9 w-9">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => navigate("/")} 
+                  className="h-9 w-9 hover:bg-primary/10 hover:scale-105 transition-all duration-200"
+                >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -675,11 +682,11 @@ const CanvasContent = () => {
               </button>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-muted/30 rounded-lg p-1.5">
             {isSaving && (
-              <span className="text-sm text-muted-foreground flex items-center gap-1">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Saving...
+              <span className="text-sm flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 rounded-md border border-yellow-500/20">
+                <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />
+                <span className="text-yellow-700 dark:text-yellow-400 font-medium">Saving...</span>
               </span>
             )}
             <MenuBar 
@@ -693,7 +700,7 @@ const CanvasContent = () => {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => setShowShortcuts(true)}
-                  className="h-9 w-9"
+                  className="h-9 w-9 hover:bg-primary/10 transition-all duration-200"
                 >
                   <HelpCircle className="h-4 w-4" />
                 </Button>
@@ -707,7 +714,7 @@ const CanvasContent = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setAiGeneratorOpen(true)}
-                    className="h-9"
+                    className="h-9 hover:bg-primary/10 transition-all duration-200"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
                     AI Generate
@@ -719,7 +726,13 @@ const CanvasContent = () => {
             )}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button onClick={() => saveProject(true)} disabled={isSaving} variant="default" size="sm" className="h-9 shadow-sm">
+                <Button 
+                  onClick={() => saveProject(true)} 
+                  disabled={isSaving} 
+                  variant="default" 
+                  size="sm" 
+                  className="h-9 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md transition-all duration-200"
+                >
                   <Save className="h-3.5 w-3.5 mr-1.5" />
                   Save
                 </Button>
@@ -741,25 +754,25 @@ const CanvasContent = () => {
         {/* Main Editor Area */}
         <div className="flex flex-1 min-h-0">
           {/* Left Sidebar - Icon Categories & Assets */}
-          <div className={`glass-effect border-r flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
+          <div className={`bg-gradient-to-b from-background via-muted/10 to-background/95 border-r-2 border-primary/10 shadow-2xl flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
             {isIconLibraryCollapsed ? (
               <div className="p-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsIconLibraryCollapsed(false)}
-                  className="w-full"
+                  className="w-full hover:bg-primary/10 hover:scale-110 transition-all duration-200"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b flex items-center justify-between">
+                <div className="p-2 border-b border-primary/10 flex items-center justify-between bg-gradient-to-r from-muted/50 to-transparent">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-8">
-                      <TabsTrigger value="icons" className="text-xs">Icons</TabsTrigger>
-                      <TabsTrigger value="assets" className="text-xs">My Assets</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 h-8 bg-muted/50 shadow-inner">
+                      <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:shadow-md">Icons</TabsTrigger>
+                      <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:shadow-md">My Assets</TabsTrigger>
                     </TabsList>
                   </Tabs>
                   <Button
@@ -844,25 +857,25 @@ const CanvasContent = () => {
         </ScrollArea>
 
         {/* Right Sidebar - Properties & Layers */}
-        <div className={`glass-effect border-l flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
+        <div className={`bg-gradient-to-b from-background via-muted/10 to-background/95 border-l-2 border-primary/10 shadow-2xl flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsPropertiesPanelCollapsed(false)}
-                className="w-full"
+                className="w-full hover:bg-primary/10 hover:scale-110 transition-all duration-200"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b flex items-center justify-between">
+              <div className="p-2 border-b border-primary/10 flex items-center justify-between bg-gradient-to-r from-muted/50 to-transparent">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-8">
-                    <TabsTrigger value="properties" className="text-xs">Properties</TabsTrigger>
-                    <TabsTrigger value="layers" className="text-xs">Layers</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-8 bg-muted/50 shadow-inner">
+                    <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:shadow-md">Properties</TabsTrigger>
+                    <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:shadow-md">Layers</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button
