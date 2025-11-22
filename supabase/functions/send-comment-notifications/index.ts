@@ -1,5 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { Resend } from "https://esm.sh/resend@4.0.0";
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -104,9 +107,8 @@ serve(async (req: Request) => {
       recipientIds.add(project.user_id);
     }
 
-    // Create notifications
+    // Create notifications and send emails
     const notifications = [];
-    const emailPromises = [];
 
     for (const userId of recipientIds) {
       const isMentioned = mentionedUserIds.has(userId);
@@ -127,7 +129,67 @@ serve(async (req: Request) => {
         message = `${commenterName} ${isReply ? 'replied' : 'commented'} on ${project.name}: "${payload.comment_text.slice(0, 150)}${payload.comment_text.length > 150 ? '...' : ''}"`;
       }
 
-      // Insert notification
+      // Get recipient email
+      const { data: recipientProfile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("id", userId)
+        .single();
+
+      if (!recipientProfile?.email) {
+        console.error(`No email found for user ${userId}`);
+        continue;
+      }
+
+      const projectUrl = `https://tljsbmpglwmzyaoxsqyj.supabase.co/canvas?project=${payload.project_id}`;
+
+      // Send email notification
+      try {
+        await resend.emails.send({
+          from: "BioSketch <notifications@resend.dev>",
+          to: [recipientProfile.email],
+          subject,
+          html: `
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              </head>
+              <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600;">BioSketch</h1>
+                  </div>
+                  <div style="padding: 30px;">
+                    <h2 style="color: #333333; margin: 0 0 20px 0; font-size: 20px; font-weight: 600;">${subject}</h2>
+                    <p style="color: #666666; line-height: 1.6; margin: 0 0 20px 0;">
+                      ${message}
+                    </p>
+                    <div style="background-color: #f8f9fa; border-left: 4px solid #667eea; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                      <p style="color: #495057; margin: 0; font-style: italic; line-height: 1.5;">
+                        "${payload.comment_text.slice(0, 200)}${payload.comment_text.length > 200 ? '...' : ''}"
+                      </p>
+                    </div>
+                    <div style="text-align: center; margin: 30px 0;">
+                      <a href="${projectUrl}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 6px; font-weight: 600; font-size: 16px;">View Comment</a>
+                    </div>
+                    <p style="color: #999999; font-size: 12px; line-height: 1.5; margin: 20px 0 0 0; text-align: center;">
+                      You received this notification because you are ${isMentioned ? 'mentioned in' : 'collaborating on'} this project.
+                    </p>
+                  </div>
+                </div>
+              </body>
+            </html>
+          `,
+        });
+
+        console.log(`Email sent to ${recipientProfile.email}`);
+      } catch (emailError) {
+        console.error(`Error sending email to ${recipientProfile.email}:`, emailError);
+      }
+
+      // Insert in-app notification
       const { error: notificationError } = await supabase
         .from("user_notifications")
         .insert({
@@ -135,7 +197,7 @@ serve(async (req: Request) => {
           subject,
           message,
           sender_name: commenterName,
-          sent_via_email: false,
+          sent_via_email: true,
           is_read: false
         });
 
