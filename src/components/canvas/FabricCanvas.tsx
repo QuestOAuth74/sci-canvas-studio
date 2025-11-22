@@ -118,6 +118,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       FabricObject.prototype.borderColor = '#EF4444';        // Red selection border
       FabricObject.prototype.borderScaleFactor = 2;
       FabricObject.prototype.padding = 4;
+      (FabricObject.prototype as any).hasRotatingPoint = true;        // Enable rotation handle globally
+      (FabricObject.prototype as any).rotatingPointOffset = 45;       // Distance above object
+      (FabricObject.prototype as any).hasControls = true;             // Ensure controls are visible
 
       const canvas = new Canvas(canvasRef.current!, {
         width: canvasDimensions.width,
@@ -140,6 +143,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           borderColor: '#EF4444',
           borderScaleFactor: 2,
           padding: 4,
+          hasControls: true,
+          hasRotatingPoint: true,
         });
         
         // Normalize fonts for text objects using helper
@@ -245,12 +250,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       return true;
     };
 
-    // Apply custom rotation control to FabricObject prototype safely
-    if (!FabricObject.prototype.controls) {
-      FabricObject.prototype.controls = {};
-    }
-    
-    FabricObject.prototype.controls.mtr = new Control({
+    // Create the Chemix-style rotation control
+    const mtrControl = new Control({
       x: 0,
       y: -0.5,
       offsetY: -45,
@@ -259,6 +260,35 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       actionName: 'rotate',
       render: renderRotationControl,
       withConnection: true,
+    });
+
+    // Apply custom rotation control to FabricObject prototype safely
+    if (!FabricObject.prototype.controls) {
+      FabricObject.prototype.controls = {};
+    }
+    
+    FabricObject.prototype.controls.mtr = mtrControl;
+
+    // Ensure all major object types share the same Chemix-style rotation control
+    const rotationTargetClasses: any[] = [
+      Rect,
+      Circle,
+      Ellipse,
+      Polygon,
+      Line,
+      Path,
+      Group,
+      FabricImage,
+      Textbox,
+    ];
+
+    rotationTargetClasses.forEach((Ctor) => {
+      if (Ctor && Ctor.prototype) {
+        if (!Ctor.prototype.controls) {
+          Ctor.prototype.controls = {};
+        }
+        Ctor.prototype.controls.mtr = mtrControl;
+      }
     });
 
     canvas.isDrawingMode = false;
