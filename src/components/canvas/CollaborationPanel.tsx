@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useProjectPresence } from '@/hooks/useProjectPresence';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,6 +27,9 @@ export function CollaborationPanel({ projectId, projectName, isOwner, onClose }:
   const [projectOwner, setProjectOwner] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  
+  // Real-time presence tracking
+  const { onlineUsers } = useProjectPresence(projectId);
 
   const loadCollaborationData = async () => {
     try {
@@ -211,6 +215,10 @@ export function CollaborationPanel({ projectId, projectName, isOwner, onClose }:
     return email[0].toUpperCase();
   };
 
+  const isUserOnline = (userId: string) => {
+    return onlineUsers.some(u => u.user_id === userId);
+  };
+
   return (
     <Card className="h-full flex flex-col shadow-lg">
       <CardHeader className="pb-3 border-b">
@@ -257,20 +265,50 @@ export function CollaborationPanel({ projectId, projectName, isOwner, onClose }:
           <TabsContent value="collaborators" className="flex-1 overflow-hidden mt-0">
             <ScrollArea className="h-full pr-4">
               <div className="space-y-3">
+                {/* Online Now Indicator */}
+                {onlineUsers.length > 0 && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
+                    <div className="flex -space-x-2">
+                      {onlineUsers.slice(0, 3).map((user) => (
+                        <Avatar key={user.user_id} className="h-6 w-6 border-2 border-background">
+                          <AvatarImage src={user.user_avatar || undefined} />
+                          <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                            {getInitials(user.user_name, user.user_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-xs font-medium text-green-700 dark:text-green-400">
+                        {onlineUsers.length} {onlineUsers.length === 1 ? 'person' : 'people'} viewing
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Project Owner */}
                 {projectOwner && (
                   <div className="flex items-start gap-3 p-2 rounded-lg bg-muted/50">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={projectOwner.avatar_url} />
-                      <AvatarFallback>
-                        {getInitials(projectOwner.full_name, projectOwner.email)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={projectOwner.avatar_url} />
+                        <AvatarFallback>
+                          {getInitials(projectOwner.full_name, projectOwner.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isUserOnline(projectOwner.id) && (
+                        <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium truncate">
                           {isOwner ? 'You' : (projectOwner.full_name || projectOwner.email)}
                         </span>
+                        {isUserOnline(projectOwner.id) && (
+                          <span className="text-xs text-green-600 dark:text-green-400">• Online</span>
+                        )}
                         <Badge variant="default" className="gap-1 text-xs">
                           <Crown className="h-3 w-3" />
                           Owner
@@ -284,17 +322,25 @@ export function CollaborationPanel({ projectId, projectName, isOwner, onClose }:
                 {/* Active Collaborators */}
                 {collaborators.map((collab) => (
                   <div key={collab.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={collab.user.avatar_url} />
-                      <AvatarFallback>
-                        {getInitials(collab.user.full_name, collab.user.email)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={collab.user.avatar_url} />
+                        <AvatarFallback>
+                          {getInitials(collab.user.full_name, collab.user.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isUserOnline(collab.user.id) && (
+                        <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium truncate">
                           {collab.user.full_name || collab.user.email}
                         </span>
+                        {isUserOnline(collab.user.id) && (
+                          <span className="text-xs text-green-600 dark:text-green-400">• Online</span>
+                        )}
                         <Badge variant={getRoleBadgeVariant(collab.role)} className="gap-1 text-xs capitalize">
                           {getRoleIcon(collab.role)}
                           {collab.role}
