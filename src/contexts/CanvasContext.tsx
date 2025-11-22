@@ -46,6 +46,10 @@ interface CanvasContextType {
   loadProject: (id: string) => Promise<void>;
   saveStatus: 'saved' | 'saving' | 'unsaved';
   
+  // Collaboration access control
+  collaborationRole: 'owner' | 'admin' | 'editor' | 'viewer' | null;
+  canEdit: boolean;
+  
   // Canvas operations
   undo: () => void;
   redo: () => void;
@@ -219,8 +223,18 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
   
+  // Collaboration access control
+  const [collaborationRole, setCollaborationRole] = useState<'owner' | 'admin' | 'editor' | 'viewer' | null>(null);
+  
   // Performance optimization: track if canvas has unsaved changes
   const [isDirty, setIsDirty] = useState(false);
+  
+  // Computed: Can user edit based on collaboration role?
+  const canEdit = useMemo(() => {
+    if (!currentProjectId) return true; // No project loaded, allow editing
+    if (!collaborationRole) return false; // No role determined yet
+    return collaborationRole === 'owner' || collaborationRole === 'admin' || collaborationRole === 'editor';
+  }, [currentProjectId, collaborationRole]);
   
   // Render scheduler for batching renders
   const renderScheduler = useRef<RenderScheduler | null>(null);
@@ -295,6 +309,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // Clipboard operations
   const cut = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObject = canvas.getActiveObject();
     if (!activeObject) return;
 
@@ -417,6 +435,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const paste = useCallback(async () => {
     if (!canvas || !clipboard) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
 
     try {
       if (clipboard.type === 'multiple') {
@@ -473,6 +495,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const deleteSelected = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length > 0) {
       activeObjects.forEach(obj => canvas.remove(obj));
@@ -480,7 +506,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       canvas.requestRenderAll();
       saveState();
     }
-  }, [canvas, saveState]);
+  }, [canvas, canEdit, saveState]);
 
   const selectAll = useCallback(() => {
     if (!canvas) return;
@@ -582,6 +608,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // Alignment operations
   const alignLeft = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length === 0) return;
     
@@ -593,6 +623,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const alignCenter = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObjects = canvas.getActiveObjects();
     if (activeObjects.length === 0) return;
     
@@ -657,6 +691,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // Flip operations
   const flipHorizontal = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       activeObject.set({ flipX: !activeObject.flipX });
@@ -664,10 +702,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       saveState();
       toast.success("Flipped horizontally");
     }
-  }, [canvas, saveState]);
+  }, [canvas, canEdit, saveState]);
 
   const flipVertical = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       activeObject.set({ flipY: !activeObject.flipY });
@@ -675,11 +717,15 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       saveState();
       toast.success("Flipped vertically");
     }
-  }, [canvas, saveState]);
+  }, [canvas, canEdit, saveState]);
 
   // Layer operations
   const bringToFront = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       canvas.bringObjectToFront(activeObject);
@@ -687,10 +733,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       saveState();
       toast.success("Moved to front layer");
     }
-  }, [canvas, saveState]);
+  }, [canvas, canEdit, saveState]);
 
   const sendToBack = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       canvas.sendObjectToBack(activeObject);
@@ -698,10 +748,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       saveState();
       toast.success("Moved to back layer");
     }
-  }, [canvas, saveState]);
+  }, [canvas, canEdit, saveState]);
 
   const bringForward = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       canvas.bringObjectForward(activeObject);
@@ -709,10 +763,14 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       saveState();
       toast.success("Moved forward one layer");
     }
-  }, [canvas, saveState]);
+  }, [canvas, canEdit, saveState]);
 
   const sendBackward = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
       canvas.sendObjectBackwards(activeObject);
@@ -720,11 +778,15 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       saveState();
       toast.success("Moved backward one layer");
     }
-  }, [canvas, saveState]);
+  }, [canvas, canEdit, saveState]);
 
   // Group operations
   const groupSelected = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObjects = canvas.getActiveObjects();
     
     if (activeObjects.length < 2) {
@@ -750,6 +812,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const ungroupSelected = useCallback(() => {
     if (!canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     const activeObject = canvas.getActiveObject();
     
     if (!activeObject || activeObject.type !== 'group') {
@@ -1258,6 +1324,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     isCircular: boolean = false
   ) => {
     if (!canvas || !selectedObject) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     
     // Support both image and group types (groups are SVG icons)
     const supportedTypes = ['image', 'group'];
@@ -1639,6 +1709,38 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         return;
       }
 
+      // Check collaboration role for this project
+      let role: 'owner' | 'admin' | 'editor' | 'viewer' | null = null;
+      
+      // Check if user is the project owner
+      if (data.user_id === user.id) {
+        role = 'owner';
+      } else {
+        // Check if user is a collaborator
+        const { data: collabData, error: collabError } = await supabase
+          .from('project_collaborators')
+          .select('role')
+          .eq('project_id', id)
+          .eq('user_id', user.id)
+          .not('accepted_at', 'is', null)
+          .maybeSingle();
+
+        if (!collabError && collabData) {
+          role = collabData.role as 'admin' | 'editor' | 'viewer';
+        } else {
+          // User doesn't have access to this project
+          toast.error("You don't have permission to access this project");
+          return;
+        }
+      }
+
+      setCollaborationRole(role);
+
+      // Show access level message
+      if (role === 'viewer') {
+        toast.info("You have view-only access to this project", { duration: 4000 });
+      }
+
       // Wait for all fonts to load before rendering
       toast("Loading project...");
       await loadAllFonts();
@@ -1814,6 +1916,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const duplicateSelected = useCallback(async () => {
     if (!canvas || !selectedObject) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
 
     if (selectedObject.type === 'activeSelection') {
       const activeSelection = selectedObject as ActiveSelection;
@@ -1866,6 +1972,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const toggleLockSelected = useCallback(() => {
     if (!canvas || !selectedObject) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
 
     const currentLocked = (selectedObject as any).pinned || false;
     selectedObject.set({
@@ -1876,17 +1986,21 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     canvas.requestRenderAll();
     toast.success(currentLocked ? 'Unlocked object' : 'Locked object');
     saveState();
-  }, [canvas, selectedObject, saveState]);
+  }, [canvas, selectedObject, canEdit, saveState]);
 
   const hideSelected = useCallback(() => {
     if (!canvas || !selectedObject) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
 
     selectedObject.set({ visible: false });
     canvas.discardActiveObject();
     canvas.requestRenderAll();
     toast.success('Object hidden (Cmd+H to show all)');
     saveState();
-  }, [canvas, selectedObject, saveState]);
+  }, [canvas, selectedObject, canEdit, saveState]);
 
   const showAllHidden = useCallback(() => {
     if (!canvas) return;
@@ -1907,15 +2021,23 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const rotateSelected = useCallback((degrees: number) => {
     if (!canvas || !selectedObject) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
 
     const currentAngle = selectedObject.angle || 0;
     selectedObject.rotate(currentAngle + degrees);
     canvas.requestRenderAll();
     saveState();
-  }, [canvas, selectedObject, saveState]);
+  }, [canvas, selectedObject, canEdit, saveState]);
 
   const duplicateBelow = useCallback(async () => {
     if (!canvas || !selectedObject) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
 
     const cloned = await selectedObject.clone();
     const height = selectedObject.getScaledHeight();
@@ -1950,6 +2072,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   // Gradient operations
   const applyGradient = useCallback((config: GradientConfig, target: 'fill' | 'stroke') => {
     if (!selectedObject || !canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     
     const targetObj = getShapeFromGroup(selectedObject);
     let gradient;
@@ -1998,17 +2124,25 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const clearGradient = useCallback((target: 'fill' | 'stroke') => {
     if (!selectedObject || !canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     
     const targetObj = getShapeFromGroup(selectedObject);
     targetObj.set(target, '');
     canvas.requestRenderAll();
     saveState();
     toast.success(`Gradient cleared from ${target}`);
-  }, [selectedObject, canvas, saveState]);
+  }, [selectedObject, canvas, canEdit, saveState]);
 
   // Shadow operations
   const applyShadow = useCallback((config: ShadowConfig) => {
     if (!selectedObject || !canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     
     if (config.enabled) {
       const shadow = new Shadow({
@@ -2034,17 +2168,25 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
   const clearEffects = useCallback(() => {
     if (!selectedObject || !canvas) return;
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
+      return;
+    }
     
     selectedObject.set('shadow', null);
     canvas.requestRenderAll();
     saveState();
     toast.success('All effects cleared');
-  }, [selectedObject, canvas, saveState]);
+  }, [selectedObject, canvas, canEdit, saveState]);
 
   // Background removal
   const removeImageBackground = useCallback(async () => {
     if (!canvas || !selectedObject || selectedObject.type !== 'image') {
       toast.error('Please select an image first');
+      return;
+    }
+    if (!canEdit) {
+      toast.error("You don't have permission to edit this project");
       return;
     }
 
@@ -2108,7 +2250,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       const errorMsg = error?.message || 'Failed to remove background';
       toast.error(errorMsg, { duration: 5000 });
     }
-  }, [selectedObject, canvas, saveState]);
+  }, [selectedObject, canvas, canEdit, saveState]);
 
   const value: CanvasContextType = {
     canvas,
@@ -2143,6 +2285,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     saveProject,
     loadProject,
     saveStatus,
+    collaborationRole,
+    canEdit,
     undo,
     redo,
     cut,
