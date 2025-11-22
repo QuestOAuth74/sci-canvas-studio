@@ -21,12 +21,16 @@ import { cn } from '@/lib/utils';
 import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
 import { FeatureUnlockBanner } from '@/components/community/FeatureUnlockBanner';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { PendingInvitations } from '@/components/profile/PendingInvitations';
+import { usePendingInvitations } from '@/hooks/usePendingInvitations';
 
 export default function Profile() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { hasAccess, isLoading: featureAccessLoading } = useFeatureAccess();
+  const { invitations: pendingInvitations } = usePendingInvitations(user?.id, user?.email);
+  const pendingInvitationsCount = pendingInvitations?.length || 0;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -319,8 +323,19 @@ export default function Profile() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="invitations" className="relative">
+                  Invitations
+                  {pendingInvitationsCount > 0 && (
+                    <Badge 
+                      variant="default" 
+                      className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                    >
+                      {pendingInvitationsCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
                 <TabsTrigger value="notifications" className="relative">
                   Notifications
                   {unreadCount > 0 && (
@@ -577,6 +592,10 @@ export default function Profile() {
                     'Save Changes'
                   )}
                 </Button>
+              </TabsContent>
+              
+              <TabsContent value="invitations" className="mt-6">
+                <PendingInvitations />
               </TabsContent>
               
               <TabsContent value="notifications" className="space-y-4 mt-6">
