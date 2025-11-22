@@ -31,6 +31,3 @@ verify_jwt = true
 [functions.generate-powerpoint]
 verify_jwt = true
 timeout = 180
-
-[functions.send-collaboration-invitation]
-verify_jwt = true
