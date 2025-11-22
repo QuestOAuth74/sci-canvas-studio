@@ -800,42 +800,44 @@ const CanvasContent = () => {
 
         {/* Canvas */}
         <ScrollArea className="flex-1 relative min-h-0">
-          <CanvasContextMenu
-            selectedObject={selectedObject}
-            hasClipboard={hasClipboard}
-            canUndo={true}
-            canRedo={true}
-            hasHiddenObjects={hasHiddenObjects}
-            onCopy={() => {
-              copy();
-              setHasClipboard(true);
-            }}
-            onCut={() => {
-              cut();
-              setHasClipboard(true);
-            }}
-            onPaste={paste}
-            onDuplicate={duplicateSelected}
-            onDelete={deleteSelected}
-            onLock={toggleLockSelected}
-            onHide={hideSelected}
-            onBringToFront={bringToFront}
-            onBringForward={bringForward}
-            onSendBackward={sendBackward}
-            onSendToBack={sendToBack}
-            onGroup={groupSelected}
-            onUngroup={ungroupSelected}
-            onSelectAll={selectAll}
-            onUndo={undo}
-            onRedo={redo}
-            onShowAllHidden={showAllHidden}
-            onOpenProperties={() => {
-              setIsPropertiesPanelCollapsed(false);
-              setRightSidebarTab("properties");
-            }}
-          >
-            <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
-          </CanvasContextMenu>
+          <div className="p-8">
+            <CanvasContextMenu
+              selectedObject={selectedObject}
+              hasClipboard={hasClipboard}
+              canUndo={true}
+              canRedo={true}
+              hasHiddenObjects={hasHiddenObjects}
+              onCopy={() => {
+                copy();
+                setHasClipboard(true);
+              }}
+              onCut={() => {
+                cut();
+                setHasClipboard(true);
+              }}
+              onPaste={paste}
+              onDuplicate={duplicateSelected}
+              onDelete={deleteSelected}
+              onLock={toggleLockSelected}
+              onHide={hideSelected}
+              onBringToFront={bringToFront}
+              onBringForward={bringForward}
+              onSendBackward={sendBackward}
+              onSendToBack={sendToBack}
+              onGroup={groupSelected}
+              onUngroup={ungroupSelected}
+              onSelectAll={selectAll}
+              onUndo={undo}
+              onRedo={redo}
+              onShowAllHidden={showAllHidden}
+              onOpenProperties={() => {
+                setIsPropertiesPanelCollapsed(false);
+                setRightSidebarTab("properties");
+              }}
+            >
+              <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
+            </CanvasContextMenu>
+          </div>
           <AlignmentGuides />
           <ScrollBar orientation="horizontal" />
           <ScrollBar orientation="vertical" />

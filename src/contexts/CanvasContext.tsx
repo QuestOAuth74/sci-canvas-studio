@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useMemo, useRef } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, Gradient, Shadow, FabricImage } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, Gradient, Shadow, FabricImage, Point } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -495,23 +495,26 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const zoomIn = useCallback(() => {
     if (!canvas) return;
     const newZoom = Math.min(zoom + 10, 300);
+    const center = canvas.getVpCenter();
     setZoom(newZoom);
-    canvas.setZoom(newZoom / 100);
+    canvas.zoomToPoint(new Point(center.x, center.y), newZoom / 100);
     canvas.requestRenderAll();
   }, [canvas, zoom]);
 
   const zoomOut = useCallback(() => {
     if (!canvas) return;
     const newZoom = Math.max(zoom - 10, 10);
+    const center = canvas.getVpCenter();
     setZoom(newZoom);
-    canvas.setZoom(newZoom / 100);
+    canvas.zoomToPoint(new Point(center.x, center.y), newZoom / 100);
     canvas.requestRenderAll();
   }, [canvas, zoom]);
 
   const resetZoom = useCallback(() => {
     if (!canvas) return;
+    const center = canvas.getVpCenter();
     setZoom(100);
-    canvas.setZoom(1);
+    canvas.zoomToPoint(new Point(center.x, center.y), 1);
     canvas.requestRenderAll();
   }, [canvas]);
 
