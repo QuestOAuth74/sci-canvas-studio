@@ -174,6 +174,19 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       _styleOverride: any,
       fabricObject: any
     ) => {
+      console.debug(
+        "[ChemixRotation] render",
+        fabricObject.type,
+        {
+          left: Math.round(left),
+          top: Math.round(top),
+          angle: Math.round(fabricObject.angle || 0),
+          hasControls: fabricObject.hasControls,
+          hasRotatingPoint: fabricObject.hasRotatingPoint,
+          lockRotation: fabricObject.lockRotation,
+        }
+      );
+      
       const size = 24;
       const isHovering = fabricObject.canvas?.getActiveObject() === fabricObject;
       
@@ -398,6 +411,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Normalize all existing text objects with font stacks for special character support
     normalizeCanvasTextFonts(canvas);
 
+    // Helper function to ensure Chemix rotation control is always present
+    const ensureChemixRotationControl = (obj: FabricObject | any) => {
+      if (!obj.controls) obj.controls = {};
+      if (!obj.controls.mtr) {
+        obj.controls.mtr = mtrControl;
+        obj.hasRotatingPoint = true;
+        obj.hasControls = true;
+      }
+    };
+
     // Helper function to manage curved line control handle visibility
     const manageCurvedLineHandles = (selectedObj: FabricObject | null) => {
       // First, hide ALL curved line handles on the canvas
@@ -448,6 +471,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         uiSelected = parentCurve ?? null;
       }
       
+      // Debug selection details
+      if (uiSelected) {
+        console.debug("[ChemixRotation] selection:created", {
+          type: uiSelected.type,
+          hasControls: uiSelected.hasControls,
+          hasRotatingPoint: (uiSelected as any).hasRotatingPoint,
+          lockRotation: (uiSelected as any).lockRotation,
+          controlsKeys: uiSelected.controls ? Object.keys(uiSelected.controls) : [],
+        });
+        
+        // Ensure rotation control is present
+        ensureChemixRotationControl(uiSelected);
+      }
+      
       // UI uses uiSelected (parent curve for handles)
       setSelectedObject(uiSelected);
       manageCurvedLineHandles(uiSelected);
@@ -475,6 +512,21 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }) as FabricObject | undefined;
         
         uiSelected = parentCurve ?? null;
+      }
+      
+      // Debug selection details
+      if (uiSelected) {
+        console.debug("[ChemixRotation] selection:updated", {
+          type: uiSelected.type,
+          hasControls: uiSelected.hasControls,
+          hasRotatingPoint: (uiSelected as any).hasRotatingPoint,
+          lockRotation: (uiSelected as any).lockRotation,
+          controlsKeys: uiSelected.controls ? Object.keys(uiSelected.controls) : [],
+        });
+        
+        // Ensure rotation control is present
+        ensureChemixRotationControl(uiSelected);
+        canvas.requestRenderAll();
       }
       
       // UI uses uiSelected (parent curve for handles)
