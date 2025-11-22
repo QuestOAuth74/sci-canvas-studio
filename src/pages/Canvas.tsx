@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight, Sparkles, Users } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
@@ -37,9 +37,11 @@ import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
 import { ToolRatingWidget } from "@/components/canvas/ToolRatingWidget";
 import { PanelLabelTool } from "@/components/canvas/PanelLabelTool";
 import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
+import { CollaborationPanel } from "@/components/canvas/CollaborationPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -64,7 +66,9 @@ const CanvasContent = () => {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
-  const { isAdmin } = useAuth();
+  const [collaborationPanelOpen, setCollaborationPanelOpen] = useState(false);
+  const [isProjectOwner, setIsProjectOwner] = useState(false);
+  const { isAdmin, user } = useAuth();
   const {
     canvas,
     selectedObject,
@@ -156,6 +160,123 @@ const CanvasContent = () => {
       setCurrentProjectId(projectId);
     }
   }, [searchParams, canvas, loadProject]);
+
+  // Check if current user is project owner
+  useEffect(() => {
+    const checkOwnership = async () => {
+      if (!currentProjectId || !user) {
+        setIsProjectOwner(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('canvas_projects')
+          .select('user_id')
+          .eq('id', currentProjectId)
+          .single();
+
+        if (error) throw error;
+        setIsProjectOwner(data.user_id === user.id);
+      } catch (error) {
+        console.error('Error checking project ownership:', error);
+        setIsProjectOwner(false);
+      }
+    };
+
+    checkOwnership();
+  }, [currentProjectId, user]);
+
+  // Handle collaboration invitation acceptance from URL
+  useEffect(() => {
+    const handleInvitationAcceptance = async () => {
+      const invitationToken = searchParams.get('invitation');
+      if (!invitationToken) return;
+
+      try {
+        // Check if user is logged in
+        if (!user) {
+          // Redirect to login with return URL
+          navigate(`/auth?returnTo=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+          return;
+        }
+
+        // Find invitation
+        const { data: invitation, error: fetchError } = await supabase
+          .from('project_collaboration_invitations')
+          .select('*')
+          .eq('invitation_token', invitationToken)
+          .eq('status', 'pending')
+          .single();
+
+        if (fetchError || !invitation) {
+          toast.error('Invalid or expired invitation');
+          navigate('/canvas', { replace: true });
+          return;
+        }
+
+        // Check if invitation has expired
+        if (new Date(invitation.expires_at) < new Date()) {
+          toast.error('This invitation has expired');
+          navigate('/canvas', { replace: true });
+          return;
+        }
+
+        // Check if user is already a collaborator
+        const { data: existingCollab } = await supabase
+          .from('project_collaborators')
+          .select('id')
+          .eq('project_id', invitation.project_id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existingCollab) {
+          toast.info('You are already a collaborator on this project');
+          navigate(`/canvas?project=${invitation.project_id}`, { replace: true });
+          return;
+        }
+
+        // Accept invitation - create collaborator record
+        const { error: acceptError } = await supabase
+          .from('project_collaborators')
+          .insert({
+            project_id: invitation.project_id,
+            user_id: user.id,
+            role: invitation.role,
+            invited_by: invitation.inviter_id,
+            accepted_at: new Date().toISOString()
+          });
+
+        if (acceptError) throw acceptError;
+
+        // Update invitation status
+        await supabase
+          .from('project_collaboration_invitations')
+          .update({
+            status: 'accepted',
+            responded_at: new Date().toISOString()
+          })
+          .eq('id', invitation.id);
+
+        // Load the project
+        if (canvas) {
+          await loadProject(invitation.project_id);
+          setCurrentProjectId(invitation.project_id);
+        }
+        
+        toast.success('Invitation accepted! You can now collaborate on this project.');
+        
+        // Remove invitation token from URL
+        navigate(`/canvas?project=${invitation.project_id}`, { replace: true });
+      } catch (error: any) {
+        console.error('Error accepting invitation:', error);
+        toast.error('Failed to accept invitation');
+        navigate('/canvas', { replace: true });
+      }
+    };
+
+    handleInvitationAcceptance();
+  }, [searchParams, user, canvas, loadProject, navigate]);
 
   // Check for recovery on load
   useEffect(() => {
@@ -682,6 +803,21 @@ const CanvasContent = () => {
                 Saving...
               </span>
             )}
+            {currentProjectId && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant={collaborationPanelOpen ? "secondary" : "ghost"}
+                    size="icon"
+                    onClick={() => setCollaborationPanelOpen(!collaborationPanelOpen)}
+                    className="h-9 w-9"
+                  >
+                    <Users className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Collaborate</TooltipContent>
+              </Tooltip>
+            )}
             <MenuBar 
               onTemplatesClick={() => setTemplatesDialogOpen(true)}
               onPanelLabelClick={() => setPanelLabelToolOpen(true)}
@@ -901,6 +1037,18 @@ const CanvasContent = () => {
 
       {/* Smart Suggestions - Context-aware tips */}
       <SmartSuggestions />
+
+      {/* Collaboration Panel - Floating */}
+      {collaborationPanelOpen && currentProjectId && (
+        <div className="fixed right-4 top-20 bottom-4 w-96 z-50 animate-in slide-in-from-right duration-300">
+          <CollaborationPanel
+            projectId={currentProjectId}
+            projectName={projectName}
+            isOwner={isProjectOwner}
+            onClose={() => setCollaborationPanelOpen(false)}
+          />
+        </div>
+      )}
     </div>
     </>
   );
