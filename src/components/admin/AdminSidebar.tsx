@@ -14,6 +14,7 @@ import {
   Tags,
   MessageCircle,
   Star,
+  LineChart,
 } from "lucide-react";
 import {
   Sidebar,
@@ -58,6 +59,7 @@ const menuItems: MenuGroup[] = [
   {
     group: "Community",
     items: [
+      { id: 'community-metrics', label: 'Metrics Inflator', icon: LineChart },
       { id: 'icon-submissions', label: 'Icon Submissions', icon: Upload },
       { id: 'community-uploads', label: 'Community Uploads', icon: Users },
     ]
