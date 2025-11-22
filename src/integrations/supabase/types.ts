@@ -819,6 +819,174 @@ export type Database = {
         }
         Relationships: []
       }
+      project_collaboration_invitations: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          invitation_token: string
+          invitee_email: string
+          invitee_id: string | null
+          inviter_id: string
+          last_email_sent_at: string | null
+          personal_message: string | null
+          project_id: string
+          responded_at: string | null
+          role: Database["public"]["Enums"]["collaboration_role"]
+          status: Database["public"]["Enums"]["invitation_status"]
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invitee_email: string
+          invitee_id?: string | null
+          inviter_id: string
+          last_email_sent_at?: string | null
+          personal_message?: string | null
+          project_id: string
+          responded_at?: string | null
+          role?: Database["public"]["Enums"]["collaboration_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invitee_email?: string
+          invitee_id?: string | null
+          inviter_id?: string
+          last_email_sent_at?: string | null
+          personal_message?: string | null
+          project_id?: string
+          responded_at?: string | null
+          role?: Database["public"]["Enums"]["collaboration_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_collaboration_invitations_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_collaboration_invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_collaboration_invitations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_collaborators: {
+        Row: {
+          accepted_at: string | null
+          id: string
+          invited_at: string
+          invited_by: string
+          last_active_at: string | null
+          project_id: string
+          role: Database["public"]["Enums"]["collaboration_role"]
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          id?: string
+          invited_at?: string
+          invited_by: string
+          last_active_at?: string | null
+          project_id: string
+          role?: Database["public"]["Enums"]["collaboration_role"]
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          id?: string
+          invited_at?: string
+          invited_by?: string
+          last_active_at?: string | null
+          project_id?: string
+          role?: Database["public"]["Enums"]["collaboration_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_collaborators_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_comments: {
+        Row: {
+          canvas_position: Json | null
+          comment_text: string
+          created_at: string
+          id: string
+          is_resolved: boolean | null
+          parent_comment_id: string | null
+          project_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          canvas_position?: Json | null
+          comment_text: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean | null
+          parent_comment_id?: string | null
+          project_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          canvas_position?: Json | null
+          comment_text?: string
+          created_at?: string
+          id?: string
+          is_resolved?: boolean | null
+          parent_comment_id?: string | null
+          project_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "project_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_comments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_likes: {
         Row: {
           created_at: string | null
@@ -1130,6 +1298,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_collaboration_invitation: {
+        Args: { _invitation_token: string }
+        Returns: {
+          project_id: string
+          project_name: string
+          role: Database["public"]["Enums"]["collaboration_role"]
+        }[]
+      }
       can_user_generate: { Args: { _user_id: string }; Returns: Json }
       cleanup_old_login_attempts: { Args: never; Returns: undefined }
       clone_project: {
@@ -1180,13 +1356,35 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      user_can_access_project: {
+        Args: {
+          _project_id: string
+          _required_role?: Database["public"]["Enums"]["collaboration_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       user_has_premium_access: {
         Args: { check_user_id: string }
+        Returns: boolean
+      }
+      user_has_public_projects: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
+      user_is_project_collaborator: {
+        Args: { check_project_id: string; check_user_id: string }
+        Returns: boolean
+      }
+      user_owns_project: {
+        Args: { check_project_id: string; check_user_id: string }
         Returns: boolean
       }
     }
     Enums: {
       app_role: "admin" | "user"
+      collaboration_role: "viewer" | "editor" | "admin"
+      invitation_status: "pending" | "accepted" | "declined" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1315,6 +1513,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      collaboration_role: ["viewer", "editor", "admin"],
+      invitation_status: ["pending", "accepted", "declined", "expired"],
     },
   },
 } as const
