@@ -498,7 +498,128 @@ All colors MUST be HSL.
     font-family: 'STIX Two Text', 'Times New Roman', 'Cambria Math', serif;
     font-size: var(--font-size-base);
     line-height: var(--line-height-loose);
-    letter-spacing: var(--letter-spacing-normal);
+  }
+
+  /* Canvas Workspace Theme - Professional Scientific Design */
+  
+  /* Canvas-specific color variables */
+  .canvas-workspace {
+    /* Workspace Background - Clean white with subtle warmth */
+    --canvas-bg-primary: 0 0% 100%;
+    --canvas-bg-secondary: 210 20% 98%;
+    --canvas-bg-tertiary: 210 15% 96%;
+    
+    /* Workspace UI Elements */
+    --canvas-sidebar-bg: 210 18% 96%;
+    --canvas-panel-bg: 0 0% 100%;
+    --canvas-panel-border: 210 15% 88%;
+    
+    /* Accent Colors - Scientific Purple-Blue */
+    --canvas-accent-primary: 245 60% 58%;
+    --canvas-accent-secondary: 210 70% 55%;
+    --canvas-accent-tertiary: 195 65% 55%;
+    
+    /* Text & Icons */
+    --canvas-text-primary: 210 25% 20%;
+    --canvas-text-secondary: 210 15% 45%;
+    --canvas-text-muted: 210 10% 65%;
+    
+    /* Interactive Elements */
+    --canvas-hover-bg: 245 55% 96%;
+    --canvas-active-bg: 245 60% 58%;
+    --canvas-selection-border: 245 60% 58%;
+  }
+
+  /* Canvas Workspace Theme - Dark Mode */
+  .canvas-workspace.dark {
+    /* Workspace Background - Dark with warmth */
+    --canvas-bg-primary: 220 20% 16%;
+    --canvas-bg-secondary: 220 18% 18%;
+    --canvas-bg-tertiary: 220 15% 20%;
+    
+    /* Workspace UI Elements */
+    --canvas-sidebar-bg: 220 18% 16%;
+    --canvas-panel-bg: 220 20% 18%;
+    --canvas-panel-border: 220 15% 28%;
+    
+    /* Accent Colors - Brighter for dark mode */
+    --canvas-accent-primary: 245 65% 65%;
+    --canvas-accent-secondary: 210 75% 60%;
+    --canvas-accent-tertiary: 195 70% 60%;
+    
+    /* Text & Icons */
+    --canvas-text-primary: 210 20% 90%;
+    --canvas-text-secondary: 210 15% 70%;
+    --canvas-text-muted: 210 10% 50%;
+    
+    /* Interactive Elements */
+    --canvas-hover-bg: 245 40% 22%;
+    --canvas-active-bg: 245 65% 65%;
+    --canvas-selection-border: 245 65% 65%;
+  }
+
+  /* Scientific Workspace Patterns */
+  .canvas-scientific-grid {
+    background-image: 
+      linear-gradient(rgba(99, 102, 241, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99, 102, 241, 0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .canvas-molecular-pattern {
+    background-image: 
+      radial-gradient(circle at 20px 20px, rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+      radial-gradient(circle at 60px 60px, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+    background-size: 80px 80px;
+    background-position: 0 0, 40px 40px;
+  }
+
+  .canvas-circuit-pattern {
+    background-color: hsl(var(--canvas-bg-secondary));
+    background-image: 
+      linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+      linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* Canvas Interaction States */
+  .canvas-interactive {
+    @apply transition-all duration-200 ease-out;
+    @apply hover:scale-105 active:scale-95;
+  }
+
+  .canvas-tool-button {
+    @apply relative rounded-lg p-2.5 transition-all duration-200;
+    @apply border border-transparent;
+    @apply hover:border-[hsl(var(--canvas-panel-border))];
+    @apply hover:bg-[hsl(var(--canvas-hover-bg))];
+    @apply active:scale-95;
+  }
+
+  .canvas-tool-button-active {
+    @apply bg-[hsl(var(--canvas-active-bg))];
+    @apply text-white border-transparent shadow-md;
+  }
+
+  .canvas-panel-card {
+    @apply bg-[hsl(var(--canvas-panel-bg))];
+    @apply border border-[hsl(var(--canvas-panel-border))];
+    @apply rounded-xl shadow-[0_0_0_1px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.06)];
+    @apply transition-shadow duration-200;
+  }
+
+  .canvas-section-header {
+    @apply text-[11px] font-semibold uppercase tracking-wider;
+    @apply text-[hsl(var(--canvas-text-secondary))];
+    @apply flex items-center gap-2 px-3 py-2;
+    @apply bg-[hsl(var(--canvas-bg-tertiary))] rounded-t-lg;
+  }
+
+  /* Glassmorphism for floating UI */
+  .canvas-glass {
+    @apply backdrop-blur-xl bg-white/90 dark:bg-[hsl(var(--canvas-bg-secondary))]/90;
+    @apply border border-[hsl(var(--canvas-panel-border))];
+    @apply shadow-[0_8px_32px_rgba(0,0,0,0.12)];
   }
 
   /* Premium Canvas UI Effects */

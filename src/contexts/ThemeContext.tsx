@@ -8,6 +8,8 @@ interface ThemeContextType {
   darkMode: boolean;
   setDarkMode: (darkMode: boolean) => void;
   toggleDarkMode: () => void;
+  canvasMode: boolean;
+  setCanvasMode: (mode: boolean) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -22,6 +24,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     const stored = localStorage.getItem('theme-dark-mode');
     return stored === 'true';
   });
+
+  const [canvasMode, setCanvasModeState] = useState<boolean>(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -62,8 +66,18 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setDarkModeState(prev => !prev);
   };
 
+  const setCanvasMode = (mode: boolean) => {
+    setCanvasModeState(mode);
+    const root = document.documentElement;
+    if (mode) {
+      root.classList.add('canvas-workspace');
+    } else {
+      root.classList.remove('canvas-workspace');
+    }
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, darkMode, setDarkMode, toggleDarkMode }}>
+    <ThemeContext.Provider value={{ theme, setTheme, darkMode, setDarkMode, toggleDarkMode, canvasMode, setCanvasMode }}>
       {children}
     </ThemeContext.Provider>
   );

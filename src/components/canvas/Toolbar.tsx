@@ -75,11 +75,11 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2 bg-gradient-to-b from-background via-muted/20 to-background border-r-2 border-primary/10 shadow-2xl">
+    <div className="flex flex-col gap-1 p-2 bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl">
       {/* Recently Used Section */}
       {recentTools.length > 0 && (
         <>
-          <div className="px-2 py-1.5 text-[10px] font-bold text-primary/70 uppercase tracking-wider flex items-center gap-1.5 bg-primary/5 rounded-md mb-1">
+          <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider flex items-center gap-1.5 bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20">
             <Clock className="h-3 w-3" />
             Recent
           </div>
@@ -96,12 +96,12 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
                 onClick={() => handleToolChange(toolId)}
                 className={`w-10 h-10 relative rounded-lg border transition-all duration-300 ease-out ${
                   activeTool === toolId 
-                    ? 'bg-gradient-to-br from-primary to-primary/80 shadow-lg scale-105 border-primary/40' 
-                    : 'border-border/40 hover:border-primary/40 hover:shadow-lg hover:scale-110'
+                    ? 'canvas-tool-button-active' 
+                    : 'canvas-tool-button'
                 }`}
               >
                     <toolInfo.icon className="h-5 w-5" />
-                    <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-gradient-to-br from-primary to-primary/60" />
+                    <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[hsl(var(--canvas-accent-primary))] to-[hsl(var(--canvas-accent-secondary))]" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="right">
@@ -115,7 +115,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       )}
 
       {/* Selection & Drawing Section */}
-      <div className="px-2 py-1.5 text-[10px] font-bold text-primary/70 uppercase tracking-wider bg-primary/5 rounded-md mb-1">
+      <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20">
         Drawing
       </div>
       {tools.map((tool) => (
@@ -127,8 +127,8 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               onClick={() => handleToolChange(tool.id)}
               className={`w-10 h-10 rounded-lg border transition-all duration-300 ease-out ${
                 activeTool === tool.id 
-                  ? 'bg-gradient-to-br from-primary to-primary/80 shadow-lg scale-105 border-primary/40' 
-                  : 'border-border/40 hover:border-primary/40 hover:shadow-lg hover:scale-110'
+                  ? 'canvas-tool-button-active' 
+                  : 'canvas-tool-button'
               }`}
             >
               <tool.icon className="h-5 w-5" />
@@ -143,7 +143,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Separator className="my-1" />
       
       {/* Shapes Section */}
-      <div className="px-2 py-1.5 text-[10px] font-bold text-primary/70 uppercase tracking-wider bg-primary/5 rounded-md mb-1" data-onboarding="shapes-dropdown">
+      <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20" data-onboarding="shapes-dropdown">
         Shapes
       </div>
       
@@ -172,7 +172,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Separator className="my-1" />
       
       {/* Lines Section */}
-      <div className="px-2 py-1.5 text-[10px] font-bold text-primary/70 uppercase tracking-wider bg-primary/5 rounded-md mb-1" data-onboarding="lines-section">
+      <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20" data-onboarding="lines-section">
         Lines
       </div>
       
@@ -235,7 +235,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Separator className="my-1" />
       
       {/* Tools Section */}
-      <div className="px-2 py-1.5 text-[10px] font-bold text-primary/70 uppercase tracking-wider bg-primary/5 rounded-md mb-1">
+      <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20">
         Tools
       </div>
       

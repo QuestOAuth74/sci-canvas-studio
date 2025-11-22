@@ -76,13 +76,13 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
   };
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gradient-to-b from-background/95 to-muted/50 backdrop-blur-xl border-b-2 border-primary/5 shadow-xl transition-all duration-200" data-onboarding="toolbar">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-[hsl(var(--canvas-bg-secondary))] backdrop-blur-xl border-b-2 border-[hsl(var(--canvas-panel-border))] shadow-xl transition-all duration-200 canvas-scientific-grid" data-onboarding="toolbar">
       {/* Edit Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Edit</span>
+        <span className="text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-widest px-2 bg-[hsl(var(--canvas-accent-primary))]/10 rounded px-2 py-0.5 border border-[hsl(var(--canvas-accent-primary))]/20">Edit</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={undo}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={undo}>
               <Undo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -91,7 +91,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={redo}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={redo}>
               <Redo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -100,7 +100,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={cut}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={cut}>
               <Scissors className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -109,7 +109,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={copy}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={copy}>
               <Copy className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -118,7 +118,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:scale-105 transition-all duration-200 border border-border/40" onClick={paste}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={paste}>
               <Clipboard className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -126,14 +126,14 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-[hsl(var(--canvas-panel-border))] to-transparent opacity-80" />
 
       {/* Align Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Align</span>
+        <span className="text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-widest px-2 bg-[hsl(var(--canvas-accent-primary))]/10 rounded px-2 py-0.5 border border-[hsl(var(--canvas-accent-primary))]/20">Align</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={alignLeft}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={alignLeft}>
               <AlignLeft className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -142,7 +142,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={alignCenter}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={alignCenter}>
               <AlignCenter className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -151,7 +151,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={alignRight}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={alignRight}>
               <AlignRight className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -159,14 +159,14 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-[hsl(var(--canvas-panel-border))] to-transparent opacity-80" />
 
       {/* Layer Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Layer</span>
+        <span className="text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-widest px-2 bg-[hsl(var(--canvas-accent-primary))]/10 rounded px-2 py-0.5 border border-[hsl(var(--canvas-accent-primary))]/20">Layer</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={bringToFront}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={bringToFront}>
               <ChevronsUp className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -175,7 +175,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={bringForward}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={bringForward}>
               <ChevronUp className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -184,7 +184,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={sendBackward}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={sendBackward}>
               <ChevronDown className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -193,7 +193,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={sendToBack}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={sendToBack}>
               <ChevronsDown className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -201,14 +201,14 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-[hsl(var(--canvas-panel-border))] to-transparent opacity-80" />
 
       {/* Group Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Group</span>
+        <span className="text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-widest px-2 bg-[hsl(var(--canvas-accent-primary))]/10 rounded px-2 py-0.5 border border-[hsl(var(--canvas-accent-primary))]/20">Group</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={groupSelected}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={groupSelected}>
               <Group className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -217,7 +217,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={ungroupSelected}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 canvas-tool-button" onClick={ungroupSelected}>
               <Ungroup className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -225,17 +225,17 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-[hsl(var(--canvas-panel-border))] to-transparent opacity-80" />
 
       {/* View Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">View</span>
+        <span className="text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-widest px-2 bg-[hsl(var(--canvas-accent-primary))]/10 rounded px-2 py-0.5 border border-[hsl(var(--canvas-accent-primary))]/20">View</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
               variant={activeTool === "text" ? "default" : "ghost"} 
               size="icon" 
-              className="h-8 w-8" 
+              className={`h-8 w-8 ${activeTool === "text" ? 'canvas-tool-button-active' : 'canvas-tool-button'}`}
               onClick={handleTextToolClick}
             >
               <Type className="h-4 w-4" />
@@ -262,22 +262,22 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       
       {activeTool === "text" && (
         <>
-          <Separator orientation="vertical" className="h-6 mx-2" />
+          <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-[hsl(var(--canvas-panel-border))] to-transparent opacity-80" />
           <TextFormattingPanel />
         </>
       )}
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-border to-transparent opacity-80" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-gradient-to-b from-transparent via-[hsl(var(--canvas-panel-border))] to-transparent opacity-80" />
 
       {/* Zoom Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest px-2 bg-primary/5 rounded px-2 py-0.5">Zoom</span>
+        <span className="text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-widest px-2 bg-[hsl(var(--canvas-accent-primary))]/10 rounded px-2 py-0.5 border border-[hsl(var(--canvas-accent-primary))]/20">Zoom</span>
         <Tooltip>
           <TooltipTrigger asChild>
               <Button 
                 variant={gridEnabled ? "default" : "ghost"} 
                 size="icon" 
-                className="h-8 w-8" 
+                className={`h-8 w-8 ${gridEnabled ? 'canvas-tool-button-active' : 'canvas-tool-button'}`}
                 onClick={() => setGridEnabled(!gridEnabled)}
                 data-grid-toggle
               >
@@ -292,7 +292,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
             <Button 
               variant={rulersEnabled ? "default" : "ghost"} 
               size="icon" 
-              className="h-8 w-8" 
+              className={`h-8 w-8 ${rulersEnabled ? 'canvas-tool-button-active' : 'canvas-tool-button'}`}
               onClick={() => setRulersEnabled(!rulersEnabled)}
             >
               <Ruler className="h-4 w-4" />
@@ -302,7 +302,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--canvas-panel-border))]/60" />
 
       <div className="px-2">
         <FeatureAccessBadge />
@@ -332,18 +332,18 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/10 transition-all" onClick={zoomOut}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 canvas-tool-button" onClick={zoomOut}>
               <ZoomOut className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Zoom Out</TooltipContent>
         </Tooltip>
         
-        <span className="text-xs font-semibold px-3 py-1 bg-muted/80 rounded-md min-w-[3rem] text-center">{zoom}%</span>
+        <span className="text-xs font-semibold px-3 py-1 bg-[hsl(var(--canvas-bg-tertiary))] rounded-md min-w-[3rem] text-center border border-[hsl(var(--canvas-panel-border))]">{zoom}%</span>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={zoomIn}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 canvas-tool-button" onClick={zoomIn}>
               <ZoomIn className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
@@ -352,14 +352,14 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={zoomToFit}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 canvas-tool-button" onClick={zoomToFit}>
               <Maximize className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Fit to Screen</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="h-6 mx-2" />
+        <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--canvas-panel-border))]/60" />
 
         <DarkModeToggle />
         <QuickSettings />
