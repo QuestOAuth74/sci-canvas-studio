@@ -1,5 +1,8 @@
 project_id = "tljsbmpglwmzyaoxsqyj"
 
+[functions.inflate-community-metrics]
+verify_jwt = true
+
 [functions.rate-limited-login]
 verify_jwt = false
 

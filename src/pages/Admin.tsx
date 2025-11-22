@@ -3,6 +3,7 @@ import { ArrowLeft, BarChart3, Mail, FileText, Sparkles, Shield } from "lucide-r
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { CommunityMetricsInflator } from "@/components/admin/CommunityMetricsInflator";
 import { IconUploader } from "@/components/admin/IconUploader";
 import { IconManager } from "@/components/admin/IconManager";
 import { IconCleanup } from "@/components/admin/IconCleanup";
@@ -98,6 +99,17 @@ const Admin = () => {
 
           <main className="flex-1 overflow-auto">
             <div className="p-8 space-y-12">
+              {/* Community Metrics */}
+              <section id="community-metrics">
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold tracking-tight">Community Metrics</h2>
+                  <p className="text-muted-foreground">Inflate engagement metrics to create FOMO effect</p>
+                </div>
+                <CommunityMetricsInflator />
+              </section>
+
+              <Separator className="my-12" />
+
               {/* Section 1: Submitted Projects */}
               <section id="submitted-projects">
             <div className="mb-6">

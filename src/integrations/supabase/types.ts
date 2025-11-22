@@ -584,6 +584,62 @@ export type Database = {
         }
         Relationships: []
       }
+      metrics_inflation_log: {
+        Row: {
+          id: string
+          inflated_at: string | null
+          inflated_by: string | null
+          percentage: number
+          projects_affected: number
+          tier_filter: string | null
+          total_clones_after: number
+          total_clones_before: number
+          total_likes_after: number
+          total_likes_before: number
+          total_views_after: number
+          total_views_before: number
+          variation_mode: string
+        }
+        Insert: {
+          id?: string
+          inflated_at?: string | null
+          inflated_by?: string | null
+          percentage: number
+          projects_affected: number
+          tier_filter?: string | null
+          total_clones_after: number
+          total_clones_before: number
+          total_likes_after: number
+          total_likes_before: number
+          total_views_after: number
+          total_views_before: number
+          variation_mode: string
+        }
+        Update: {
+          id?: string
+          inflated_at?: string | null
+          inflated_by?: string | null
+          percentage?: number
+          projects_affected?: number
+          tier_filter?: string | null
+          total_clones_after?: number
+          total_clones_before?: number
+          total_likes_after?: number
+          total_likes_before?: number
+          total_views_after?: number
+          total_views_before?: number
+          variation_mode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metrics_inflation_log_inflated_by_fkey"
+            columns: ["inflated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       powerpoint_custom_templates: {
         Row: {
           colors: Json
