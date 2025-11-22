@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Loader2, Upload, User as UserIcon, ArrowLeft, Bell, BellOff, Trash2, Lock, Sparkles, Wand2, FileText, Info } from 'lucide-react';
+import { Loader2, Upload, User as UserIcon, ArrowLeft, Bell, BellOff, Trash2, Lock, Sparkles, Wand2, FileText, Info, UserCircle, FolderOpen, Users, Eye, Heart, Copy, Mail, Clock, TrendingUp, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -44,6 +44,43 @@ export default function Profile() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Fetch user stats
+  const { data: stats } = useQuery({
+    queryKey: ['user-stats', user?.id],
+    queryFn: async () => {
+      const [projectsRes, collaborationsRes] = await Promise.all([
+        supabase
+          .from('canvas_projects')
+          .select('id, view_count, like_count, cloned_count, is_public', { count: 'exact' })
+          .eq('user_id', user?.id),
+        supabase
+          .from('project_collaborators')
+          .select('id', { count: 'exact' })
+          .eq('user_id', user?.id)
+          .not('accepted_at', 'is', null)
+      ]);
+
+      const projects = projectsRes.data || [];
+      const totalProjects = projects.length;
+      const publicProjects = projects.filter(p => p.is_public).length;
+      const totalViews = projects.reduce((sum, p) => sum + (p.view_count || 0), 0);
+      const totalLikes = projects.reduce((sum, p) => sum + (p.like_count || 0), 0);
+      const totalClones = projects.reduce((sum, p) => sum + (p.cloned_count || 0), 0);
+      const totalCollaborations = collaborationsRes.count || 0;
+
+      return {
+        totalProjects,
+        publicProjects,
+        totalViews,
+        totalLikes,
+        totalClones,
+        totalCollaborations,
+        totalImpact: totalViews + totalLikes + totalClones
+      };
+    },
+    enabled: !!user?.id
+  });
 
   // Fetch user notifications
   const { data: notifications, isLoading: loadingNotifications } = useQuery({
@@ -296,37 +333,268 @@ export default function Profile() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/10 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/')}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
-        </Button>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr,380px] gap-6">
-          {/* LEFT COLUMN - Main Content */}
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Hero Header with Banner */}
+      <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,black)]" />
+        <div className="relative max-w-7xl mx-auto px-4 py-12">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/')}
+            className="mb-6 hover-lift"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+
+          {/* Profile Header */}
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
+            {/* Avatar */}
+            <div className="relative group">
+              <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
+                <AvatarImage src={avatarUrl} alt={fullName} />
+                <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+                  {initials || <UserIcon className="h-16 w-16" />}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-2 -right-2">
+                <Input
+                  id="avatar-upload-header"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+                <Label htmlFor="avatar-upload-header">
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="default"
+                    className="h-10 w-10 rounded-full shadow-lg"
+                    disabled={uploading}
+                    onClick={() => document.getElementById('avatar-upload-header')?.click()}
+                    asChild
+                  >
+                    <span>
+                      {uploading ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <Upload className="h-5 w-5" />
+                      )}
+                    </span>
+                  </Button>
+                </Label>
+              </div>
+            </div>
+
+            {/* Profile Info */}
+            <div className="flex-1 text-center md:text-left space-y-2">
+              <h1 className="text-4xl font-bold text-foreground">
+                {fullName || 'Your Name'}
+              </h1>
+              <p className="text-lg text-muted-foreground">
+                {fieldOfStudy || 'Field of Study'} {country && `• ${country}`}
+              </p>
+              {quote && (
+                <p className="text-sm italic text-muted-foreground max-w-2xl">
+                  "{quote}"
+                </p>
+              )}
+            </div>
+
+            {/* Quick Stats */}
+            <div className="flex gap-6 px-6 py-4 rounded-xl bg-background/50 backdrop-blur-sm border shadow-lg">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground">{stats?.totalProjects || 0}</div>
+                <div className="text-xs text-muted-foreground">Projects</div>
+              </div>
+              <div className="h-12 w-px bg-border" />
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground">{stats?.totalImpact || 0}</div>
+                <div className="text-xs text-muted-foreground">Impact</div>
+              </div>
+              <div className="h-12 w-px bg-border" />
+              <div className="text-center">
+                <div className="text-2xl font-bold text-foreground">{stats?.totalCollaborations || 0}</div>
+                <div className="text-xs text-muted-foreground">Collaborations</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <FeatureUnlockBanner />
+
+        {/* Three Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[300px,1fr,320px] gap-6 mt-6">
+          {/* LEFT SIDEBAR - Stats & Activity */}
           <div className="space-y-6">
-            <FeatureUnlockBanner />
+            {/* Stats Cards */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
+                Your Stats
+              </h3>
+              
+              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/10">
+                      <FolderOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-2xl font-bold">{stats?.totalProjects || 0}</div>
+                      <div className="text-xs text-muted-foreground">Total Projects</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/10">
+                      <Eye className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-2xl font-bold">{stats?.totalViews || 0}</div>
+                      <div className="text-xs text-muted-foreground">Total Views</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-pink-500/10 to-pink-600/10">
+                      <Heart className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-2xl font-bold">{stats?.totalLikes || 0}</div>
+                      <div className="text-xs text-muted-foreground">Total Likes</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10">
+                      <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-2xl font-bold">{stats?.totalCollaborations || 0}</div>
+                      <div className="text-xs text-muted-foreground">Collaborations</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-amber-500/10 to-amber-600/10">
+                      <Copy className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-2xl font-bold">{stats?.totalClones || 0}</div>
+                      <div className="text-xs text-muted-foreground">Total Clones</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Activity Timeline */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="h-[300px] pr-3">
+                  <div className="space-y-4">
+                    {stats && stats.totalProjects > 0 ? (
+                      <div className="space-y-3">
+                        <div className="flex gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <FolderOpen className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <p className="text-sm font-medium">Created {stats.totalProjects} projects</p>
+                            <p className="text-xs text-muted-foreground">Building your portfolio</p>
+                          </div>
+                        </div>
+                        {stats.totalViews > 0 && (
+                          <div className="flex gap-3">
+                            <div className="h-8 w-8 rounded-full bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                              <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <p className="text-sm font-medium">Gained {stats.totalViews} views</p>
+                              <p className="text-xs text-muted-foreground">Your work is getting noticed</p>
+                            </div>
+                          </div>
+                        )}
+                        {stats.publicProjects > 0 && (
+                          <div className="flex gap-3">
+                            <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                              <Award className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <p className="text-sm font-medium">Shared {stats.publicProjects} public projects</p>
+                              <p className="text-xs text-muted-foreground">Contributing to the community</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Clock className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
+                        <p className="text-sm text-muted-foreground">No activity yet</p>
+                        <p className="text-xs text-muted-foreground">Start creating projects!</p>
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* CENTER COLUMN - Main Content */}
+          <div className="space-y-6">
             
-            <Card>
-          <CardHeader>
-            <CardTitle>Profile Settings</CardTitle>
-            <CardDescription>Manage your personal information and notifications</CardDescription>
+            <Card className="shadow-lg">
+          <CardHeader className="border-b bg-gradient-to-r from-muted/30 to-transparent">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCircle className="h-5 w-5" />
+                  Profile Settings
+                </CardTitle>
+                <CardDescription>Manage your personal information and preferences</CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="notifications" className="relative">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <UserIcon className="h-4 w-4 mr-2" />
+                  Profile
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="relative data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Bell className="h-4 w-4 mr-2" />
                   Notifications
                   {unreadCount > 0 && (
                     <Badge 
                       variant="destructive" 
-                      className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+                      className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs animate-pulse"
                     >
                       {unreadCount}
                     </Badge>
@@ -334,117 +602,72 @@ export default function Profile() {
                 </TabsTrigger>
               </TabsList>
               
-              <TabsContent value="profile" className="space-y-6 mt-6">
-                {/* Avatar Section */}
-                <div className="flex flex-col items-center gap-4">
-                  <Avatar className="h-24 w-24">
-                    <AvatarImage src={avatarUrl} alt={fullName} />
-                    <AvatarFallback className="text-2xl">
-                      {initials || <UserIcon className="h-12 w-12" />}
-                    </AvatarFallback>
-                  </Avatar>
-                  
-                  <div className="flex items-center gap-2">
+              <TabsContent value="profile" className="space-y-6 mt-0">
+                {/* Form Grid Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Full Name */}
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
                     <Input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/png,image/jpeg,image/jpg"
-                      onChange={handleAvatarUpload}
-                      className="hidden"
+                      id="fullName"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Enter your full name"
+                      className="h-11"
                     />
-                    <Label htmlFor="avatar-upload">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        disabled={uploading}
-                        onClick={() => document.getElementById('avatar-upload')?.click()}
-                        asChild
-                      >
-                        <span>
-                          {uploading ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Uploading...
-                            </>
-                          ) : (
-                            <>
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload Avatar
-                            </>
-                          )}
-                        </span>
-                      </Button>
-                    </Label>
                   </div>
-                </div>
 
-                {/* Full Name */}
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Enter your full name"
-                  />
-                </div>
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      className="h-11"
+                    />
+                  </div>
 
-                {/* Email */}
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                  />
-                </div>
+                  {/* Country */}
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="text-sm font-medium">Country</Label>
+                    <Select value={country} onValueChange={setCountry}>
+                      <SelectTrigger id="country" className="h-11 bg-background">
+                        <SelectValue placeholder="Select your country" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover max-h-[300px]">
+                        {COUNTRIES.map((countryOption) => (
+                          <SelectItem key={countryOption} value={countryOption}>
+                            {countryOption}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                {/* Country */}
-                <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Select
-                    value={country}
-                    onValueChange={setCountry}
-                  >
-                    <SelectTrigger id="country" className="bg-background">
-                      <SelectValue placeholder="Select your country" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover max-h-[300px]">
-                      {COUNTRIES.map((countryOption) => (
-                        <SelectItem key={countryOption} value={countryOption}>
-                          {countryOption}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Field of Study */}
-                <div className="space-y-2">
-                  <Label htmlFor="fieldOfStudy">Field of Study</Label>
-                  <Select
-                    value={fieldOfStudy}
-                    onValueChange={setFieldOfStudy}
-                  >
-                    <SelectTrigger id="fieldOfStudy" className="bg-background">
-                      <SelectValue placeholder="Select your field of study" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover">
-                      {FIELDS_OF_STUDY.map((field) => (
-                        <SelectItem key={field} value={field}>
-                          {field}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {/* Field of Study */}
+                  <div className="space-y-2">
+                    <Label htmlFor="fieldOfStudy" className="text-sm font-medium">Field of Study</Label>
+                    <Select value={fieldOfStudy} onValueChange={setFieldOfStudy}>
+                      <SelectTrigger id="fieldOfStudy" className="h-11 bg-background">
+                        <SelectValue placeholder="Select your field of study" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {FIELDS_OF_STUDY.map((field) => (
+                          <SelectItem key={field} value={field}>
+                            {field}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Quote */}
                 <div className="space-y-2">
-                  <Label htmlFor="quote">Profile Quote</Label>
+                  <Label htmlFor="quote" className="text-sm font-medium">Profile Quote</Label>
                   <Textarea
                     id="quote"
                     value={quote}
@@ -452,15 +675,18 @@ export default function Profile() {
                     placeholder="Share an inspiring quote or personal motto..."
                     rows={3}
                     maxLength={200}
+                    className="resize-none"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {quote.length}/200 characters
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground">
+                      {quote.length}/200 characters
+                    </p>
+                  </div>
                 </div>
 
                 {/* Author Bio */}
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Author Bio</Label>
+                  <Label htmlFor="bio" className="text-sm font-medium">Author Bio</Label>
                   <Textarea
                     id="bio"
                     value={bio}
@@ -468,26 +694,34 @@ export default function Profile() {
                     placeholder="Write a brief bio about yourself and your work. This will be displayed on your public author profile page..."
                     rows={5}
                     maxLength={500}
+                    className="resize-none"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {bio.length}/500 characters
-                  </p>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3 w-3" />
-                    Your bio will be visible on your public author profile if you have approved community projects
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      Your bio will be visible on your public author profile if you have approved community projects
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {bio.length}/500 characters
+                    </p>
+                  </div>
                 </div>
 
                 {/* Password Section */}
-                <div className="space-y-2 pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Password</Label>
-                      <p className="text-sm text-muted-foreground">••••••••••••</p>
+                <div className="space-y-3 pt-6 border-t">
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-background">
+                        <Lock className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium">Password</Label>
+                        <p className="text-sm text-muted-foreground">••••••••••••</p>
+                      </div>
                     </div>
                     <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="hover-scale">
                           <Lock className="h-4 w-4 mr-2" />
                           Change Password
                         </Button>
@@ -566,12 +800,13 @@ export default function Profile() {
                 <Button
                   onClick={handleSave}
                   disabled={saving}
-                  className="w-full"
+                  size="lg"
+                  className="w-full md:w-auto px-8 hover-scale"
                 >
                   {saving ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Saving...
+                      Saving Changes...
                     </>
                   ) : (
                     'Save Changes'
@@ -579,15 +814,24 @@ export default function Profile() {
                 </Button>
               </TabsContent>
               
-              <TabsContent value="notifications" className="space-y-4 mt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Your Notifications</h3>
+              <TabsContent value="notifications" className="space-y-4 mt-0">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <Bell className="h-5 w-5" />
+                      Your Notifications
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
+                    </p>
+                  </div>
                   {unreadCount > 0 && (
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => markAllAsRead.mutate()}
                       disabled={markAllAsRead.isPending}
+                      className="hover-scale"
                     >
                       <BellOff className="h-4 w-4 mr-2" />
                       Mark All Read
@@ -596,39 +840,45 @@ export default function Profile() {
                 </div>
                 
                 {loadingNotifications ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <div className="flex items-center justify-center py-16">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 ) : notifications && notifications.length > 0 ? (
-                  <ScrollArea className="h-[500px] pr-4">
+                  <ScrollArea className="h-[600px] pr-4">
                     <div className="space-y-3">
                       {notifications.map((notification) => (
                         <Card 
                           key={notification.id}
                           className={cn(
-                            "neo-brutalist-shadow-sm transition-all",
-                            !notification.is_read && "border-l-4 border-l-primary bg-primary/5"
+                            "smooth-transition hover-lift",
+                            !notification.is_read && "border-l-4 border-l-primary bg-gradient-to-r from-primary/5 to-transparent"
                           )}
                         >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
+                          <CardContent className="p-5">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 space-y-3">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   {!notification.is_read && (
-                                    <Badge variant="default" className="text-xs">New</Badge>
+                                    <Badge variant="default" className="text-xs animate-pulse">New</Badge>
                                   )}
-                                  <h4 className="font-semibold text-sm">{notification.subject}</h4>
+                                  <h4 className="font-semibold">{notification.subject}</h4>
                                 </div>
-                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
                                   {notification.message}
                                 </p>
                                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                  <span>From: {notification.sender_name}</span>
+                                  <span className="flex items-center gap-1">
+                                    <Mail className="h-3 w-3" />
+                                    {notification.sender_name}
+                                  </span>
                                   <span>•</span>
-                                  <span>{formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}</span>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                                  </span>
                                 </div>
                               </div>
-                              <div className="flex flex-col gap-2">
+                              <div className="flex flex-col gap-2 flex-shrink-0">
                                 {!notification.is_read && (
                                   <Button
                                     variant="ghost"
@@ -636,6 +886,7 @@ export default function Profile() {
                                     onClick={() => markAsRead.mutate(notification.id)}
                                     disabled={markAsRead.isPending}
                                     title="Mark as read"
+                                    className="hover-scale"
                                   >
                                     <Bell className="h-4 w-4" />
                                   </Button>
@@ -650,6 +901,7 @@ export default function Profile() {
                                   }}
                                   disabled={deleteNotification.isPending}
                                   title="Delete notification"
+                                  className="hover-scale"
                                 >
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
@@ -661,9 +913,14 @@ export default function Profile() {
                     </div>
                   </ScrollArea>
                 ) : (
-                  <div className="text-center py-12">
-                    <BellOff className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="text-muted-foreground">No notifications yet</p>
+                  <div className="text-center py-16 space-y-4">
+                    <div className="mx-auto w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center">
+                      <BellOff className="h-8 w-8 text-muted-foreground/50" />
+                    </div>
+                    <div>
+                      <p className="text-lg font-medium text-muted-foreground">No notifications yet</p>
+                      <p className="text-sm text-muted-foreground mt-1">When you receive notifications, they'll appear here</p>
+                    </div>
                   </div>
                 )}
               </TabsContent>
@@ -674,35 +931,42 @@ export default function Profile() {
 
           {/* RIGHT COLUMN - Premium Features Sidebar */}
           {hasAccess && !featureAccessLoading && (
-            <div className="lg:sticky lg:top-6 lg:self-start">
-              <Card className="overflow-hidden border-primary/20">
-                <CardHeader>
+            <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
+              <Card className="overflow-hidden border-primary/20 shadow-lg">
+                <CardHeader className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-lg">Your Premium Features</CardTitle>
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Premium Features</CardTitle>
+                      <CardDescription className="text-xs mt-1">
+                        Your unlocked tools
+                      </CardDescription>
+                    </div>
                   </div>
-                  <CardDescription className="text-xs">
-                    Access your unlocked tools
-                  </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="p-4 space-y-3">
                   {/* AI Figure Generator Card */}
-                  <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                  <div className="group relative p-4 rounded-xl border bg-gradient-to-br from-background to-muted/10 hover:from-primary/5 hover:to-primary/10 smooth-transition hover-lift hover:border-primary/50 hover:shadow-lg">
                     <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                          <Wand2 className="h-4 w-4" />
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/20 group-hover:from-primary/20 group-hover:to-primary/30 smooth-transition">
+                          <Wand2 className="h-5 w-5 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-sm">AI Figure Generator</h3>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">AI Figure Generator</h3>
+                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         Generate scientific figures from reference images using AI
                       </p>
                       <Button 
                         size="sm" 
                         variant="default"
                         onClick={() => navigate('/canvas')}
-                        className="w-full mt-auto"
+                        className="w-full mt-1 hover-scale"
                       >
                         Open in Canvas
                       </Button>
@@ -710,22 +974,25 @@ export default function Profile() {
                   </div>
 
                   {/* AI Icon Generator Card */}
-                  <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                  <div className="group relative p-4 rounded-xl border bg-gradient-to-br from-background to-muted/10 hover:from-primary/5 hover:to-primary/10 smooth-transition hover-lift hover:border-primary/50 hover:shadow-lg">
                     <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                          <Sparkles className="h-4 w-4" />
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/20 group-hover:from-primary/20 group-hover:to-primary/30 smooth-transition">
+                          <Sparkles className="h-5 w-5 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-sm">AI Icon Generator</h3>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">AI Icon Generator</h3>
+                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         Create custom scientific icons and symbols with AI
                       </p>
                       <Button 
                         size="sm" 
                         variant="default"
                         onClick={() => navigate('/canvas')}
-                        className="w-full mt-auto"
+                        className="w-full mt-1 hover-scale"
                       >
                         Open in Canvas
                       </Button>
@@ -733,22 +1000,25 @@ export default function Profile() {
                   </div>
 
                   {/* PowerPoint Generator Card */}
-                  <div className="group relative p-4 rounded-lg border bg-card hover:bg-accent/5 transition-all duration-200 hover:border-primary/50">
+                  <div className="group relative p-4 rounded-xl border bg-gradient-to-br from-background to-muted/10 hover:from-primary/5 hover:to-primary/10 smooth-transition hover-lift hover:border-primary/50 hover:shadow-lg">
                     <div className="flex flex-col gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                          <FileText className="h-4 w-4" />
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/20 group-hover:from-primary/20 group-hover:to-primary/30 smooth-transition">
+                          <FileText className="h-5 w-5 text-primary" />
                         </div>
-                        <h3 className="font-semibold text-sm">PowerPoint Maker</h3>
+                        <div className="flex-1">
+                          <h3 className="font-semibold">PowerPoint Maker</h3>
+                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         Convert your canvas designs into PowerPoint presentations
                       </p>
                       <Button 
                         size="sm" 
                         variant="default"
                         onClick={() => navigate('/admin/powerpoint-generator')}
-                        className="w-full mt-auto"
+                        className="w-full mt-1 hover-scale"
                       >
                         Open Generator
                       </Button>
