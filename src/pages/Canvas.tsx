@@ -20,6 +20,7 @@ import { MenuBar } from "@/components/canvas/MenuBar";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { MobileWarningDialog } from "@/components/canvas/MobileWarningDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
 import { VersionHistory } from "@/components/canvas/VersionHistory";
@@ -804,19 +805,19 @@ const CanvasContent = () => {
               </span>
             )}
             {currentProjectId && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant={collaborationPanelOpen ? "secondary" : "ghost"}
-                    size="icon"
-                    onClick={() => setCollaborationPanelOpen(!collaborationPanelOpen)}
-                    className="h-9 w-9"
-                  >
-                    <Users className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Collaborate</TooltipContent>
-              </Tooltip>
+              <Button 
+                variant="default"
+                onClick={() => setCollaborationPanelOpen(!collaborationPanelOpen)}
+                className={cn(
+                  "h-9 px-4 font-medium transition-all",
+                  collaborationPanelOpen 
+                    ? "bg-primary/90 hover:bg-primary" 
+                    : "bg-primary hover:bg-primary/90"
+                )}
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Collaborate
+              </Button>
             )}
             <MenuBar 
               onTemplatesClick={() => setTemplatesDialogOpen(true)}
