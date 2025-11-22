@@ -259,15 +259,12 @@ const CanvasContent = () => {
           })
           .eq('id', invitation.id);
 
-        // Load the project
-        if (canvas) {
-          await loadProject(invitation.project_id);
-          setCurrentProjectId(invitation.project_id);
-        }
-        
         toast.success('Invitation accepted! You can now collaborate on this project.');
         
-        // Remove invitation token from URL
+        // Small delay to ensure database transaction commits
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Navigate to project - let normal project loading effect handle it
         navigate(`/canvas?project=${invitation.project_id}`, { replace: true });
       } catch (error: any) {
         console.error('Error accepting invitation:', error);
