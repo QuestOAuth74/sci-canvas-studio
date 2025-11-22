@@ -274,14 +274,15 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Zoom</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button 
-              variant={gridEnabled ? "default" : "ghost"} 
-              size="icon" 
-              className="h-8 w-8" 
-              onClick={() => setGridEnabled(!gridEnabled)}
-            >
-              <Grid3x3 className="h-4 w-4" />
-            </Button>
+              <Button 
+                variant={gridEnabled ? "default" : "ghost"} 
+                size="icon" 
+                className="h-8 w-8" 
+                onClick={() => setGridEnabled(!gridEnabled)}
+                data-grid-toggle
+              >
+                <Grid3x3 className="h-4 w-4" />
+              </Button>
           </TooltipTrigger>
           <TooltipContent>Toggle Grid</TooltipContent>
         </Tooltip>
