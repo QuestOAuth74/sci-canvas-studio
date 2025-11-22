@@ -169,18 +169,31 @@ export default function AuthorProfile() {
                   </div>
 
                   {stats && (
-                    <div className="flex flex-wrap gap-3">
-                      <Badge variant="secondary" className="text-body-sm">
-                        📊 {stats.projectCount} {stats.projectCount === 1 ? 'Project' : 'Projects'}
-                      </Badge>
-                      <Badge variant="secondary" className="text-body-sm">
-                        <Eye className="mr-1 h-3 w-3" />
-                        {stats.totalViews.toLocaleString()} Views
-                      </Badge>
-                      <Badge variant="secondary" className="text-body-sm">
-                        <Heart className="mr-1 h-3 w-3" />
-                        {stats.totalLikes} Likes
-                      </Badge>
+                    <div className="grid grid-cols-3 gap-4 mt-4">
+                      <div className="bg-card border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                        <div className="text-2xl font-bold text-foreground mb-1">
+                          {stats.projectCount}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          {stats.projectCount === 1 ? 'Project' : 'Projects'}
+                        </div>
+                      </div>
+                      <div className="bg-card border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                        <div className="text-2xl font-bold text-foreground mb-1">
+                          {stats.totalViews.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          Views
+                        </div>
+                      </div>
+                      <div className="bg-card border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
+                        <div className="text-2xl font-bold text-foreground mb-1">
+                          {stats.totalLikes}
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          Likes
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
