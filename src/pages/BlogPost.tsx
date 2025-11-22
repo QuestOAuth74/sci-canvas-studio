@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useBlogPost, useIncrementViewCount, useRelatedPosts } from "@/hooks/useBlogPosts";
 import { SEOHead } from "@/components/SEO/SEOHead";
-import { Breadcrumbs } from "@/components/SEO/Breadcrumbs";
 import { BlogContentRenderer } from "@/components/blog/BlogContentRenderer";
 import { BlogPostSidebar } from "@/components/blog/BlogPostSidebar";
 import { ShareButtons } from "@/components/blog/ShareButtons";
@@ -59,12 +58,6 @@ const BlogPost = () => {
     );
   }
 
-  const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "Blog", url: "/blog" },
-    { name: post.title, url: `/blog/${post.slug}` },
-  ];
-
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -103,20 +96,16 @@ const BlogPost = () => {
         {/* Hero Section - Clean and Modern */}
         <div className="border-b border-border bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
-              <Button
-                asChild
-                variant="ghost"
-                className="hover:bg-muted transition-colors"
-              >
-                <Link to="/blog">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Blog
-                </Link>
-              </Button>
-              
-              <Breadcrumbs items={breadcrumbItems} />
-            </div>
+            <Button
+              asChild
+              variant="ghost"
+              className="hover:bg-muted transition-colors"
+            >
+              <Link to="/blog">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Blog
+              </Link>
+            </Button>
           </div>
         </div>
 
