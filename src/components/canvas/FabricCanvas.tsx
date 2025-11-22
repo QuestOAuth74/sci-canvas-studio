@@ -3571,7 +3571,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     >
       <div className="w-full h-full flex items-start justify-center p-4">
         <div className={`shadow-2xl bg-white transition-all duration-200 ${toolModeClass}`} style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
-          <canvas ref={canvasRef} />
+          <div 
+            style={{
+              width: `${(canvasDimensions.width || 1200) * (zoom / 100)}px`,
+              height: `${(canvasDimensions.height || 800) * (zoom / 100)}px`,
+              position: 'relative',
+              display: 'inline-block',
+            }}
+          >
+            <canvas ref={canvasRef} />
+          </div>
         </div>
       </div>
     </div>
