@@ -169,44 +169,65 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       _styleOverride: any,
       fabricObject: any
     ) => {
-      const size = 20;
+      const size = 24;
       const isHovering = fabricObject.canvas?.getActiveObject() === fabricObject;
       
       // Fade out when not hovering
-      const opacity = isHovering ? 1.0 : 0.5;
+      const opacity = isHovering ? 1.0 : 0.7;
       
       ctx.save();
       ctx.globalAlpha = opacity;
       ctx.translate(left, top);
       ctx.rotate(util.degreesToRadians(fabricObject.angle || 0));
       
-      // Draw semi-circle background
-      ctx.fillStyle = '#0D9488'; // Teal color
+      // Add subtle drop shadow
+      ctx.shadowBlur = 4;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowOffsetY = 1;
+      
+      // Draw circular background (dark)
+      ctx.fillStyle = '#1a1a1a';
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
       
       ctx.beginPath();
-      ctx.arc(0, 0, size / 2, Math.PI, 0, false); // Semi-circle (bottom half)
+      ctx.arc(0, 0, size / 2, 0, Math.PI * 2); // Full circle
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
       
-      // Draw arrow pointing up
+      // Reset shadow for icon drawing
+      ctx.shadowBlur = 0;
+      
+      // Draw circular rotation icon (two curved arrows)
       ctx.strokeStyle = '#ffffff';
       ctx.fillStyle = '#ffffff';
       ctx.lineWidth = 1.5;
+      ctx.lineCap = 'round';
       
-      // Arrow shaft
+      // Left curved arrow
       ctx.beginPath();
-      ctx.moveTo(0, -2);
-      ctx.lineTo(0, -8);
+      ctx.arc(-2, 0, 4.5, Math.PI * 0.65, Math.PI * 1.85, false);
       ctx.stroke();
       
-      // Arrow head
+      // Left arrow head
       ctx.beginPath();
-      ctx.moveTo(0, -8);
-      ctx.lineTo(-3, -5);
-      ctx.lineTo(3, -5);
+      ctx.moveTo(-5.5, -2.5);
+      ctx.lineTo(-6.5, -0.5);
+      ctx.lineTo(-4.5, -1);
+      ctx.closePath();
+      ctx.fill();
+      
+      // Right curved arrow
+      ctx.beginPath();
+      ctx.arc(2, 0, 4.5, Math.PI * 1.15, Math.PI * 0.35, true);
+      ctx.stroke();
+      
+      // Right arrow head
+      ctx.beginPath();
+      ctx.moveTo(5.5, 2.5);
+      ctx.lineTo(6.5, 0.5);
+      ctx.lineTo(4.5, 1);
       ctx.closePath();
       ctx.fill();
       
@@ -232,7 +253,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     FabricObject.prototype.controls.mtr = new Control({
       x: 0,
       y: -0.5,
-      offsetY: -40,
+      offsetY: -45,
       cursorStyle: 'grab',
       actionHandler: rotationHandler,
       actionName: 'rotate',
