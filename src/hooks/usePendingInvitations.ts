@@ -20,8 +20,27 @@ export interface PendingInvitation {
 export function usePendingInvitations(userId: string | undefined, userEmail: string | undefined) {
   const queryClient = useQueryClient();
 
+  // Fetch email from profiles table if not provided
+  const { data: profileEmail } = useQuery({
+    queryKey: ['user-email', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', userId)
+        .single();
+      
+      if (error) throw error;
+      return data?.email || null;
+    },
+    enabled: !!userId && !userEmail,
+  });
+
+  const effectiveEmail = userEmail || profileEmail;
+
   const { data: invitations, isLoading } = useQuery({
-    queryKey: ['pending-invitations', userId, userEmail],
+    queryKey: ['pending-invitations', userId, effectiveEmail],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_collaboration_invitations')
@@ -30,7 +49,7 @@ export function usePendingInvitations(userId: string | undefined, userEmail: str
           project:canvas_projects(name),
           inviter:profiles!project_collaboration_invitations_inviter_id_fkey(full_name, avatar_url)
         `)
-        .or(`invitee_email.eq.${userEmail},invitee_id.eq.${userId}`)
+        .or(`invitee_email.eq.${effectiveEmail},invitee_id.eq.${userId}`)
         .eq('status', 'pending')
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
@@ -52,7 +71,7 @@ export function usePendingInvitations(userId: string | undefined, userEmail: str
         inviter_avatar: inv.inviter?.avatar_url || null,
       })) as PendingInvitation[];
     },
-    enabled: !!(userId && userEmail),
+    enabled: !!(userId && effectiveEmail),
   });
 
   const acceptInvitation = useMutation({
