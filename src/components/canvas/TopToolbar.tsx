@@ -76,8 +76,10 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
   };
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 glass-effect-premium toolbar-floating border-b transition-all duration-200" data-onboarding="toolbar">
-      <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 glass-effect-premium toolbar-floating border-b shadow-md transition-all duration-200" data-onboarding="toolbar">
+      {/* Edit Section */}
+      <div className="flex items-center gap-0.5 px-1">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Edit</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={undo}>
@@ -95,11 +97,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
           </TooltipTrigger>
           <TooltipContent>Redo</TooltipContent>
         </Tooltip>
-      </div>
-
-      <Separator orientation="vertical" className="h-6 mx-1" />
-
-      <div className="flex items-center gap-0.5">
+        
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8 btn-interactive" onClick={cut}>
@@ -128,9 +126,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-1" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
 
-      <div className="flex items-center gap-0.5">
+      {/* Align Section */}
+      <div className="flex items-center gap-0.5 px-1">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Align</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={alignLeft}>
@@ -159,9 +159,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-1" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
 
-      <div className="flex items-center gap-0.5">
+      {/* Layer Section */}
+      <div className="flex items-center gap-0.5 px-1">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Layer</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={bringToFront}>
@@ -199,9 +201,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-1" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
 
-      <div className="flex items-center gap-0.5">
+      {/* Group Section */}
+      <div className="flex items-center gap-0.5 px-1">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Group</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={groupSelected}>
@@ -221,9 +225,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-1" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
 
-      <div className="flex items-center gap-0.5">
+      {/* View Section */}
+      <div className="flex items-center gap-0.5 px-1">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">View</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
@@ -249,24 +255,23 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
           </TooltipTrigger>
           <TooltipContent>Shapes & Arrows</TooltipContent>
         </Tooltip>
+
+        <TextOnPathTool />
+        <TextBoxTool />
       </div>
       
       {activeTool === "text" && (
         <>
-          <Separator orientation="vertical" className="h-6 mx-1" />
+          <Separator orientation="vertical" className="h-6 mx-2" />
           <TextFormattingPanel />
         </>
       )}
 
-      <Separator orientation="vertical" className="h-6 mx-1" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
 
-      <TextOnPathTool />
-
-      <TextBoxTool />
-
-      <Separator orientation="vertical" className="h-6 mx-1" />
-
-      <div className="flex items-center gap-0.5">
+      {/* Zoom Section */}
+      <div className="flex items-center gap-0.5 px-1">
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider px-2">Zoom</span>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
@@ -296,7 +301,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-1" />
+      <Separator orientation="vertical" className="h-6 mx-2 bg-border/60" />
 
       <div className="px-2">
         <FeatureAccessBadge />
@@ -353,7 +358,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
           <TooltipContent>Fit to Screen</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="h-6 mx-1" />
+        <Separator orientation="vertical" className="h-6 mx-2" />
 
         <DarkModeToggle />
         <QuickSettings />

@@ -751,12 +751,13 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   return (
     <div className="glass-panel flex flex-col h-full min-h-0 panel-gradient sidebar-shadow-left" data-onboarding="properties-panel">{/* Toggle button - always visible */}
-      <div className="p-2 border-b border-border/40 bg-background/30 backdrop-blur-sm flex items-center justify-between">
+      <div className="p-2 border-b border-border/40 bg-accent/20 backdrop-blur-sm flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-foreground tracking-tight">Properties</h2>
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggleCollapse}
-          className="h-8 w-8"
+          className="h-7 w-7"
           title={isCollapsed ? "Expand properties panel" : "Collapse properties panel"}
         >
           {isCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -768,9 +769,9 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
         <ScrollArea type="always" className="flex-1 min-h-0">
           {/* Pin Object Section - shown when object is selected */}
           {selectedObject && (
-            <div className="p-3 border-b border-border/40">
+            <div className="p-3 border-b border-border/40 bg-accent/10">
               <div className="flex items-center justify-between mb-2">
-                <Label className="text-sm font-medium">Pin Object</Label>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pin Object</Label>
                 <Button
                   variant={isPinned ? "default" : "outline"}
                   size="sm"
@@ -799,7 +800,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full m-3" style={{ gridTemplateColumns: `repeat(${
+            <TabsList className="grid w-full m-3 bg-accent/20" style={{ gridTemplateColumns: `repeat(${
               !selectedObject ? 2 : 
               (
                isTextObject(selectedObject) ? 3 : 
@@ -831,8 +832,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
           
           <div className="px-3 pb-4">
             <TabsContent value="diagram" className="space-y-4 mt-0">
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">View</h3>
+              <div className="space-y-3 p-3 rounded-lg bg-accent/5 border border-border/30">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">View</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="grid" className="text-xs">Grid</Label>
@@ -853,8 +854,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">Background</h3>
+              <div className="space-y-3 p-3 rounded-lg bg-accent/5 border border-border/30">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Background</h3>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="bg-color-toggle" className="text-xs">Custom Color</Label>
@@ -884,8 +885,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h3 className="font-semibold text-sm">Paper Size</h3>
+              <div className="space-y-3 p-3 rounded-lg bg-accent/5 border border-border/30">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Paper Size</h3>
                 <Select value={paperSize} onValueChange={handlePaperSizeChange}>
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue />

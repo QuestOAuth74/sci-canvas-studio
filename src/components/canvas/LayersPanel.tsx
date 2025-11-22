@@ -158,42 +158,55 @@ export const LayersPanel = () => {
 
   return (
     <div className="h-full flex flex-col panel-gradient sidebar-shadow-left">
-      {/* Search Bar */}
-      <div className="p-2 space-y-2 border-b bg-background/30 backdrop-blur-sm">
-        <div className="relative">
+      {/* Header */}
+      <div className="p-2 border-b bg-accent/20 backdrop-blur-sm">
+        <h2 className="text-sm font-semibold text-foreground tracking-tight mb-2">Layers</h2>
+        <div className="relative mb-2">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder="Search layers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 pl-8 text-xs"
+            className="h-8 pl-8 text-xs bg-background/50"
           />
         </div>
-        
-        {/* Bulk Actions */}
-        {selectedLayers.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground flex-1">
-              {selectedLayers.length} selected
-            </span>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={handleBulkDelete}
-              className="h-7 text-xs"
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              Delete
-            </Button>
-          </div>
-        )}
       </div>
+      
+      {/* Bulk Actions */}
+      {selectedLayers.length > 0 && (
+        <div className="p-2 border-b bg-accent/10 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground flex-1">
+            {selectedLayers.length} selected
+          </span>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={handleBulkDelete}
+            className="h-7 text-xs"
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Delete
+          </Button>
+        </div>
+      )}
 
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
           {filteredLayers.length === 0 ? (
-            <div className="text-center text-sm text-muted-foreground py-8">
-              {searchQuery ? 'No matching layers' : 'No objects on canvas'}
+            <div className="text-center py-12 px-4">
+              <div className="text-muted-foreground/40 mb-2">
+                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <p className="text-sm text-muted-foreground font-medium mb-1">
+                {searchQuery ? 'No matching layers' : 'No objects yet'}
+              </p>
+              {!searchQuery && (
+                <p className="text-xs text-muted-foreground/70">
+                  Add shapes, text, or icons to get started
+                </p>
+              )}
             </div>
           ) : (
             filteredLayers.map((layer) => (
