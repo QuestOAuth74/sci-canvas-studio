@@ -3,7 +3,6 @@ import { useSearchParams } from "react-router-dom";
 import { useBlogPosts } from "@/hooks/useBlogPosts";
 import { useBlogCategories } from "@/hooks/useBlogCategories";
 import { SEOHead } from "@/components/SEO/SEOHead";
-import { Breadcrumbs } from "@/components/SEO/Breadcrumbs";
 import { BlogCard } from "@/components/blog/BlogCard";
 import { BlogSidebar } from "@/components/blog/BlogSidebar";
 import { BlogFilters } from "@/components/blog/BlogFilters";
@@ -34,11 +33,6 @@ const Blog = () => {
 
   const { data: categories } = useBlogCategories();
 
-  const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "Blog", url: "/blog" },
-  ];
-
   return (
     <>
       <SEOHead
@@ -52,7 +46,7 @@ const Blog = () => {
         <div className="border-b border-border bg-gradient-to-b from-background to-muted/20">
           <div className="container mx-auto px-4 py-12 md:py-16">
             {/* Top navigation */}
-            <div className="flex justify-between items-center mb-12">
+            <div className="flex items-center mb-12">
               <Button
                 asChild
                 variant="ghost"
@@ -63,8 +57,6 @@ const Blog = () => {
                   Back to Home
                 </Link>
               </Button>
-              
-              <Breadcrumbs items={breadcrumbItems} />
             </div>
 
             {/* Main header content */}
