@@ -243,16 +243,34 @@ export function ProjectCommentsSection({ projectId }: ProjectCommentsSectionProp
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      const { data: commentData, error } = await supabase
         .from('project_comments')
         .insert({
           project_id: projectId,
           user_id: user.id,
           comment_text: trimmedComment,
           parent_comment_id: replyingTo
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Send notifications asynchronously
+      if (commentData) {
+        supabase.functions.invoke('send-comment-notifications', {
+          body: {
+            comment_id: commentData.id,
+            project_id: projectId,
+            comment_text: trimmedComment,
+            commenter_id: user.id,
+            parent_comment_id: replyingTo
+          }
+        }).catch(err => {
+          console.error('Error sending notifications:', err);
+          // Don't block user experience if notifications fail
+        });
+      }
 
       setNewComment('');
       setReplyingTo(null);
