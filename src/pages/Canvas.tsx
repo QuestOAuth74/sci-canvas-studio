@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertiesPanel } from "@/components/canvas/PropertiesPanel";
 import { LayersPanel } from "@/components/canvas/LayersPanel";
 import { BottomBar } from "@/components/canvas/BottomBar";
+import { SmartSuggestions } from "@/components/canvas/SmartSuggestions";
 import { MenuBar } from "@/components/canvas/MenuBar";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
@@ -891,10 +892,16 @@ const CanvasContent = () => {
       </div>
 
       {/* Bottom Bar */}
-      <BottomBar />
+      <BottomBar activeTool={activeTool} hasSelection={!!selectedObject} />
 
       {/* Rating Widget */}
       <ToolRatingWidget />
+
+      {/* Contextual Toolbar - Appears when object is selected */}
+      <ContextualToolbar />
+
+      {/* Smart Suggestions - Context-aware tips */}
+      <SmartSuggestions />
     </div>
     </>
   );
