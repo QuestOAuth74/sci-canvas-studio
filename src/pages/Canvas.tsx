@@ -40,10 +40,12 @@ import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { setCanvasMode } = useTheme();
   const [activeTool, setActiveTool] = useState<string>("select");
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
@@ -112,6 +114,12 @@ const CanvasContent = () => {
     duplicateBelow,
     loadTemplate,
   } = useCanvas();
+
+  // Enable canvas workspace theme when component mounts
+  useEffect(() => {
+    setCanvasMode(true);
+    return () => setCanvasMode(false);
+  }, [setCanvasMode]);
 
   // Track clipboard status via copy/cut actions
   useEffect(() => {
@@ -636,10 +644,10 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-gradient-to-r from-background via-muted/10 to-background border-b-2 border-primary/10 shadow-lg">
-        <div className="px-4 py-2 flex items-center justify-between">
+      <header className="bg-[hsl(var(--canvas-bg-secondary))] border-b-2 border-[hsl(var(--canvas-panel-border))] shadow-xl canvas-molecular-pattern">
+        <div className="px-4 py-2 flex items-center justify-between backdrop-blur-sm bg-background/80">
           <div className="flex items-center gap-3">
-            <div className="bg-muted/30 rounded-lg p-1.5">
+            <div className="bg-gradient-to-br from-[hsl(var(--canvas-accent-primary))]/10 to-[hsl(var(--canvas-accent-secondary))]/10 rounded-lg p-1.5 border border-[hsl(var(--canvas-accent-primary))]/20">
               <img 
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
                 alt="BioSketch" 
@@ -652,7 +660,7 @@ const CanvasContent = () => {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigate("/")} 
-                  className="h-9 w-9 hover:bg-primary/10 hover:scale-105 transition-all duration-200"
+                  className="h-9 w-9 canvas-tool-button"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -668,21 +676,21 @@ const CanvasContent = () => {
                   onKeyDown={handleNameKeyDown}
                   onBlur={saveName}
                   autoFocus
-                  className="h-8 text-base font-semibold tracking-tight max-w-[300px] bg-background/50 border-primary/30 focus:border-primary"
+                  className="h-8 text-base font-semibold tracking-tight max-w-[300px] bg-background/50 border-[hsl(var(--canvas-panel-border))] focus:border-[hsl(var(--canvas-accent-primary))]"
                   maxLength={100}
                 />
               </div>
             ) : (
               <button
                 onClick={startEditingName}
-                className="text-lg font-semibold tracking-tight hover:bg-accent/50 px-2.5 py-1 rounded border border-transparent hover:border-border/40 transition-all"
+                className="text-lg font-semibold tracking-tight text-[hsl(var(--canvas-text-primary))] hover:bg-[hsl(var(--canvas-hover-bg))] px-2.5 py-1 rounded border border-transparent hover:border-[hsl(var(--canvas-panel-border))] transition-all"
                 title="Click to rename"
               >
                 {projectName}
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 bg-muted/30 rounded-lg p-1.5">
+          <div className="flex items-center gap-2 bg-[hsl(var(--canvas-bg-primary))] rounded-lg p-1.5 border border-[hsl(var(--canvas-panel-border))] shadow-md">
             {isSaving && (
               <span className="text-sm flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 rounded-md border border-yellow-500/20">
                 <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />
@@ -700,7 +708,7 @@ const CanvasContent = () => {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => setShowShortcuts(true)}
-                  className="h-9 w-9 hover:bg-primary/10 transition-all duration-200"
+                  className="h-9 w-9 canvas-tool-button"
                 >
                   <HelpCircle className="h-4 w-4" />
                 </Button>
@@ -714,7 +722,7 @@ const CanvasContent = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setAiGeneratorOpen(true)}
-                    className="h-9 hover:bg-primary/10 transition-all duration-200"
+                    className="h-9 canvas-tool-button"
                   >
                     <Sparkles className="h-4 w-4 mr-2" />
                     AI Generate
@@ -731,7 +739,7 @@ const CanvasContent = () => {
                   disabled={isSaving} 
                   variant="default" 
                   size="sm" 
-                  className="h-9 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md transition-all duration-200"
+                  className="h-9 bg-gradient-to-r from-[hsl(var(--canvas-accent-primary))] to-[hsl(var(--canvas-accent-secondary))] hover:from-[hsl(var(--canvas-accent-primary))]/90 hover:to-[hsl(var(--canvas-accent-secondary))]/90 shadow-md transition-all duration-200 text-white"
                 >
                   <Save className="h-3.5 w-3.5 mr-1.5" />
                   Save
@@ -754,32 +762,32 @@ const CanvasContent = () => {
         {/* Main Editor Area */}
         <div className="flex flex-1 min-h-0">
           {/* Left Sidebar - Icon Categories & Assets */}
-          <div className={`bg-gradient-to-b from-background via-muted/10 to-background/95 border-r-2 border-primary/10 shadow-2xl flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
+          <div className={`bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
             {isIconLibraryCollapsed ? (
               <div className="p-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsIconLibraryCollapsed(false)}
-                  className="w-full hover:bg-primary/10 hover:scale-110 transition-all duration-200"
+                  className="w-full canvas-tool-button"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b border-primary/10 flex items-center justify-between bg-gradient-to-r from-muted/50 to-transparent">
+                <div className="p-2 border-b border-[hsl(var(--canvas-panel-border))] flex items-center justify-between bg-gradient-to-r from-[hsl(var(--canvas-bg-tertiary))] to-transparent">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-8 bg-muted/50 shadow-inner">
-                      <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:shadow-md">Icons</TabsTrigger>
-                      <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:shadow-md">My Assets</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 h-8 bg-[hsl(var(--canvas-bg-secondary))] shadow-md border border-[hsl(var(--canvas-panel-border))]">
+                      <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--canvas-accent-primary))] data-[state=active]:to-[hsl(var(--canvas-accent-secondary))] data-[state=active]:text-white data-[state=active]:shadow-lg">Icons</TabsTrigger>
+                      <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--canvas-accent-primary))] data-[state=active]:to-[hsl(var(--canvas-accent-secondary))] data-[state=active]:text-white data-[state=active]:shadow-lg">My Assets</TabsTrigger>
                     </TabsList>
                   </Tabs>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsIconLibraryCollapsed(true)}
-                    className="ml-1 h-8 w-8"
+                    className="ml-1 h-8 w-8 canvas-tool-button"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -857,32 +865,32 @@ const CanvasContent = () => {
         </ScrollArea>
 
         {/* Right Sidebar - Properties & Layers */}
-        <div className={`bg-gradient-to-b from-background via-muted/10 to-background/95 border-l-2 border-primary/10 shadow-2xl flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
+        <div className={`bg-[hsl(var(--canvas-sidebar-bg))] border-l-2 border-[hsl(var(--canvas-panel-border))] shadow-xl flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsPropertiesPanelCollapsed(false)}
-                className="w-full hover:bg-primary/10 hover:scale-110 transition-all duration-200"
+                className="w-full canvas-tool-button"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b border-primary/10 flex items-center justify-between bg-gradient-to-r from-muted/50 to-transparent">
+              <div className="p-2 border-b border-[hsl(var(--canvas-panel-border))] flex items-center justify-between bg-gradient-to-r from-[hsl(var(--canvas-bg-tertiary))] to-transparent">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-8 bg-muted/50 shadow-inner">
-                    <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:shadow-md">Properties</TabsTrigger>
-                    <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:shadow-md">Layers</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-8 bg-[hsl(var(--canvas-bg-secondary))] shadow-md border border-[hsl(var(--canvas-panel-border))]">
+                    <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--canvas-accent-primary))] data-[state=active]:to-[hsl(var(--canvas-accent-secondary))] data-[state=active]:text-white data-[state=active]:shadow-lg">Properties</TabsTrigger>
+                    <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--canvas-accent-primary))] data-[state=active]:to-[hsl(var(--canvas-accent-secondary))] data-[state=active]:text-white data-[state=active]:shadow-lg">Layers</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsPropertiesPanelCollapsed(true)}
-                  className="ml-1 h-8 w-8"
+                  className="ml-1 h-8 w-8 canvas-tool-button"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
