@@ -57,8 +57,8 @@ const App = () => (
             <Route path="/terms" element={<MainLayout><Terms /></MainLayout>} />
             <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
             <Route path="/share" element={<MainLayout><Share /></MainLayout>} />
-            <Route path="/blog" element={<MainLayout><Blog /></MainLayout>} />
-            <Route path="/blog/:slug" element={<MainLayout><BlogPost /></MainLayout>} />
+            <Route path="/blog" element={<MainLayout><ProtectedRoute><Blog /></ProtectedRoute></MainLayout>} />
+            <Route path="/blog/:slug" element={<MainLayout><ProtectedRoute><BlogPost /></ProtectedRoute></MainLayout>} />
             <Route path="/admin" element={<MainLayout><AdminRoute><Admin /></AdminRoute></MainLayout>} />
             <Route path="/admin/analytics" element={<MainLayout><AdminRoute><Analytics /></AdminRoute></MainLayout>} />
             <Route path="/admin/email-notifications" element={<MainLayout><AdminRoute><EmailNotifications /></AdminRoute></MainLayout>} />
