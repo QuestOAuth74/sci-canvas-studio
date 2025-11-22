@@ -203,14 +203,26 @@ const CanvasContent = () => {
         }
 
         // Find invitation
+        console.log('Looking for invitation with token:', invitationToken);
+        console.log('Current user:', user?.id, user?.email);
+        
         const { data: invitation, error: fetchError } = await supabase
           .from('project_collaboration_invitations')
           .select('*')
           .eq('invitation_token', invitationToken)
           .eq('status', 'pending')
-          .single();
+          .maybeSingle();
 
-        if (fetchError || !invitation) {
+        console.log('Invitation query result:', { invitation, fetchError });
+
+        if (fetchError) {
+          console.error('Invitation fetch error:', fetchError);
+          toast.error('Error loading invitation');
+          navigate('/canvas', { replace: true });
+          return;
+        }
+
+        if (!invitation) {
           toast.error('Invalid or expired invitation');
           navigate('/canvas', { replace: true });
           return;
