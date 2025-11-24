@@ -33,6 +33,14 @@ interface CurrentMetrics {
   projectCount: number;
 }
 
+interface ProjectData {
+  id: string;
+  view_count: number;
+  like_count: number;
+  cloned_count: number;
+  created_at: string;
+}
+
 interface InflationLog {
   id: string;
   inflated_at: string;
@@ -57,6 +65,9 @@ export const CommunityMetricsInflator = () => {
     totalClones: 0,
     projectCount: 0,
   });
+  const [projectsData, setProjectsData] = useState<ProjectData[]>([]);
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
+  const [newProjectsSinceInflation, setNewProjectsSinceInflation] = useState(0);
   const [percentage, setPercentage] = useState([15]);
   const [variationMode, setVariationMode] = useState<'uniform' | 'varied'>('varied');
   const [tierFilter, setTierFilter] = useState<'all' | 'tier1' | 'tier2' | 'tier3'>('all');
@@ -67,19 +78,22 @@ export const CommunityMetricsInflator = () => {
     try {
       const { data, error } = await supabase
         .from('canvas_projects')
-        .select('view_count, like_count, cloned_count')
+        .select('id, view_count, like_count, cloned_count, created_at')
         .eq('is_public', true)
-        .eq('approval_status', 'approved');
+        .eq('approval_status', 'approved')
+        .order('view_count', { ascending: false });
 
       if (error) throw error;
 
       if (data) {
+        setProjectsData(data);
         setMetrics({
           totalViews: data.reduce((sum, p) => sum + (p.view_count || 0), 0),
           totalLikes: data.reduce((sum, p) => sum + (p.like_count || 0), 0),
           totalClones: data.reduce((sum, p) => sum + (p.cloned_count || 0), 0),
           projectCount: data.length,
         });
+        setLastRefreshTime(new Date());
       }
     } catch (error) {
       console.error('Error fetching metrics:', error);
@@ -111,22 +125,54 @@ export const CommunityMetricsInflator = () => {
     fetchInflationHistory();
   }, []);
 
+  useEffect(() => {
+    if (inflationHistory.length > 0 && projectsData.length > 0) {
+      const lastInflationTime = new Date(inflationHistory[0].inflated_at);
+      const newProjects = projectsData.filter(p => 
+        new Date(p.created_at) > lastInflationTime
+      );
+      setNewProjectsSinceInflation(newProjects.length);
+    }
+  }, [inflationHistory, projectsData]);
+
   const getPreviewMetrics = () => {
-    const inflationFactor = 1 + percentage[0] / 100;
-    return {
-      views: Math.round(metrics.totalViews * inflationFactor),
-      likes: Math.round(metrics.totalLikes * inflationFactor),
-      clones: Math.round(metrics.totalClones * inflationFactor),
-    };
+    let relevantProjects = projectsData;
+    
+    // Apply tier filtering to preview
+    if (tierFilter === 'tier1') {
+      relevantProjects = projectsData.slice(0, 5);
+    } else if (tierFilter === 'tier2') {
+      relevantProjects = projectsData.slice(5, 13);
+    } else if (tierFilter === 'tier3') {
+      relevantProjects = projectsData.slice(13, 31);
+    }
+    
+    let totalViews = 0;
+    let totalLikes = 0;
+    let totalClones = 0;
+    
+    relevantProjects.forEach(project => {
+      const inflationPercent = variationMode === 'varied' 
+        ? Math.random() * (Math.min(30, percentage[0] + 5) - Math.max(5, percentage[0] - 5)) + Math.max(5, percentage[0] - 5)
+        : percentage[0];
+      
+      const inflationFactor = 1 + inflationPercent / 100;
+      
+      totalViews += Math.round((project.view_count || 0) * inflationFactor);
+      totalLikes += Math.round((project.like_count || 0) * inflationFactor);
+      totalClones += Math.round((project.cloned_count || 0) * inflationFactor);
+    });
+    
+    return { views: totalViews, likes: totalLikes, clones: totalClones };
   };
 
   const previewMetrics = getPreviewMetrics();
 
   const getTierProjectCount = () => {
-    if (tierFilter === 'tier1') return 5;
-    if (tierFilter === 'tier2') return 8;
-    if (tierFilter === 'tier3') return 10;
-    return metrics.projectCount;
+    if (tierFilter === 'tier1') return Math.min(5, projectsData.length);
+    if (tierFilter === 'tier2') return Math.min(8, Math.max(0, projectsData.length - 5));
+    if (tierFilter === 'tier3') return Math.min(18, Math.max(0, projectsData.length - 13));
+    return projectsData.length;
   };
 
   const handleInflate = async () => {
@@ -185,7 +231,19 @@ export const CommunityMetricsInflator = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalViews.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">{metrics.projectCount} projects</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">{metrics.projectCount} projects</p>
+              {newProjectsSinceInflation > 0 && (
+                <p className="text-xs text-primary font-medium">
+                  +{newProjectsSinceInflation} new
+                </p>
+              )}
+            </div>
+            {lastRefreshTime && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Updated {lastRefreshTime.toLocaleTimeString()}
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -284,19 +342,19 @@ export const CommunityMetricsInflator = () => {
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="tier1" id="tier1" />
                 <Label htmlFor="tier1" className="font-normal cursor-pointer">
-                  Tier 1 Only (5 popular projects)
+                  Tier 1 Only ({Math.min(5, projectsData.length)} top projects)
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="tier2" id="tier2" />
                 <Label htmlFor="tier2" className="font-normal cursor-pointer">
-                  Tier 2 Only (8 moderate projects)
+                  Tier 2 Only ({Math.min(8, Math.max(0, projectsData.length - 5))} moderate projects)
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="tier3" id="tier3" />
                 <Label htmlFor="tier3" className="font-normal cursor-pointer">
-                  Tier 3 Only (10 growing projects)
+                  Tier 3 Only ({Math.min(18, Math.max(0, projectsData.length - 13))} growing projects)
                 </Label>
               </div>
             </RadioGroup>
