@@ -6,7 +6,8 @@ import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { TrendingUp, Loader2, Eye, Heart, Copy, RefreshCw } from 'lucide-react';
+import { TrendingUp, Loader2, Eye, Heart, Copy, RefreshCw, BarChart3 } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -220,6 +221,18 @@ export const CommunityMetricsInflator = () => {
     }
   };
 
+  // Prepare chart data from inflation history
+  const chartData = inflationHistory
+    .slice()
+    .reverse()
+    .map((log) => ({
+      date: new Date(log.inflated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      views: log.total_views_after,
+      likes: log.total_likes_after,
+      clones: log.total_clones_after,
+      percentage: log.percentage,
+    }));
+
   return (
     <div className="space-y-6">
       {/* Current Metrics Dashboard */}
@@ -418,11 +431,104 @@ export const CommunityMetricsInflator = () => {
         </CardContent>
       </Card>
 
-      {/* Inflation History */}
+      {/* Inflation History Chart */}
+      {inflationHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Inflation Trends</CardTitle>
+                <CardDescription>Historical growth of community metrics over time</CardDescription>
+              </div>
+              <BarChart3 className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[400px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="date" 
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis 
+                    className="text-xs"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--background))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Legend 
+                    wrapperStyle={{
+                      paddingTop: '20px',
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="views" 
+                    stroke="hsl(var(--primary))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name="Total Views"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="likes" 
+                    stroke="hsl(var(--destructive))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--destructive))', r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name="Total Likes"
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="clones" 
+                    stroke="hsl(var(--chart-3))" 
+                    strokeWidth={2}
+                    dot={{ fill: 'hsl(var(--chart-3))', r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name="Total Clones"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Summary Stats */}
+            <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t">
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-1">Avg Inflation</div>
+                <div className="text-2xl font-bold">
+                  {(inflationHistory.reduce((sum, log) => sum + log.percentage, 0) / inflationHistory.length).toFixed(1)}%
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-1">Total Inflations</div>
+                <div className="text-2xl font-bold">{inflationHistory.length}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-1">Projects Affected</div>
+                <div className="text-2xl font-bold">
+                  {inflationHistory.reduce((sum, log) => sum + log.projects_affected, 0)}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Inflation History Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Inflation History</CardTitle>
-          <CardDescription>Recent metric inflation operations</CardDescription>
+          <CardTitle>Detailed Inflation History</CardTitle>
+          <CardDescription>Complete log of all metric inflation operations</CardDescription>
         </CardHeader>
         <CardContent>
           {inflationHistory.length === 0 ? (
