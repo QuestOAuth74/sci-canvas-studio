@@ -31,6 +31,7 @@ interface WelcomeDialogProps {
   onStartWithTemplate: () => void;
   onStartTutorial: () => void;
   onStartBlank: () => void;
+  onSkipTutorial: () => void;
 }
 
 export const WelcomeDialog = ({
@@ -38,7 +39,8 @@ export const WelcomeDialog = ({
   onOpenChange,
   onStartWithTemplate,
   onStartTutorial,
-  onStartBlank
+  onStartBlank,
+  onSkipTutorial
 }: WelcomeDialogProps) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -182,9 +184,22 @@ export const WelcomeDialog = ({
           </div>
         </div>
 
-        <p className="text-xs text-center text-muted-foreground mt-4">
-          You can always access templates and tutorials later from the menu
-        </p>
+        <div className="mt-4 pt-4 border-t flex flex-col items-center gap-2">
+          <p className="text-xs text-center text-muted-foreground">
+            You can always access templates and tutorials later from the menu
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              onSkipTutorial();
+              onOpenChange(false);
+            }}
+            className="text-xs text-muted-foreground hover:text-foreground"
+          >
+            Skip tutorial and start with a guide template
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
