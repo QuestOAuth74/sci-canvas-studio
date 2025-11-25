@@ -75,7 +75,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2 bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl">
+    <div className="flex flex-col gap-1 p-2 bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl h-full min-h-0 overflow-y-auto">
       {/* Recently Used Section */}
       {recentTools.length > 0 && (
         <>
