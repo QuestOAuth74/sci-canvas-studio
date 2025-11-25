@@ -40,6 +40,7 @@ import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
 import { EmptyCanvasState } from "@/components/canvas/EmptyCanvasState";
+import { TipBanner } from "@/components/canvas/TipBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -1012,6 +1013,9 @@ const CanvasContent = () => {
           }}
         />
       )}
+
+      {/* Tip Banner - Shows on first canvas load */}
+      <TipBanner />
     </div>
     </>
   );
