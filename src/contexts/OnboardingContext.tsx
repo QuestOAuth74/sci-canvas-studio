@@ -4,46 +4,97 @@ export interface OnboardingStep {
   id: string;
   title: string;
   description: string;
-  target: string; // CSS selector for the element to highlight
-  position: 'top' | 'bottom' | 'left' | 'right' | 'center';
-  action?: string; // Optional action prompt for the user
+  target: string;
+  position: 'top' | 'bottom' | 'left' | 'right';
+  action: 'click' | 'drag' | 'modify' | 'add' | 'connect';
+  actionDescription: string;
+  successMessage: string;
+  hint?: string;
+  detectCompletion: (data?: any) => boolean;
 }
 
-export const ONBOARDING_STEPS: OnboardingStep[] = [
+const ONBOARDING_STEPS: OnboardingStep[] = [
   {
-    id: 'welcome',
-    title: 'Welcome to BioSketch!',
-    description: 'Let\'s take a quick tour of the essential features to get you started with creating scientific figures.',
-    target: '#canvas-container',
-    position: 'bottom'
+    id: "welcome",
+    title: "Welcome! Let's Create Your First Figure 🎨",
+    description: "This interactive tutorial will guide you through creating a simple diagram. Each step requires you to perform an action.",
+    target: "#canvas-container",
+    position: "bottom",
+    action: "click",
+    actionDescription: "Click 'Next' to begin",
+    successMessage: "Great! Let's get started!",
+    detectCompletion: () => true,
   },
   {
-    id: 'shapes',
-    title: 'Add Shapes',
-    description: 'Click here to add basic shapes like rectangles, circles, and more to your canvas.',
-    target: '[data-onboarding="shapes-dropdown"]',
-    position: 'bottom'
+    id: "add-rectangle",
+    title: "Step 1: Add a Rectangle",
+    description: "Click the Rectangle tool, then click anywhere on the canvas to add your first shape.",
+    target: "[data-tool='rectangle']",
+    position: "right",
+    action: "add",
+    actionDescription: "Add a rectangle to the canvas",
+    successMessage: "🎉 Perfect! You added your first shape!",
+    hint: "Tip: Click the rectangle icon in the toolbar, then click on the canvas",
+    detectCompletion: (data) => data?.type === 'rect',
   },
   {
-    id: 'icons',
-    title: 'Browse Icons',
-    description: 'Access our library of scientific icons and symbols to enhance your diagrams.',
-    target: '[data-onboarding="icon-library"]',
-    position: 'right'
+    id: "drag-shape",
+    title: "Step 2: Move Your Shape",
+    description: "Click and drag the rectangle to move it around. Try positioning it in the center.",
+    target: "#canvas-container",
+    position: "top",
+    action: "drag",
+    actionDescription: "Drag the rectangle to move it",
+    successMessage: "✨ Nice! You can move any object like this!",
+    hint: "Click on the shape and drag it with your mouse",
+    detectCompletion: (data) => data?.moved === true,
   },
   {
-    id: 'connectors',
-    title: 'Create Connections',
-    description: 'Use connector tools to draw arrows and lines between elements.',
-    target: '[data-onboarding="connector-tool"]',
-    position: 'bottom'
+    id: "change-color",
+    title: "Step 3: Change the Color",
+    description: "With the rectangle selected, use the color picker in the right panel to change its color.",
+    target: "[data-panel='properties']",
+    position: "left",
+    action: "modify",
+    actionDescription: "Change the rectangle's fill color",
+    successMessage: "🎨 Beautiful! Color customization mastered!",
+    hint: "Look for the color picker in the Properties panel on the right",
+    detectCompletion: (data) => data?.colorChanged === true,
   },
   {
-    id: 'export',
-    title: 'Export Your Work',
-    description: 'When you\'re done, export your figure in various formats including PNG, SVG, and PDF.',
-    target: '[data-onboarding="export-button"]',
-    position: 'bottom'
+    id: "add-text",
+    title: "Step 4: Add a Label",
+    description: "Click the Text tool, then click on the canvas to add a text label.",
+    target: "[data-tool='text']",
+    position: "right",
+    action: "add",
+    actionDescription: "Add text to the canvas",
+    successMessage: "📝 Excellent! You can now add labels to your figures!",
+    hint: "Click the 'T' icon in the toolbar, then click on the canvas and type",
+    detectCompletion: (data) => data?.type === 'textbox',
+  },
+  {
+    id: "add-arrow",
+    title: "Step 5: Connect with an Arrow",
+    description: "Click the Arrow tool, then draw an arrow connecting your shapes.",
+    target: "[data-tool='arrow']",
+    position: "right",
+    action: "add",
+    actionDescription: "Draw an arrow on the canvas",
+    successMessage: "➡️ Great! You can now show relationships between elements!",
+    hint: "Click the arrow icon, then click and drag on the canvas to draw",
+    detectCompletion: (data) => data?.hasArrow === true,
+  },
+  {
+    id: "complete",
+    title: "🎉 Tutorial Complete!",
+    description: "You've learned the basics! You created shapes, moved them, changed colors, added text, and drew connections. You're ready to create amazing scientific figures!",
+    target: "[data-action='save']",
+    position: "bottom",
+    action: "click",
+    actionDescription: "Start creating your own figures!",
+    successMessage: "Welcome to BioSketch! 🚀",
+    detectCompletion: () => true,
   }
 ];
 
@@ -53,38 +104,61 @@ interface OnboardingContextType {
   isActive: boolean;
   currentStepIndex: number;
   currentStep: OnboardingStep | null;
-  totalSteps: number;
   isCompleted: boolean;
+  progress: number;
+  completedSteps: string[];
   startOnboarding: () => void;
   nextStep: () => void;
   previousStep: () => void;
   skipOnboarding: () => void;
   completeOnboarding: () => void;
   resetOnboarding: () => void;
+  completeCurrentStep: (data?: any) => void;
+  markStepCompleted: (stepId: string) => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-export const OnboardingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const [isActive, setIsActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
 
-  // Check if user has completed onboarding on mount
+  // Calculate progress percentage
+  const progress = Math.round((completedSteps.length / ONBOARDING_STEPS.length) * 100);
+
+  // Check if user has completed onboarding before
   useEffect(() => {
-    const completed = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-    if (completed === 'true') {
-      setIsCompleted(true);
-    } else {
-      // Start onboarding automatically for new users
-      setIsActive(true);
-    }
+    const completed = localStorage.getItem(ONBOARDING_STORAGE_KEY) === 'true';
+    setIsCompleted(completed);
   }, []);
 
   const startOnboarding = () => {
-    setCurrentStepIndex(0);
     setIsActive(true);
+    setCurrentStepIndex(0);
     setIsCompleted(false);
+    setCompletedSteps([]);
+  };
+
+  const markStepCompleted = (stepId: string) => {
+    if (!completedSteps.includes(stepId)) {
+      setCompletedSteps(prev => [...prev, stepId]);
+    }
+  };
+
+  const completeCurrentStep = (data?: any) => {
+    const currentStep = ONBOARDING_STEPS[currentStepIndex];
+    
+    // Check if the step is actually completed based on the detection logic
+    if (currentStep && currentStep.detectCompletion(data)) {
+      markStepCompleted(currentStep.id);
+      
+      // Auto-advance to next step after a short delay for user to see success
+      setTimeout(() => {
+        nextStep();
+      }, 1500);
+    }
   };
 
   const nextStep = () => {
@@ -102,7 +176,9 @@ export const OnboardingProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   const skipOnboarding = () => {
-    completeOnboarding();
+    setIsActive(false);
+    setIsCompleted(true);
+    localStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
   };
 
   const completeOnboarding = () => {
@@ -115,25 +191,27 @@ export const OnboardingProvider: React.FC<{ children: ReactNode }> = ({ children
     localStorage.removeItem(ONBOARDING_STORAGE_KEY);
     setIsCompleted(false);
     setCurrentStepIndex(0);
-    setIsActive(true);
+    setCompletedSteps([]);
+    setIsActive(false);
   };
-
-  const currentStep = isActive ? ONBOARDING_STEPS[currentStepIndex] : null;
 
   return (
     <OnboardingContext.Provider
       value={{
         isActive,
         currentStepIndex,
-        currentStep,
-        totalSteps: ONBOARDING_STEPS.length,
+        currentStep: isActive ? ONBOARDING_STEPS[currentStepIndex] : null,
         isCompleted,
+        progress,
+        completedSteps,
         startOnboarding,
         nextStep,
         previousStep,
         skipOnboarding,
         completeOnboarding,
         resetOnboarding,
+        completeCurrentStep,
+        markStepCompleted,
       }}
     >
       {children}

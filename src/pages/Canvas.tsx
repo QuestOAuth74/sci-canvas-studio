@@ -784,6 +784,7 @@ const CanvasContent = () => {
                   variant="default" 
                   size="sm" 
                   className="h-9 bg-gradient-to-r from-[hsl(var(--canvas-accent-primary))] to-[hsl(var(--canvas-accent-secondary))] hover:from-[hsl(var(--canvas-accent-primary))]/90 hover:to-[hsl(var(--canvas-accent-secondary))]/90 shadow-md transition-all duration-200 text-white"
+                  data-action="save"
                 >
                   <Save className="h-3.5 w-3.5 mr-1.5" />
                   Save
@@ -939,7 +940,7 @@ const CanvasContent = () => {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="flex-1 overflow-hidden">
+              <div className="flex-1 overflow-hidden" data-panel="properties">
                 {rightSidebarTab === "properties" ? (
                   <PropertiesPanel 
                     isCollapsed={false}

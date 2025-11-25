@@ -66,7 +66,7 @@ export const ShapesDropdown = ({ onShapeSelect, activeTool }: ShapesDropdownProp
       <DropdownMenuContent className="w-56 max-h-[500px] overflow-y-auto bg-card z-50">
         <DropdownMenuLabel>Basic Shapes</DropdownMenuLabel>
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => handleShapeClick("rectangle")}>
+          <DropdownMenuItem onClick={() => handleShapeClick("rectangle")} data-tool="rectangle">
             <Square className="mr-2 h-4 w-4" />
             <span>Rectangle</span>
           </DropdownMenuItem>
