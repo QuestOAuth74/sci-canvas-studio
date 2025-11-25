@@ -979,7 +979,12 @@ const CanvasContent = () => {
           startOnboarding();
         }}
         onStartBlank={() => {
-          // Just close, canvas is already blank
+          // Load the Getting Started template to reduce blank canvas anxiety
+          import('@/lib/templates').then(({ GETTING_STARTED_TEMPLATE }) => {
+            loadTemplate(GETTING_STARTED_TEMPLATE);
+            toast.success("Let's get started! Feel free to delete these examples and create your own.");
+          });
+          localStorage.setItem('canvas_welcome_completed', 'true');
         }}
       />
 
