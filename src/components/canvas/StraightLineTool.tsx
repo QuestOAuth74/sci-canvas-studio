@@ -43,7 +43,7 @@ export const StraightLineTool = ({ onLineSelect, activeTool }: StraightLineToolP
             <Minus className="mr-2 h-4 w-4" />
             <span>Plain Line</span>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onLineSelect('straight-line-arrow')}>
+          <DropdownMenuItem onClick={() => onLineSelect('straight-line-arrow')} data-tool="arrow">
             <ArrowRight className="mr-2 h-4 w-4" />
             <span>Line with Arrow →</span>
           </DropdownMenuItem>

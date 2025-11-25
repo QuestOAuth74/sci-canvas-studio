@@ -246,6 +246,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
             size="icon"
             onClick={() => handleToolChange("text")}
             className="w-10 h-10"
+            data-tool="text"
           >
             <Type className="h-5 w-5" />
           </Button>
