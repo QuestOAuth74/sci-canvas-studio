@@ -986,6 +986,18 @@ const CanvasContent = () => {
           });
           localStorage.setItem('canvas_welcome_completed', 'true');
         }}
+        onSkipTutorial={() => {
+          // Load Getting Started template and mark tutorial as completed
+          import('@/lib/templates').then(({ GETTING_STARTED_TEMPLATE }) => {
+            import('@/contexts/OnboardingContext').then(({ OnboardingProvider }) => {
+              loadTemplate(GETTING_STARTED_TEMPLATE);
+              // Mark tutorial as completed
+              localStorage.setItem('biosketch-onboarding-completed', 'true');
+              toast.success("Here's a starter template to help you begin! Tutorial marked as complete.");
+            });
+          });
+          localStorage.setItem('canvas_welcome_completed', 'true');
+        }}
       />
 
       {/* Empty Canvas State */}
