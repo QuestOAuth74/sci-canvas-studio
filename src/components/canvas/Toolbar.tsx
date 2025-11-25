@@ -75,7 +75,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2 bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl h-full min-h-0 overflow-y-auto">
+    <div className="flex flex-col gap-1 p-2 bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl h-full min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[hsl(var(--canvas-accent-primary)/0.3)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[hsl(var(--canvas-accent-primary)/0.5)] [&::-webkit-scrollbar-thumb]:transition-colors">
       {/* Recently Used Section */}
       {recentTools.length > 0 && (
         <>
