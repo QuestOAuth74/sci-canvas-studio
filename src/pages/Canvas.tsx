@@ -37,6 +37,9 @@ import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
 import { ToolRatingWidget } from "@/components/canvas/ToolRatingWidget";
 import { PanelLabelTool } from "@/components/canvas/PanelLabelTool";
 import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
+import { useOnboarding } from "@/contexts/OnboardingContext";
+import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
+import { EmptyCanvasState } from "@/components/canvas/EmptyCanvasState";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -66,7 +69,10 @@ const CanvasContent = () => {
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
+  const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
+  const [showEmptyState, setShowEmptyState] = useState(false);
   const { isAdmin } = useAuth();
+  const { startOnboarding } = useOnboarding();
   const {
     canvas,
     selectedObject,
@@ -164,6 +170,44 @@ const CanvasContent = () => {
       setCurrentProjectId(projectId);
     }
   }, [searchParams, canvas, loadProject]);
+
+  // Check if first-time user and show welcome dialog
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('canvas_welcome_completed');
+    const projectId = searchParams.get("project");
+    
+    // Only show welcome dialog if:
+    // 1. User hasn't seen it before
+    // 2. No specific project is being loaded
+    // 3. Canvas exists and is empty
+    if (!hasSeenWelcome && !projectId && canvas) {
+      const isEmpty = canvas.getObjects().length === 0;
+      if (isEmpty) {
+        setShowWelcomeDialog(true);
+      }
+    }
+  }, [canvas, searchParams]);
+
+  // Check if canvas is empty to show empty state
+  useEffect(() => {
+    if (!canvas) return;
+    
+    const checkEmpty = () => {
+      const objects = canvas.getObjects();
+      const hasContent = objects.length > 0;
+      setShowEmptyState(!hasContent && !showWelcomeDialog);
+    };
+    
+    checkEmpty();
+    
+    canvas.on('object:added', checkEmpty);
+    canvas.on('object:removed', checkEmpty);
+    
+    return () => {
+      canvas.off('object:added', checkEmpty);
+      canvas.off('object:removed', checkEmpty);
+    };
+  }, [canvas, showWelcomeDialog]);
 
   // Check for recovery on load
   useEffect(() => {
@@ -922,6 +966,34 @@ const CanvasContent = () => {
 
       {/* Smart Suggestions - Context-aware tips */}
       <SmartSuggestions />
+
+      {/* Welcome Dialog for First-Time Users */}
+      <WelcomeDialog
+        open={showWelcomeDialog}
+        onOpenChange={setShowWelcomeDialog}
+        onStartWithTemplate={() => {
+          setTemplatesDialogOpen(true);
+        }}
+        onStartTutorial={() => {
+          startOnboarding();
+        }}
+        onStartBlank={() => {
+          // Just close, canvas is already blank
+        }}
+      />
+
+      {/* Empty Canvas State */}
+      {showEmptyState && (
+        <EmptyCanvasState
+          onOpenTemplates={() => setTemplatesDialogOpen(true)}
+          onStartTutorial={() => startOnboarding()}
+          onQuickStart={(type) => {
+            // Quick start templates based on type
+            setTemplatesDialogOpen(true);
+            // Could filter templates by type in the future
+          }}
+        />
+      )}
     </div>
     </>
   );
