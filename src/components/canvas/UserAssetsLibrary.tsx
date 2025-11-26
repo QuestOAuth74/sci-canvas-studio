@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Search, Upload, Trash2, MoreVertical, FolderOpen, Share2, Users } from 'lucide-react';
 import { useUserAssets } from '@/hooks/useUserAssets';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   const [viewMode, setViewMode] = useState<'my-assets' | 'community'>('my-assets');
   const [currentPage, setCurrentPage] = useState(1);
   const [assetUrls, setAssetUrls] = useState<Record<string, string>>({});
+  const assetUrlsRef = useRef<Record<string, string>>({});
   
   const ITEMS_PER_PAGE = 10;
 
@@ -127,7 +128,13 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     setSearch('');
     setCurrentPage(1);
     setAssetUrls({});
+    assetUrlsRef.current = {};
   }, [viewMode, fetchSharedAssets]);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    assetUrlsRef.current = assetUrls;
+  }, [assetUrls]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -139,8 +146,8 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     const fetchUrls = async () => {
       const urls: Record<string, string> = {};
       for (const asset of paginatedAssets) {
-        // Skip if already cached
-        if (assetUrls[asset.id]) continue;
+        // Skip if already cached (use ref to avoid re-render loop)
+        if (assetUrlsRef.current[asset.id]) continue;
         
         const url = await getAssetUrl(asset);
         if (url) {
@@ -156,7 +163,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     if (paginatedAssets.length > 0) {
       fetchUrls();
     }
-  }, [paginatedAssetIds, getAssetUrl, assetUrls]);
+  }, [paginatedAssetIds, getAssetUrl]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
