@@ -17,6 +17,14 @@ export const ContextualToolbar = () => {
   const [position, setPosition] = useState({ x: 0, y: 72 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState(100);
+
+  // Sync opacity with selected object
+  useEffect(() => {
+    if (selectedObject) {
+      setOpacity((selectedObject.opacity || 1) * 100);
+    }
+  }, [selectedObject]);
 
   // Load saved position from localStorage on mount
   useEffect(() => {
@@ -140,7 +148,9 @@ export const ContextualToolbar = () => {
 
   const handleOpacityChange = (value: number[]) => {
     if (!selectedObject || !canvas) return;
-    selectedObject.set({ opacity: value[0] / 100 });
+    const newOpacity = value[0];
+    setOpacity(newOpacity);
+    selectedObject.set({ opacity: newOpacity / 100 });
     canvas.requestRenderAll();
   };
 
@@ -211,7 +221,7 @@ export const ContextualToolbar = () => {
       <div className="flex items-center gap-2">
         <Label className="text-xs whitespace-nowrap">Opacity</Label>
         <Slider
-          value={[(selectedObject.opacity || 1) * 100]}
+          value={[opacity]}
           onValueChange={handleOpacityChange}
           max={100}
           min={0}
@@ -219,7 +229,7 @@ export const ContextualToolbar = () => {
           className="w-24"
         />
         <span className="text-xs text-muted-foreground w-8">
-          {Math.round((selectedObject.opacity || 1) * 100)}%
+          {Math.round(opacity)}%
         </span>
       </div>
 
