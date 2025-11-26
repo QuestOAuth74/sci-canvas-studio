@@ -6,9 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Megaphone, Send, FileText } from "lucide-react";
+import { Megaphone, Send, ShieldAlert } from "lucide-react";
 
 interface AnnouncementTemplate {
   id: string;
@@ -70,6 +71,7 @@ export const AnnouncementManager = () => {
   const [targetAudience, setTargetAudience] = useState<"all" | "premium" | "new">("all");
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const handleTemplateSelect = (templateId: string) => {
     if (!templateId) {
@@ -112,7 +114,20 @@ export const AnnouncementManager = () => {
       setTargetAudience("all");
     } catch (error: any) {
       console.error("Error sending announcement:", error);
-      toast.error(error.message || "Failed to send announcement");
+      
+      // Check for admin access denied errors (400 or 403)
+      const errorMessage = error.message || "";
+      const isAccessDenied = 
+        errorMessage.includes("Admin access required") ||
+        errorMessage.includes("403") ||
+        error.context?.status === 400 ||
+        error.context?.status === 403;
+
+      if (isAccessDenied) {
+        setAccessDenied(true);
+      } else {
+        toast.error(errorMessage || "Failed to send announcement");
+      }
     } finally {
       setIsSending(false);
     }
@@ -130,6 +145,34 @@ export const AnnouncementManager = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {accessDenied ? (
+          <Alert variant="destructive">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Admin Access Required</AlertTitle>
+            <AlertDescription className="space-y-3">
+              <p>
+                You need the 'admin' role to send announcements. Your account currently doesn't have this permission.
+              </p>
+              <p className="text-sm">
+                To grant admin access, add a record to the <code className="px-1.5 py-0.5 bg-muted rounded text-xs">user_roles</code> table:
+              </p>
+              <ol className="text-sm space-y-1 ml-4 list-decimal">
+                <li>Go to Supabase Dashboard → SQL Editor</li>
+                <li>Run: <code className="px-1.5 py-0.5 bg-muted rounded text-xs">INSERT INTO user_roles (user_id, role) VALUES ('your-user-id', 'admin')</code></li>
+                <li>Log out and log back in to refresh your session</li>
+              </ol>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAccessDenied(false)}
+                className="mt-2"
+              >
+                Try Again
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <>
         <div className="space-y-2">
           <Label htmlFor="template">Quick Templates</Label>
           <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
@@ -212,14 +255,16 @@ export const AnnouncementManager = () => {
           </RadioGroup>
         </div>
 
-        <Button
-          onClick={handleSendAnnouncement}
-          disabled={isSending || !subject.trim() || !message.trim()}
-          className="w-full"
-        >
-          <Send className="h-4 w-4 mr-2" />
-          {isSending ? "Sending..." : "Send Announcement"}
-        </Button>
+          <Button
+            onClick={handleSendAnnouncement}
+            disabled={isSending || !subject.trim() || !message.trim()}
+            className="w-full"
+          >
+            <Send className="h-4 w-4 mr-2" />
+            {isSending ? "Sending..." : "Send Announcement"}
+          </Button>
+        </>
+        )}
       </CardContent>
     </Card>
   );
