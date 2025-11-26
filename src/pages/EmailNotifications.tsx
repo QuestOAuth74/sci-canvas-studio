@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Send, Loader2, Mail, Users, Eye } from "lucide-react";
@@ -20,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import EmailEditor from "@/components/admin/EmailEditor";
 import { 
   Pagination,
   PaginationContent,
@@ -51,182 +51,56 @@ const EMAIL_TEMPLATES: EmailTemplate[] = [
     name: "👋 Welcome Email",
     icon: "👋",
     subject: "Welcome to BioSketch!",
-    message: `Hi there!
-
-We're excited to have you join BioSketch, the professional tool for creating scientific illustrations and diagrams.
-
-Here are some resources to get you started:
-• Watch our quick start tutorial
-• Browse community templates for inspiration
-• Try creating your first diagram
-
-If you have any questions or need help, don't hesitate to reach out.
-
-Best regards,
-[Your Name]
-BioSketch Team`
+    message: `<p>Hi there!</p><p>We're excited to have you join BioSketch, the professional tool for creating scientific illustrations and diagrams.</p><p>Here are some resources to get you started:</p><ul><li>Watch our quick start tutorial</li><li>Browse community templates for inspiration</li><li>Try creating your first diagram</li></ul><p>If you have any questions or need help, don't hesitate to reach out.</p>`
   },
   {
     id: "new-feature",
     name: "✨ New Feature Announcement",
     icon: "✨",
     subject: "New Feature: [Feature Name] is Now Available!",
-    message: `Hello!
-
-We're thrilled to announce a new feature that will enhance your BioSketch experience: [Feature Name]!
-
-What's new:
-• [Key benefit 1]
-• [Key benefit 2]
-• [Key benefit 3]
-
-How to use it:
-[Brief instructions or link to documentation]
-
-We'd love to hear your feedback on this new feature. Try it out and let us know what you think!
-
-Best regards,
-[Your Name]
-BioSketch Team`
+    message: `<p>Hello!</p><p>We're thrilled to announce a new feature that will enhance your BioSketch experience: <strong>[Feature Name]</strong>!</p><p><strong>What's new:</strong></p><ul><li>[Key benefit 1]</li><li>[Key benefit 2]</li><li>[Key benefit 3]</li></ul><p><strong>How to use it:</strong><br>[Brief instructions or link to documentation]</p><p>We'd love to hear your feedback on this new feature. Try it out and let us know what think!</p>`
   },
   {
     id: "maintenance",
     name: "🔧 Maintenance Notice",
     icon: "🔧",
     subject: "Scheduled Maintenance on [Date]",
-    message: `Hi everyone,
-
-We'll be performing scheduled maintenance on BioSketch to improve performance and reliability.
-
-Maintenance Window:
-• Date: [Date]
-• Time: [Start Time] - [End Time] [Timezone]
-• Expected Duration: [Duration]
-
-During this time, the platform may be temporarily unavailable. We apologize for any inconvenience and appreciate your patience.
-
-If you have any urgent concerns, please contact us before the maintenance window.
-
-Thank you for your understanding,
-[Your Name]
-BioSketch Team`
+    message: `<p>Hi everyone,</p><p>We'll be performing scheduled maintenance on BioSketch to improve performance and reliability.</p><p><strong>Maintenance Window:</strong></p><ul><li>Date: [Date]</li><li>Time: [Start Time] - [End Time] [Timezone]</li><li>Expected Duration: [Duration]</li></ul><p>During this time, the platform may be temporarily unavailable. We apologize for any inconvenience and appreciate your patience.</p><p>If you have any urgent concerns, please contact us before the maintenance window.</p>`
   },
   {
     id: "tips",
     name: "💡 Tips & Tutorial",
     icon: "💡",
     subject: "Pro Tips: Get More Out of BioSketch",
-    message: `Hello!
-
-We wanted to share some tips and tricks to help you create even better scientific illustrations with BioSketch:
-
-Tip 1: [Tip Title]
-[Brief description and benefit]
-
-Tip 2: [Tip Title]
-[Brief description and benefit]
-
-Tip 3: [Tip Title]
-[Brief description and benefit]
-
-Want to learn more? Check out our comprehensive tutorial library and video guides.
-
-Happy creating!
-[Your Name]
-BioSketch Team`
+    message: `<p>Hello!</p><p>We wanted to share some tips and tricks to help you create even better scientific illustrations with BioSketch:</p><p><strong>Tip 1: [Tip Title]</strong><br>[Brief description and benefit]</p><p><strong>Tip 2: [Tip Title]</strong><br>[Brief description and benefit]</p><p><strong>Tip 3: [Tip Title]</strong><br>[Brief description and benefit]</p><p>Want to learn more? Check out our comprehensive tutorial library and video guides.</p>`
   },
   {
     id: "feedback",
     name: "📝 Feedback Request",
     icon: "📝",
     subject: "We'd Love Your Feedback!",
-    message: `Hi there!
-
-Your opinion matters to us! We're always working to improve BioSketch, and your feedback helps shape the future of the platform.
-
-We'd appreciate if you could take 2-3 minutes to answer a few questions:
-[Survey Link]
-
-Topics we're curious about:
-• Your experience with [specific feature]
-• Features you'd like to see added
-• Overall satisfaction with the platform
-
-As a thank you, [optional: incentive like early access to new features, etc.]
-
-Thank you for being part of our community!
-[Your Name]
-BioSketch Team`
+    message: `<p>Hi there!</p><p>Your opinion matters to us! We're always working to improve BioSketch, and your feedback helps shape the future of the platform.</p><p>We'd appreciate if you could take 2-3 minutes to answer a few questions:<br>[Survey Link]</p><p><strong>Topics we're curious about:</strong></p><ul><li>Your experience with [specific feature]</li><li>Features you'd like to see added</li><li>Overall satisfaction with the platform</li></ul><p>As a thank you, [optional: incentive like early access to new features, etc.]</p>`
   },
   {
     id: "community",
     name: "🌟 Community Highlight",
     icon: "🌟",
     subject: "Community Spotlight: Amazing Work from Our Users!",
-    message: `Hello!
-
-We're constantly amazed by the incredible scientific illustrations created by our community. This week, we wanted to highlight some outstanding projects:
-
-Featured Project 1: [Project Name]
-Created by [User Name]
-[Brief description or link]
-
-Featured Project 2: [Project Name]
-Created by [User Name]
-[Brief description or link]
-
-Want to be featured? Share your best work by [instructions for submission].
-
-Keep creating amazing work!
-[Your Name]
-BioSketch Team`
+    message: `<p>Hello!</p><p>We're constantly amazed by the incredible scientific illustrations created by our community. This week, we wanted to highlight some outstanding projects:</p><p><strong>Featured Project 1: [Project Name]</strong><br>Created by [User Name]<br>[Brief description or link]</p><p><strong>Featured Project 2: [Project Name]</strong><br>Created by [User Name]<br>[Brief description or link]</p><p>Want to be featured? Share your best work by [instructions for submission].</p>`
   },
   {
     id: "reengagement",
     name: "💚 We Miss You",
     icon: "💚",
     subject: "We Miss You! Come Back to BioSketch",
-    message: `Hi [Name],
-
-We noticed you haven't been active on BioSketch lately, and we wanted to reach out. We've made some exciting improvements since your last visit:
-
-What's New:
-• [New feature or improvement 1]
-• [New feature or improvement 2]
-• [New feature or improvement 3]
-
-Your account and all your projects are waiting for you, exactly as you left them.
-
-Need help getting started again? Our support team is here to assist you.
-
-We'd love to see you back!
-[Your Name]
-BioSketch Team`
+    message: `<p>Hi [Name],</p><p>We noticed you haven't been active on BioSketch lately, and we wanted to reach out. We've made some exciting improvements since your last visit:</p><p><strong>What's New:</strong></p><ul><li>[New feature or improvement 1]</li><li>[New feature or improvement 2]</li><li>[New feature or improvement 3]</li></ul><p>Your account and all your projects are waiting for you, exactly as you left them.</p><p>Need help getting started again? Our support team is here to assist you.</p>`
   },
   {
     id: "platform-update",
     name: "🚀 Platform Update",
     icon: "🚀",
     subject: "BioSketch Platform Update - [Version Number]",
-    message: `Hello!
-
-We've just released a new platform update with improvements and bug fixes to enhance your experience.
-
-Release Highlights:
-• [Improvement 1]
-• [Improvement 2]
-• [Bug fix 1]
-• [Performance enhancement]
-
-Full release notes: [Link to release notes]
-
-These changes are now live for all users. No action is required on your part.
-
-If you encounter any issues or have questions about these updates, please don't hesitate to contact us.
-
-Thank you for using BioSketch!
-[Your Name]
-BioSketch Team`
+    message: `<p>Hello!</p><p>We've just released a new platform update with improvements and bug fixes to enhance your experience.</p><p><strong>Release Highlights:</strong></p><ul><li>[Improvement 1]</li><li>[Improvement 2]</li><li>[Bug fix 1]</li><li>[Performance enhancement]</li></ul><p>Full release notes: [Link to release notes]</p><p>These changes are now live for all users. No action is required on your part.</p><p>If you encounter any issues or have questions about these updates, please don't hesitate to contact us.</p>`
   }
 ];
 
@@ -392,7 +266,6 @@ const EmailNotifications = () => {
   const recipientCount = sendToAll ? totalCount : selectedUsers.length;
 
   const getEmailPreviewHTML = () => {
-    const messageWithBreaks = message.replace(/\n/g, '<br/>');
     return `
       <!DOCTYPE html>
       <html>
@@ -435,6 +308,23 @@ const EmailNotifications = () => {
               line-height: 1.8;
               margin-bottom: 30px;
             }
+            .email-body p {
+              margin: 0 0 16px 0;
+            }
+            .email-body ul, .email-body ol {
+              margin: 16px 0;
+              padding-left: 24px;
+            }
+            .email-body li {
+              margin-bottom: 8px;
+            }
+            .email-body a {
+              color: #7C3AED;
+              text-decoration: underline;
+            }
+            .email-body strong {
+              font-weight: 600;
+            }
             .email-footer {
               border-top: 1px solid #e5e5e5;
               padding-top: 20px;
@@ -451,7 +341,7 @@ const EmailNotifications = () => {
               <p class="email-from">From: ${adminName}</p>
             </div>
             <div class="email-body">
-              ${messageWithBreaks || '<em style="color: #999;">(No message content)</em>'}
+              ${message || '<em style="color: #999;">(No message content)</em>'}
             </div>
             <div class="email-footer">
               <p>Best regards,<br/>${adminName}<br/>BioSketch Team</p>
@@ -686,17 +576,12 @@ const EmailNotifications = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="message">Message *</Label>
-                  <Textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type your message here..."
-                    rows={12}
-                    maxLength={10000}
-                    className="resize-none"
+                  <EmailEditor 
+                    content={message}
+                    onChange={setMessage}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {message.length} / 10,000 characters
+                    Use the toolbar to format your message with bold, italic, lists, and links
                   </p>
                 </div>
 
