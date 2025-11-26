@@ -114,14 +114,19 @@ export const BlogPostSidebar = ({ content }: BlogPostSidebarProps) => {
 
   return (
     <div className="space-y-6 sticky top-8">
-      {/* Table of Contents */}
+      {/* Table of Contents - Notebook Style */}
       {headings.length > 0 && (
-        <Card className="border-[4px] border-foreground neo-shadow-lg overflow-hidden">
-          <CardHeader className="bg-primary/10 border-b-[4px] border-foreground">
-            <CardTitle className="flex items-center gap-2 text-xl font-black">
-              <div className="w-8 h-8 bg-primary border-[2px] border-foreground rounded-lg flex items-center justify-center">
-                <List className="w-4 h-4 text-primary-foreground" />
-              </div>
+        <Card className="notebook-sidebar ruled-lines bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] overflow-hidden pl-8 relative">
+          {/* Spiral binding */}
+          <div className="spiral-binding">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="spiral-hole" />
+            ))}
+          </div>
+          
+          <CardHeader className="bg-[#f9f6f0]/80">
+            <CardTitle className="notebook-section-header text-xl">
+              <List className="w-4 h-4 inline mr-2" />
               Contents
             </CardTitle>
           </CardHeader>
@@ -131,12 +136,11 @@ export const BlogPostSidebar = ({ content }: BlogPostSidebarProps) => {
                 key={heading.id}
                 onClick={() => scrollToHeading(heading.id)}
                 className={`
-                  w-full text-left px-3 py-2 rounded-lg font-semibold text-sm
-                  transition-all duration-200 border-[2px] border-transparent
-                  hover:border-foreground hover:bg-primary/5 hover:translate-x-[2px]
+                  w-full text-left px-3 py-2 rounded-lg text-sm paper-tab
+                  transition-all duration-200
                   ${activeId === heading.id 
-                    ? 'bg-primary/10 border-foreground text-primary shadow-[2px_2px_0px_0px_hsl(var(--foreground))]' 
-                    : 'text-foreground/80'
+                    ? 'paper-tab-active' 
+                    : ''
                   }
                   ${heading.level === 2 ? 'ml-0' : heading.level === 3 ? 'ml-4' : 'ml-8'}
                 `}
@@ -148,59 +152,66 @@ export const BlogPostSidebar = ({ content }: BlogPostSidebarProps) => {
         </Card>
       )}
 
-      {/* Featured Templates */}
+      {/* Featured Templates - Polaroid Style */}
       {featuredProjects.length > 0 && (
-        <Card className="border-[4px] border-foreground neo-shadow-lg overflow-hidden">
-          <CardHeader className="bg-secondary/10 border-b-[4px] border-foreground">
-            <CardTitle className="flex items-center gap-2 text-xl font-black">
-              <div className="w-8 h-8 bg-secondary border-[2px] border-foreground rounded-lg flex items-center justify-center">
-                <Image className="w-4 h-4 text-secondary-foreground" />
-              </div>
+        <Card className="notebook-sidebar ruled-lines bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] overflow-hidden pl-8 relative">
+          {/* Spiral binding */}
+          <div className="spiral-binding">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="spiral-hole" />
+            ))}
+          </div>
+          
+          <CardHeader className="bg-[#f9f6f0]/80">
+            <CardTitle className="notebook-section-header text-xl">
+              <Image className="w-4 h-4 inline mr-2" />
               Featured Templates
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
-            {featuredProjects.map((project) => (
-              <Link
-                key={project.id}
-                to={`/community?preview=${project.id}`}
-                className="block group"
-              >
-                <div className="relative border-[3px] border-foreground rounded-xl overflow-hidden shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[6px_6px_0px_0px_hsl(var(--foreground))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-200">
-                  {project.thumbnail_url ? (
-                    <img
-                      src={project.thumbnail_url}
-                      alt={project.name}
-                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-32 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                      <Image className="w-12 h-12 text-muted-foreground" />
+            {featuredProjects.map((project, index) => {
+              const rotation = (index % 2 === 0 ? 1 : -1) * (Math.random() * 2 + 1);
+              return (
+                <Link
+                  key={project.id}
+                  to={`/community?preview=${project.id}`}
+                  className="block group"
+                >
+                  <div 
+                    className="relative bg-white p-2 paper-shadow hover:shadow-lg transition-all duration-200"
+                    style={{ transform: `rotate(${rotation}deg)` }}
+                  >
+                    {/* Tape decoration */}
+                    <div className="washi-tape top-0 left-1/2 -translate-x-1/2" />
+                    
+                    {project.thumbnail_url ? (
+                      <img
+                        src={project.thumbnail_url}
+                        alt={project.name}
+                        className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-32 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                        <Image className="w-12 h-12 text-muted-foreground" />
+                      </div>
+                    )}
+                    
+                    <div className="p-3 bg-white">
+                      <h4 className="font-semibold text-sm line-clamp-2 group-hover:text-[hsl(var(--ink-blue))] transition-colors font-['Caveat'] text-[hsl(var(--ink-blue))]">
+                        {project.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {project.view_count} views
+                      </p>
                     </div>
-                  )}
-                  
-                  <div className="absolute top-2 right-2">
-                    <Badge className="bg-accent text-accent-foreground border-[2px] border-foreground neo-shadow-sm font-bold">
-                      <ExternalLink className="w-3 h-3 mr-1" />
-                      View
-                    </Badge>
                   </div>
-                  
-                  <div className="p-3 bg-card border-t-[3px] border-foreground">
-                    <h4 className="font-bold text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                      {project.name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground font-semibold mt-1">
-                      {project.view_count} views
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
             
             <Link
               to="/community"
-              className="block w-full py-3 px-4 text-center font-bold text-sm bg-gradient-to-r from-primary/10 to-secondary/10 border-[3px] border-foreground rounded-xl shadow-[3px_3px_0px_0px_hsl(var(--foreground))] hover:shadow-[5px_5px_0px_0px_hsl(var(--foreground))] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-200"
+              className="block w-full py-3 px-4 text-center font-semibold text-sm sticky-note bg-[hsl(var(--highlighter-yellow))] hover:shadow-lg transition-all duration-200"
             >
               Browse All Templates →
             </Link>

@@ -92,14 +92,14 @@ const BlogPost = () => {
         {JSON.stringify(structuredData)}
       </script>
 
-      <div className="min-h-screen bg-background">
-        {/* Hero Section - Clean and Modern */}
-        <div className="border-b border-border bg-gradient-to-b from-muted/30 to-background">
+      <div className="min-h-screen notebook-page">
+        {/* Hero Section - Notebook Theme */}
+        <div className="border-b border-border/30 bg-[#f9f6f0]/80">
           <div className="container mx-auto px-4 py-6">
             <Button
               asChild
               variant="ghost"
-              className="hover:bg-muted transition-colors"
+              className="pencil-button"
             >
               <Link to="/blog">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -116,13 +116,12 @@ const BlogPost = () => {
               <article>
                 {/* Modern Header Section */}
                 <header className="mb-8">
-                  {/* Categories and Tags */}
-                  <div className="flex flex-wrap gap-2 mb-6">
+                  {/* Categories and Tags - Sticky Notes */}
+                  <div className="flex flex-wrap gap-3 mb-6">
                     {post.categories?.map((cat: any) => (
                       <Badge 
                         key={cat.category.id}
-                        variant="default"
-                        className="smooth-transition hover-scale"
+                        className="sticky-note bg-[hsl(var(--highlighter-yellow))] text-[hsl(var(--ink-blue))] border-[hsl(var(--pencil-gray))]"
                       >
                         {cat.category.name}
                       </Badge>
@@ -130,8 +129,7 @@ const BlogPost = () => {
                     {post.tags?.map((tag: any) => (
                       <Badge 
                         key={tag.tag.id}
-                        variant="secondary"
-                        className="smooth-transition hover-scale"
+                        className="sticky-note bg-[#b4e4ff] text-[hsl(var(--ink-blue))] border-[hsl(var(--pencil-gray))]"
                       >
                         #{tag.tag.name}
                       </Badge>
@@ -148,24 +146,24 @@ const BlogPost = () => {
                     </p>
                   )}
 
-                  {/* Meta Info - Clean Cards */}
+                  {/* Meta Info - Sticky Note Style */}
                   <div className="flex flex-wrap items-center gap-3 mb-8">
                     {post.published_at && (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-lg text-sm smooth-transition hover:bg-muted">
-                        <Calendar className="h-4 w-4 text-primary" />
+                      <div className="flex items-center gap-2 px-4 py-2 sticky-note bg-[#fff4b4] text-sm">
+                        <Calendar className="h-4 w-4 text-[hsl(var(--ink-blue))]" />
                         <time dateTime={post.published_at}>
                           {format(new Date(post.published_at), 'MMM d, yyyy')}
                         </time>
                       </div>
                     )}
                     {post.reading_time && (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-lg text-sm smooth-transition hover:bg-muted">
-                        <Clock className="h-4 w-4 text-primary" />
+                      <div className="flex items-center gap-2 px-4 py-2 sticky-note bg-[#ffcce1] text-sm">
+                        <Clock className="h-4 w-4 text-[hsl(var(--ink-blue))]" />
                         {post.reading_time} min read
                       </div>
                     )}
-                    <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-lg text-sm smooth-transition hover:bg-muted">
-                      <Eye className="h-4 w-4 text-primary" />
+                    <div className="flex items-center gap-2 px-4 py-2 sticky-note bg-[#b4e4ff] text-sm">
+                      <Eye className="h-4 w-4 text-[hsl(var(--ink-blue))]" />
                       {post.view_count.toLocaleString()} views
                     </div>
                   </div>
@@ -203,13 +201,15 @@ const BlogPost = () => {
                   </div>
                 )}
 
-                {/* Content with Professional Styling */}
-                <Card className="p-8 md:p-12 mb-10 border border-border shadow-sm">
+                {/* Content with Notebook Paper Styling */}
+                <Card className="p-8 md:p-12 mb-10 bg-white border-l-4 border-l-[#ff6b6b] ruled-lines relative pl-16 paper-shadow">
+                  {/* Margin line decoration */}
+                  <div className="margin-line" />
                   <div className="prose prose-lg max-w-none dark:prose-invert 
-                    prose-headings:scroll-mt-24 prose-headings:font-bold
+                    prose-headings:scroll-mt-24 prose-headings:font-bold prose-headings:font-['Caveat'] prose-headings:text-[hsl(var(--ink-blue))]
                     prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6
                     prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4
-                    prose-p:text-foreground/90 prose-p:leading-relaxed prose-p:mb-6
+                    prose-p:text-foreground/90 prose-p:leading-relaxed prose-p:mb-6 prose-p:font-['Source_Serif_4']
                     prose-a:text-primary prose-a:no-underline hover:prose-a:underline
                     prose-strong:text-foreground prose-strong:font-semibold
                     prose-code:text-primary prose-code:bg-muted prose-code:px-2 prose-code:py-1 prose-code:rounded
@@ -223,9 +223,9 @@ const BlogPost = () => {
 
                 <Separator className="my-12" />
 
-                {/* Share Section - Modern Card */}
-                <Card className="p-8 mb-10 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-                  <h3 className="text-heading-3 mb-4">Share This Post</h3>
+                {/* Share Section - Sticky Note */}
+                <Card className="p-8 mb-10 sticky-note bg-[hsl(var(--highlighter-yellow))]">
+                  <h3 className="text-heading-3 mb-4 font-['Caveat'] text-[hsl(var(--ink-blue))]">Share This Post</h3>
                   <ShareButtons
                     url={window.location.href}
                     title={post.title}
