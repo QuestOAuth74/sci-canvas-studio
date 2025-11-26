@@ -61,13 +61,13 @@ export const WelcomeDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto paper-shadow border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))]">
         <DialogHeader>
           <div className="flex items-center gap-2 justify-center mb-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <DialogTitle className="text-2xl">Welcome to BioSketch Canvas!</DialogTitle>
+            <Sparkles className="h-6 w-6 text-[hsl(var(--ink-blue))]" />
+            <DialogTitle className="text-2xl font-source-serif ink-text">Welcome to BioSketch Canvas!</DialogTitle>
           </div>
-          <DialogDescription className="text-center text-base">
+          <DialogDescription className="text-center text-base font-source-serif text-[hsl(var(--pencil-gray))]">
             Choose how you'd like to start creating your first scientific figure
           </DialogDescription>
         </DialogHeader>
@@ -75,18 +75,18 @@ export const WelcomeDialog = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           {/* Option 1: Start with Template */}
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
-              selectedOption === 'template' ? 'ring-2 ring-primary' : ''
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:-rotate-1 paper-shadow border-2 border-[hsl(var(--pencil-gray))] bg-white ${
+              selectedOption === 'template' ? 'ring-2 ring-[hsl(var(--ink-blue))] rotate-0' : 'rotate-1'
             }`}
             onClick={() => setSelectedOption('template')}
           >
             <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <LayoutTemplate className="h-8 w-8 text-primary" />
+              <div className="h-16 w-16 rounded-full bg-[hsl(var(--highlighter-yellow))]/20 flex items-center justify-center border-2 border-[hsl(var(--pencil-gray))]">
+                <LayoutTemplate className="h-8 w-8 text-[hsl(var(--ink-blue))]" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Start with a Template</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-lg mb-2 font-source-serif ink-text">Start with a Template</h3>
+                <p className="text-sm text-[hsl(var(--pencil-gray))]">
                   Choose from ready-made templates and customize them to your needs
                 </p>
               </div>
@@ -95,6 +95,7 @@ export const WelcomeDialog = ({
                   e.stopPropagation();
                   handleChoice('template');
                 }}
+                variant="ink"
                 className="w-full"
               >
                 Browse Templates
@@ -104,18 +105,18 @@ export const WelcomeDialog = ({
 
           {/* Option 2: Interactive Tutorial */}
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
-              selectedOption === 'tutorial' ? 'ring-2 ring-primary' : ''
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:-rotate-1 paper-shadow border-2 border-[hsl(var(--pencil-gray))] bg-white ${
+              selectedOption === 'tutorial' ? 'ring-2 ring-[hsl(var(--ink-blue))] rotate-0' : '-rotate-1'
             }`}
             onClick={() => setSelectedOption('tutorial')}
           >
             <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-secondary/10 flex items-center justify-center">
-                <BookOpen className="h-8 w-8 text-secondary-foreground" />
+              <div className="h-16 w-16 rounded-full bg-[hsl(var(--highlighter-yellow))]/20 flex items-center justify-center border-2 border-[hsl(var(--pencil-gray))]">
+                <BookOpen className="h-8 w-8 text-[hsl(var(--ink-blue))]" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Try Interactive Tutorial</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-lg mb-2 font-source-serif ink-text">Try Interactive Tutorial</h3>
+                <p className="text-sm text-[hsl(var(--pencil-gray))]">
                   Learn by doing with a guided 90-second hands-on walkthrough
                 </p>
               </div>
@@ -124,7 +125,7 @@ export const WelcomeDialog = ({
                   e.stopPropagation();
                   handleChoice('tutorial');
                 }}
-                variant="secondary"
+                variant="pencil"
                 className="w-full"
               >
                 Start Tutorial
@@ -134,18 +135,18 @@ export const WelcomeDialog = ({
 
           {/* Option 3: Start from Scratch */}
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${
-              selectedOption === 'blank' ? 'ring-2 ring-primary' : ''
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:-rotate-1 paper-shadow border-2 border-[hsl(var(--pencil-gray))] bg-white ${
+              selectedOption === 'blank' ? 'ring-2 ring-[hsl(var(--ink-blue))] rotate-0' : 'rotate-1'
             }`}
             onClick={() => setSelectedOption('blank')}
           >
             <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
-                <Pencil className="h-8 w-8 text-muted-foreground" />
+              <div className="h-16 w-16 rounded-full bg-[hsl(var(--highlighter-yellow))]/20 flex items-center justify-center border-2 border-[hsl(var(--pencil-gray))]">
+                <Pencil className="h-8 w-8 text-[hsl(var(--ink-blue))]" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Start from Scratch</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-lg mb-2 font-source-serif ink-text">Start from Scratch</h3>
+                <p className="text-sm text-[hsl(var(--pencil-gray))]">
                   Jump right in with a blank canvas for experienced users
                 </p>
               </div>
@@ -155,7 +156,7 @@ export const WelcomeDialog = ({
                   handleChoice('blank');
                 }}
                 variant="outline"
-                className="w-full"
+                className="w-full border-2 border-[hsl(var(--pencil-gray))] hover:bg-[hsl(var(--cream))]"
               >
                 Blank Canvas
               </Button>
@@ -164,41 +165,54 @@ export const WelcomeDialog = ({
         </div>
 
         {/* Featured Templates Preview */}
-        <div className="mt-6 pt-6 border-t">
-          <h4 className="text-sm font-medium mb-3 text-center text-muted-foreground">
+        <div className="mt-6 pt-6 border-t-2 border-dashed border-[hsl(var(--pencil-gray))]">
+          <h4 className="text-sm font-medium mb-3 text-center handwritten text-[hsl(var(--ink-blue))] text-base">
             Popular templates to get you started:
           </h4>
           <div className="grid grid-cols-3 gap-3">
             {FEATURED_TEMPLATES.map((template) => (
               <div 
                 key={template.id}
-                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[hsl(var(--highlighter-yellow))]/20 transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-[hsl(var(--pencil-gray))] hover:rotate-1"
                 onClick={() => handleChoice('template')}
               >
-                <div className="h-16 w-full bg-muted rounded flex items-center justify-center">
-                  <LayoutTemplate className="h-8 w-8 text-muted-foreground" />
+                <div className="h-16 w-full bg-[hsl(var(--cream))] rounded flex items-center justify-center border border-[hsl(var(--pencil-gray))]">
+                  <LayoutTemplate className="h-8 w-8 text-[hsl(var(--pencil-gray))]" />
                 </div>
-                <span className="text-xs font-medium text-center">{template.name}</span>
+                <span className="text-xs font-medium text-center font-source-serif">{template.name}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mt-4 pt-4 border-t flex flex-col items-center gap-2">
-          <p className="text-xs text-center text-muted-foreground">
+        <div className="mt-4 pt-4 border-t-2 border-dashed border-[hsl(var(--pencil-gray))] flex flex-col items-center gap-2">
+          <p className="text-xs text-center text-[hsl(var(--pencil-gray))] font-source-serif italic">
             You can always access templates and tutorials later from the menu
           </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              onSkipTutorial();
-              onOpenChange(false);
-            }}
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Skip tutorial and start with a guide template
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onSkipTutorial();
+                onOpenChange(false);
+              }}
+              className="text-xs border border-[hsl(var(--pencil-gray))] hover:bg-[hsl(var(--highlighter-yellow))]/20"
+            >
+              Skip & Start with Guide
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                localStorage.setItem('canvas_welcome_completed', 'true');
+                onOpenChange(false);
+              }}
+              className="text-xs text-[hsl(var(--pencil-gray))] hover:text-[hsl(var(--ink-blue))]"
+            >
+              Dismiss
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
