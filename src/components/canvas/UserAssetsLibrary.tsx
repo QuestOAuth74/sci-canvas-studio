@@ -126,10 +126,17 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-4 border-b space-y-3">
+    <div className="flex flex-col h-full bg-[hsl(var(--cream))]/95 backdrop-blur-sm notebook-sidebar ruled-lines">
+      {/* Spiral binding decoration */}
+      <div className="spiral-binding">
+        {[...Array(12)].map((_, i) => (
+          <div key={i} className="spiral-hole" />
+        ))}
+      </div>
+      
+      <div className="p-4 pl-8 border-b space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm">My Assets</h3>
+          <h3 className="notebook-section-header">My Assets</h3>
           <Button
             size="sm"
             variant="outline"
@@ -140,25 +147,29 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
           </Button>
         </div>
 
-        <div className="flex gap-1 p-1 bg-muted rounded-lg">
-          <Button
-            variant={viewMode === 'my-assets' ? 'default' : 'ghost'}
-            size="sm"
-            className="flex-1 h-8 text-xs"
+        <div className="flex gap-1 p-1 bg-[hsl(var(--cream))] rounded-lg border-2 border-[hsl(var(--pencil-gray))]">
+          <button
+            className={`flex-1 h-8 text-xs rounded-md transition-all flex items-center justify-center gap-1 font-source-serif ${
+              viewMode === 'my-assets' 
+                ? 'paper-tab-active' 
+                : 'paper-tab'
+            }`}
             onClick={() => setViewMode('my-assets')}
           >
-            <FolderOpen className="h-3 w-3 mr-1" />
+            <FolderOpen className="h-3 w-3" />
             My Files
-          </Button>
-          <Button
-            variant={viewMode === 'community' ? 'default' : 'ghost'}
-            size="sm"
-            className="flex-1 h-8 text-xs"
+          </button>
+          <button
+            className={`flex-1 h-8 text-xs rounded-md transition-all flex items-center justify-center gap-1 font-source-serif ${
+              viewMode === 'community' 
+                ? 'paper-tab-active' 
+                : 'paper-tab'
+            }`}
             onClick={() => setViewMode('community')}
           >
-            <Users className="h-3 w-3 mr-1" />
+            <Users className="h-3 w-3" />
             Community
-          </Button>
+          </button>
         </div>
 
         <div className="relative">
