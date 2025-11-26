@@ -26,7 +26,7 @@ interface ProjectPreviewModalProps {
       full_name: string | null;
       avatar_url: string | null;
     } | null;
-  };
+  } | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -34,6 +34,10 @@ interface ProjectPreviewModalProps {
 export function ProjectPreviewModal({ project, isOpen, onClose }: ProjectPreviewModalProps) {
   const navigate = useNavigate();
   const [cloning, setCloning] = useState(false);
+  
+  // Don't render if project is null or modal is closed
+  if (!project || !isOpen) return null;
+  
   const creatorName = project.profiles?.full_name || 'Anonymous';
   const initials = creatorName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
