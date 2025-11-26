@@ -64,42 +64,44 @@ export function FeaturedProjectShowcase() {
   if (loading || !project) return null;
 
   return (
-    <Card className="w-full h-full backdrop-blur-sm bg-card/80 border-border shadow-xl overflow-hidden">
+    <Card className="w-full h-full paper-shadow border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] overflow-hidden -rotate-1 hover:rotate-0 transition-transform duration-300">
       <CardContent className="p-6 h-full flex flex-col">
         <div className="flex items-center gap-2 mb-4">
-          <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+          <div className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--ink-blue))] animate-pulse" />
           <Badge 
             variant="secondary" 
-            className="text-xs font-medium tracking-wide uppercase bg-primary/10 text-primary border-primary/20"
+            className="text-xs font-medium tracking-wide uppercase bg-[hsl(var(--highlighter-yellow))]/30 text-[hsl(var(--ink-blue))] border-2 border-[hsl(var(--pencil-gray))] font-source-serif"
           >
             <Sparkles className="h-3 w-3 mr-1" />
             Featured Project
           </Badge>
         </div>
 
-        <h3 className="text-2xl font-bold mb-2 text-foreground line-clamp-2">
+        <h3 className="text-2xl font-bold mb-2 text-[hsl(var(--ink-blue))] line-clamp-2 handwritten">
           {project.title || 'Untitled Project'}
         </h3>
 
         {project.description && (
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+          <p className="text-sm text-[hsl(var(--pencil-gray))] mb-4 line-clamp-3 font-source-serif">
             {project.description}
           </p>
         )}
 
-        {/* Thumbnail */}
-        <div className="relative aspect-video w-full rounded-lg overflow-hidden shadow-md border border-border/30 bg-muted/30 mb-4 flex-shrink-0">
-          {project.thumbnail_url ? (
-            <img
-              src={project.thumbnail_url}
-              alt={project.title || 'Project thumbnail'}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground/60">
-              No preview available
-            </div>
-          )}
+        {/* Thumbnail - polaroid style */}
+        <div className="relative aspect-video w-full rounded-lg overflow-hidden paper-shadow border-2 border-[hsl(var(--pencil-gray))] bg-white mb-4 flex-shrink-0 p-2 rotate-1">
+          <div className="w-full h-full rounded border border-[hsl(var(--pencil-gray))]/30">
+            {project.thumbnail_url ? (
+              <img
+                src={project.thumbnail_url}
+                alt={project.title || 'Project thumbnail'}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-[hsl(var(--pencil-gray))]/60 font-source-serif italic">
+                No preview available
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Keywords */}
@@ -109,7 +111,7 @@ export function FeaturedProjectShowcase() {
               <Badge 
                 key={index} 
                 variant="outline" 
-                className="text-xs font-normal bg-muted/40 border-border/30"
+                className="text-xs font-normal bg-[hsl(var(--highlighter-yellow))]/20 border border-[hsl(var(--pencil-gray))] font-source-serif"
               >
                 {keyword}
               </Badge>
@@ -119,33 +121,33 @@ export function FeaturedProjectShowcase() {
 
         <div className="mt-auto space-y-4">
           {/* Creator & Stats */}
-          <div className="flex items-center justify-between pt-3 border-t border-border/30">
+          <div className="flex items-center justify-between pt-3 border-t-2 border-dashed border-[hsl(var(--pencil-gray))]">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary font-medium text-xs border border-primary/20">
+              <div className="h-8 w-8 rounded-full bg-[hsl(var(--highlighter-yellow))]/30 flex items-center justify-center text-[hsl(var(--ink-blue))] font-medium text-xs border-2 border-[hsl(var(--pencil-gray))] handwritten">
                 {project.profiles?.full_name?.[0]?.toUpperCase() || '?'}
               </div>
               <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground/60 uppercase tracking-wider">By</span>
-                <span className="font-medium text-foreground text-sm">
+                <span className="text-xs text-[hsl(var(--pencil-gray))]/70 uppercase tracking-wider font-source-serif">By</span>
+                <span className="font-medium text-[hsl(var(--ink-blue))] text-sm font-source-serif">
                   {project.profiles?.full_name || 'Anonymous'}
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 text-sm text-[hsl(var(--pencil-gray))]">
               <div className="flex items-center gap-1.5">
                 <Eye className="h-4 w-4 opacity-60" />
-                <span className="font-medium">{project.view_count}</span>
+                <span className="font-medium font-source-serif">{project.view_count}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Copy className="h-4 w-4 opacity-60" />
-                <span className="font-medium">{project.cloned_count}</span>
+                <span className="font-medium font-source-serif">{project.cloned_count}</span>
               </div>
             </div>
           </div>
 
           <Button
-            variant="outline"
-            className="w-full group hover:bg-primary hover:text-primary-foreground transition-all"
+            variant="pencil"
+            className="w-full group"
             onClick={() => navigate('/community')}
           >
             Explore Community
