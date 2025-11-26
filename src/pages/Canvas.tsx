@@ -33,7 +33,7 @@ import { ExportDialog } from "@/components/canvas/ExportDialog";
 import { CustomOrthogonalLineDialog } from "@/components/canvas/CustomOrthogonalLineDialog";
 import { CustomCurvedLineDialog } from "@/components/canvas/CustomCurvedLineDialog";
 import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
-import { TemplatesGallery } from "@/components/canvas/TemplatesGallery";
+import { CommunityTemplatesGallery } from "@/components/canvas/CommunityTemplatesGallery";
 import { ToolRatingWidget } from "@/components/canvas/ToolRatingWidget";
 import { PanelLabelTool } from "@/components/canvas/PanelLabelTool";
 import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
@@ -594,11 +594,11 @@ const CanvasContent = () => {
         onToolChange={setActiveTool}
       />
 
-      {/* Templates Gallery */}
-      <TemplatesGallery
+      {/* Community Templates Gallery */}
+      <CommunityTemplatesGallery
         open={templatesDialogOpen}
         onOpenChange={setTemplatesDialogOpen}
-        onSelectTemplate={loadTemplate}
+        onSelectTemplate={(projectId) => navigate(`/canvas?project=${projectId}`)}
         onBlankCanvas={() => setTemplatesDialogOpen(false)}
       />
 
