@@ -689,7 +689,7 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-[hsl(var(--cream))]/95 border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
+      <header className="bg-[hsl(var(--cream))]/95 border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow-static">
         <div className="px-4 py-2 flex items-center justify-between backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <div className="bg-[hsl(var(--highlighter-yellow))]/20 rounded-lg p-1.5 border-2 border-[hsl(var(--pencil-gray))] sketch-border">
@@ -735,7 +735,7 @@ const CanvasContent = () => {
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 bg-white rounded-lg p-1.5 border-2 border-[hsl(var(--pencil-gray))] paper-shadow">
+          <div className="flex items-center gap-2 bg-white rounded-lg p-1.5 border-2 border-[hsl(var(--pencil-gray))] paper-shadow-static">
             {isSaving && (
               <span className="text-sm flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 rounded-md border border-yellow-500/20">
                 <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />

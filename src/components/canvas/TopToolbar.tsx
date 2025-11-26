@@ -76,7 +76,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
   };
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-[hsl(var(--cream))]/95 backdrop-blur-xl border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow transition-all duration-200" data-onboarding="toolbar">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-[hsl(var(--cream))]/95 backdrop-blur-xl border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow-static transition-all duration-200" data-onboarding="toolbar">
       {/* Edit Section */}
       <div className="flex items-center gap-0.5 px-1">
         <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif">Edit</span>
