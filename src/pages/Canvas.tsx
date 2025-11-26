@@ -577,7 +577,7 @@ const CanvasContent = () => {
   return (
       <>
       <OnboardingTutorial />
-      <div className="h-screen bg-background flex flex-col">
+      <div className="h-screen notebook-page graph-paper flex flex-col">
       {/* Mobile Warning Dialog */}
       <MobileWarningDialog />
       
@@ -689,10 +689,10 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-[hsl(var(--canvas-bg-secondary))] border-b-2 border-[hsl(var(--canvas-panel-border))] shadow-xl canvas-molecular-pattern">
-        <div className="px-4 py-2 flex items-center justify-between backdrop-blur-sm bg-background/80">
+      <header className="bg-[hsl(var(--cream))]/95 border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
+        <div className="px-4 py-2 flex items-center justify-between backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-[hsl(var(--canvas-accent-primary))]/10 to-[hsl(var(--canvas-accent-secondary))]/10 rounded-lg p-1.5 border border-[hsl(var(--canvas-accent-primary))]/20">
+            <div className="bg-[hsl(var(--highlighter-yellow))]/20 rounded-lg p-1.5 border-2 border-[hsl(var(--pencil-gray))] sketch-border">
               <img 
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
                 alt="BioSketch" 
@@ -705,7 +705,7 @@ const CanvasContent = () => {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigate("/")} 
-                  className="h-9 w-9 canvas-tool-button"
+                  className="h-9 w-9 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -721,21 +721,21 @@ const CanvasContent = () => {
                   onKeyDown={handleNameKeyDown}
                   onBlur={saveName}
                   autoFocus
-                  className="h-8 text-base font-semibold tracking-tight max-w-[300px] bg-background/50 border-[hsl(var(--canvas-panel-border))] focus:border-[hsl(var(--canvas-accent-primary))]"
+                  className="h-8 text-base font-semibold tracking-tight max-w-[300px] bg-white border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]"
                   maxLength={100}
                 />
               </div>
             ) : (
               <button
                 onClick={startEditingName}
-                className="text-lg font-semibold tracking-tight text-[hsl(var(--canvas-text-primary))] hover:bg-[hsl(var(--canvas-hover-bg))] px-2.5 py-1 rounded border border-transparent hover:border-[hsl(var(--canvas-panel-border))] transition-all"
+                className="text-lg font-semibold tracking-tight text-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--highlighter-yellow))]/20 px-2.5 py-1 rounded border-2 border-transparent hover:border-[hsl(var(--pencil-gray))] transition-all font-source-serif"
                 title="Click to rename"
               >
                 {projectName}
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 bg-[hsl(var(--canvas-bg-primary))] rounded-lg p-1.5 border border-[hsl(var(--canvas-panel-border))] shadow-md">
+          <div className="flex items-center gap-2 bg-white rounded-lg p-1.5 border-2 border-[hsl(var(--pencil-gray))] paper-shadow">
             {isSaving && (
               <span className="text-sm flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 rounded-md border border-yellow-500/20">
                 <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />
