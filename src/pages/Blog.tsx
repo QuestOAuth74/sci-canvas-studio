@@ -41,16 +41,16 @@ const Blog = () => {
         keywords="scientific figures, biomedical illustration, research visualization, BioSketch blog, figure creation tips"
       />
       
-      <div className="min-h-screen bg-background">
-        {/* Hero Section - Clean and Professional */}
-        <div className="border-b border-border bg-gradient-to-b from-background to-muted/20">
+      <div className="min-h-screen notebook-page">
+        {/* Hero Section - Notebook Theme */}
+        <div className="border-b border-border/30 bg-[#f9f6f0]/80 ruled-lines">
           <div className="container mx-auto px-4 py-12 md:py-16">
             {/* Top navigation */}
             <div className="flex items-center mb-12">
               <Button
                 asChild
                 variant="ghost"
-                className="hover:bg-muted"
+                className="pencil-button"
               >
                 <Link to="/">
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -62,12 +62,16 @@ const Blog = () => {
             {/* Main header content */}
             <div className="max-w-4xl mx-auto text-center space-y-6">
               <div className="space-y-4">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight font-['Caveat'] text-[hsl(var(--ink-blue))]">
                   BioSketch Blog
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-['Source_Serif_4']">
                   Insights, tutorials, and best practices for creating professional scientific figures
                 </p>
+              </div>
+              {/* Decorative notebook doodle */}
+              <div className="flex justify-center">
+                <BookOpen className="w-12 h-12 text-[hsl(var(--ink-blue))]/30 doodle-sketch" />
               </div>
             </div>
           </div>
@@ -83,7 +87,7 @@ const Blog = () => {
 
               {/* Active filters display */}
               {(categorySlug || tagSlug) && (
-                <div className="flex flex-wrap gap-2 items-center p-4 bg-muted/50 border border-border rounded-lg">
+                <div className="flex flex-wrap gap-2 items-center p-4 sticky-note">
                   <span className="font-semibold text-sm text-muted-foreground">Filters:</span>
                   {categorySlug && (
                     <Button

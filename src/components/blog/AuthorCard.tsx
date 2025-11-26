@@ -14,16 +14,20 @@ interface AuthorCardProps {
 
 export const AuthorCard = ({ author }: AuthorCardProps) => {
   return (
-    <Card>
+    <Card className="sticky-note bg-[#b4e4ff] border-[hsl(var(--pencil-gray))] relative" style={{ transform: 'rotate(-1deg)' }}>
+      {/* Paper clip decoration */}
+      <div className="absolute -top-3 -right-2 w-8 h-12 border-2 border-[hsl(var(--pencil-gray))] rounded-full bg-[hsl(var(--pencil-gray))]/20" />
+      
       <CardContent className="flex items-center gap-4 pt-6">
-        <Avatar className="h-16 w-16">
+        <Avatar className="h-16 w-16 border-2 border-[hsl(var(--ink-blue))]">
           <AvatarImage src={author.avatar_url} alt={author.full_name || 'Author'} />
-          <AvatarFallback>
+          <AvatarFallback className="bg-[hsl(var(--highlighter-yellow))] text-[hsl(var(--ink-blue))]">
             {author.full_name?.charAt(0).toUpperCase() || 'A'}
           </AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-semibold text-lg">{author.full_name || 'Anonymous'}</p>
+          <p className="text-xs text-muted-foreground font-['Caveat']">Written by</p>
+          <p className="font-semibold text-lg text-[hsl(var(--ink-blue))] font-['Caveat']">{author.full_name || 'Anonymous'}</p>
           <p className="text-sm text-muted-foreground">Author</p>
         </div>
       </CardContent>
