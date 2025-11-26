@@ -29,7 +29,7 @@ export const TopNavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full glass-card border-b border-border/40">
+    <nav className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-sm border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Left side - Logo and Navigation */}
@@ -44,7 +44,7 @@ export const TopNavBar = () => {
                 alt="BioSketch Logo"
                 className="h-10 w-10 object-contain group-hover:scale-105 transition-transform"
               />
-              <span className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+              <span className="text-lg font-bold font-source-serif text-foreground group-hover:text-primary transition-colors">
                 BioSketch
               </span>
             </button>
@@ -58,7 +58,7 @@ export const TopNavBar = () => {
                     key={link.path}
                     variant="ghost"
                     onClick={() => handleNavClick(link.path)}
-                    className="text-sm font-medium"
+                    className="text-sm font-medium hover:bg-[hsl(var(--pencil-gray)_/_0.05)]"
                   >
                     {link.label}
                   </Button>

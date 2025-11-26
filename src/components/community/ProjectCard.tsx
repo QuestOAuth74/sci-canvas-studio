@@ -132,12 +132,15 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
 
   return (
     <Card 
-      className="group overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/50 animate-fade-in cursor-pointer"
-      style={{ animationDelay: `${index * 50}ms` }}
+      className="group overflow-hidden border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all duration-300 animate-fade-in cursor-pointer"
+      style={{ 
+        animationDelay: `${index * 50}ms`,
+        transform: `rotate(${index % 2 === 0 ? -0.5 : 0.5}deg)`
+      }}
       onClick={onPreview}
     >
-      {/* Thumbnail with Gradient Overlay */}
-      <div className="relative overflow-hidden bg-muted">
+      {/* Thumbnail - Polaroid Style */}
+      <div className="relative overflow-hidden bg-white p-2">
         <AspectRatio ratio={16 / 9}>
           <img
             src={project.thumbnail_url || noPreviewImage}
@@ -145,32 +148,32 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
             loading="lazy"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {/* Like Button Overlay */}
           <div className="absolute top-3 right-3">
             <Button
-              variant="secondary"
+              variant={isLiked ? "sticky" : "secondary"}
               size="sm"
               onClick={handleLike}
               disabled={isLiking}
-              className={`shadow-lg gap-1 ${isLiked ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''}`}
+              className="shadow-lg gap-1"
             >
-              <Heart className={`h-4 w-4 ${isLiked ? 'fill-white' : ''}`} />
+              <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
               {likeCount}
             </Button>
           </div>
         </AspectRatio>
+        <p className="text-center mt-2 text-xs handwritten text-muted-foreground">
+          {project.title || 'Untitled'}
+        </p>
       </div>
 
       {/* Card Content */}
       <CardContent className="p-5">
         <div className="space-y-3">
-          {/* Title & Description */}
+          {/* Description */}
           <div>
-            <h3 className="font-bold text-lg line-clamp-1 mb-1 group-hover:text-primary transition-colors">
-              {project.title || 'Untitled'}
-            </h3>
             <p className="text-sm text-muted-foreground line-clamp-2">
               {project.description || 'No description provided'}
             </p>
@@ -182,7 +185,7 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             onClick={(e) => e.stopPropagation()}
           >
-            <Avatar className="h-6 w-6">
+            <Avatar className="h-6 w-6 border border-[hsl(var(--pencil-gray))]">
               <AvatarImage src={project.profiles?.avatar_url || undefined} />
               <AvatarFallback className="text-xs">{initials}</AvatarFallback>
             </Avatar>
@@ -208,12 +211,12 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
           {project.keywords && project.keywords.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {project.keywords.slice(0, 3).map((keyword, i) => (
-                <Badge key={i} variant="secondary" className="text-xs">
+                <Badge key={i} variant="secondary" className="text-xs border border-[hsl(var(--pencil-gray))]">
                   {keyword}
                 </Badge>
               ))}
               {project.keywords.length > 3 && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs border-[hsl(var(--pencil-gray))]">
                   +{project.keywords.length - 3}
                 </Badge>
               )}
@@ -222,7 +225,7 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
         </div>
       </CardContent>
 
-      <CardFooter className="text-xs text-muted-foreground px-5 py-3">
+      <CardFooter className="text-xs text-muted-foreground px-5 py-3 border-t border-[hsl(var(--pencil-gray)_/_0.2)]">
         Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}
       </CardFooter>
     </Card>

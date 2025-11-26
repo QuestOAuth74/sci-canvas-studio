@@ -333,10 +333,13 @@ export default function Profile() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Hero Header with Banner */}
-      <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-b">
-        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,black)]" />
+    <div className="min-h-screen relative">
+      {/* Paper aging effects */}
+      <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-[hsl(var(--pencil-gray)_/_0.03)] to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-[hsl(var(--pencil-gray)_/_0.02)] to-transparent pointer-events-none" />
+      
+      {/* Hero Header with Banner - Notebook Style */}
+      <div className="relative bg-card border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
         <div className="relative max-w-7xl mx-auto px-4 py-12">
           <Button
             variant="ghost"
@@ -350,15 +353,17 @@ export default function Profile() {
 
           {/* Profile Header */}
           <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
-            {/* Avatar */}
+            {/* Avatar - Polaroid Style */}
             <div className="relative group">
-              <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                <AvatarImage src={avatarUrl} alt={fullName} />
-                <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
-                  {initials || <UserIcon className="h-16 w-16" />}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-2 -right-2">
+              <div className="p-3 bg-white border-2 border-[hsl(var(--pencil-gray))] shadow-lg rotate-[-2deg] group-hover:rotate-0 transition-transform">
+                <Avatar className="h-32 w-32">
+                  <AvatarImage src={avatarUrl} alt={fullName} />
+                  <AvatarFallback className="text-4xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground">
+                    {initials || <UserIcon className="h-16 w-16" />}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="absolute -bottom-2 -right-2 z-10">
                 <Input
                   id="avatar-upload-header"
                   type="file"
@@ -370,7 +375,7 @@ export default function Profile() {
                   <Button
                     type="button"
                     size="icon"
-                    variant="default"
+                    variant="sticky"
                     className="h-10 w-10 rounded-full shadow-lg"
                     disabled={uploading}
                     onClick={() => document.getElementById('avatar-upload-header')?.click()}
@@ -390,10 +395,10 @@ export default function Profile() {
 
             {/* Profile Info */}
             <div className="flex-1 text-center md:text-left space-y-2">
-              <h1 className="text-4xl font-bold text-foreground">
+              <h1 className="text-4xl font-bold font-source-serif ink-text">
                 {fullName || 'Your Name'}
               </h1>
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-muted-foreground handwritten">
                 {fieldOfStudy || 'Field of Study'} {country && `• ${country}`}
               </p>
               {quote && (
@@ -403,21 +408,19 @@ export default function Profile() {
               )}
             </div>
 
-            {/* Quick Stats */}
-            <div className="flex gap-6 px-6 py-4 rounded-xl bg-background/50 backdrop-blur-sm border shadow-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground">{stats?.totalProjects || 0}</div>
-                <div className="text-xs text-muted-foreground">Projects</div>
+            {/* Quick Stats - Sticky Notes */}
+            <div className="flex gap-4">
+              <div className="text-center p-4 bg-[hsl(var(--highlighter-yellow)_/_0.3)] border-2 border-[hsl(var(--highlighter-yellow))] shadow-md rotate-[-2deg]">
+                <div className="text-2xl font-bold handwritten ink-text">{stats?.totalProjects || 0}</div>
+                <div className="text-xs text-muted-foreground font-medium">Projects</div>
               </div>
-              <div className="h-12 w-px bg-border" />
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground">{stats?.totalImpact || 0}</div>
-                <div className="text-xs text-muted-foreground">Impact</div>
+              <div className="text-center p-4 bg-[hsl(var(--highlighter-yellow)_/_0.3)] border-2 border-[hsl(var(--highlighter-yellow))] shadow-md rotate-[1deg]">
+                <div className="text-2xl font-bold handwritten ink-text">{stats?.totalImpact || 0}</div>
+                <div className="text-xs text-muted-foreground font-medium">Impact</div>
               </div>
-              <div className="h-12 w-px bg-border" />
-              <div className="text-center">
-                <div className="text-2xl font-bold text-foreground">{stats?.totalCollaborations || 0}</div>
-                <div className="text-xs text-muted-foreground">Collaborations</div>
+              <div className="text-center p-4 bg-[hsl(var(--highlighter-yellow)_/_0.3)] border-2 border-[hsl(var(--highlighter-yellow))] shadow-md rotate-[-1deg]">
+                <div className="text-2xl font-bold handwritten ink-text">{stats?.totalCollaborations || 0}</div>
+                <div className="text-xs text-muted-foreground font-medium">Collaborations</div>
               </div>
             </div>
           </div>
@@ -431,69 +434,69 @@ export default function Profile() {
         <div className="grid grid-cols-1 lg:grid-cols-[300px,1fr,320px] gap-6 mt-6">
           {/* LEFT SIDEBAR - Stats & Activity */}
           <div className="space-y-6">
-            {/* Stats Cards */}
+            {/* Stats Cards - Notebook Style */}
             <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2">
-                Your Stats
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide px-2 handwritten text-base">
+                ~ Your Stats ~
               </h3>
               
-              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+              <Card className="overflow-hidden border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover-lift smooth-transition rotate-[-1deg]">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-600/10">
+                    <div className="p-3 rounded-md bg-blue-500/10 border border-blue-500/20">
                       <FolderOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-2xl font-bold">{stats?.totalProjects || 0}</div>
+                      <div className="text-2xl font-bold ink-text">{stats?.totalProjects || 0}</div>
                       <div className="text-xs text-muted-foreground">Total Projects</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+              <Card className="overflow-hidden border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover-lift smooth-transition rotate-[0.5deg]">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-lg bg-gradient-to-br from-green-500/10 to-green-600/10">
+                    <div className="p-3 rounded-md bg-green-500/10 border border-green-500/20">
                       <Eye className="h-5 w-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-2xl font-bold">{stats?.totalViews || 0}</div>
+                      <div className="text-2xl font-bold ink-text">{stats?.totalViews || 0}</div>
                       <div className="text-xs text-muted-foreground">Total Views</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+              <Card className="overflow-hidden border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover-lift smooth-transition rotate-[-0.5deg]">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-lg bg-gradient-to-br from-pink-500/10 to-pink-600/10">
+                    <div className="p-3 rounded-md bg-pink-500/10 border border-pink-500/20">
                       <Heart className="h-5 w-5 text-pink-600 dark:text-pink-400" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-2xl font-bold">{stats?.totalLikes || 0}</div>
+                      <div className="text-2xl font-bold ink-text">{stats?.totalLikes || 0}</div>
                       <div className="text-xs text-muted-foreground">Total Likes</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+              <Card className="overflow-hidden border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover-lift smooth-transition rotate-[1deg]">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-600/10">
+                    <div className="p-3 rounded-md bg-purple-500/10 border border-purple-500/20">
                       <Users className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-2xl font-bold">{stats?.totalCollaborations || 0}</div>
+                      <div className="text-2xl font-bold ink-text">{stats?.totalCollaborations || 0}</div>
                       <div className="text-xs text-muted-foreground">Collaborations</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="overflow-hidden border-primary/20 hover-lift smooth-transition">
+              <Card className="overflow-hidden border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover-lift smooth-transition rotate-[-0.5deg]">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 rounded-lg bg-gradient-to-br from-amber-500/10 to-amber-600/10">
