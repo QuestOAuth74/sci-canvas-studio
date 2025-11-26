@@ -7,7 +7,7 @@ interface MainLayoutProps {
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen notebook-page">
       <TopNavBar />
       <main>
         {children}

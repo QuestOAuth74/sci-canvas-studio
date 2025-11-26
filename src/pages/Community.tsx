@@ -174,64 +174,68 @@ export default function Community() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen relative">
       <MobileWarningDialog />
       <SEOHead 
-        title="Community Gallery - BioFigs" 
-        description="Discover and share scientific diagrams with the BioFigs community. Browse thousands of high-quality medical and biological illustrations."
+        title="Community Gallery - BioSketch" 
+        description="Discover and share scientific diagrams with the BioSketch community. Browse thousands of high-quality medical and biological illustrations."
       />
       <FeatureUnlockBanner />
+      
+      {/* Paper aging effects */}
+      <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-[hsl(var(--pencil-gray)_/_0.03)] to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-[hsl(var(--pencil-gray)_/_0.02)] to-transparent pointer-events-none" />
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
         {/* Enhanced Header with Stats */}
         <div className="mb-12">
           <div className="mb-6">
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Community Gallery
+            <h1 className="text-4xl font-bold mb-2 font-source-serif ink-text">
+              <span className="highlighter-bg">Community Gallery</span>
             </h1>
-            <p className="text-muted-foreground">
-              Discover and share scientific diagrams created by the community
+            <p className="text-muted-foreground handwritten text-lg">
+              ~ Discover and share scientific diagrams created by the community ~
             </p>
           </div>
 
-          {/* Stats Dashboard */}
+          {/* Stats Dashboard - Notebook Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[-0.5deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Projects</p>
-                    <p className="text-3xl font-bold mt-1">{stats.totalProjects}</p>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Total Projects</p>
+                    <p className="text-3xl font-bold mt-1 ink-text">{stats.totalProjects}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
                     <Sparkles className="w-6 h-6 text-primary" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[0.3deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Views</p>
-                    <p className="text-3xl font-bold mt-1">{stats.totalViews.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Total Views</p>
+                    <p className="text-3xl font-bold mt-1 ink-text">{stats.totalViews.toLocaleString()}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                     <Eye className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[-0.3deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Likes</p>
-                    <p className="text-3xl font-bold mt-1">{stats.totalLikes.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Total Likes</p>
+                    <p className="text-3xl font-bold mt-1 ink-text">{stats.totalLikes.toLocaleString()}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-md bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
                     <Heart className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                   </div>
                 </div>
@@ -248,7 +252,7 @@ export default function Community() {
                 placeholder="Search by title, description, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-base"
+                className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))]"
               />
             </div>
             <CommunityFilters sortBy={sortBy} onSortChange={setSortBy} />

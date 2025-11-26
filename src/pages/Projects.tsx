@@ -130,81 +130,86 @@ export default function Projects() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen relative">
+      {/* Paper aging effects */}
+      <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-[hsl(var(--pencil-gray)_/_0.03)] to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-[hsl(var(--pencil-gray)_/_0.02)] to-transparent pointer-events-none" />
+      
+      <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
         {/* Enhanced Header with Stats */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                My Projects
+              <h1 className="text-4xl font-bold mb-2 font-source-serif ink-text">
+                <span className="highlighter-bg">My Projects</span>
               </h1>
-              <p className="text-muted-foreground">
-                Manage and organize your scientific illustrations
+              <p className="text-muted-foreground handwritten text-lg">
+                ~ Manage and organize your scientific illustrations ~
               </p>
             </div>
             <Button 
               onClick={createNewProject} 
               size="lg"
-              className="gap-2 shadow-lg hover:shadow-xl transition-shadow"
+              variant="sticky"
+              className="gap-2 shadow-lg hover:shadow-xl transition-shadow text-base"
             >
               <Plus className="w-5 h-5" />
               New Project
             </Button>
           </div>
 
-          {/* Stats Dashboard */}
+          {/* Stats Dashboard - Notebook Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[-0.5deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Projects</p>
-                    <p className="text-3xl font-bold mt-1">{stats.total}</p>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Total Projects</p>
+                    <p className="text-3xl font-bold mt-1 ink-text">{stats.total}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
                     <FileText className="w-6 h-6 text-primary" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[0.5deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Public</p>
-                    <p className="text-3xl font-bold mt-1">{stats.public}</p>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Public</p>
+                    <p className="text-3xl font-bold mt-1 ink-text">{stats.public}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-md bg-green-500/10 border border-green-500/20 flex items-center justify-center">
                     <Globe className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[-0.3deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Private</p>
-                    <p className="text-3xl font-bold mt-1">{stats.private}</p>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Private</p>
+                    <p className="text-3xl font-bold mt-1 ink-text">{stats.private}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-md bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
                     <Lock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 hover:border-primary/50 transition-colors">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[0.3deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">Recent (7d)</p>
-                    <p className="text-3xl font-bold mt-1">{stats.recent}</p>
+                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Recent (7d)</p>
+                    <p className="text-3xl font-bold mt-1 ink-text">{stats.recent}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                     <Sparkles className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
@@ -221,19 +226,19 @@ export default function Projects() {
                 placeholder="Search projects by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-base"
+                className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))]"
               />
             </div>
             <div className="flex gap-2">
               <Button
-                variant={filterStatus === 'all' ? 'default' : 'outline'}
+                variant={filterStatus === 'all' ? 'ink' : 'pencil'}
                 onClick={() => setFilterStatus('all')}
                 size="sm"
               >
                 All
               </Button>
               <Button
-                variant={filterStatus === 'public' ? 'default' : 'outline'}
+                variant={filterStatus === 'public' ? 'ink' : 'pencil'}
                 onClick={() => setFilterStatus('public')}
                 size="sm"
                 className="gap-1"
@@ -242,7 +247,7 @@ export default function Projects() {
                 Public
               </Button>
               <Button
-                variant={filterStatus === 'private' ? 'default' : 'outline'}
+                variant={filterStatus === 'private' ? 'ink' : 'pencil'}
                 onClick={() => setFilterStatus('private')}
                 size="sm"
                 className="gap-1"
