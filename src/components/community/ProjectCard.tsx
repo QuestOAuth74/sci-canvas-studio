@@ -167,7 +167,7 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
             </Button>
           </div>
         </AspectRatio>
-        <p className="text-center mt-2 text-sm handwritten ink-text">
+        <p className="text-center mt-2 text-sm font-['Caveat'] text-[hsl(var(--ink-blue))]">
           {project.title || 'Untitled'}
         </p>
       </div>
@@ -187,7 +187,7 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
         >
           <Avatar className="h-7 w-7 ring-1 ring-[hsl(var(--ink-blue))]">
             <AvatarImage src={project.profiles?.avatar_url || undefined} />
-            <AvatarFallback className="text-xs bg-[hsl(var(--highlighter-yellow))]/60 handwritten ink-text">{initials}</AvatarFallback>
+            <AvatarFallback className="text-xs bg-[hsl(var(--highlighter-yellow))]/60 font-['Caveat'] text-[hsl(var(--ink-blue))]">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-source-serif text-[hsl(var(--ink-blue))] hover:underline">{creatorName}</span>
@@ -200,7 +200,7 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
           <div className="relative">
             <div className="bg-[hsl(var(--highlighter-yellow))]/60 px-3 py-2 paper-shadow border border-[hsl(var(--pencil-gray))]/40 rotate-[-1deg] text-center min-w-[80px]">
               <Eye className="h-3 w-3 mx-auto mb-0.5 text-[hsl(var(--ink-blue))]" />
-              <span className="block text-lg font-bold handwritten ink-text">{project.view_count}</span>
+              <span className="block text-lg font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">{project.view_count}</span>
               <span className="block text-[10px] font-source-serif text-[hsl(var(--pencil-gray))]">views</span>
             </div>
             {/* Mini tape */}
@@ -210,7 +210,7 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
           <div className="relative">
             <div className="bg-[hsl(var(--highlighter-yellow))]/60 px-3 py-2 paper-shadow border border-[hsl(var(--pencil-gray))]/40 rotate-[1deg] text-center min-w-[80px]">
               <Copy className="h-3 w-3 mx-auto mb-0.5 text-[hsl(var(--ink-blue))]" />
-              <span className="block text-lg font-bold handwritten ink-text">{project.cloned_count}</span>
+              <span className="block text-lg font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">{project.cloned_count}</span>
               <span className="block text-[10px] font-source-serif text-[hsl(var(--pencil-gray))]">uses</span>
             </div>
             {/* Mini tape */}

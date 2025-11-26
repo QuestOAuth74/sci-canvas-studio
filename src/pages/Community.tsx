@@ -190,22 +190,22 @@ export default function Community() {
         {/* Enhanced Header with Stats */}
         <div className="mb-12">
           <div className="mb-6">
-            <h1 className="text-4xl font-bold mb-2 font-source-serif ink-text">
-              <span className="highlighter-bg">Community Gallery</span>
+            <h1 className="text-4xl font-bold mb-2 font-['Caveat'] text-[hsl(var(--ink-blue))]">
+              <span className="highlighter-bg px-2">Community Gallery</span>
             </h1>
-            <p className="text-muted-foreground handwritten text-lg">
+            <p className="text-[hsl(var(--pencil-gray))] font-['Caveat'] text-lg">
               ~ Discover and share scientific diagrams created by the community ~
             </p>
           </div>
 
-          {/* Stats Dashboard - Notebook Cards */}
+          {/* Stats Dashboard - Sticky Notes */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <Card className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--highlighter-yellow))]/20 paper-shadow hover:scale-[1.02] transition-all rotate-[-0.5deg]">
+            <Card className="sticky-note hover:scale-[1.02] transition-all rotate-[-0.5deg] border-none shadow-none">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Projects</p>
-                    <p className="text-3xl font-bold mt-1 handwritten ink-text">{stats.totalProjects}</p>
+                    <p className="text-3xl font-bold mt-1 font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats.totalProjects}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full bg-[hsl(var(--ink-blue))]/10 border-2 border-[hsl(var(--ink-blue))]/20 flex items-center justify-center">
                     <Sparkles className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
@@ -214,12 +214,12 @@ export default function Community() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow hover:scale-[1.02] transition-all rotate-[0.3deg]">
+            <Card className="sticky-note hover:scale-[1.02] transition-all rotate-[0.3deg] border-none shadow-none">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Views</p>
-                    <p className="text-3xl font-bold mt-1 handwritten ink-text">{stats.totalViews.toLocaleString()}</p>
+                    <p className="text-3xl font-bold mt-1 font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats.totalViews.toLocaleString()}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full bg-[hsl(var(--ink-blue))]/10 border-2 border-[hsl(var(--ink-blue))]/20 flex items-center justify-center">
                     <Eye className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
@@ -228,12 +228,12 @@ export default function Community() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--highlighter-yellow))]/20 paper-shadow hover:scale-[1.02] transition-all rotate-[-0.3deg]">
+            <Card className="sticky-note hover:scale-[1.02] transition-all rotate-[-0.3deg] border-none shadow-none">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Likes</p>
-                    <p className="text-3xl font-bold mt-1 handwritten ink-text">{stats.totalLikes.toLocaleString()}</p>
+                    <p className="text-3xl font-bold mt-1 font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats.totalLikes.toLocaleString()}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full bg-red-500/10 border-2 border-red-500/20 flex items-center justify-center">
                     <Heart className="w-6 h-6 text-red-600" />
@@ -252,7 +252,7 @@ export default function Community() {
                 placeholder="Search by title, description, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/20 font-source-serif sketch-border transition-colors"
+                className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] focus:bg-[hsl(var(--highlighter-yellow))]/20 font-source-serif pencil-sketch transition-colors"
               />
             </div>
             <CommunityFilters sortBy={sortBy} onSortChange={setSortBy} />
@@ -283,10 +283,10 @@ export default function Community() {
               <div className="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--highlighter-yellow))]/30 flex items-center justify-center">
                 <Users className="w-12 h-12 text-[hsl(var(--ink-blue))]" />
               </div>
-              <h2 className="text-2xl font-bold mb-2 handwritten ink-text">
+              <h2 className="text-2xl font-bold mb-2 font-['Caveat'] text-[hsl(var(--ink-blue))]">
                 {searchQuery ? 'No projects found' : 'No community projects yet'}
               </h2>
-              <p className="text-[hsl(var(--pencil-gray))] mb-8 font-source-serif">
+              <p className="text-[hsl(var(--pencil-gray))] mb-8 font-['Caveat'] text-lg">
                 {searchQuery
                   ? 'Try adjusting your search terms or filters'
                   : 'Be the first to share your scientific illustration with the community'}
