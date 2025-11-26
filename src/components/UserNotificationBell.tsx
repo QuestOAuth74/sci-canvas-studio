@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Check, CheckCheck } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2, MailOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -76,6 +76,24 @@ export const UserNotificationBell = () => {
     fetchNotifications();
   };
 
+  const markAsUnread = async (notificationId: string) => {
+    await supabase
+      .from('user_notifications')
+      .update({ is_read: false })
+      .eq('id', notificationId);
+
+    fetchNotifications();
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    await supabase
+      .from('user_notifications')
+      .delete()
+      .eq('id', notificationId);
+
+    fetchNotifications();
+  };
+
   const markAllAsRead = async () => {
     if (!user) return;
 
@@ -138,14 +156,9 @@ export const UserNotificationBell = () => {
           ) : (
             <div className="divide-y divide-border">
               {notifications.map((notification) => (
-                <button
+                <div
                   key={notification.id}
-                  onClick={() => {
-                    if (!notification.is_read) {
-                      markAsRead(notification.id);
-                    }
-                  }}
-                  className={`w-full text-left p-4 hover:bg-accent transition-colors ${
+                  className={`w-full text-left p-4 border-b border-border last:border-b-0 ${
                     !notification.is_read ? 'bg-accent/50' : ''
                   }`}
                 >
@@ -162,26 +175,54 @@ export const UserNotificationBell = () => {
                       <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                         {notification.message}
                       </p>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
                         <span>{notification.sender_name}</span>
                         <span>{formatRelativeTime(notification.created_at)}</span>
                       </div>
+                      <div className="flex items-center gap-1">
+                        {notification.is_read ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsUnread(notification.id);
+                            }}
+                          >
+                            <MailOpen className="h-3 w-3 mr-1" />
+                            Mark unread
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsRead(notification.id);
+                            }}
+                          >
+                            <Check className="h-3 w-3 mr-1" />
+                            Mark read
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs text-destructive hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNotification(notification.id);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
                     </div>
-                    {!notification.is_read && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 flex-shrink-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          markAsRead(notification.id);
-                        }}
-                      >
-                        <Check className="h-3 w-3" />
-                      </Button>
-                    )}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
