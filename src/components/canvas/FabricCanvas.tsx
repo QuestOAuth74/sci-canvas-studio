@@ -91,6 +91,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     backgroundColor,
     backgroundGradient,
     gridPattern,
+    gridSize,
     canvasDimensions, 
     zoom,
     textFont,
@@ -992,7 +993,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     // Draw grid if enabled
     if (gridEnabled) {
-      const gridSize = 20;
       const width = canvas.width || 1200;
       const height = canvas.height || 800;
 

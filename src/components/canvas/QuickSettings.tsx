@@ -6,7 +6,6 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { useState } from "react";
 
 export const QuickSettings = () => {
   const { 
@@ -23,7 +22,6 @@ export const QuickSettings = () => {
     gridPattern,
     setGridPattern,
   } = useCanvas();
-  const [defaultStrokeWidth, setDefaultStrokeWidth] = useState(2);
 
   return (
     <Popover>
@@ -105,22 +103,6 @@ export const QuickSettings = () => {
                 min={10} 
                 max={100}
                 step={5}
-                className="w-full"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="stroke-width" className="text-sm">Default Stroke Width</Label>
-                <span className="text-xs text-muted-foreground">{defaultStrokeWidth}px</span>
-              </div>
-              <Slider 
-                id="stroke-width"
-                value={[defaultStrokeWidth]} 
-                onValueChange={([v]) => setDefaultStrokeWidth(v)} 
-                min={1} 
-                max={10}
-                step={1}
                 className="w-full"
               />
             </div>
