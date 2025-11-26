@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Upload, Trash2, MoreVertical, FolderOpen, Share2, Users } from 'lucide-react';
 import { useUserAssets } from '@/hooks/useUserAssets';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   const [viewMode, setViewMode] = useState<'my-assets' | 'community'>('my-assets');
   const [currentPage, setCurrentPage] = useState(1);
   const [assetUrls, setAssetUrls] = useState<Record<string, string>>({});
+  
   const ITEMS_PER_PAGE = 10;
 
   // Get the current asset list based on view mode
@@ -86,6 +87,12 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const paginatedAssets = filteredAssets.slice(startIndex, endIndex);
+
+  // Create stable key from paginated asset IDs for useEffect dependency
+  const paginatedAssetIds = useMemo(
+    () => paginatedAssets.map(a => a.id).join(','),
+    [paginatedAssets]
+  );
 
   const handleAssetClick = async (asset: any) => {
     const content = await downloadAssetContent(asset);
@@ -114,35 +121,42 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     if (viewMode === 'community') {
       fetchSharedAssets();
     }
-    // Reset filters when switching views to avoid showing "no results" for categories that don't exist in that view
+    // Reset filters and URL cache when switching views
     setCategory('all');
     setFileType('all');
     setSearch('');
     setCurrentPage(1);
-  }, [viewMode]);
+    setAssetUrls({});
+  }, [viewMode, fetchSharedAssets]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [search, category, fileType]);
 
-  // Fetch public URLs for paginated assets
+  // Fetch public URLs for paginated assets with caching
   useEffect(() => {
     const fetchUrls = async () => {
       const urls: Record<string, string> = {};
       for (const asset of paginatedAssets) {
+        // Skip if already cached
+        if (assetUrls[asset.id]) continue;
+        
         const url = await getAssetUrl(asset);
         if (url) {
           urls[asset.id] = url;
         }
       }
-      setAssetUrls(urls);
+      // Only update if we have new URLs
+      if (Object.keys(urls).length > 0) {
+        setAssetUrls(prev => ({ ...prev, ...urls }));
+      }
     };
     
     if (paginatedAssets.length > 0) {
       fetchUrls();
     }
-  }, [paginatedAssets, getAssetUrl]);
+  }, [paginatedAssetIds, getAssetUrl, assetUrls]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
