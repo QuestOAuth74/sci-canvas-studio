@@ -75,14 +75,22 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   };
 
   return (
-    <div className="flex flex-col gap-1 p-2 bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl h-full min-h-0 overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-[hsl(var(--canvas-accent-primary)/0.3)] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-[hsl(var(--canvas-accent-primary)/0.5)] [&::-webkit-scrollbar-thumb]:transition-colors">
-      {/* Recently Used Section */}
-      {recentTools.length > 0 && (
-        <>
-          <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider flex items-center gap-1.5 bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20">
-            <Clock className="h-3 w-3" />
-            Recent
-          </div>
+    <div className="h-full flex flex-col bg-[hsl(var(--cream))]/95 border-r-2 border-[hsl(var(--pencil-gray))] shadow-lg backdrop-blur-sm overflow-y-auto min-h-0 notebook-sidebar ruled-lines">
+      {/* Spiral binding decoration */}
+      <div className="spiral-binding">
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="spiral-hole" />
+        ))}
+      </div>
+      
+      <div className="flex-1 flex flex-col gap-1 p-1.5 pl-8 overflow-y-auto">
+        {/* Recently Used Section */}
+        {recentTools.length > 0 && (
+          <>
+            <div className="notebook-section-header px-2 mb-2 flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              Recent
+            </div>
           {recentTools.slice(0, 3).map((toolId) => {
             const toolInfo = toolIconMap[toolId];
             if (!toolInfo) return null;
@@ -114,10 +122,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </>
       )}
 
-      {/* Selection & Drawing Section */}
-      <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20">
-        Drawing
-      </div>
+        {/* Selection & Drawing Section */}
+        <div className="notebook-section-header px-2 mb-2">
+          Drawing
+        </div>
       {tools.map((tool) => (
         <Tooltip key={tool.id}>
           <TooltipTrigger asChild>
@@ -142,10 +150,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       
       <Separator className="my-1" />
       
-      {/* Shapes Section */}
-      <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20" data-onboarding="shapes-dropdown">
-        Shapes
-      </div>
+        {/* Shapes Section */}
+        <div className="notebook-section-header px-2 mb-2" data-onboarding="shapes-dropdown">
+          Shapes
+        </div>
       
       <Tooltip>
         <TooltipTrigger asChild>
@@ -171,10 +179,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       
       <Separator className="my-1" />
       
-      {/* Lines Section */}
-      <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20" data-onboarding="lines-section">
-        Lines
-      </div>
+        {/* Lines Section */}
+        <div className="notebook-section-header px-2 mb-2" data-onboarding="lines-section">
+          Lines
+        </div>
       
       <Tooltip>
         <TooltipTrigger asChild>
@@ -234,10 +242,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       
       <Separator className="my-1" />
       
-      {/* Tools Section */}
-      <div className="px-2 py-1.5 text-[10px] font-bold text-[hsl(var(--canvas-accent-primary))] uppercase tracking-wider bg-[hsl(var(--canvas-accent-primary))]/10 rounded-md mb-1 border border-[hsl(var(--canvas-accent-primary))]/20">
-        Tools
-      </div>
+        {/* Tools Section */}
+        <div className="notebook-section-header px-2 mb-2">
+          Tools
+        </div>
       
       <Tooltip>
         <TooltipTrigger asChild>
@@ -340,10 +348,11 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipContent>
       </Tooltip>
 
-      <PowerPointGenerator 
-        open={powerpointOpen} 
-        onOpenChange={setPowerpointOpen} 
-      />
+        <PowerPointGenerator 
+          open={powerpointOpen} 
+          onOpenChange={setPowerpointOpen} 
+        />
+      </div>
     </div>
   );
 };
