@@ -83,7 +83,7 @@ const Terms = () => {
               BioSketch is provided <span className="highlighter-bg px-1">free of charge</span> for use in all scientific projects, including but not limited to:
             </p>
             <ul className="space-y-2 ml-8">
-              {['Academic research publications', 'Educational materials and presentations', 'Scientific documentation and reports', 'Non-commercial scientific communication'].map((item, i) => (
+              {['Academic research publications', 'Educational materials and presentations', 'Scientific documentation and reports', 'Commercial and non-commercial scientific communication'].map((item, i) => (
                 <li key={i} className="flex items-start gap-3 text-base md:text-lg">
                   <span className="text-[hsl(var(--ink-blue))] font-bold text-xl">•</span>
                   <span className="font-source-serif text-[hsl(var(--pencil-gray))]">{item}</span>
