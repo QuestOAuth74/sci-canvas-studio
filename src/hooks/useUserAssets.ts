@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -217,7 +217,7 @@ export function useUserAssets() {
     }
   };
 
-  const getAssetUrl = useCallback(async (asset: UserAsset): Promise<string | null> => {
+  const getAssetUrl = async (asset: UserAsset): Promise<string | null> => {
     try {
       const { data } = supabase.storage
         .from('user-assets')
@@ -228,7 +228,7 @@ export function useUserAssets() {
       console.error('Error getting asset URL:', error);
       return null;
     }
-  }, []);
+  };
 
   const downloadAssetContent = async (asset: UserAsset): Promise<string | null> => {
     try {
