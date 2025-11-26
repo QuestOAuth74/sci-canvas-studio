@@ -85,7 +85,7 @@ export const EmptyCanvasState = ({
                 onClick={onOpenTemplates}
               >
                 <LayoutTemplate className="h-4 w-4 mr-2" />
-                Browse All Templates
+                Browse Community Templates
               </Button>
               <Button 
                 variant="secondary"
