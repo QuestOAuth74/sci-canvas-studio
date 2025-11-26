@@ -333,19 +333,19 @@ export default function Profile() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen notebook-page relative">
       {/* Paper aging effects */}
       <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-[hsl(var(--pencil-gray)_/_0.03)] to-transparent pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-[hsl(var(--pencil-gray)_/_0.02)] to-transparent pointer-events-none" />
       
       {/* Hero Header with Banner - Notebook Style */}
-      <div className="relative bg-card border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
+      <div className="relative bg-[#f9f6f0] border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow ruled-lines">
         <div className="relative max-w-7xl mx-auto px-4 py-12">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="mb-6 hover-lift"
+            className="mb-6 pencil-button"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
@@ -395,14 +395,14 @@ export default function Profile() {
 
             {/* Profile Info */}
             <div className="flex-1 text-center md:text-left space-y-2">
-              <h1 className="text-4xl font-bold font-source-serif ink-text">
+              <h1 className="text-4xl font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">
                 {fullName || 'Your Name'}
               </h1>
-              <p className="text-lg text-muted-foreground handwritten">
+              <p className="text-lg text-muted-foreground font-['Source_Serif_4']">
                 {fieldOfStudy || 'Field of Study'} {country && `• ${country}`}
               </p>
               {quote && (
-                <p className="text-sm italic text-muted-foreground max-w-2xl">
+                <p className="text-sm italic text-muted-foreground max-w-2xl font-['Source_Serif_4']">
                   "{quote}"
                 </p>
               )}
@@ -410,16 +410,16 @@ export default function Profile() {
 
             {/* Quick Stats - Sticky Notes */}
             <div className="flex gap-4">
-              <div className="text-center p-4 bg-[hsl(var(--highlighter-yellow)_/_0.3)] border-2 border-[hsl(var(--highlighter-yellow))] shadow-md rotate-[-2deg]">
-                <div className="text-2xl font-bold handwritten ink-text">{stats?.totalProjects || 0}</div>
+              <div className="text-center p-4 sticky-note bg-[#fff4b4]" style={{ transform: 'rotate(-2deg)' }}>
+                <div className="text-2xl font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats?.totalProjects || 0}</div>
                 <div className="text-xs text-muted-foreground font-medium">Projects</div>
               </div>
-              <div className="text-center p-4 bg-[hsl(var(--highlighter-yellow)_/_0.3)] border-2 border-[hsl(var(--highlighter-yellow))] shadow-md rotate-[1deg]">
-                <div className="text-2xl font-bold handwritten ink-text">{stats?.totalImpact || 0}</div>
+              <div className="text-center p-4 sticky-note bg-[#ffcce1]" style={{ transform: 'rotate(1deg)' }}>
+                <div className="text-2xl font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats?.totalImpact || 0}</div>
                 <div className="text-xs text-muted-foreground font-medium">Impact</div>
               </div>
-              <div className="text-center p-4 bg-[hsl(var(--highlighter-yellow)_/_0.3)] border-2 border-[hsl(var(--highlighter-yellow))] shadow-md rotate-[-1deg]">
-                <div className="text-2xl font-bold handwritten ink-text">{stats?.totalCollaborations || 0}</div>
+              <div className="text-center p-4 sticky-note bg-[#b4e4ff]" style={{ transform: 'rotate(-1deg)' }}>
+                <div className="text-2xl font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats?.totalCollaborations || 0}</div>
                 <div className="text-xs text-muted-foreground font-medium">Collaborations</div>
               </div>
             </div>
@@ -511,11 +511,18 @@ export default function Profile() {
               </Card>
             </div>
 
-            {/* Activity Timeline */}
-            <Card className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
+            {/* Activity Timeline - Notebook Style */}
+            <Card className="notebook-sidebar ruled-lines bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] overflow-hidden pl-8 relative">
+              {/* Spiral binding */}
+              <div className="spiral-binding">
+                {[...Array(15)].map((_, i) => (
+                  <div key={i} className="spiral-hole" />
+                ))}
+              </div>
+              
+              <CardHeader className="pb-3 bg-[#f9f6f0]/80">
+                <CardTitle className="notebook-section-header text-sm">
+                  <Clock className="h-4 w-4 inline mr-2" />
                   Recent Activity
                 </CardTitle>
               </CardHeader>
@@ -529,7 +536,7 @@ export default function Profile() {
                             <FolderOpen className="h-4 w-4 text-primary" />
                           </div>
                           <div className="flex-1 space-y-1">
-                            <p className="text-sm font-medium">Created {stats.totalProjects} projects</p>
+                            <p className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Created {stats.totalProjects} projects</p>
                             <p className="text-xs text-muted-foreground">Building your portfolio</p>
                           </div>
                         </div>
@@ -539,7 +546,7 @@ export default function Profile() {
                               <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                             </div>
                             <div className="flex-1 space-y-1">
-                              <p className="text-sm font-medium">Gained {stats.totalViews} views</p>
+                              <p className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Gained {stats.totalViews} views</p>
                               <p className="text-xs text-muted-foreground">Your work is getting noticed</p>
                             </div>
                           </div>
@@ -550,7 +557,7 @@ export default function Profile() {
                               <Award className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div className="flex-1 space-y-1">
-                              <p className="text-sm font-medium">Shared {stats.publicProjects} public projects</p>
+                              <p className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Shared {stats.publicProjects} public projects</p>
                               <p className="text-xs text-muted-foreground">Contributing to the community</p>
                             </div>
                           </div>
@@ -572,26 +579,29 @@ export default function Profile() {
           {/* CENTER COLUMN - Main Content */}
           <div className="space-y-6">
             
-            <Card className="shadow-lg">
-          <CardHeader className="border-b bg-gradient-to-r from-muted/30 to-transparent">
+            <Card className="bg-white border-l-4 border-l-[#ff6b6b] ruled-lines relative pl-12 paper-shadow">
+          {/* Margin line decoration */}
+          <div className="margin-line" />
+          
+          <CardHeader className="border-b bg-[#f9f6f0]/50">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <UserCircle className="h-5 w-5" />
+                <CardTitle className="notebook-section-header flex items-center gap-2">
+                  <UserCircle className="h-5 w-5 inline" />
                   Profile Settings
                 </CardTitle>
-                <CardDescription>Manage your personal information and preferences</CardDescription>
+                <CardDescription className="font-['Source_Serif_4']">Manage your personal information and preferences</CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-6">
             <Tabs defaultValue="profile" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-[#f9f6f0] border-2 border-[hsl(var(--pencil-gray))]">
+                <TabsTrigger value="profile" className="paper-tab data-[state=active]:paper-tab-active">
                   <UserIcon className="h-4 w-4 mr-2" />
                   Profile
                 </TabsTrigger>
-                <TabsTrigger value="notifications" className="relative data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger value="notifications" className="paper-tab data-[state=active]:paper-tab-active relative">
                   <Bell className="h-4 w-4 mr-2" />
                   Notifications
                   {unreadCount > 0 && (
@@ -610,34 +620,34 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Full Name */}
                   <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+                    <Label htmlFor="fullName" className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Full Name</Label>
                     <Input
                       id="fullName"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Enter your full name"
-                      className="h-11"
+                      className="h-11 border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] focus:border-[hsl(var(--ink-blue))]"
                     />
                   </div>
 
                   {/* Email */}
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Email</Label>
                     <Input
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Enter your email"
-                      className="h-11"
+                      className="h-11 border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] focus:border-[hsl(var(--ink-blue))]"
                     />
                   </div>
 
                   {/* Country */}
                   <div className="space-y-2">
-                    <Label htmlFor="country" className="text-sm font-medium">Country</Label>
+                    <Label htmlFor="country" className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Country</Label>
                     <Select value={country} onValueChange={setCountry}>
-                      <SelectTrigger id="country" className="h-11 bg-background">
+                      <SelectTrigger id="country" className="h-11 border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0]">
                         <SelectValue placeholder="Select your country" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover max-h-[300px]">
@@ -652,9 +662,9 @@ export default function Profile() {
 
                   {/* Field of Study */}
                   <div className="space-y-2">
-                    <Label htmlFor="fieldOfStudy" className="text-sm font-medium">Field of Study</Label>
+                    <Label htmlFor="fieldOfStudy" className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Field of Study</Label>
                     <Select value={fieldOfStudy} onValueChange={setFieldOfStudy}>
-                      <SelectTrigger id="fieldOfStudy" className="h-11 bg-background">
+                      <SelectTrigger id="fieldOfStudy" className="h-11 border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0]">
                         <SelectValue placeholder="Select your field of study" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover">
@@ -670,7 +680,7 @@ export default function Profile() {
 
                 {/* Quote */}
                 <div className="space-y-2">
-                  <Label htmlFor="quote" className="text-sm font-medium">Profile Quote</Label>
+                  <Label htmlFor="quote" className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Profile Quote</Label>
                   <Textarea
                     id="quote"
                     value={quote}
@@ -678,7 +688,7 @@ export default function Profile() {
                     placeholder="Share an inspiring quote or personal motto..."
                     rows={3}
                     maxLength={200}
-                    className="resize-none"
+                    className="resize-none border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] focus:border-[hsl(var(--ink-blue))]"
                   />
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-muted-foreground">
@@ -689,7 +699,7 @@ export default function Profile() {
 
                 {/* Author Bio */}
                 <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-sm font-medium">Author Bio</Label>
+                  <Label htmlFor="bio" className="text-sm font-medium font-['Caveat'] text-[hsl(var(--ink-blue))]">Author Bio</Label>
                   <Textarea
                     id="bio"
                     value={bio}
@@ -697,7 +707,7 @@ export default function Profile() {
                     placeholder="Write a brief bio about yourself and your work. This will be displayed on your public author profile page..."
                     rows={5}
                     maxLength={500}
-                    className="resize-none"
+                    className="resize-none border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] focus:border-[hsl(var(--ink-blue))]"
                   />
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -804,7 +814,7 @@ export default function Profile() {
                   onClick={handleSave}
                   disabled={saving}
                   size="lg"
-                  className="w-full md:w-auto px-8 hover-scale"
+                  className="w-full md:w-auto px-8 pencil-button"
                 >
                   {saving ? (
                     <>
@@ -820,11 +830,11 @@ export default function Profile() {
               <TabsContent value="notifications" className="space-y-4 mt-0">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Bell className="h-5 w-5" />
+                    <h3 className="notebook-section-header text-lg">
+                      <Bell className="h-5 w-5 inline mr-2" />
                       Your Notifications
                     </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-muted-foreground mt-1 font-['Source_Serif_4']">
                       {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
                     </p>
                   </div>
@@ -834,7 +844,7 @@ export default function Profile() {
                       size="sm"
                       onClick={() => markAllAsRead.mutate()}
                       disabled={markAllAsRead.isPending}
-                      className="hover-scale"
+                      className="pencil-button"
                     >
                       <BellOff className="h-4 w-4 mr-2" />
                       Mark All Read
@@ -853,8 +863,8 @@ export default function Profile() {
                         <Card 
                           key={notification.id}
                           className={cn(
-                            "smooth-transition hover-lift",
-                            !notification.is_read && "border-l-4 border-l-primary bg-gradient-to-r from-primary/5 to-transparent"
+                            "smooth-transition paper-shadow hover:shadow-lg bg-[#f9f6f0] border-[hsl(var(--pencil-gray))]",
+                            !notification.is_read && "border-l-4 border-l-[hsl(var(--highlighter-yellow))] bg-[hsl(var(--highlighter-yellow))]/10"
                           )}
                         >
                           <CardContent className="p-5">
@@ -862,11 +872,11 @@ export default function Profile() {
                               <div className="flex-1 space-y-3">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   {!notification.is_read && (
-                                    <Badge variant="default" className="text-xs animate-pulse">New</Badge>
+                                    <Badge className="sticky-note bg-[hsl(var(--highlighter-yellow))] text-[hsl(var(--ink-blue))] border-[hsl(var(--pencil-gray))] text-xs animate-pulse">New</Badge>
                                   )}
-                                  <h4 className="font-semibold">{notification.subject}</h4>
+                                  <h4 className="font-semibold font-['Caveat'] text-[hsl(var(--ink-blue))] text-lg">{notification.subject}</h4>
                                 </div>
-                                <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                                <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed font-['Source_Serif_4']">
                                   {notification.message}
                                 </p>
                                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -935,15 +945,22 @@ export default function Profile() {
           {/* RIGHT COLUMN - Premium Features Sidebar */}
           {hasAccess && !featureAccessLoading && (
             <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
-              <Card className="overflow-hidden border-primary/20 shadow-lg">
-                <CardHeader className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b">
+              <Card className="notebook-sidebar ruled-lines bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] overflow-hidden pl-8 relative paper-shadow">
+                {/* Spiral binding */}
+                <div className="spiral-binding">
+                  {[...Array(18)].map((_, i) => (
+                    <div key={i} className="spiral-hole" />
+                  ))}
+                </div>
+                
+                <CardHeader className="bg-[#f9f6f0]/80 border-b border-[hsl(var(--pencil-gray))]">
                   <div className="flex items-center gap-2">
                     <div className="p-2 rounded-lg bg-primary/10">
                       <Sparkles className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">Premium Features</CardTitle>
-                      <CardDescription className="text-xs mt-1">
+                      <CardTitle className="notebook-section-header text-lg">Premium Features</CardTitle>
+                      <CardDescription className="text-xs mt-1 font-['Source_Serif_4']">
                         Your unlocked tools
                       </CardDescription>
                     </div>
@@ -951,25 +968,24 @@ export default function Profile() {
                 </CardHeader>
                 <CardContent className="p-4 space-y-3">
                   {/* AI Figure Generator Card */}
-                  <div className="group relative p-4 rounded-xl border bg-gradient-to-br from-background to-muted/10 hover:from-primary/5 hover:to-primary/10 smooth-transition hover-lift hover:border-primary/50 hover:shadow-lg">
+                  <div className="group relative p-4 sticky-note bg-[#fff4b4] hover:shadow-md smooth-transition" style={{ transform: 'rotate(-1deg)' }}>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-3">
                         <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/20 group-hover:from-primary/20 group-hover:to-primary/30 smooth-transition">
                           <Wand2 className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold">AI Figure Generator</h3>
-                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                          <h3 className="font-semibold font-['Caveat'] text-[hsl(var(--ink-blue))] text-lg">AI Figure Generator</h3>
+                          <Badge className="sticky-note bg-[#b4e4ff] text-[hsl(var(--ink-blue))] border-[hsl(var(--pencil-gray))] text-xs mt-1">Premium</Badge>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed font-['Source_Serif_4']">
                         Generate scientific figures from reference images using AI
                       </p>
                       <Button 
                         size="sm" 
-                        variant="default"
+                        className="w-full mt-1 pencil-button"
                         onClick={() => navigate('/canvas')}
-                        className="w-full mt-1 hover-scale"
                       >
                         Open in Canvas
                       </Button>
@@ -977,25 +993,24 @@ export default function Profile() {
                   </div>
 
                   {/* AI Icon Generator Card */}
-                  <div className="group relative p-4 rounded-xl border bg-gradient-to-br from-background to-muted/10 hover:from-primary/5 hover:to-primary/10 smooth-transition hover-lift hover:border-primary/50 hover:shadow-lg">
+                  <div className="group relative p-4 sticky-note bg-[#ffcce1] hover:shadow-md smooth-transition" style={{ transform: 'rotate(0.5deg)' }}>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-3">
                         <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/20 group-hover:from-primary/20 group-hover:to-primary/30 smooth-transition">
                           <Sparkles className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold">AI Icon Generator</h3>
-                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                          <h3 className="font-semibold font-['Caveat'] text-[hsl(var(--ink-blue))] text-lg">AI Icon Generator</h3>
+                          <Badge className="sticky-note bg-[#b4e4ff] text-[hsl(var(--ink-blue))] border-[hsl(var(--pencil-gray))] text-xs mt-1">Premium</Badge>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed font-['Source_Serif_4']">
                         Create custom scientific icons and symbols with AI
                       </p>
                       <Button 
-                        size="sm" 
-                        variant="default"
+                        size="sm"
+                        className="w-full mt-1 pencil-button"
                         onClick={() => navigate('/canvas')}
-                        className="w-full mt-1 hover-scale"
                       >
                         Open in Canvas
                       </Button>
@@ -1003,25 +1018,24 @@ export default function Profile() {
                   </div>
 
                   {/* PowerPoint Generator Card */}
-                  <div className="group relative p-4 rounded-xl border bg-gradient-to-br from-background to-muted/10 hover:from-primary/5 hover:to-primary/10 smooth-transition hover-lift hover:border-primary/50 hover:shadow-lg">
+                  <div className="group relative p-4 sticky-note bg-[#b4e4ff] hover:shadow-md smooth-transition" style={{ transform: 'rotate(-0.5deg)' }}>
                     <div className="flex flex-col gap-3">
                       <div className="flex items-center gap-3">
                         <div className="p-3 rounded-lg bg-gradient-to-br from-primary/10 to-primary/20 group-hover:from-primary/20 group-hover:to-primary/30 smooth-transition">
                           <FileText className="h-5 w-5 text-primary" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold">PowerPoint Maker</h3>
-                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                          <h3 className="font-semibold font-['Caveat'] text-[hsl(var(--ink-blue))] text-lg">PowerPoint Maker</h3>
+                          <Badge className="sticky-note bg-[hsl(var(--highlighter-yellow))] text-[hsl(var(--ink-blue))] border-[hsl(var(--pencil-gray))] text-xs mt-1">Premium</Badge>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
+                      <p className="text-xs text-muted-foreground leading-relaxed font-['Source_Serif_4']">
                         Convert your canvas designs into PowerPoint presentations
                       </p>
                       <Button 
-                        size="sm" 
-                        variant="default"
+                        size="sm"
+                        className="w-full mt-1 pencil-button"
                         onClick={() => navigate('/admin/powerpoint-generator')}
-                        className="w-full mt-1 hover-scale"
                       >
                         Open Generator
                       </Button>
