@@ -28,6 +28,8 @@ export default {
         'ubuntu': ['Ubuntu', 'system-ui', 'sans-serif'],
         'crimson': ['Crimson Text', 'Georgia', 'serif'],
         'source': ['Source Sans 3', 'system-ui', 'sans-serif'],
+        'caveat': ['Caveat', 'cursive'],
+        'source-serif': ['Source Serif 4', 'Georgia', 'serif'],
       },
       fontSize: {
         'xs': ['var(--font-size-xs)', { lineHeight: 'var(--line-height-normal)' }],
