@@ -94,6 +94,17 @@ export const UserNotificationBell = () => {
     fetchNotifications();
   };
 
+  const deleteAllNotifications = async () => {
+    if (!user) return;
+
+    await supabase
+      .from('user_notifications')
+      .delete()
+      .eq('user_id', user.id);
+
+    fetchNotifications();
+  };
+
   const markAllAsRead = async () => {
     if (!user) return;
 
@@ -130,17 +141,30 @@ export const UserNotificationBell = () => {
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h3 className="font-semibold text-sm">Notifications</h3>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={markAllAsRead}
-              className="h-auto p-1 text-xs"
-            >
-              <CheckCheck className="h-3 w-3 mr-1" />
-              Mark all read
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={markAllAsRead}
+                className="h-auto p-1 text-xs"
+              >
+                <CheckCheck className="h-3 w-3 mr-1" />
+                Mark all read
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={deleteAllNotifications}
+                className="h-auto p-1 text-xs text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-3 w-3 mr-1" />
+                Clear all
+              </Button>
+            )}
+          </div>
         </div>
 
         <ScrollArea className="h-[400px]">
