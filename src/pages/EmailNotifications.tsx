@@ -12,6 +12,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Pagination,
   PaginationContent,
@@ -29,6 +36,199 @@ interface Profile {
   country: string | null;
 }
 
+interface EmailTemplate {
+  id: string;
+  name: string;
+  icon: string;
+  subject: string;
+  message: string;
+}
+
+const EMAIL_TEMPLATES: EmailTemplate[] = [
+  {
+    id: "welcome",
+    name: "👋 Welcome Email",
+    icon: "👋",
+    subject: "Welcome to BioSketch!",
+    message: `Hi there!
+
+We're excited to have you join BioSketch, the professional tool for creating scientific illustrations and diagrams.
+
+Here are some resources to get you started:
+• Watch our quick start tutorial
+• Browse community templates for inspiration
+• Try creating your first diagram
+
+If you have any questions or need help, don't hesitate to reach out.
+
+Best regards,
+[Your Name]
+BioSketch Team`
+  },
+  {
+    id: "new-feature",
+    name: "✨ New Feature Announcement",
+    icon: "✨",
+    subject: "New Feature: [Feature Name] is Now Available!",
+    message: `Hello!
+
+We're thrilled to announce a new feature that will enhance your BioSketch experience: [Feature Name]!
+
+What's new:
+• [Key benefit 1]
+• [Key benefit 2]
+• [Key benefit 3]
+
+How to use it:
+[Brief instructions or link to documentation]
+
+We'd love to hear your feedback on this new feature. Try it out and let us know what you think!
+
+Best regards,
+[Your Name]
+BioSketch Team`
+  },
+  {
+    id: "maintenance",
+    name: "🔧 Maintenance Notice",
+    icon: "🔧",
+    subject: "Scheduled Maintenance on [Date]",
+    message: `Hi everyone,
+
+We'll be performing scheduled maintenance on BioSketch to improve performance and reliability.
+
+Maintenance Window:
+• Date: [Date]
+• Time: [Start Time] - [End Time] [Timezone]
+• Expected Duration: [Duration]
+
+During this time, the platform may be temporarily unavailable. We apologize for any inconvenience and appreciate your patience.
+
+If you have any urgent concerns, please contact us before the maintenance window.
+
+Thank you for your understanding,
+[Your Name]
+BioSketch Team`
+  },
+  {
+    id: "tips",
+    name: "💡 Tips & Tutorial",
+    icon: "💡",
+    subject: "Pro Tips: Get More Out of BioSketch",
+    message: `Hello!
+
+We wanted to share some tips and tricks to help you create even better scientific illustrations with BioSketch:
+
+Tip 1: [Tip Title]
+[Brief description and benefit]
+
+Tip 2: [Tip Title]
+[Brief description and benefit]
+
+Tip 3: [Tip Title]
+[Brief description and benefit]
+
+Want to learn more? Check out our comprehensive tutorial library and video guides.
+
+Happy creating!
+[Your Name]
+BioSketch Team`
+  },
+  {
+    id: "feedback",
+    name: "📝 Feedback Request",
+    icon: "📝",
+    subject: "We'd Love Your Feedback!",
+    message: `Hi there!
+
+Your opinion matters to us! We're always working to improve BioSketch, and your feedback helps shape the future of the platform.
+
+We'd appreciate if you could take 2-3 minutes to answer a few questions:
+[Survey Link]
+
+Topics we're curious about:
+• Your experience with [specific feature]
+• Features you'd like to see added
+• Overall satisfaction with the platform
+
+As a thank you, [optional: incentive like early access to new features, etc.]
+
+Thank you for being part of our community!
+[Your Name]
+BioSketch Team`
+  },
+  {
+    id: "community",
+    name: "🌟 Community Highlight",
+    icon: "🌟",
+    subject: "Community Spotlight: Amazing Work from Our Users!",
+    message: `Hello!
+
+We're constantly amazed by the incredible scientific illustrations created by our community. This week, we wanted to highlight some outstanding projects:
+
+Featured Project 1: [Project Name]
+Created by [User Name]
+[Brief description or link]
+
+Featured Project 2: [Project Name]
+Created by [User Name]
+[Brief description or link]
+
+Want to be featured? Share your best work by [instructions for submission].
+
+Keep creating amazing work!
+[Your Name]
+BioSketch Team`
+  },
+  {
+    id: "reengagement",
+    name: "💚 We Miss You",
+    icon: "💚",
+    subject: "We Miss You! Come Back to BioSketch",
+    message: `Hi [Name],
+
+We noticed you haven't been active on BioSketch lately, and we wanted to reach out. We've made some exciting improvements since your last visit:
+
+What's New:
+• [New feature or improvement 1]
+• [New feature or improvement 2]
+• [New feature or improvement 3]
+
+Your account and all your projects are waiting for you, exactly as you left them.
+
+Need help getting started again? Our support team is here to assist you.
+
+We'd love to see you back!
+[Your Name]
+BioSketch Team`
+  },
+  {
+    id: "platform-update",
+    name: "🚀 Platform Update",
+    icon: "🚀",
+    subject: "BioSketch Platform Update - [Version Number]",
+    message: `Hello!
+
+We've just released a new platform update with improvements and bug fixes to enhance your experience.
+
+Release Highlights:
+• [Improvement 1]
+• [Improvement 2]
+• [Bug fix 1]
+• [Performance enhancement]
+
+Full release notes: [Link to release notes]
+
+These changes are now live for all users. No action is required on your part.
+
+If you encounter any issues or have questions about these updates, please don't hesitate to contact us.
+
+Thank you for using BioSketch!
+[Your Name]
+BioSketch Team`
+  }
+];
+
 const EmailNotifications = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -40,6 +240,7 @@ const EmailNotifications = () => {
   const [sendToAll, setSendToAll] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const ITEMS_PER_PAGE = 20;
 
   // Fetch users with pagination and search
@@ -102,6 +303,7 @@ const EmailNotifications = () => {
         setMessage("");
         setSelectedUsers([]);
         setSendToAll(false);
+        setSelectedTemplate("");
       } else {
         toast({
           title: "Failed to send emails",
@@ -125,6 +327,19 @@ const EmailNotifications = () => {
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
+  };
+
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplate(templateId);
+    const template = EMAIL_TEMPLATES.find(t => t.id === templateId);
+    if (template) {
+      setSubject(template.subject);
+      setMessage(template.message);
+      toast({
+        title: "Template applied",
+        description: "You can now customize the content before sending.",
+      });
+    }
   };
 
   const handleSelectAll = () => {
@@ -347,6 +562,27 @@ const EmailNotifications = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="template">Email Template</Label>
+                  <Select value={selectedTemplate} onValueChange={handleTemplateSelect}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a template (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EMAIL_TEMPLATES.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Select a pre-built template to get started. You can customize the content before sending.
+                  </p>
+                </div>
+
+                <Separator />
+
                 <div className="space-y-2">
                   <Label htmlFor="adminName">Your Name</Label>
                   <Input
