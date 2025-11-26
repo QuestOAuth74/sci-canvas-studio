@@ -108,18 +108,23 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen notebook-page ruled-lines">
       <SEOHead
         title="Contact Us - BioSketch"
         description="Get in touch with the BioSketch team. Send us your questions, feedback, or suggestions for improving our scientific illustration tool."
         canonical="https://biosketch.art/contact"
       />
+      
+      {/* Margin line decoration */}
+      <div className="margin-line" />
+      
       {/* Header */}
-      <div className="border-b border-border/60 bg-card shadow-sm">
+      <div className="border-b-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] paper-shadow">
         <div className="container mx-auto px-4 py-6">
           <Button
             onClick={() => navigate(-1)}
-            variant="outline"
+            variant="ghost"
+            className="pencil-button"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -128,25 +133,31 @@ const Contact = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12 max-w-3xl">
-        {/* Title Section */}
+        {/* Title Section - Sticky Note Style */}
         <div className="mb-12 text-center">
-          <div className="inline-flex items-center gap-4 mb-6">
-            <div className="p-4 bg-gradient-to-br from-primary to-primary/80 rounded-2xl shadow-lg">
-              <MessageSquare className="h-12 w-12 text-white" />
+          <div className="sticky-note inline-block max-w-2xl mx-auto rotate-[-0.5deg] shadow-none">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <div className="p-4 bg-[hsl(var(--ink-blue))]/10 rounded-full border-2 border-[hsl(var(--ink-blue))]/20">
+                <MessageSquare className="h-10 w-10 text-[hsl(var(--ink-blue))]" />
+              </div>
+              <h1 className="text-5xl md:text-6xl font-['Caveat'] text-[hsl(var(--ink-blue))]">Contact Us</h1>
             </div>
-            <h1 className="text-5xl md:text-6xl font-semibold">Contact Us</h1>
+            <p className="text-xl font-source-serif text-[hsl(var(--pencil-gray))]">
+              ~ Have a question or feedback? We'd love to hear from you! ~
+            </p>
           </div>
-          <p className="text-xl font-medium text-muted-foreground">
-            Have a question or feedback? We'd love to hear from you!
-          </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-card border border-border/60 rounded-2xl shadow-lg p-6 md:p-10">
+        {/* Form Card - Notebook Paper */}
+        <div className="bg-[#f9f6f0] border-2 border-[hsl(var(--pencil-gray))] rounded-lg paper-shadow p-6 md:p-10 relative">
+          {/* Decorative washi tape */}
+          <div className="absolute -top-3 left-12 w-20 h-6 bg-[hsl(var(--highlighter-yellow))]/50 rotate-[-2deg] border border-[hsl(var(--pencil-gray))]/30" />
+          <div className="absolute -top-3 right-12 w-20 h-6 bg-[hsl(var(--highlighter-yellow))]/50 rotate-[2deg] border border-[hsl(var(--pencil-gray))]/30" />
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-lg font-semibold flex items-center gap-2">
+              <Label htmlFor="email" className="text-lg font-['Caveat'] text-[hsl(var(--ink-blue))] flex items-center gap-2">
                 <Mail className="h-5 w-5" />
                 Email Address *
               </Label>
@@ -156,16 +167,17 @@ const Contact = () => {
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="your.email@example.com"
+                className="border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/10 font-source-serif pencil-sketch transition-colors"
                 required
               />
               {errors.email && (
-                <p className="text-sm font-semibold text-destructive">{errors.email}</p>
+                <p className="text-sm font-source-serif text-destructive">{errors.email}</p>
               )}
             </div>
 
             {/* Full Name Field */}
             <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-lg font-semibold flex items-center gap-2">
+              <Label htmlFor="fullName" className="text-lg font-['Caveat'] text-[hsl(var(--ink-blue))] flex items-center gap-2">
                 <User className="h-5 w-5" />
                 Full Name *
               </Label>
@@ -175,16 +187,17 @@ const Contact = () => {
                 value={formData.fullName}
                 onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                 placeholder="John Doe"
+                className="border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/10 font-source-serif pencil-sketch transition-colors"
                 required
               />
               {errors.fullName && (
-                <p className="text-sm font-semibold text-destructive">{errors.fullName}</p>
+                <p className="text-sm font-source-serif text-destructive">{errors.fullName}</p>
               )}
             </div>
 
             {/* Country Field */}
             <div className="space-y-2">
-              <Label htmlFor="country" className="text-lg font-semibold flex items-center gap-2">
+              <Label htmlFor="country" className="text-lg font-['Caveat'] text-[hsl(var(--ink-blue))] flex items-center gap-2">
                 <Globe className="h-5 w-5" />
                 Country *
               </Label>
@@ -194,21 +207,22 @@ const Contact = () => {
                 value={formData.country}
                 onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
                 placeholder="United States"
+                className="border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/10 font-source-serif pencil-sketch transition-colors"
                 required
               />
               {errors.country && (
-                <p className="text-sm font-semibold text-destructive">{errors.country}</p>
+                <p className="text-sm font-source-serif text-destructive">{errors.country}</p>
               )}
             </div>
 
             {/* Message Field */}
             <div className="space-y-2">
-              <Label htmlFor="message" className="text-lg font-semibold flex items-center gap-2 justify-between">
+              <Label htmlFor="message" className="text-lg font-['Caveat'] text-[hsl(var(--ink-blue))] flex items-center gap-2 justify-between">
                 <span className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
                   Message *
                 </span>
-                <span className={`text-sm ${wordCount > 500 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                <span className={`text-sm font-source-serif ${wordCount > 500 ? 'text-destructive' : 'text-[hsl(var(--pencil-gray))]/70'}`}>
                   {wordCount} / 500 words
                 </span>
               </Label>
@@ -218,11 +232,11 @@ const Contact = () => {
                 onChange={(e) => handleMessageChange(e.target.value)}
                 placeholder="Tell us what's on your mind..."
                 rows={8}
-                className="resize-none"
+                className="resize-none border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/10 font-source-serif pencil-sketch transition-colors"
                 required
               />
               {errors.message && (
-                <p className="text-sm font-semibold text-destructive">{errors.message}</p>
+                <p className="text-sm font-source-serif text-destructive">{errors.message}</p>
               )}
             </div>
 
@@ -231,17 +245,17 @@ const Contact = () => {
               type="submit"
               disabled={isSubmitting || wordCount > 500}
               size="lg"
-              className="w-full text-lg py-6"
+              className="w-full text-lg py-6 pencil-button font-['Caveat'] text-xl"
             >
               {isSubmitting ? "Sending..." : "Send Message"}
             </Button>
           </form>
         </div>
 
-        {/* Info Section */}
-        <div className="mt-8 bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20 rounded-2xl shadow-lg p-6 text-center">
-          <p className="text-base md:text-lg font-medium text-foreground/80">
-            We typically respond within 24-48 hours. For urgent matters, please include "URGENT" in your message.
+        {/* Info Section - Sticky Note */}
+        <div className="mt-8 sticky-note inline-block w-full max-w-2xl mx-auto rotate-[0.5deg] shadow-none">
+          <p className="text-base md:text-lg font-source-serif text-[hsl(var(--pencil-gray))]">
+            <span className="font-['Caveat'] text-xl text-[hsl(var(--ink-blue))]">Quick tip:</span> We typically respond within 24-48 hours. For urgent matters, please include "URGENT" in your message.
           </p>
         </div>
       </div>
