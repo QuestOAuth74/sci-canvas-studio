@@ -117,21 +117,24 @@ export default function AuthorProfile() {
         description={profile.bio || `View ${profile.full_name || 'Anonymous'}'s scientific diagrams and projects`}
       />
       
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/10">
+      <div className="min-h-screen notebook-page">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <Button variant="ghost" onClick={() => navigate('/community')} className="mb-6">
+          <Button variant="ghost" onClick={() => navigate('/community')} className="mb-6 pencil-button">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Community
           </Button>
 
-          {/* Author Info Card */}
-          <Card className="mb-8">
+          {/* Author Info Card - Notebook Style */}
+          <Card className="mb-8 bg-white border-l-4 border-l-[#ff6b6b] ruled-lines relative pl-16 paper-shadow">
+            {/* Margin line decoration */}
+            <div className="margin-line" />
+            
             <CardContent className="pt-8">
               <div className="flex flex-col md:flex-row items-start gap-6">
                 <div className="relative">
-                  <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
+                  <Avatar className="w-32 h-32 border-4 border-[hsl(var(--ink-blue))] shadow-lg">
                     <AvatarImage src={profile.avatar_url || undefined} alt={profile.full_name || 'Author'} />
-                    <AvatarFallback className="text-3xl">
+                    <AvatarFallback className="text-3xl bg-[hsl(var(--highlighter-yellow))] text-[hsl(var(--ink-blue))]">
                       {profile.full_name?.charAt(0).toUpperCase() || 'A'}
                     </AvatarFallback>
                   </Avatar>
@@ -144,14 +147,14 @@ export default function AuthorProfile() {
 
                 <div className="flex-1 space-y-4">
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <h1 className="text-heading-2 font-bold">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h1 className="text-heading-2 font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">
                         {profile.full_name || 'Anonymous'}
                       </h1>
                       {isVerified && <VerifiedBadge size="md" />}
                     </div>
                     {profile.bio && (
-                      <p className="text-body text-muted-foreground mt-2 whitespace-pre-wrap">
+                      <p className="text-body text-muted-foreground mt-2 whitespace-pre-wrap font-['Source_Serif_4']">
                         {profile.bio}
                       </p>
                     )}
@@ -170,24 +173,24 @@ export default function AuthorProfile() {
 
                   {stats && (
                     <div className="grid grid-cols-3 gap-4 mt-4">
-                      <div className="bg-card border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
-                        <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="sticky-note bg-[#fff4b4] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(-1deg)' }}>
+                        <div className="text-2xl font-bold text-[hsl(var(--ink-blue))] mb-1 font-['Caveat']">
                           {stats.projectCount}
                         </div>
                         <div className="text-xs text-muted-foreground font-medium">
                           {stats.projectCount === 1 ? 'Project' : 'Projects'}
                         </div>
                       </div>
-                      <div className="bg-card border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
-                        <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="sticky-note bg-[#ffcce1] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(0.5deg)' }}>
+                        <div className="text-2xl font-bold text-[hsl(var(--ink-blue))] mb-1 font-['Caveat']">
                           {stats.totalViews.toLocaleString()}
                         </div>
                         <div className="text-xs text-muted-foreground font-medium">
                           Views
                         </div>
                       </div>
-                      <div className="bg-card border rounded-lg p-4 text-center hover:border-primary/50 transition-colors">
-                        <div className="text-2xl font-bold text-foreground mb-1">
+                      <div className="sticky-note bg-[#b4e4ff] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(-0.5deg)' }}>
+                        <div className="text-2xl font-bold text-[hsl(var(--ink-blue))] mb-1 font-['Caveat']">
                           {stats.totalLikes}
                         </div>
                         <div className="text-xs text-muted-foreground font-medium">
@@ -203,7 +206,7 @@ export default function AuthorProfile() {
 
           {/* Projects Section */}
           <div className="space-y-4">
-            <h2 className="text-heading-3 font-semibold">Public Projects</h2>
+            <h2 className="notebook-section-header text-heading-3">Public Projects</h2>
             
             {projectsLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -219,64 +222,73 @@ export default function AuthorProfile() {
               </div>
             ) : projects && projects.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects.map((project) => (
-                  <Link key={project.id} to={`/community`}>
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                      <CardContent className="p-0">
-                        <AspectRatio ratio={16 / 9}>
-                          <img
-                            src={project.thumbnail_url || '/placeholder.svg'}
-                            alt={project.title || 'Project'}
-                            className="w-full h-full object-cover"
-                          />
-                        </AspectRatio>
-                        <div className="p-4 space-y-3">
-                          <h3 className="text-body font-semibold line-clamp-1">
-                            {project.title || 'Untitled Project'}
-                          </h3>
-                          {project.description && (
-                            <p className="text-body-sm text-muted-foreground line-clamp-2">
-                              {project.description}
+                {projects.map((project, index) => {
+                  const rotation = (index % 2 === 0 ? 1 : -1) * (Math.random() * 1.5 + 0.5);
+                  return (
+                    <Link key={project.id} to={`/community`}>
+                      <Card 
+                        className="overflow-hidden paper-shadow hover:shadow-lg transition-all bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] relative"
+                        style={{ transform: `rotate(${rotation}deg)` }}
+                      >
+                        {/* Washi tape decoration */}
+                        <div className="washi-tape top-4 left-1/2 -translate-x-1/2" />
+                        
+                        <CardContent className="p-0">
+                          <AspectRatio ratio={16 / 9}>
+                            <img
+                              src={project.thumbnail_url || '/placeholder.svg'}
+                              alt={project.title || 'Project'}
+                              className="w-full h-full object-cover border-b-2 border-[hsl(var(--pencil-gray))]"
+                            />
+                          </AspectRatio>
+                          <div className="p-4 space-y-3">
+                            <h3 className="text-body font-semibold line-clamp-1 font-['Caveat'] text-[hsl(var(--ink-blue))] text-xl">
+                              {project.title || 'Untitled Project'}
+                            </h3>
+                            {project.description && (
+                              <p className="text-body-sm text-muted-foreground line-clamp-2 font-['Source_Serif_4']">
+                                {project.description}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between text-body-sm text-muted-foreground">
+                              <div className="flex items-center gap-3">
+                                <span className="flex items-center gap-1">
+                                  <Eye className="h-3 w-3" />
+                                  {project.view_count || 0}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Heart className="h-3 w-3" />
+                                  {project.like_count || 0}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Copy className="h-3 w-3" />
+                                  {project.cloned_count || 0}
+                                </span>
+                              </div>
+                            </div>
+                            {project.keywords && project.keywords.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {project.keywords.slice(0, 3).map((keyword, idx) => (
+                                  <Badge key={idx} className="sticky-note bg-[hsl(var(--highlighter-yellow))] text-[hsl(var(--ink-blue))] border-[hsl(var(--pencil-gray))] text-xs">
+                                    {keyword}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            <p className="text-ui-caption text-muted-foreground">
+                              Updated {formatDistanceToNow(new Date(project.updated_at))} ago
                             </p>
-                          )}
-                          <div className="flex items-center justify-between text-body-sm text-muted-foreground">
-                            <div className="flex items-center gap-3">
-                              <span className="flex items-center gap-1">
-                                <Eye className="h-3 w-3" />
-                                {project.view_count || 0}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Heart className="h-3 w-3" />
-                                {project.like_count || 0}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Copy className="h-3 w-3" />
-                                {project.cloned_count || 0}
-                              </span>
-                            </div>
                           </div>
-                          {project.keywords && project.keywords.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {project.keywords.slice(0, 3).map((keyword, idx) => (
-                                <Badge key={idx} variant="outline" className="text-xs">
-                                  {keyword}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                          <p className="text-ui-caption text-muted-foreground">
-                            Updated {formatDistanceToNow(new Date(project.updated_at))} ago
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
-              <Card>
+              <Card className="sticky-note bg-[#fff4b4]" style={{ transform: 'rotate(-0.5deg)' }}>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">
+                  <p className="text-muted-foreground font-['Caveat'] text-xl text-[hsl(var(--ink-blue))]">
                     {isVerified ? 'No public projects yet' : 'This author hasn\'t published any projects yet'}
                   </p>
                 </CardContent>
