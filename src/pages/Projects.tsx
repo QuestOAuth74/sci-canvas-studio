@@ -136,27 +136,35 @@ export default function Projects() {
       
       <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
         {/* Enhanced Header with Stats */}
-        <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-5xl font-bold mb-2 handwritten ink-text relative inline-block">
-                My Projects
-                <span className="absolute bottom-1 left-0 right-0 h-3 bg-[hsl(var(--highlighter-yellow))]/60 -z-10" />
-              </h1>
-              <p className="text-[hsl(var(--pencil-gray))] font-source-serif text-lg italic mt-2">
-                Manage and organize your scientific illustrations
-              </p>
-            </div>
-            <Button 
-              onClick={createNewProject} 
-              size="lg"
-              variant="sticky"
-              className="gap-2 shadow-lg hover:shadow-xl transition-shadow text-base font-source-serif paper-shadow"
-            >
-              <Plus className="w-5 h-5" />
-              New Project
-            </Button>
+        <Card className="mb-12 notebook-sidebar ruled-lines bg-[#f9f6f0]/95 border-2 border-[hsl(var(--pencil-gray))] overflow-hidden pl-10 relative paper-shadow">
+          {/* Spiral binding decoration */}
+          <div className="spiral-binding">
+            {[...Array(18)].map((_, i) => (
+              <div key={i} className="spiral-hole" />
+            ))}
           </div>
+          
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-5xl font-bold mb-2 handwritten ink-text relative inline-block">
+                  My Projects
+                  <span className="absolute bottom-1 left-0 right-0 h-3 bg-[hsl(var(--highlighter-yellow))]/60 -z-10" />
+                </h1>
+                <p className="text-[hsl(var(--pencil-gray))] font-source-serif text-lg italic mt-2">
+                  Manage and organize your scientific illustrations
+                </p>
+              </div>
+              <Button 
+                onClick={createNewProject} 
+                size="lg"
+                variant="sticky"
+                className="gap-2 shadow-lg hover:shadow-xl transition-shadow text-base font-source-serif paper-shadow"
+              >
+                <Plus className="w-5 h-5" />
+                New Project
+              </Button>
+            </div>
 
           {/* Stats Dashboard - Sticky Notes */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -222,42 +230,43 @@ export default function Projects() {
             </div>
           </div>
 
-          {/* Enhanced Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(var(--pencil-gray))]" />
-              <Input
-                type="text"
-                placeholder="Search projects by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/20 font-source-serif paper-shadow sketch-border"
-              />
+            {/* Enhanced Search and Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(var(--pencil-gray))]" />
+                <Input
+                  type="text"
+                  placeholder="Search projects by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/20 font-source-serif paper-shadow sketch-border"
+                />
+              </div>
+              <div className="flex gap-2 overflow-x-auto">
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className={`paper-tab ${filterStatus === 'all' ? 'paper-tab-active' : ''} whitespace-nowrap px-4 py-2 text-sm font-source-serif transition-all`}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => setFilterStatus('public')}
+                  className={`paper-tab ${filterStatus === 'public' ? 'paper-tab-active' : ''} whitespace-nowrap px-4 py-2 text-sm font-source-serif transition-all flex items-center gap-1`}
+                >
+                  <Globe className="w-3 h-3" />
+                  Public
+                </button>
+                <button
+                  onClick={() => setFilterStatus('private')}
+                  className={`paper-tab ${filterStatus === 'private' ? 'paper-tab-active' : ''} whitespace-nowrap px-4 py-2 text-sm font-source-serif transition-all flex items-center gap-1`}
+                >
+                  <Lock className="w-3 h-3" />
+                  Private
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2 overflow-x-auto">
-              <button
-                onClick={() => setFilterStatus('all')}
-                className={`paper-tab ${filterStatus === 'all' ? 'paper-tab-active' : ''} whitespace-nowrap px-4 py-2 text-sm font-source-serif transition-all`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilterStatus('public')}
-                className={`paper-tab ${filterStatus === 'public' ? 'paper-tab-active' : ''} whitespace-nowrap px-4 py-2 text-sm font-source-serif transition-all flex items-center gap-1`}
-              >
-                <Globe className="w-3 h-3" />
-                Public
-              </button>
-              <button
-                onClick={() => setFilterStatus('private')}
-                className={`paper-tab ${filterStatus === 'private' ? 'paper-tab-active' : ''} whitespace-nowrap px-4 py-2 text-sm font-source-serif transition-all flex items-center gap-1`}
-              >
-                <Lock className="w-3 h-3" />
-                Private
-              </button>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Loading State */}
         {loading ? (
