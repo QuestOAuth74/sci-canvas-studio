@@ -51,14 +51,14 @@ export const BlogFilters = () => {
   return (
     <div className="flex gap-2 items-center">
       <div className="flex-1 relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground doodle-sketch" />
         <Input
           type="text"
           placeholder="Search posts..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyPress={handleKeyPress}
-          className="pl-9 pr-10 h-10"
+          className="pl-9 pr-10 h-10 border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] focus:border-[hsl(var(--ink-blue))]"
         />
         {searchQuery && !isSearching && (
           <Button
