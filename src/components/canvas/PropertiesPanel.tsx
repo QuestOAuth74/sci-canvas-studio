@@ -755,9 +755,10 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
 
   return (
-    <div className="glass-panel flex flex-col h-full min-h-0 panel-gradient sidebar-shadow-left smooth-transition" data-onboarding="properties-panel">{/* Toggle button - always visible */}
-      <div className="p-2 border-b border-border/40 bg-accent/20 backdrop-blur-sm flex items-center justify-between smooth-transition">
-        <h2 className="text-sm font-semibold text-foreground tracking-tight">Properties</h2>
+    <div className="w-80 h-full bg-[hsl(var(--cream))]/95 backdrop-blur-sm border-l-2 border-[hsl(var(--pencil-gray))] shadow-lg flex flex-col notebook-sidebar ruled-lines" data-onboarding="properties-panel">
+      {/* Toggle button - always visible */}
+      <div className="p-4 border-b-2 border-[hsl(var(--pencil-gray))] flex items-center justify-between">
+        <h3 className="notebook-section-header">Properties</h3>
         <Button
           variant="ghost"
           size="icon"
