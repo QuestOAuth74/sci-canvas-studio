@@ -231,21 +231,17 @@ export default function Auth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden grid-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center notebook-page graph-paper relative overflow-hidden">
+        <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--ink-blue))]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden grid-background p-4 lg:p-8">
-      {/* Animated Background Elements */}
+    <div className="min-h-screen flex items-center justify-center notebook-page graph-paper relative overflow-hidden p-4 lg:p-8">
+      {/* Decorative notebook elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl float-animation" />
-        <div className="absolute bottom-20 right-10 w-80 h-80 bg-secondary/10 rounded-full blur-3xl float-animation [animation-delay:2s]" />
-        <div className="absolute top-1/2 left-1/3 w-72 h-72 bg-accent/10 rounded-full blur-3xl float-animation [animation-delay:4s]" />
-        
-        {/* Floating Lab Icons */}
+        {/* Floating Lab Icons - styled as pencil sketches */}
         {floatingIcons.map((config, index) => {
           const IconComponent = config.Icon;
           const style: React.CSSProperties = {
@@ -259,7 +255,7 @@ export default function Auth() {
             <IconComponent
               key={index}
               size={config.size}
-              className={`floating-icon ${config.speed}`}
+              className={`floating-icon ${config.speed} text-[hsl(var(--pencil-gray))]/20`}
               style={style}
               aria-hidden="true"
             />
@@ -280,23 +276,23 @@ export default function Auth() {
         </div>
 
         {/* Auth Card */}
-        <Card className="w-full lg:flex-1 lg:max-w-md backdrop-blur-sm bg-card/80 border-border shadow-xl">
+        <Card className="w-full lg:flex-1 lg:max-w-md paper-shadow border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] rotate-1 hover:rotate-0 transition-transform duration-300">
           <div className="p-4 pb-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="mb-2"
+              className="mb-2 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Button>
           </div>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-3xl font-bold text-center bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          <CardTitle className="text-4xl font-bold text-center handwritten text-[hsl(var(--ink-blue))]">
             BioSketch
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center font-source-serif text-[hsl(var(--pencil-gray))]">
             {showUpdatePassword ? 'Set your new password' : showResetPassword ? 'Reset your password' : 'Create and manage your diagrams'}
           </CardDescription>
         </CardHeader>
@@ -304,12 +300,12 @@ export default function Auth() {
           {showUpdatePassword ? (
             <div className="space-y-4">
               <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold">Set New Password</h3>
-                <p className="text-sm text-muted-foreground">Enter your new password below</p>
+                <h3 className="text-lg font-semibold font-source-serif ink-text">Set New Password</h3>
+                <p className="text-sm text-[hsl(var(--pencil-gray))]">Enter your new password below</p>
               </div>
               <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new-password">New Password</Label>
+                  <Label htmlFor="new-password" className="font-source-serif ink-text">New Password</Label>
                   <Input
                     id="new-password"
                     type="password"
@@ -317,13 +313,14 @@ export default function Auth() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={isLoading}
+                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {updatePasswordErrors.password && (
-                    <p className="text-sm text-destructive">{updatePasswordErrors.password}</p>
+                    <p className="text-sm text-destructive handwritten">{updatePasswordErrors.password}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirm Password</Label>
+                  <Label htmlFor="confirm-password" className="font-source-serif ink-text">Confirm Password</Label>
                   <Input
                     id="confirm-password"
                     type="password"
@@ -331,12 +328,13 @@ export default function Auth() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isLoading}
+                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {updatePasswordErrors.confirmPassword && (
-                    <p className="text-sm text-destructive">{updatePasswordErrors.confirmPassword}</p>
+                    <p className="text-sm text-destructive handwritten">{updatePasswordErrors.confirmPassword}</p>
                   )}
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" variant="ink" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Update Password
                 </Button>
@@ -352,14 +350,14 @@ export default function Auth() {
                   setResetEmail('');
                   setResetEmailError('');
                 }}
-                className="mb-2"
+                className="mb-2 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Sign In
               </Button>
               <form onSubmit={handleResetPassword} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email Address</Label>
+                  <Label htmlFor="reset-email" className="font-source-serif ink-text">Email Address</Label>
                   <Input
                     id="reset-email"
                     type="email"
@@ -367,15 +365,16 @@ export default function Auth() {
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     disabled={isLoading}
+                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {resetEmailError && (
-                    <p className="text-sm text-destructive">{resetEmailError}</p>
+                    <p className="text-sm text-destructive handwritten">{resetEmailError}</p>
                   )}
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-[hsl(var(--pencil-gray))] font-source-serif italic">
                     Enter your email address and we'll send you a link to reset your password.
                   </p>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" variant="ink" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Send Reset Link
                 </Button>
@@ -383,15 +382,15 @@ export default function Auth() {
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-6 bg-white border-2 border-[hsl(var(--pencil-gray))] p-1">
+                <TabsTrigger value="signin" className="data-[state=active]:bg-[hsl(var(--highlighter-yellow))]/40 data-[state=active]:text-[hsl(var(--ink-blue))] font-source-serif">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-[hsl(var(--highlighter-yellow))]/40 data-[state=active]:text-[hsl(var(--ink-blue))] font-source-serif">Sign Up</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="signin-email" className="font-source-serif ink-text">Email</Label>
                     <Input
                       id="signin-email"
                       type="email"
@@ -399,20 +398,21 @@ export default function Auth() {
                       value={signInEmail}
                       onChange={(e) => setSignInEmail(e.target.value)}
                       disabled={isLoading}
+                      className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                     />
                     {signInErrors.email && (
-                      <p className="text-sm text-destructive">{signInErrors.email}</p>
+                      <p className="text-sm text-destructive handwritten">{signInErrors.email}</p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="signin-password">Password</Label>
+                      <Label htmlFor="signin-password" className="font-source-serif ink-text">Password</Label>
                       <Button
                         type="button"
                         variant="link"
                         size="sm"
                         onClick={() => setShowResetPassword(true)}
-                        className="h-auto p-0 text-xs"
+                        className="h-auto p-0 text-xs text-[hsl(var(--ink-blue))] hover:text-[hsl(var(--ink-blue))]/70"
                       >
                         Forgot password?
                       </Button>
@@ -423,12 +423,13 @@ export default function Auth() {
                       value={signInPassword}
                       onChange={(e) => setSignInPassword(e.target.value)}
                       disabled={isLoading}
+                      className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                     />
                     {signInErrors.password && (
-                      <p className="text-sm text-destructive">{signInErrors.password}</p>
+                      <p className="text-sm text-destructive handwritten">{signInErrors.password}</p>
                     )}
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button type="submit" variant="ink" className="w-full" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Sign In
                   </Button>
@@ -438,7 +439,7 @@ export default function Auth() {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
+                  <Label htmlFor="signup-name" className="font-source-serif ink-text">Full Name</Label>
                   <Input
                     id="signup-name"
                     type="text"
@@ -446,13 +447,14 @@ export default function Auth() {
                     value={signUpFullName}
                     onChange={(e) => setSignUpFullName(e.target.value)}
                     disabled={isLoading}
+                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {signUpErrors.fullName && (
-                    <p className="text-sm text-destructive">{signUpErrors.fullName}</p>
+                    <p className="text-sm text-destructive handwritten">{signUpErrors.fullName}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="font-source-serif ink-text">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -460,82 +462,84 @@ export default function Auth() {
                     value={signUpEmail}
                     onChange={(e) => setSignUpEmail(e.target.value)}
                     disabled={isLoading}
+                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {signUpErrors.email && (
-                    <p className="text-sm text-destructive">{signUpErrors.email}</p>
+                    <p className="text-sm text-destructive handwritten">{signUpErrors.email}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password" className="font-source-serif ink-text">Password</Label>
                   <Input
                     id="signup-password"
                     type="password"
                     value={signUpPassword}
                     onChange={(e) => setSignUpPassword(e.target.value)}
                     disabled={isLoading}
+                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {signUpErrors.password && (
-                    <p className="text-sm text-destructive">{signUpErrors.password}</p>
+                    <p className="text-sm text-destructive handwritten">{signUpErrors.password}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-country">Country *</Label>
+                  <Label htmlFor="signup-country" className="font-source-serif ink-text">Country *</Label>
                   <Select
                     value={signUpCountry}
                     onValueChange={setSignUpCountry}
                     disabled={isLoading}
                   >
-                    <SelectTrigger id="signup-country" className="bg-background">
+                    <SelectTrigger id="signup-country" className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]">
                       <SelectValue placeholder="Select your country" />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover max-h-[300px]">
+                    <SelectContent className="bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))] max-h-[300px]">
                       {COUNTRIES.map((country) => (
-                        <SelectItem key={country} value={country}>
+                        <SelectItem key={country} value={country} className="font-source-serif">
                           {country}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {signUpErrors.country && (
-                    <p className="text-sm text-destructive">{signUpErrors.country}</p>
+                    <p className="text-sm text-destructive handwritten">{signUpErrors.country}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-field">Field of Study *</Label>
+                  <Label htmlFor="signup-field" className="font-source-serif ink-text">Field of Study *</Label>
                   <Select
                     value={signUpFieldOfStudy}
                     onValueChange={setSignUpFieldOfStudy}
                     disabled={isLoading}
                   >
-                    <SelectTrigger id="signup-field" className="bg-background">
+                    <SelectTrigger id="signup-field" className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]">
                       <SelectValue placeholder="Select your field of study" />
                     </SelectTrigger>
-                    <SelectContent className="bg-popover">
+                    <SelectContent className="bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))]">
                       {FIELDS_OF_STUDY.map((field) => (
-                        <SelectItem key={field} value={field}>
+                        <SelectItem key={field} value={field} className="font-source-serif">
                           {field}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {signUpErrors.fieldOfStudy && (
-                    <p className="text-sm text-destructive">{signUpErrors.fieldOfStudy}</p>
+                    <p className="text-sm text-destructive handwritten">{signUpErrors.fieldOfStudy}</p>
                   )}
                 </div>
                 <div className="pt-2 pb-1">
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-xs text-[hsl(var(--pencil-gray))] leading-relaxed font-source-serif">
                     By entering my email address and clicking "Create Account", I agree to BioSketch's{' '}
                     <a 
                       href="/terms" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-primary hover:underline font-medium"
+                      className="text-[hsl(var(--ink-blue))] hover:underline font-medium"
                     >
                       privacy policy and terms of service
                     </a>.
                   </p>
                 </div>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" variant="sticky" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
                 </Button>
