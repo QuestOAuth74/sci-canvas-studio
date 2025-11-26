@@ -132,15 +132,18 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
 
   return (
     <Card 
-      className="group overflow-hidden border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all duration-300 animate-fade-in cursor-pointer"
+      className="group overflow-hidden bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))] paper-shadow sketch-border hover:scale-[1.02] transition-all duration-300 animate-fade-in cursor-pointer relative"
       style={{ 
         animationDelay: `${index * 50}ms`,
         transform: `rotate(${index % 2 === 0 ? -0.5 : 0.5}deg)`
       }}
       onClick={onPreview}
     >
+      {/* Decorative tape at top corner */}
+      <div className="absolute -top-2 right-8 w-16 h-5 bg-[hsl(var(--highlighter-yellow))]/40 rotate-[8deg] border border-[hsl(var(--pencil-gray))]/30 z-10" />
+      
       {/* Thumbnail - Polaroid Style */}
-      <div className="relative overflow-hidden bg-white p-2">
+      <div className="relative overflow-hidden bg-white p-3 m-3 paper-shadow border border-[hsl(var(--pencil-gray))]">
         <AspectRatio ratio={16 / 9}>
           <img
             src={project.thumbnail_url || noPreviewImage}
@@ -151,81 +154,88 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {/* Like Button Overlay */}
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-2 right-2">
             <Button
               variant={isLiked ? "sticky" : "secondary"}
               size="sm"
               onClick={handleLike}
               disabled={isLiking}
-              className="shadow-lg gap-1"
+              className="shadow-lg gap-1 font-source-serif"
             >
               <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
               {likeCount}
             </Button>
           </div>
         </AspectRatio>
-        <p className="text-center mt-2 text-xs handwritten text-muted-foreground">
+        <p className="text-center mt-2 text-sm handwritten ink-text">
           {project.title || 'Untitled'}
         </p>
       </div>
 
       {/* Card Content */}
-      <CardContent className="p-5">
-        <div className="space-y-3">
-          {/* Description */}
-          <div>
-            <p className="text-sm text-muted-foreground line-clamp-2">
-              {project.description || 'No description provided'}
-            </p>
+      <CardContent className="p-5 space-y-4">
+        {/* Description */}
+        <p className="text-sm font-source-serif text-[hsl(var(--pencil-gray))] line-clamp-2">
+          {project.description || 'No description provided'}
+        </p>
+
+        {/* Creator Info - Index Card Style */}
+        <Link
+          to={`/author/${(project as any).user_id}`}
+          className="flex items-center gap-2 p-2 bg-white/60 border border-[hsl(var(--pencil-gray))]/50 rounded paper-shadow hover:bg-[hsl(var(--highlighter-yellow))]/10 transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Avatar className="h-7 w-7 ring-1 ring-[hsl(var(--ink-blue))]">
+            <AvatarImage src={project.profiles?.avatar_url || undefined} />
+            <AvatarFallback className="text-xs bg-[hsl(var(--highlighter-yellow))]/60 handwritten ink-text">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-source-serif text-[hsl(var(--ink-blue))] hover:underline">{creatorName}</span>
+            {isVerified && <VerifiedBadge size="sm" />}
           </div>
+        </Link>
 
-          {/* Creator Info */}
-          <Link
-            to={`/author/${(project as any).user_id}`}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Avatar className="h-6 w-6 border border-[hsl(var(--pencil-gray))]">
-              <AvatarImage src={project.profiles?.avatar_url || undefined} />
-              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-            </Avatar>
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm text-muted-foreground hover:underline">{creatorName}</span>
-              {isVerified && <VerifiedBadge size="sm" />}
+        {/* Stats - Sticky Notes Style */}
+        <div className="flex items-center gap-3 justify-center">
+          <div className="relative">
+            <div className="bg-[hsl(var(--highlighter-yellow))]/60 px-3 py-2 paper-shadow border border-[hsl(var(--pencil-gray))]/40 rotate-[-1deg] text-center min-w-[80px]">
+              <Eye className="h-3 w-3 mx-auto mb-0.5 text-[hsl(var(--ink-blue))]" />
+              <span className="block text-lg font-bold handwritten ink-text">{project.view_count}</span>
+              <span className="block text-[10px] font-source-serif text-[hsl(var(--pencil-gray))]">views</span>
             </div>
-          </Link>
-
-          {/* Stats */}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Eye className="h-4 w-4" />
-              {project.view_count}
-            </span>
-            <span className="flex items-center gap-1">
-              <Copy className="h-4 w-4" />
-              {project.cloned_count}
-            </span>
+            {/* Mini tape */}
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-3 bg-white/50 border border-[hsl(var(--pencil-gray))]/20" />
           </div>
-
-          {/* Keywords */}
-          {project.keywords && project.keywords.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {project.keywords.slice(0, 3).map((keyword, i) => (
-                <Badge key={i} variant="secondary" className="text-xs border border-[hsl(var(--pencil-gray))]">
-                  {keyword}
-                </Badge>
-              ))}
-              {project.keywords.length > 3 && (
-                <Badge variant="outline" className="text-xs border-[hsl(var(--pencil-gray))]">
-                  +{project.keywords.length - 3}
-                </Badge>
-              )}
+          
+          <div className="relative">
+            <div className="bg-[hsl(var(--highlighter-yellow))]/60 px-3 py-2 paper-shadow border border-[hsl(var(--pencil-gray))]/40 rotate-[1deg] text-center min-w-[80px]">
+              <Copy className="h-3 w-3 mx-auto mb-0.5 text-[hsl(var(--ink-blue))]" />
+              <span className="block text-lg font-bold handwritten ink-text">{project.cloned_count}</span>
+              <span className="block text-[10px] font-source-serif text-[hsl(var(--pencil-gray))]">uses</span>
             </div>
-          )}
+            {/* Mini tape */}
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-3 bg-white/50 border border-[hsl(var(--pencil-gray))]/20" />
+          </div>
         </div>
+
+        {/* Keywords - Paper Tags */}
+        {project.keywords && project.keywords.length > 0 && (
+          <div className="flex flex-wrap gap-2 justify-center">
+            {project.keywords.slice(0, 3).map((keyword, i) => (
+              <Badge key={i} className="text-xs bg-white border border-[hsl(var(--pencil-gray))] text-[hsl(var(--ink-blue))] font-source-serif hover:bg-[hsl(var(--highlighter-yellow))]/20 paper-shadow">
+                {keyword}
+              </Badge>
+            ))}
+            {project.keywords.length > 3 && (
+              <Badge className="text-xs border border-[hsl(var(--pencil-gray))] bg-white text-[hsl(var(--pencil-gray))] font-source-serif">
+                +{project.keywords.length - 3}
+              </Badge>
+            )}
+          </div>
+        )}
       </CardContent>
 
-      <CardFooter className="text-xs text-muted-foreground px-5 py-3 border-t border-[hsl(var(--pencil-gray)_/_0.2)]">
+      <CardFooter className="text-xs font-source-serif text-[hsl(var(--pencil-gray))] px-5 py-3 border-t border-[hsl(var(--pencil-gray))]/20 bg-white/40">
         Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}
       </CardFooter>
     </Card>
