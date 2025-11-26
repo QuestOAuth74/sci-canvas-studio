@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import { ChevronLeft, ChevronRight, Search, X, Star, Sparkles } from "lucide-react";
 import { usePinnedCategories } from "@/hooks/usePinnedCategories";
 import { toast } from "sonner";
@@ -651,9 +651,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                   >
                                     <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                                   </div>
-                                  <Badge variant="secondary" className="font-semibold">
+                                  <span className="text-sm font-medium text-foreground">
                                     {category.name}
-                                  </Badge>
+                                  </span>
                                 </div>
                   <span className="text-xs text-muted-foreground font-normal">
                     {iconsByCategory[category.id] ? categoryIcons.length : ''}
@@ -763,9 +763,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                               >
                                 <Star className="h-4 w-4" />
                               </div>
-                              <Badge variant="secondary" className="font-semibold">
+                              <span className="text-sm font-medium text-foreground/80">
                                 {category.name}
-                              </Badge>
+                              </span>
                             </div>
                   <span className="text-xs text-muted-foreground font-normal">
                     {iconsByCategory[category.id] ? categoryIcons.length : ''}
