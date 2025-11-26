@@ -29,9 +29,11 @@ export const TopNavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-card/95 backdrop-blur-sm border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
+    <nav className="sticky top-0 z-50 w-full bg-[#f9f6f0] ruled-lines border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between relative">
+          {/* Margin line decoration */}
+          <div className="margin-line" />
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center gap-8">
             {/* Logo */}
@@ -44,7 +46,7 @@ export const TopNavBar = () => {
                 alt="BioSketch Logo"
                 className="h-10 w-10 object-contain group-hover:scale-105 transition-transform"
               />
-              <span className="text-lg font-bold font-source-serif text-foreground group-hover:text-primary transition-colors">
+              <span className="text-lg font-bold font-['Caveat'] text-[hsl(var(--ink-blue))] group-hover:text-[hsl(var(--pencil-gray))] transition-colors">
                 BioSketch
               </span>
             </button>
@@ -58,7 +60,7 @@ export const TopNavBar = () => {
                     key={link.path}
                     variant="ghost"
                     onClick={() => handleNavClick(link.path)}
-                    className="text-sm font-medium hover:bg-[hsl(var(--pencil-gray)_/_0.05)]"
+                    className="text-sm font-medium text-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--highlighter-yellow)_/_0.2)] hover:text-[hsl(var(--pencil-gray))] transition-all pencil-sketch"
                   >
                     {link.label}
                   </Button>
@@ -89,11 +91,11 @@ export const TopNavBar = () => {
             {/* Mobile Menu Toggle */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="md:hidden pencil-button">
+                  <Menu className="h-5 w-5 text-[hsl(var(--ink-blue))]" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-64">
+              <SheetContent side="right" className="w-64 bg-[#f9f6f0] ruled-lines border-l-2 border-[hsl(var(--pencil-gray))]">
                 <div className="flex flex-col gap-4 mt-8">
                   {navLinks.map((link) => {
                     if (link.authRequired && !user) return null;
@@ -102,7 +104,7 @@ export const TopNavBar = () => {
                         key={link.path}
                         variant="ghost"
                         onClick={() => handleNavClick(link.path)}
-                        className="justify-start text-base"
+                        className="justify-start text-base text-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--highlighter-yellow)_/_0.2)] pencil-sketch"
                       >
                         {link.label}
                       </Button>
