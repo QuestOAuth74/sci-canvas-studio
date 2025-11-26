@@ -9,6 +9,33 @@ const ReleaseNotes = () => {
 
   const releases = [
     {
+      version: "2.2.0",
+      date: "February 2025",
+      title: "AI & PowerPoint Features",
+      features: [
+        {
+          title: "AI Icon Generator",
+          description: "Generate custom scientific icons instantly using AI. Describe what you need and watch as AI creates professional icons tailored to your specifications.",
+          icon: "🤖"
+        },
+        {
+          title: "PowerPoint Export",
+          description: "Transform your scientific illustrations into professional PowerPoint presentations. Export diagrams with customizable templates and layouts for seamless presentation workflow.",
+          icon: "📊"
+        },
+        {
+          title: "Expanded Icon Library",
+          description: "Hundreds of new professionally-designed scientific icons added by the BioSketch team. Enhanced coverage across anatomy, cellular biology, chemistry, and medical equipment categories.",
+          icon: "🎨"
+        },
+        {
+          title: "AI Figure Generator",
+          description: "Create complete scientific figures from text descriptions. AI understands scientific concepts and generates publication-ready illustrations with proper labels and styling.",
+          icon: "✨"
+        }
+      ]
+    },
+    {
       version: "2.1.1",
       date: "January 2025",
       title: "Lab Notebook Theme",
