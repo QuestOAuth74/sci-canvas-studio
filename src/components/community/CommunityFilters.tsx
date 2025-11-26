@@ -6,17 +6,26 @@ interface CommunityFiltersProps {
 }
 
 export function CommunityFilters({ sortBy, onSortChange }: CommunityFiltersProps) {
+  const filters = [
+    { value: 'recent', label: 'Most Recent' },
+    { value: 'liked', label: 'Most Liked' },
+    { value: 'popular', label: 'Most Viewed' },
+    { value: 'cloned', label: 'Most Used' },
+  ];
+
   return (
-    <Select value={sortBy} onValueChange={onSortChange}>
-      <SelectTrigger className="w-[180px] h-12 border-2 border-[hsl(var(--pencil-gray))] bg-white/80 hover:bg-[hsl(var(--highlighter-yellow))]/20 font-source-serif transition-colors">
-        <SelectValue placeholder="Sort by..." />
-      </SelectTrigger>
-      <SelectContent className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow">
-        <SelectItem value="recent" className="font-source-serif hover:bg-[hsl(var(--highlighter-yellow))]/30">Most Recent</SelectItem>
-        <SelectItem value="liked" className="font-source-serif hover:bg-[hsl(var(--highlighter-yellow))]/30">Most Liked</SelectItem>
-        <SelectItem value="popular" className="font-source-serif hover:bg-[hsl(var(--highlighter-yellow))]/30">Most Viewed</SelectItem>
-        <SelectItem value="cloned" className="font-source-serif hover:bg-[hsl(var(--highlighter-yellow))]/30">Most Used</SelectItem>
-      </SelectContent>
-    </Select>
+    <div className="flex gap-2 overflow-x-auto">
+      {filters.map((filter) => (
+        <button
+          key={filter.value}
+          onClick={() => onSortChange(filter.value as any)}
+          className={`paper-tab ${
+            sortBy === filter.value ? 'paper-tab-active' : ''
+          } whitespace-nowrap px-4 py-2 text-sm font-source-serif transition-all`}
+        >
+          {filter.label}
+        </button>
+      ))}
+    </div>
   );
 }
