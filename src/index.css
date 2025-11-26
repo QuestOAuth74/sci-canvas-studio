@@ -897,6 +897,20 @@ All colors MUST be HSL.
     transform: translateY(-2px) rotate(0.5deg);
   }
 
+  /* Static paper shadow for toolbars - no moving effect */
+  .paper-shadow-static {
+    box-shadow: 
+      2px 2px 0 rgba(0, 0, 0, 0.05),
+      4px 4px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .paper-shadow-static:hover {
+    box-shadow: 
+      3px 3px 0 rgba(0, 0, 0, 0.07),
+      6px 6px 12px rgba(0, 0, 0, 0.12);
+    /* No transform - keeps toolbars stable */
+  }
+
   .handwritten {
     font-family: 'Caveat', cursive;
     font-weight: 600;
