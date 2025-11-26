@@ -917,6 +917,252 @@ All colors MUST be HSL.
     letter-spacing: 0.02em;
   }
 
+  /* === NOTEBOOK THEME ENHANCEMENTS === */
+
+  /* Notebook Sidebar Styling */
+  .notebook-sidebar {
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--cream)) 0%,
+      hsl(var(--cream)) calc(100% - 12px),
+      transparent calc(100% - 12px)
+    );
+    position: relative;
+  }
+
+  /* Torn edge effect at top */
+  .notebook-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 3px,
+      hsl(var(--cream)) 3px,
+      hsl(var(--cream)) 6px
+    );
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  }
+
+  /* Spiral binding decoration */
+  .spiral-binding {
+    position: absolute;
+    left: 0;
+    top: 60px;
+    bottom: 60px;
+    width: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 0;
+    z-index: 10;
+  }
+
+  .spiral-binding::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(
+      to bottom,
+      hsl(var(--pencil-gray)) 0%,
+      hsl(var(--pencil-gray)) 50%,
+      transparent 50%,
+      transparent 100%
+    );
+    background-size: 2px 20px;
+    transform: translateX(-50%);
+  }
+
+  .spiral-hole {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid hsl(var(--pencil-gray));
+    box-shadow: 
+      inset 0 1px 2px rgba(0, 0, 0, 0.1),
+      0 1px 2px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Notebook Section Headers */
+  .notebook-section-header {
+    font-family: 'Caveat', cursive;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: hsl(var(--ink-blue));
+    position: relative;
+    padding-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .notebook-section-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--highlighter-yellow)) 0%,
+      hsl(var(--highlighter-yellow)) 70%,
+      transparent 70%
+    );
+    opacity: 0.4;
+    border-radius: 2px;
+  }
+
+  /* Paper Tab Dividers */
+  .paper-tab {
+    position: relative;
+    padding: 8px 16px;
+    background: hsl(var(--cream));
+    border: 2px solid hsl(var(--pencil-gray));
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--ink-blue))/60;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    transform: translateY(2px);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .paper-tab:hover {
+    background: hsl(var(--cream));
+    color: hsl(var(--ink-blue))/80;
+    transform: translateY(0px);
+  }
+
+  .paper-tab-active {
+    background: white;
+    color: hsl(var(--ink-blue));
+    font-weight: 600;
+    transform: translateY(0px);
+    z-index: 2;
+    border-bottom-color: white;
+    box-shadow: 
+      2px 0 4px rgba(0, 0, 0, 0.08),
+      0 -2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Sticky Note Elements */
+  .sticky-note {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--highlighter-yellow))/90 0%,
+      hsl(var(--highlighter-yellow))/95 100%
+    );
+    border: 1px solid hsl(var(--pencil-gray))/30;
+    box-shadow: 
+      2px 2px 0 rgba(0, 0, 0, 0.05),
+      4px 4px 8px rgba(0, 0, 0, 0.1);
+    transform: rotate(-0.5deg);
+    position: relative;
+  }
+
+  .sticky-note::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 20px 20px 0;
+    border-color: transparent hsl(var(--cream))/40 transparent transparent;
+    filter: drop-shadow(-1px 1px 2px rgba(0, 0, 0, 0.1));
+  }
+
+  /* Margin line for notebook pages */
+  .margin-line {
+    position: absolute;
+    left: 40px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: hsl(var(--highlighter-yellow))/20;
+    pointer-events: none;
+  }
+
+  /* Pencil-style buttons */
+  .pencil-button {
+    position: relative;
+    transition: all 0.15s ease;
+  }
+
+  .pencil-button:hover {
+    transform: rotate(0.5deg) translateY(-1px);
+  }
+
+  .pencil-button:active {
+    transform: rotate(0deg) translateY(0px);
+  }
+
+  /* Washi tape decoration */
+  .washi-tape {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .washi-tape::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    height: 20px;
+    background: repeating-linear-gradient(
+      45deg,
+      hsl(var(--highlighter-yellow))/30,
+      hsl(var(--highlighter-yellow))/30 10px,
+      hsl(var(--highlighter-yellow))/50 10px,
+      hsl(var(--highlighter-yellow))/50 20px
+    );
+    border: 1px solid hsl(var(--pencil-gray))/20;
+    transform: rotate(-1deg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Notebook ruled lines background */
+  .ruled-lines {
+    background-image: 
+      linear-gradient(transparent 0px, transparent 23px, hsl(var(--ink-blue))/8 23px, hsl(var(--ink-blue))/8 24px);
+    background-size: 100% 24px;
+    background-position: 0 0;
+  }
+
+  /* Doodle illustrations for empty states */
+  .doodle-sketch {
+    stroke: hsl(var(--pencil-gray));
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.4;
+  }
+
+  /* Graph paper background */
+  .graph-paper {
+    background-color: hsl(var(--cream));
+    background-image: 
+      linear-gradient(hsl(var(--ink-blue))/5 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--ink-blue))/5 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
   .ink-text {
     color: hsl(var(--ink-blue));
   }
