@@ -174,7 +174,7 @@ export default function Community() {
 
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative notebook-page graph-paper">
       <MobileWarningDialog />
       <SEOHead 
         title="Community Gallery - BioSketch" 
@@ -200,43 +200,43 @@ export default function Community() {
 
           {/* Stats Dashboard - Notebook Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[-0.5deg]">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--highlighter-yellow))]/20 paper-shadow hover:scale-[1.02] transition-all rotate-[-0.5deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Total Projects</p>
-                    <p className="text-3xl font-bold mt-1 ink-text">{stats.totalProjects}</p>
+                    <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Projects</p>
+                    <p className="text-3xl font-bold mt-1 handwritten ink-text">{stats.totalProjects}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-primary" />
+                  <div className="w-12 h-12 rounded-full bg-[hsl(var(--ink-blue))]/10 border-2 border-[hsl(var(--ink-blue))]/20 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[0.3deg]">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow hover:scale-[1.02] transition-all rotate-[0.3deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Total Views</p>
-                    <p className="text-3xl font-bold mt-1 ink-text">{stats.totalViews.toLocaleString()}</p>
+                    <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Views</p>
+                    <p className="text-3xl font-bold mt-1 handwritten ink-text">{stats.totalViews.toLocaleString()}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-md bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                    <Eye className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <div className="w-12 h-12 rounded-full bg-[hsl(var(--ink-blue))]/10 border-2 border-[hsl(var(--ink-blue))]/20 flex items-center justify-center">
+                    <Eye className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-[hsl(var(--pencil-gray))] paper-shadow hover:scale-[1.02] transition-all rotate-[-0.3deg]">
+            <Card className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--highlighter-yellow))]/20 paper-shadow hover:scale-[1.02] transition-all rotate-[-0.3deg]">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground uppercase tracking-wide">Total Likes</p>
-                    <p className="text-3xl font-bold mt-1 ink-text">{stats.totalLikes.toLocaleString()}</p>
+                    <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Likes</p>
+                    <p className="text-3xl font-bold mt-1 handwritten ink-text">{stats.totalLikes.toLocaleString()}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-md bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
-                    <Heart className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                  <div className="w-12 h-12 rounded-full bg-red-500/10 border-2 border-red-500/20 flex items-center justify-center">
+                    <Heart className="w-6 h-6 text-red-600" />
                   </div>
                 </div>
               </CardContent>
@@ -246,13 +246,13 @@ export default function Community() {
           {/* Enhanced Search and Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(var(--pencil-gray))]" />
               <Input
                 type="text"
                 placeholder="Search by title, description, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))]"
+                className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/20 font-source-serif sketch-border transition-colors"
               />
             </div>
             <CommunityFilters sortBy={sortBy} onSortChange={setSortBy} />
@@ -279,14 +279,14 @@ export default function Community() {
         ) : displayProjects.length === 0 ? (
           /* Enhanced Empty State */
           <div className="text-center py-20">
-            <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <Users className="w-12 h-12 text-primary" />
+            <div className="max-w-md mx-auto border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow p-8 rotate-[-0.5deg]">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--highlighter-yellow))]/30 flex items-center justify-center">
+                <Users className="w-12 h-12 text-[hsl(var(--ink-blue))]" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">
+              <h2 className="text-2xl font-bold mb-2 handwritten ink-text">
                 {searchQuery ? 'No projects found' : 'No community projects yet'}
               </h2>
-              <p className="text-muted-foreground mb-8">
+              <p className="text-[hsl(var(--pencil-gray))] mb-8 font-source-serif">
                 {searchQuery
                   ? 'Try adjusting your search terms or filters'
                   : 'Be the first to share your scientific illustration with the community'}
@@ -310,13 +310,13 @@ export default function Community() {
 
             {/* Enhanced Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4">
+              <div className="flex items-center justify-center gap-4 mt-8">
                 <Pagination>
-                  <PaginationContent>
+                  <PaginationContent className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow rounded-lg p-2">
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[hsl(var(--highlighter-yellow))]/30'} font-source-serif`}
                       />
                     </PaginationItem>
                     
@@ -337,7 +337,11 @@ export default function Community() {
                           <PaginationLink
                             onClick={() => setCurrentPage(pageNum)}
                             isActive={currentPage === pageNum}
-                            className="cursor-pointer"
+                            className={`cursor-pointer font-source-serif ${
+                              currentPage === pageNum 
+                                ? 'bg-[hsl(var(--ink-blue))] text-white border-2 border-[hsl(var(--ink-blue))]' 
+                                : 'hover:bg-[hsl(var(--highlighter-yellow))]/30'
+                            }`}
                           >
                             {pageNum}
                           </PaginationLink>
@@ -348,7 +352,7 @@ export default function Community() {
                     <PaginationItem>
                       <PaginationNext 
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[hsl(var(--highlighter-yellow))]/30'} font-source-serif`}
                       />
                     </PaginationItem>
                   </PaginationContent>
