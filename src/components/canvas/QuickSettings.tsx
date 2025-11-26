@@ -6,7 +6,6 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useState } from "react";
 
 export const QuickSettings = () => {
@@ -24,7 +23,6 @@ export const QuickSettings = () => {
     gridPattern,
     setGridPattern,
   } = useCanvas();
-  const { darkMode, setDarkMode } = useTheme();
   const [defaultStrokeWidth, setDefaultStrokeWidth] = useState(2);
 
   return (
@@ -35,7 +33,7 @@ export const QuickSettings = () => {
         </Button>
       </PopoverTrigger>
       
-      <PopoverContent className="w-80 bg-[#f0f9ff] dark:bg-slate-800 dark:border-slate-700" align="end">
+      <PopoverContent className="w-80 bg-[#f0f9ff]" align="end">
         <div className="space-y-4">
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Canvas Settings</h4>
@@ -43,15 +41,6 @@ export const QuickSettings = () => {
           </div>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="dark-mode" className="text-sm">Dark Mode</Label>
-              <Switch 
-                id="dark-mode"
-                checked={darkMode} 
-                onCheckedChange={setDarkMode} 
-              />
-            </div>
-            
             <div className="flex items-center justify-between">
               <Label htmlFor="background-gradient" className="text-sm">Gradient Background</Label>
               <Switch 
