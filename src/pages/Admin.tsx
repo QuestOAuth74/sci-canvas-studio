@@ -19,6 +19,7 @@ import { CommunityUploader } from "@/components/admin/CommunityUploader";
 import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
 import { ToolFeedbackManager } from "@/components/admin/ToolFeedbackManager";
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
+import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { Separator } from "@/components/ui/separator";
 import { SEOHead } from "@/components/SEO/SEOHead";
 
@@ -106,6 +107,17 @@ const Admin = () => {
                   <p className="text-muted-foreground">Inflate engagement metrics to create FOMO effect</p>
                 </div>
                 <CommunityMetricsInflator />
+              </section>
+
+              <Separator className="my-12" />
+
+              {/* Announcements */}
+              <section id="announcements">
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold tracking-tight">Send Announcements</h2>
+                  <p className="text-muted-foreground">Send in-app notifications to users</p>
+                </div>
+                <AnnouncementManager />
               </section>
 
               <Separator className="my-12" />
