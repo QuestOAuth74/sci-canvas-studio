@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, Loader2, Mail, Users } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Mail, Users, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -241,6 +242,7 @@ const EmailNotifications = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [showPreview, setShowPreview] = useState(false);
   const ITEMS_PER_PAGE = 20;
 
   // Fetch users with pagination and search
@@ -388,6 +390,80 @@ const EmailNotifications = () => {
   };
 
   const recipientCount = sendToAll ? totalCount : selectedUsers.length;
+
+  const getEmailPreviewHTML = () => {
+    const messageWithBreaks = message.replace(/\n/g, '<br/>');
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              line-height: 1.6;
+              color: #333;
+              max-width: 600px;
+              margin: 0 auto;
+              padding: 20px;
+              background-color: #f5f5f5;
+            }
+            .email-container {
+              background-color: #ffffff;
+              border-radius: 8px;
+              padding: 40px;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .email-header {
+              border-bottom: 3px solid #7C3AED;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .email-title {
+              font-size: 24px;
+              font-weight: bold;
+              color: #1a1a1a;
+              margin: 0 0 10px 0;
+            }
+            .email-from {
+              color: #666;
+              font-size: 14px;
+            }
+            .email-body {
+              color: #333;
+              font-size: 16px;
+              line-height: 1.8;
+              margin-bottom: 30px;
+            }
+            .email-footer {
+              border-top: 1px solid #e5e5e5;
+              padding-top: 20px;
+              margin-top: 30px;
+              color: #666;
+              font-size: 14px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="email-header">
+              <h1 class="email-title">${subject || '(No Subject)'}</h1>
+              <p class="email-from">From: ${adminName}</p>
+            </div>
+            <div class="email-body">
+              ${messageWithBreaks || '<em style="color: #999;">(No message content)</em>'}
+            </div>
+            <div class="email-footer">
+              <p>Best regards,<br/>${adminName}<br/>BioSketch Team</p>
+              <p style="margin-top: 20px; font-size: 12px; color: #999;">
+                This is an automated email from BioSketch. Please do not reply to this email.
+              </p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4 md:p-8">
@@ -632,29 +708,71 @@ const EmailNotifications = () => {
                   </p>
                 </div>
 
-                <Button
-                  onClick={handleSend}
-                  disabled={sendEmailMutation.isPending}
-                  className="w-full"
-                  size="lg"
-                >
-                  {sendEmailMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Send Email
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={() => setShowPreview(true)}
+                    disabled={!subject || !message}
+                    variant="outline"
+                    className="flex-1"
+                    size="lg"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Preview Email
+                  </Button>
+                  <Button
+                    onClick={handleSend}
+                    disabled={sendEmailMutation.isPending}
+                    className="flex-1"
+                    size="lg"
+                  >
+                    {sendEmailMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Email
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      {/* Email Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Email Preview</DialogTitle>
+            <DialogDescription>
+              This is how your email will appear to recipients
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <div 
+              className="border rounded-lg overflow-hidden"
+              dangerouslySetInnerHTML={{ __html: getEmailPreviewHTML() }}
+            />
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Close Preview
+            </Button>
+            <Button onClick={() => {
+              setShowPreview(false);
+              handleSend();
+            }}>
+              <Send className="h-4 w-4 mr-2" />
+              Send Now
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
