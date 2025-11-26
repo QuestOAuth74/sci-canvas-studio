@@ -734,94 +734,194 @@ All colors MUST be HSL.
     --letter-spacing-normal: -0.011em;
     --letter-spacing-wide: 0.025em;
     
-    /* Soft Purple/Lavender Theme */
-    --background: 260 30% 98%;
-    --foreground: 260 15% 25%;
-    --card: 260 20% 99%;
-    --card-foreground: 260 15% 25%;
-    --popover: 260 20% 99%;
-    --popover-foreground: 260 15% 25%;
+    /* Lab Notebook Theme - Warm Paper Aesthetic */
+    --notebook-cream: 45 30% 96%;
+    --notebook-ivory: 48 50% 98%;
+    --ink-blue: 215 60% 35%;
+    --pencil-gray: 220 10% 40%;
+    --highlighter-yellow: 50 100% 70%;
+    --margin-red: 0 70% 55%;
+    --graphite: 220 15% 25%;
     
-    /* Primary - Soft Purple */
-    --primary: 260 60% 65%;
+    /* Lab Notebook Color System */
+    --background: 45 30% 96%;
+    --foreground: 220 15% 25%;
+    --card: 48 50% 98%;
+    --card-foreground: 220 15% 25%;
+    --popover: 48 50% 98%;
+    --popover-foreground: 220 15% 25%;
+    
+    /* Primary - Ink Blue */
+    --primary: 215 60% 35%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Deep Purple */
-    --secondary: 270 50% 55%;
+    /* Secondary - Pencil Gray */
+    --secondary: 220 10% 40%;
     --secondary-foreground: 0 0% 100%;
     
-    /* Muted - Light Purple-Gray */
-    --muted: 260 15% 94%;
-    --muted-foreground: 260 10% 45%;
+    /* Muted - Light Paper Tone */
+    --muted: 45 25% 92%;
+    --muted-foreground: 220 10% 45%;
     
-    /* Accent - Light Lavender */
-    --accent: 280 70% 90%;
-    --accent-foreground: 260 15% 25%;
+    /* Accent - Highlighter Yellow */
+    --accent: 50 100% 70%;
+    --accent-foreground: 220 15% 25%;
     
     /* Destructive - Soft Red */
     --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 240 10% 85%;
-    --input: 260 20% 99%;
-    --ring: 260 60% 65%;
-    --radius: 0.75rem;
+    --border: 220 15% 80%;
+    --input: 48 50% 98%;
+    --ring: 215 60% 35%;
+    --radius: 0.5rem;
     
     /* Sidebar */
-    --sidebar-background: 260 15% 94%;
-    --sidebar-foreground: 260 15% 25%;
-    --sidebar-primary: 260 60% 65%;
+    --sidebar-background: 45 25% 92%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 215 60% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 280 70% 90%;
-    --sidebar-accent-foreground: 260 15% 25%;
-    --sidebar-border: 240 10% 85%;
-    --sidebar-ring: 260 60% 65%;
+    --sidebar-accent: 50 100% 70%;
+    --sidebar-accent-foreground: 220 15% 25%;
+    --sidebar-border: 220 15% 80%;
+    --sidebar-ring: 215 60% 35%;
   }
 
   .dark {
-    /* Dark Mode - Soft Purple Theme */
-    --background: 260 25% 12%;
-    --foreground: 260 20% 90%;
-    --card: 260 20% 16%;
-    --card-foreground: 260 20% 90%;
-    --popover: 260 20% 16%;
-    --popover-foreground: 260 20% 90%;
+    /* Dark Mode - Chalkboard Aesthetic */
+    --background: 150 15% 15%;
+    --foreground: 0 0% 92%;
+    --card: 150 15% 18%;
+    --card-foreground: 0 0% 92%;
+    --popover: 150 15% 18%;
+    --popover-foreground: 0 0% 92%;
     
-    /* Primary - Brighter Purple */
-    --primary: 260 65% 70%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary - Chalk White/Blue */
+    --primary: 200 30% 75%;
+    --primary-foreground: 150 15% 15%;
     
-    /* Secondary - Deeper Purple */
-    --secondary: 270 55% 60%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - Chalk Gray */
+    --secondary: 0 0% 65%;
+    --secondary-foreground: 150 15% 15%;
     
     /* Muted */
-    --muted: 260 15% 20%;
-    --muted-foreground: 260 15% 65%;
+    --muted: 150 10% 22%;
+    --muted-foreground: 0 0% 55%;
     
-    /* Accent - Lavender */
-    --accent: 280 60% 75%;
-    --accent-foreground: 260 25% 12%;
+    /* Accent - Chalk Yellow */
+    --accent: 50 70% 65%;
+    --accent-foreground: 150 15% 15%;
     
     /* Destructive */
-    --destructive: 0 75% 65%;
+    --destructive: 0 60% 55%;
     --destructive-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 260 15% 25%;
-    --input: 260 15% 20%;
-    --ring: 260 65% 70%;
+    --border: 0 0% 30%;
+    --input: 150 15% 18%;
+    --ring: 200 30% 75%;
     
     /* Sidebar */
-    --sidebar-background: 260 20% 14%;
-    --sidebar-foreground: 260 20% 90%;
-    --sidebar-primary: 260 65% 70%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 280 60% 75%;
-    --sidebar-accent-foreground: 260 25% 12%;
-    --sidebar-border: 25 20% 25%;
-    --sidebar-ring: 18 90% 60%;
+    --sidebar-background: 150 10% 22%;
+    --sidebar-foreground: 0 0% 92%;
+    --sidebar-primary: 200 30% 75%;
+    --sidebar-primary-foreground: 150 15% 15%;
+    --sidebar-accent: 50 70% 65%;
+    --sidebar-accent-foreground: 150 15% 15%;
+    --sidebar-border: 0 0% 30%;
+    --sidebar-ring: 200 30% 75%;
+  }
+
+  /* Lab Notebook Utility Classes */
+  .notebook-page {
+    background-color: hsl(var(--notebook-cream));
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 31px,
+        hsl(var(--border) / 0.15) 31px,
+        hsl(var(--border) / 0.15) 32px
+      ),
+      linear-gradient(90deg, hsl(var(--margin-red) / 0.3) 0px, hsl(var(--margin-red) / 0.3) 2px, transparent 2px, transparent 80px);
+  }
+
+  .graph-paper {
+    background-color: hsl(var(--notebook-cream));
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        hsl(var(--border) / 0.15) 0px,
+        hsl(var(--border) / 0.15) 1px,
+        transparent 1px,
+        transparent 20px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        hsl(var(--border) / 0.15) 0px,
+        hsl(var(--border) / 0.15) 1px,
+        transparent 1px,
+        transparent 20px
+      );
+  }
+
+  .sketch-border {
+    border: 2px solid hsl(var(--pencil-gray));
+    border-radius: 4px;
+    position: relative;
+  }
+
+  .sketch-border::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 1px solid hsl(var(--pencil-gray) / 0.3);
+    border-radius: 5px;
+    pointer-events: none;
+  }
+
+  .paper-shadow {
+    box-shadow: 
+      2px 2px 0 rgba(0, 0, 0, 0.05),
+      4px 4px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .paper-shadow:hover {
+    box-shadow: 
+      3px 3px 0 rgba(0, 0, 0, 0.07),
+      6px 6px 12px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px) rotate(0.5deg);
+  }
+
+  .handwritten {
+    font-family: 'Caveat', cursive;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .ink-text {
+    color: hsl(var(--ink-blue));
+  }
+
+  .highlighter-bg {
+    position: relative;
+  }
+
+  .highlighter-bg::after {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: -4px;
+    right: -4px;
+    height: 70%;
+    background: hsl(var(--highlighter-yellow) / 0.4);
+    border-radius: 3px;
+    z-index: -1;
+    transform: skewX(-2deg);
   }
 
   /* Professional Blue Theme - Light Mode */

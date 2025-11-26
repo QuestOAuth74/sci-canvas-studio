@@ -16,6 +16,9 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground hover:scale-[1.02] active:scale-[0.98]",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
         glass: "bg-white/60 dark:bg-card/50 backdrop-blur-lg border border-white/20 dark:border-white/10 text-foreground shadow-sm hover:bg-white/70 dark:hover:bg-card/60 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
+        sticky: "bg-[hsl(var(--highlighter-yellow))] text-[hsl(var(--graphite))] shadow-[2px_2px_0_rgba(0,0,0,0.1)] hover:shadow-[3px_3px_0_rgba(0,0,0,0.15)] hover:translate-x-[-1px] hover:translate-y-[-1px] active:shadow-[1px_1px_0_rgba(0,0,0,0.1)] active:translate-x-[1px] active:translate-y-[1px] border border-[hsl(var(--highlighter-yellow)_/_0.3)] font-caveat font-semibold",
+        ink: "bg-[hsl(var(--ink-blue))] text-white shadow-sm hover:bg-[hsl(var(--ink-blue)_/_0.9)] hover:shadow-md hover:scale-[1.02] active:scale-[0.98] border border-[hsl(var(--ink-blue))]",
+        pencil: "border-2 border-[hsl(var(--pencil-gray))] bg-background text-[hsl(var(--pencil-gray))] hover:bg-[hsl(var(--pencil-gray)_/_0.05)] hover:border-[hsl(var(--graphite))] hover:scale-[1.02] active:scale-[0.98] shadow-sm",
       },
       size: {
         default: "h-10 px-4 py-2",
