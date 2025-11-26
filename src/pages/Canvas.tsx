@@ -1011,6 +1011,7 @@ const CanvasContent = () => {
             setTemplatesDialogOpen(true);
             // Could filter templates by type in the future
           }}
+          onStartBlank={() => setShowEmptyState(false)}
         />
       )}
 
