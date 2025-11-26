@@ -75,7 +75,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   };
 
   return (
-    <div className="h-full flex flex-col bg-[hsl(var(--cream))]/95 border-r-2 border-[hsl(var(--pencil-gray))] shadow-lg backdrop-blur-sm overflow-y-auto min-h-0 notebook-sidebar ruled-lines">
+    <div className="h-full flex flex-col bg-[hsl(var(--cream))]/95 border-r-2 border-[hsl(var(--pencil-gray))] shadow-lg backdrop-blur-sm overflow-y-auto min-h-0 notebook-sidebar ruled-lines dark:bg-[hsl(var(--cream))]/98 dark:border-[hsl(var(--pencil-gray))]">
       {/* Spiral binding decoration */}
       <div className="spiral-binding">
         {[...Array(15)].map((_, i) => (

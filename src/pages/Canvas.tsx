@@ -689,7 +689,7 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-[hsl(var(--cream))]/95 border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow-static">
+      <header className="bg-[hsl(var(--cream))]/95 border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow-static dark:bg-[hsl(var(--cream))]/98 dark:border-[hsl(var(--pencil-gray))]">
         <div className="px-4 py-2 flex items-center justify-between backdrop-blur-sm">
           <div className="flex items-center gap-3">
             <div className="bg-[hsl(var(--highlighter-yellow))]/20 rounded-lg p-1.5 border-2 border-[hsl(var(--pencil-gray))] sketch-border">
@@ -705,7 +705,7 @@ const CanvasContent = () => {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigate("/")} 
-                  className="h-9 w-9 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
+                  className="h-9 w-9 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))] dark:text-[hsl(var(--ink-blue))]"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -728,7 +728,7 @@ const CanvasContent = () => {
             ) : (
               <button
                 onClick={startEditingName}
-                className="text-lg font-semibold tracking-tight text-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--highlighter-yellow))]/20 px-2.5 py-1 rounded border-2 border-transparent hover:border-[hsl(var(--pencil-gray))] transition-all font-source-serif"
+                className="text-lg font-semibold tracking-tight text-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--highlighter-yellow))]/20 px-2.5 py-1 rounded border-2 border-transparent hover:border-[hsl(var(--pencil-gray))] transition-all font-source-serif dark:text-[hsl(var(--ink-blue))]"
                 title="Click to rename"
               >
                 {projectName}

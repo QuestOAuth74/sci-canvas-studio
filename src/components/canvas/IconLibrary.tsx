@@ -508,7 +508,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   return (
-    <div className="h-full flex flex-col bg-[hsl(var(--cream))]/95 backdrop-blur-sm notebook-sidebar ruled-lines" data-onboarding="icon-library">
+    <div className="h-full flex flex-col bg-[hsl(var(--cream))]/95 backdrop-blur-sm notebook-sidebar ruled-lines dark:bg-[hsl(var(--cream))]/98 dark:border-[hsl(var(--pencil-gray))]" data-onboarding="icon-library">
       {/* Spiral binding decoration */}
       <div className="spiral-binding">
         {[...Array(15)].map((_, i) => (

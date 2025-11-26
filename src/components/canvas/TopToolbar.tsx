@@ -76,13 +76,13 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
   };
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-[hsl(var(--cream))]/95 backdrop-blur-xl border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow-static transition-all duration-200" data-onboarding="toolbar">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-[hsl(var(--cream))]/95 backdrop-blur-xl border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow-static transition-all duration-200 dark:bg-[hsl(var(--cream))]/98 dark:border-[hsl(var(--pencil-gray))]" data-onboarding="toolbar">
       {/* Edit Section */}
       <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif">Edit</span>
+        <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif dark:text-[hsl(var(--ink-blue))]">Edit</span>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={undo}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))] dark:text-[hsl(var(--ink-blue))]" onClick={undo}>
               <Undo className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
