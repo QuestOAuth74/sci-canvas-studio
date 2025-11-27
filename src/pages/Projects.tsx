@@ -287,56 +287,94 @@ export default function Projects() {
           </div>
         ) : filteredProjects.length === 0 ? (
           /* Enhanced Empty State - Notebook Style */
-          <div className="text-center py-20">
-            <div className="max-w-2xl mx-auto bg-[hsl(var(--cream))] p-8 border-2 border-[hsl(var(--pencil-gray))] paper-shadow sketch-border rotate-[-0.5deg]">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-[hsl(var(--highlighter-yellow))]/40 border-2 border-[hsl(var(--pencil-gray))] flex items-center justify-center">
-                <FolderOpen className="w-12 h-12 text-[hsl(var(--ink-blue))]" />
-              </div>
-              <h2 className="text-3xl handwritten ink-text mb-3">
-                {searchQuery || filterStatus !== 'all' ? 'No projects found' : 'No projects yet'}
-              </h2>
-              <p className="font-source-serif text-[hsl(var(--pencil-gray))] mb-8">
-                {searchQuery || filterStatus !== 'all' 
-                  ? 'Try adjusting your search or filters'
-                  : 'Create your first scientific illustration to get started'}
-              </p>
-              {!searchQuery && filterStatus === 'all' && (
-                <>
-                  <Button 
-                    onClick={createNewProject} 
-                    size="lg"
-                    variant="sticky"
-                    className="gap-2 shadow-lg font-source-serif"
-                  >
-                    <Plus className="w-5 h-5" />
-                    Create Your First Project
-                  </Button>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-12 text-left">
-                    <div className="bg-white/60 p-4 border-2 border-[hsl(var(--pencil-gray))] paper-shadow rotate-[-1deg]">
-                      <div className="w-10 h-10 rounded-full bg-[hsl(var(--highlighter-yellow))]/60 flex items-center justify-center mb-3 border border-[hsl(var(--pencil-gray))]">
-                        <FileText className="w-5 h-5 text-[hsl(var(--ink-blue))]" />
-                      </div>
-                      <h3 className="handwritten text-lg ink-text mb-1">Choose Template</h3>
-                      <p className="text-sm font-source-serif text-[hsl(var(--pencil-gray))]">Start with a blank canvas or pre-designed template</p>
-                    </div>
-                    <div className="bg-white/60 p-4 border-2 border-[hsl(var(--pencil-gray))] paper-shadow rotate-[0.5deg]">
-                      <div className="w-10 h-10 rounded-full bg-[hsl(var(--highlighter-yellow))]/60 flex items-center justify-center mb-3 border border-[hsl(var(--pencil-gray))]">
-                        <Sparkles className="w-5 h-5 text-[hsl(var(--ink-blue))]" />
-                      </div>
-                      <h3 className="handwritten text-lg ink-text mb-1">Design & Create</h3>
-                      <p className="text-sm font-source-serif text-[hsl(var(--pencil-gray))]">Add icons, shapes, and text to build your diagram</p>
-                    </div>
-                    <div className="bg-white/60 p-4 border-2 border-[hsl(var(--pencil-gray))] paper-shadow rotate-[-0.5deg]">
-                      <div className="w-10 h-10 rounded-full bg-[hsl(var(--highlighter-yellow))]/60 flex items-center justify-center mb-3 border border-[hsl(var(--pencil-gray))]">
-                        <Share2 className="w-5 h-5 text-[hsl(var(--ink-blue))]" />
-                      </div>
-                      <h3 className="handwritten text-lg ink-text mb-1">Export & Share</h3>
-                      <p className="text-sm font-source-serif text-[hsl(var(--pencil-gray))]">Download high-quality images or share publicly</p>
-                    </div>
+          <div className="text-center py-16">
+            <div className="max-w-3xl mx-auto relative">
+              {/* Main notebook paper card */}
+              <div className="bg-[#f9f6f0] ruled-lines p-12 border-2 border-[hsl(var(--pencil-gray))] paper-shadow relative overflow-hidden" style={{ transform: 'rotate(-0.5deg)' }}>
+                {/* Washi tape decoration */}
+                <div className="washi-tape top-6 left-1/2 -translate-x-1/2" />
+                
+                {/* Spiral binding on left */}
+                <div className="spiral-binding" style={{ left: '-16px' }}>
+                  {Array.from({ length: 15 }).map((_, i) => (
+                    <div key={i} className="spiral-hole" />
+                  ))}
+                </div>
+
+                {/* Empty folder illustration */}
+                <div className="relative inline-block mb-8">
+                  <div className="w-32 h-32 mx-auto rounded-2xl bg-gradient-to-br from-[hsl(var(--highlighter-yellow))]/30 to-[hsl(var(--highlighter-yellow))]/50 border-2 border-[hsl(var(--pencil-gray))] paper-shadow flex items-center justify-center rotate-[-2deg]">
+                    <FolderOpen className="w-16 h-16 text-[hsl(var(--ink-blue))]/60" />
                   </div>
-                </>
-              )}
+                  {/* Floating doodle elements */}
+                  <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full border-2 border-[hsl(var(--ink-blue))]/30" style={{ transform: 'rotate(15deg)' }} />
+                  <div className="absolute -bottom-2 -left-2 w-6 h-6 border-2 border-[hsl(var(--ink-blue))]/30" style={{ transform: 'rotate(-10deg)' }} />
+                </div>
+
+                <h2 className="text-4xl font-['Caveat'] text-[hsl(var(--ink-blue))] mb-3 leading-tight">
+                  {searchQuery || filterStatus !== 'all' ? 'No projects found...' : 'Your canvas awaits!'}
+                </h2>
+                <p className="font-['Source_Serif_4'] text-lg text-[hsl(var(--pencil-gray))] mb-10 max-w-xl mx-auto leading-relaxed">
+                  {searchQuery || filterStatus !== 'all' 
+                    ? 'Try adjusting your search or filters to find what you\'re looking for'
+                    : 'Start creating beautiful scientific illustrations in just a few clicks'}
+                </p>
+
+                {!searchQuery && filterStatus === 'all' && (
+                  <>
+                    {/* Quick start buttons */}
+                    <div className="flex flex-wrap gap-4 justify-center mb-12">
+                      <Button 
+                        onClick={createNewProject} 
+                        size="lg"
+                        className="gap-2 shadow-lg font-['Source_Serif_4'] bg-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--ink-blue))]/90 text-white border-2 border-[hsl(var(--pencil-gray))]"
+                      >
+                        <Plus className="w-5 h-5" />
+                        Start Blank Canvas
+                      </Button>
+                      <Button 
+                        onClick={createNewProject}
+                        size="lg"
+                        className="gap-2 shadow-lg font-['Source_Serif_4'] bg-[hsl(var(--highlighter-yellow))] hover:bg-[hsl(var(--highlighter-yellow))]/90 text-[hsl(var(--ink-blue))] border-2 border-[hsl(var(--pencil-gray))]"
+                      >
+                        <FileText className="w-5 h-5" />
+                        Browse Templates
+                      </Button>
+                    </div>
+
+                    {/* Feature cards styled as sticky notes */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
+                      <div className="sticky-note bg-[hsl(var(--highlighter-yellow))]/80 p-6 border-2 border-[hsl(var(--pencil-gray))] paper-shadow relative" style={{ transform: 'rotate(-2deg)' }}>
+                        {/* Tape on sticky note */}
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/60 border border-[hsl(var(--pencil-gray))]/30 rotate-[3deg]" />
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 border-2 border-[hsl(var(--pencil-gray))]">
+                          <FileText className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
+                        </div>
+                        <h3 className="font-['Caveat'] text-2xl text-[hsl(var(--ink-blue))] mb-2">Choose Template</h3>
+                        <p className="text-sm font-['Source_Serif_4'] text-[hsl(var(--pencil-gray))] leading-relaxed">Start with a blank canvas or browse community templates</p>
+                      </div>
+                      
+                      <div className="sticky-note bg-[hsl(var(--highlighter-yellow))]/80 p-6 border-2 border-[hsl(var(--pencil-gray))] paper-shadow relative" style={{ transform: 'rotate(1deg)' }}>
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/60 border border-[hsl(var(--pencil-gray))]/30 rotate-[-2deg]" />
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 border-2 border-[hsl(var(--pencil-gray))]">
+                          <Sparkles className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
+                        </div>
+                        <h3 className="font-['Caveat'] text-2xl text-[hsl(var(--ink-blue))] mb-2">Design & Create</h3>
+                        <p className="text-sm font-['Source_Serif_4'] text-[hsl(var(--pencil-gray))] leading-relaxed">Add icons, shapes, connectors, and text to build your diagram</p>
+                      </div>
+                      
+                      <div className="sticky-note bg-[hsl(var(--highlighter-yellow))]/80 p-6 border-2 border-[hsl(var(--pencil-gray))] paper-shadow relative" style={{ transform: 'rotate(-1deg)' }}>
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/60 border border-[hsl(var(--pencil-gray))]/30 rotate-[2deg]" />
+                        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-4 border-2 border-[hsl(var(--pencil-gray))]">
+                          <Share2 className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
+                        </div>
+                        <h3 className="font-['Caveat'] text-2xl text-[hsl(var(--ink-blue))] mb-2">Export & Share</h3>
+                        <p className="text-sm font-['Source_Serif_4'] text-[hsl(var(--pencil-gray))] leading-relaxed">Download high-quality images or share with the community</p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         ) : (
