@@ -343,20 +343,24 @@ export default function Projects() {
           <>
             {/* Notebook Project Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {paginatedProjects.map((project, index) => (
-                <Card 
-                  key={project.id}
-                  className="group overflow-hidden bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))] paper-shadow sketch-border hover:scale-[1.02] transition-all duration-300 animate-fade-in relative"
-                  style={{ 
-                    animationDelay: `${index * 50}ms`,
-                    transform: `rotate(${index % 3 === 0 ? -0.5 : index % 3 === 1 ? 0.5 : -0.3}deg)`
-                  }}
-                >
-                  {/* Decorative tape */}
-                  <div className="absolute -top-2 right-8 w-16 h-5 bg-[hsl(var(--highlighter-yellow))]/40 rotate-[8deg] border border-[hsl(var(--pencil-gray))]/30 z-10" />
+              {paginatedProjects.map((project, index) => {
+                // Random slight rotation for organic torn paper look
+                const rotation = Math.random() * 2 - 1; // -1 to 1 degrees
+                
+                return (
+                  <Card 
+                    key={project.id}
+                    className="group overflow-hidden bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] paper-shadow hover:shadow-lg transition-all duration-300 animate-fade-in relative"
+                    style={{ 
+                      animationDelay: `${index * 50}ms`,
+                      transform: `rotate(${rotation}deg)`
+                    }}
+                  >
+                    {/* Washi tape decoration at top */}
+                    <div className="washi-tape top-4 left-1/2 -translate-x-1/2" />
                   
-                  {/* Thumbnail - Polaroid Style */}
-                  <div className="relative overflow-hidden bg-white p-3 m-3 paper-shadow border border-[hsl(var(--pencil-gray))]">
+                    {/* Thumbnail - Polaroid Style */}
+                    <div className="relative overflow-hidden bg-white p-3 m-3 paper-shadow border border-[hsl(var(--pencil-gray))]">
                     <AspectRatio ratio={16 / 9}>
                       <img
                         src={project.thumbnail_url || noPreviewImage}
@@ -466,7 +470,8 @@ export default function Projects() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+                );
+              })}
             </div>
 
             {/* Notebook Pagination */}
