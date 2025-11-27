@@ -157,7 +157,7 @@ export const LayersPanel = () => {
   );
 
   return (
-    <div className="w-80 h-full bg-[hsl(var(--cream))]/95 backdrop-blur-sm border-l-2 border-[hsl(var(--pencil-gray))] shadow-lg flex flex-col notebook-sidebar ruled-lines">
+    <div className="w-full h-full bg-[hsl(var(--cream))]/95 backdrop-blur-sm flex flex-col notebook-sidebar ruled-lines overflow-auto">
       {/* Header */}
       <div className="p-4 border-b-2 border-[hsl(var(--pencil-gray))]">
         <h3 className="notebook-section-header mb-3">Layers</h3>

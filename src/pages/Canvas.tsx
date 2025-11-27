@@ -46,6 +46,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useTheme } from "@/contexts/ThemeContext";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -76,6 +77,12 @@ const CanvasContent = () => {
   const [showEmptyState, setShowEmptyState] = useState(false);
   const { isAdmin } = useAuth();
   const { startOnboarding } = useOnboarding();
+  
+  // State for resizable right panel width with localStorage persistence
+  const [rightPanelWidth, setRightPanelWidth] = useState(() => {
+    const saved = localStorage.getItem('canvas_right_panel_width');
+    return saved ? Math.min(400, Math.max(200, parseInt(saved, 10))) : 280; // Default 280px, clamped 200-400
+  });
   const {
     canvas,
     selectedObject,
@@ -815,9 +822,15 @@ const CanvasContent = () => {
         />
 
         {/* Main Editor Area */}
-        <div className="flex flex-1 min-h-0">
+        <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
           {/* Left Sidebar - Icon Categories & Assets */}
-          <div className={`bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300 ${isIconLibraryCollapsed ? 'w-12' : 'w-64'}`}>
+          <ResizablePanel 
+            defaultSize={isIconLibraryCollapsed ? 3 : 16} 
+            minSize={3} 
+            maxSize={20}
+            className="min-h-0"
+          >
+            <div className={`bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300`}>
             {isIconLibraryCollapsed ? (
               <div className="p-2">
                 <Button
@@ -870,12 +883,18 @@ const CanvasContent = () => {
               </div>
             )}
           </div>
+          </ResizablePanel>
 
-          {/* Vertical Toolbar */}
-          <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
+          <ResizableHandle withHandle className="bg-[hsl(var(--canvas-panel-border))] hover:bg-[hsl(var(--canvas-accent-primary))] transition-colors w-1" />
 
-        {/* Canvas */}
-        <ScrollArea className="flex-1 relative min-h-0">
+          {/* Middle Section - Toolbar + Canvas */}
+          <ResizablePanel defaultSize={65} minSize={40}>
+            <div className="flex h-full min-h-0">
+              {/* Vertical Toolbar */}
+              <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
+
+              {/* Canvas */}
+              <ScrollArea className="flex-1 relative min-h-0">
           <div className="p-8">
             <CanvasContextMenu
               selectedObject={selectedObject}
@@ -914,13 +933,32 @@ const CanvasContent = () => {
               <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
             </CanvasContextMenu>
           </div>
-          <AlignmentGuides />
-          <ScrollBar orientation="horizontal" />
-          <ScrollBar orientation="vertical" />
-        </ScrollArea>
+              <AlignmentGuides />
+              <ScrollBar orientation="horizontal" />
+              <ScrollBar orientation="vertical" />
+            </ScrollArea>
+            </div>
+          </ResizablePanel>
 
-        {/* Right Sidebar - Properties & Layers */}
-        <div className={`bg-[hsl(var(--canvas-sidebar-bg))] border-l-2 border-[hsl(var(--canvas-panel-border))] shadow-xl flex flex-col overflow-hidden min-h-0 transition-all duration-300 ${isPropertiesPanelCollapsed ? 'w-12' : 'w-64'}`}>
+          <ResizableHandle withHandle className="bg-[hsl(var(--canvas-panel-border))] hover:bg-[hsl(var(--canvas-accent-primary))] transition-colors w-1" />
+
+          {/* Right Sidebar - Properties & Layers */}
+          <ResizablePanel 
+            defaultSize={isPropertiesPanelCollapsed ? 3 : (rightPanelWidth / window.innerWidth * 100)}
+            minSize={isPropertiesPanelCollapsed ? 3 : (200 / window.innerWidth * 100)}
+            maxSize={isPropertiesPanelCollapsed ? 3 : (400 / window.innerWidth * 100)}
+            onResize={(size) => {
+              if (!isPropertiesPanelCollapsed) {
+                const containerWidth = window.innerWidth;
+                const panelWidth = (size / 100) * containerWidth;
+                const clampedWidth = Math.min(400, Math.max(200, panelWidth));
+                setRightPanelWidth(clampedWidth);
+                localStorage.setItem('canvas_right_panel_width', clampedWidth.toString());
+              }
+            }}
+            className="min-h-0"
+          >
+            <div className={`bg-[hsl(var(--canvas-sidebar-bg))] border-l-2 border-[hsl(var(--canvas-panel-border))] shadow-xl flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-2">
               <Button
@@ -963,8 +1001,9 @@ const CanvasContent = () => {
               </div>
             </div>
           )}
-        </div>
-      </div>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
 
       {/* Bottom Bar */}
       <BottomBar activeTool={activeTool} hasSelection={!!selectedObject} />
