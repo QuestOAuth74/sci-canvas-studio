@@ -21,9 +21,10 @@ interface MenuBarProps {
   onTemplatesClick?: () => void;
   onPanelLabelClick?: () => void;
   onVersionHistoryClick?: () => void;
+  onScaleBarClick?: () => void;
 }
 
-export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick }: MenuBarProps = {}) => {
+export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
@@ -177,6 +178,9 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={onPanelLabelClick}>
               Figure Panel Labels (A, B, C...)
+            </MenubarItem>
+            <MenubarItem onClick={onScaleBarClick}>
+              Scale Bar
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={onTemplatesClick}>

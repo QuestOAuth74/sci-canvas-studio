@@ -36,6 +36,7 @@ import { CanvasContextMenu } from "@/components/canvas/CanvasContextMenu";
 import { CommunityTemplatesGallery } from "@/components/canvas/CommunityTemplatesGallery";
 import { ToolRatingWidget } from "@/components/canvas/ToolRatingWidget";
 import { PanelLabelTool } from "@/components/canvas/PanelLabelTool";
+import { ScaleBarTool } from "@/components/canvas/ScaleBarTool";
 import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
@@ -66,6 +67,7 @@ const CanvasContent = () => {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [templatesDialogOpen, setTemplatesDialogOpen] = useState(false);
   const [panelLabelToolOpen, setPanelLabelToolOpen] = useState(false);
+  const [scaleBarToolOpen, setScaleBarToolOpen] = useState(false);
   const [versionHistoryOpen, setVersionHistoryOpen] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [hasClipboard, setHasClipboard] = useState(false);
@@ -640,6 +642,12 @@ const CanvasContent = () => {
         open={panelLabelToolOpen}
         onOpenChange={setPanelLabelToolOpen}
       />
+
+      {/* Scale Bar Tool */}
+      <ScaleBarTool 
+        open={scaleBarToolOpen}
+        onOpenChange={setScaleBarToolOpen}
+      />
       
       {/* Export Dialog */}
       <ExportDialog
@@ -746,6 +754,7 @@ const CanvasContent = () => {
               onTemplatesClick={() => setTemplatesDialogOpen(true)}
               onPanelLabelClick={() => setPanelLabelToolOpen(true)}
               onVersionHistoryClick={() => setVersionHistoryOpen(true)}
+              onScaleBarClick={() => setScaleBarToolOpen(true)}
             />
             <Tooltip>
               <TooltipTrigger asChild>
