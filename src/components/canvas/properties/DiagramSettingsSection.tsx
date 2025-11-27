@@ -124,8 +124,61 @@ export const DiagramSettingsSection = ({
               <SelectTrigger className="h-9 text-xs">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                {PAPER_SIZES.map((size) => (
+              <SelectContent className="max-h-[400px]">
+                {/* Custom Section */}
+                {PAPER_SIZES.filter(s => s.category === 'custom').map((size) => (
+                  <SelectItem key={size.id} value={size.id} className="text-xs">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{size.name}</span>
+                      <span className="text-xs text-muted-foreground">{size.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                
+                {/* Journal Figures Section */}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 mt-2">
+                  📊 Journal Figures
+                </div>
+                {PAPER_SIZES.filter(s => s.category === 'journal').map((size) => (
+                  <SelectItem key={size.id} value={size.id} className="text-xs">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{size.name}</span>
+                      <span className="text-xs text-muted-foreground">{size.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                
+                {/* Standard Paper Section */}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 mt-2">
+                  📄 Standard Paper
+                </div>
+                {PAPER_SIZES.filter(s => s.category === 'paper').map((size) => (
+                  <SelectItem key={size.id} value={size.id} className="text-xs">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{size.name}</span>
+                      <span className="text-xs text-muted-foreground">{size.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                
+                {/* Presentations Section */}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 mt-2">
+                  🎬 Presentations
+                </div>
+                {PAPER_SIZES.filter(s => s.category === 'presentation').map((size) => (
+                  <SelectItem key={size.id} value={size.id} className="text-xs">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{size.name}</span>
+                      <span className="text-xs text-muted-foreground">{size.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                
+                {/* Posters Section */}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50 mt-2">
+                  📐 Posters
+                </div>
+                {PAPER_SIZES.filter(s => s.category === 'poster').map((size) => (
                   <SelectItem key={size.id} value={size.id} className="text-xs">
                     <div className="flex flex-col">
                       <span className="font-medium">{size.name}</span>
