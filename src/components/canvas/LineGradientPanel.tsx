@@ -102,7 +102,9 @@ export const LineGradientPanel = () => {
     (selectedObject as ShapeWithPorts)?.isConnector ||
     selectedObject?.type === 'path' ||
     selectedObject?.type === 'line' ||
-    (selectedObject as any)?.isCurvedLine;
+    (selectedObject as any)?.isCurvedLine ||
+    (selectedObject as any)?.isOrthogonalLine ||
+    (selectedObject as any)?.isStraightLine;
   
   if (!selectedObject || !isLineType) {
     return null;
