@@ -2,8 +2,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { ShapeWithPorts, ArrowMarkerType, LineStyle, RoutingStyle } from "@/types/connector";
+
+const THICKNESS_PRESETS = [
+  { label: 'Thin', value: 1 },
+  { label: 'Medium', value: 2 },
+  { label: 'Thick', value: 4 },
+  { label: 'Extra Thick', value: 6 },
+];
 
 export const LinePropertiesPanel = () => {
   const { selectedObject, canvas } = useCanvas();
@@ -128,6 +137,31 @@ export const LinePropertiesPanel = () => {
 
           <div>
             <Label className="text-xs mb-2 block">Stroke Width: {data.strokeWidth}px</Label>
+            
+            {/* Quick Preset Buttons */}
+            <div className="flex gap-1 mb-3">
+              {THICKNESS_PRESETS.map((preset) => (
+                <Tooltip key={preset.value}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={data.strokeWidth === preset.value ? "default" : "outline"}
+                      size="sm"
+                      className="flex-1 h-8 px-2"
+                      onClick={() => handleStrokeWidthChange([preset.value])}
+                    >
+                      <div 
+                        className="w-full rounded-full bg-current"
+                        style={{ height: `${Math.min(preset.value * 1.5, 6)}px` }}
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{preset.label} ({preset.value}px)</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+            
             <Slider
               value={[data.strokeWidth]}
               onValueChange={handleStrokeWidthChange}
