@@ -2126,6 +2126,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       isConnectorGroup ||
       (selectedObject as any).isConnector ||
       (selectedObject as any).isCurvedLine ||
+      (selectedObject as any).isOrthogonalLine ||
+      (selectedObject as any).isStraightLine ||
       selectedObject.type === 'path' ||
       selectedObject.type === 'line';
     
@@ -2138,10 +2140,15 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     let targetObj: any = selectedObject;
     if (selectedObject.type === 'group') {
       const group = selectedObject as Group;
-      // Find the path or line inside the group (for connectors)
-      targetObj =
-        group._objects?.find(obj => obj.type === 'path' || obj.type === 'line') ||
-        group._objects?.[0];
+      // For curved lines, use mainPath property
+      if ((selectedObject as any).mainPath) {
+        targetObj = (selectedObject as any).mainPath;
+      } else {
+        // For orthogonal/straight lines and connectors, find the path or line
+        targetObj =
+          group._objects?.find(obj => obj.type === 'path' || obj.type === 'line') ||
+          group._objects?.[0];
+      }
     }
 
     if (!targetObj) {
