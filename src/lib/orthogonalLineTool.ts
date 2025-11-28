@@ -476,7 +476,7 @@ export class OrthogonalLineTool {
         startMarker.set({
           left: localStart.x + offsetX,
           top: localStart.y + offsetY,
-          angle: localAngle + groupAngle,
+          angle: localAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
         });
@@ -498,7 +498,7 @@ export class OrthogonalLineTool {
         endMarker.set({
           left: localEnd.x + offsetX,
           top: localEnd.y + offsetY,
-          angle: localAngle + groupAngle,
+          angle: localAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
         });
