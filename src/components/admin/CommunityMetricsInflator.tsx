@@ -199,9 +199,13 @@ export const CommunityMetricsInflator = () => {
 
       const result = response.data;
 
+      const successMessage = result.projectsSkipped > 0
+        ? `${result.projectsAffected} projects updated, ${result.projectsSkipped} skipped (clone count > 100). Views: ${result.before.views.toLocaleString()} → ${result.after.views.toLocaleString()}`
+        : `${result.projectsAffected} projects updated. Views: ${result.before.views.toLocaleString()} → ${result.after.views.toLocaleString()}`;
+
       toast({
         title: '✓ Metrics Inflated Successfully!',
-        description: `${result.projectsAffected} projects updated. Views: ${result.before.views.toLocaleString()} → ${result.after.views.toLocaleString()}`,
+        description: successMessage,
       });
 
       // Refresh metrics and history

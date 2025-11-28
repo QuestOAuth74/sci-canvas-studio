@@ -7,6 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const MAX_CLONE_COUNT_FOR_INFLATION = 100;
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -94,13 +96,34 @@ serve(async (req) => {
 
     console.log(`Found ${projects.length} projects to inflate`);
 
+    // Filter out projects with very high clone counts to keep metrics realistic
+    const projectsToInflate = projects.filter(p => (p.cloned_count || 0) <= MAX_CLONE_COUNT_FOR_INFLATION);
+    const skippedProjects = projects.filter(p => (p.cloned_count || 0) > MAX_CLONE_COUNT_FOR_INFLATION);
+    
+    if (skippedProjects.length > 0) {
+      console.log(`Skipped ${skippedProjects.length} projects with clone count > ${MAX_CLONE_COUNT_FOR_INFLATION}:`, 
+        skippedProjects.map(p => ({ title: p.title, clones: p.cloned_count })));
+    }
+
+    if (projectsToInflate.length === 0) {
+      return new Response(
+        JSON.stringify({ 
+          error: `All ${projects.length} projects have clone counts exceeding ${MAX_CLONE_COUNT_FOR_INFLATION} and were skipped`,
+          skippedCount: skippedProjects.length 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Inflating ${projectsToInflate.length} projects (${skippedProjects.length} skipped due to high clone counts)`);
+
     // Calculate totals before
-    const totalViewsBefore = projects.reduce((sum, p) => sum + (p.view_count || 0), 0);
-    const totalLikesBefore = projects.reduce((sum, p) => sum + (p.like_count || 0), 0);
-    const totalClonesBefore = projects.reduce((sum, p) => sum + (p.cloned_count || 0), 0);
+    const totalViewsBefore = projectsToInflate.reduce((sum, p) => sum + (p.view_count || 0), 0);
+    const totalLikesBefore = projectsToInflate.reduce((sum, p) => sum + (p.like_count || 0), 0);
+    const totalClonesBefore = projectsToInflate.reduce((sum, p) => sum + (p.cloned_count || 0), 0);
 
     // Calculate new values and update projects
-    const updates = projects.map(project => {
+    const updates = projectsToInflate.map(project => {
       let inflationPercent = percentage;
       
       // For varied mode, randomize percentage within range
@@ -164,7 +187,7 @@ serve(async (req) => {
         percentage,
         variation_mode: variationMode,
         tier_filter: tierFilter || 'all',
-        projects_affected: projects.length,
+        projects_affected: projectsToInflate.length,
         total_views_before: totalViewsBefore,
         total_views_after: totalViewsAfter,
         total_likes_before: totalLikesBefore,
@@ -180,7 +203,9 @@ serve(async (req) => {
 
     const summary = {
       success: true,
-      projectsAffected: projects.length,
+      projectsAffected: projectsToInflate.length,
+      projectsSkipped: skippedProjects.length,
+      skippedReason: skippedProjects.length > 0 ? `Clone count > ${MAX_CLONE_COUNT_FOR_INFLATION}` : null,
       before: {
         views: totalViewsBefore,
         likes: totalLikesBefore,
