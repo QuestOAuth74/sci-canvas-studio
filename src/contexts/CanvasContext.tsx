@@ -2118,32 +2118,40 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const applyLineGradient = useCallback((config: LineGradientConfig) => {
     if (!selectedObject || !canvas) return;
     
+    const isConnectorGroup =
+      selectedObject.type === 'group' && (selectedObject as any).connectorData;
+
     // Check if it's a line/connector/curved line
-    const isLine = (selectedObject as any).isConnector || 
-                   (selectedObject as any).isCurvedLine ||
-                   selectedObject.type === 'path' || 
-                   selectedObject.type === 'line';
+    const isLine =
+      isConnectorGroup ||
+      (selectedObject as any).isConnector ||
+      (selectedObject as any).isCurvedLine ||
+      selectedObject.type === 'path' ||
+      selectedObject.type === 'line';
     
     if (!isLine) {
       toast.error('Please select a line or connector');
       return;
     }
 
-    // Store gradient config on the object
-    (selectedObject as any).gradientConfig = config;
-
     // Get the target object (path inside group or the object itself)
     let targetObj: any = selectedObject;
     if (selectedObject.type === 'group') {
       const group = selectedObject as Group;
-      // Find the path inside the group (for connectors)
-      targetObj = group._objects?.find(obj => obj.type === 'path') || group._objects?.[0];
+      // Find the path or line inside the group (for connectors)
+      targetObj =
+        group._objects?.find(obj => obj.type === 'path' || obj.type === 'line') ||
+        group._objects?.[0];
     }
 
     if (!targetObj) {
       toast.error('Invalid line object');
       return;
     }
+
+    // Store gradient config on both the selected wrapper and the actual drawable object
+    (selectedObject as any).gradientConfig = config;
+    (targetObj as any).gradientConfig = config;
 
     // Use percentage-based gradient - much simpler and works for any orientation!
     // x1=0, x2=1 means gradient flows from start (0%) to end (100%) of the object
@@ -2160,7 +2168,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         offset: stop.offset,
         color: stop.color,
         opacity: stop.opacity ?? 1,
-      }))
+      })),
     });
 
     // Apply gradient to stroke
@@ -2180,21 +2188,35 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const clearLineGradient = useCallback(() => {
     if (!selectedObject || !canvas) return;
     
-    // Remove gradient config
-    delete (selectedObject as any).gradientConfig;
-
-    // Get the path object
-    let pathObj: any = selectedObject;
+    // Determine target object
+    let targetObj: any = selectedObject;
     if (selectedObject.type === 'group') {
       const group = selectedObject as Group;
-      pathObj = group._objects?.[0];
+      targetObj =
+        group._objects?.find(obj => obj.type === 'path' || obj.type === 'line') ||
+        group._objects?.[0];
     }
 
-    if (pathObj) {
-      // Reset to solid color (use existing stroke color or default)
-      const connectorData = (selectedObject as any).connectorData;
-      const defaultColor = connectorData?.strokeColor || '#000000';
-      pathObj.set('stroke', defaultColor);
+    if (!targetObj) {
+      return;
+    }
+
+    // Remove gradient config
+    delete (selectedObject as any).gradientConfig;
+    delete (targetObj as any).gradientConfig;
+
+    // Reset to solid color (use connector data or existing stroke)
+    const connectorData =
+      (targetObj as any).connectorData || (selectedObject as any).connectorData;
+    const defaultColor =
+      connectorData?.strokeColor ||
+      (typeof targetObj.stroke === 'string' ? targetObj.stroke : '#000000');
+
+    targetObj.set('stroke', defaultColor);
+    targetObj.set('dirty', true);
+
+    if (selectedObject.type === 'group') {
+      (selectedObject as Group).set('dirty', true);
     }
 
     canvas.requestRenderAll();

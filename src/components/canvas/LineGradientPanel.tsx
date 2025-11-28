@@ -53,27 +53,56 @@ export const LineGradientPanel = () => {
   const [solidStartPercent, setSolidStartPercent] = useState(40);
   const [solidEndPercent, setSolidEndPercent] = useState(0);
 
-  // Load existing gradient config from selected line
+  // Load existing gradient config or initialize from stroke color
   useEffect(() => {
     if (!selectedObject) return;
-    const lineObj = selectedObject as ShapeWithPorts;
-    const gradientConfig = (lineObj as any).gradientConfig;
-    
+
+    // Determine target object (connector path, line, or curved line)
+    let targetObj: any = selectedObject;
+    if (selectedObject.type === 'group' && (selectedObject as any)._objects?.length) {
+      const group = selectedObject as any;
+      targetObj =
+        group._objects.find((obj: any) => obj.type === 'path' || obj.type === 'line') ??
+        group._objects[0];
+    }
+
+    const gradientConfig = targetObj?.gradientConfig;
+    const strokeColor = typeof targetObj?.stroke === 'string' ? targetObj.stroke : undefined;
+
     if (gradientConfig) {
       setPreset(gradientConfig.type || 'fade-out');
       setDirection(gradientConfig.direction || 'along-path');
-      setStartColor(gradientConfig.startColor || '#3b82f6');
-      setEndColor(gradientConfig.endColor || '#3b82f6');
-      setEndOpacity(gradientConfig.endOpacity || 0.3);
-      setSolidStartPercent(gradientConfig.solidStartPercent || 40);
-      setSolidEndPercent(gradientConfig.solidEndPercent || 0);
+      setStartColor(gradientConfig.startColor || strokeColor || '#3b82f6');
+      setEndColor(gradientConfig.endColor || strokeColor || '#3b82f6');
+      setEndOpacity(
+        typeof gradientConfig.endOpacity === 'number' ? gradientConfig.endOpacity : 0.3
+      );
+      setSolidStartPercent(
+        typeof gradientConfig.solidStartPercent === 'number'
+          ? gradientConfig.solidStartPercent
+          : 40
+      );
+      setSolidEndPercent(
+        typeof gradientConfig.solidEndPercent === 'number'
+          ? gradientConfig.solidEndPercent
+          : 0
+      );
+    } else if (strokeColor) {
+      // Initialize from current line color if no gradient applied yet
+      setStartColor(strokeColor);
+      setEndColor(strokeColor);
     }
   }, [selectedObject]);
+ 
+  const connectorGroup =
+    selectedObject?.type === 'group' && (selectedObject as any).connectorData;
 
-  const isLineType = (selectedObject as ShapeWithPorts).isConnector || 
-                   selectedObject?.type === 'path' || 
-                   selectedObject?.type === 'line' ||
-                   (selectedObject as any)?.isCurvedLine;
+  const isLineType =
+    connectorGroup ||
+    (selectedObject as ShapeWithPorts).isConnector ||
+    selectedObject?.type === 'path' ||
+    selectedObject?.type === 'line' ||
+    (selectedObject as any)?.isCurvedLine;
   
   if (!selectedObject || !isLineType) {
     return null;
