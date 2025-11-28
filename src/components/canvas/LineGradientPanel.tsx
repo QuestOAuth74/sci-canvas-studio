@@ -33,6 +33,14 @@ const GRADIENT_PRESETS: { [key: string]: Partial<LineGradientConfig> } = {
     solidEndPercent: 0,
     endOpacity: 0,
   },
+  'black-grey': {
+    type: 'black-grey',
+    solidStartPercent: 0,
+    solidEndPercent: 0,
+    endOpacity: 1,
+    startColor: '#000000',
+    endColor: '#d1d5db',
+  },
 };
 
 export const LineGradientPanel = () => {
@@ -62,7 +70,12 @@ export const LineGradientPanel = () => {
     }
   }, [selectedObject]);
 
-  if (!selectedObject || !(selectedObject as ShapeWithPorts).isConnector) {
+  const isLineType = (selectedObject as ShapeWithPorts).isConnector || 
+                   selectedObject?.type === 'path' || 
+                   selectedObject?.type === 'line' ||
+                   (selectedObject as any)?.isCurvedLine;
+  
+  if (!selectedObject || !isLineType) {
     return null;
   }
 
@@ -73,6 +86,9 @@ export const LineGradientPanel = () => {
       if (presetConfig.solidStartPercent !== undefined) setSolidStartPercent(presetConfig.solidStartPercent);
       if (presetConfig.solidEndPercent !== undefined) setSolidEndPercent(presetConfig.solidEndPercent);
       if (presetConfig.endOpacity !== undefined) setEndOpacity(presetConfig.endOpacity);
+      // Also set colors for presets that define them
+      if (presetConfig.startColor) setStartColor(presetConfig.startColor);
+      if (presetConfig.endColor) setEndColor(presetConfig.endColor);
     }
   };
 
@@ -120,6 +136,7 @@ export const LineGradientPanel = () => {
                 <SelectItem value="fade-in">Fade In (Signal Amplification)</SelectItem>
                 <SelectItem value="color-transition">Color Transition</SelectItem>
                 <SelectItem value="signal-diminish">Signal Diminish</SelectItem>
+                <SelectItem value="black-grey">Black to Light Grey</SelectItem>
                 <SelectItem value="custom">Custom</SelectItem>
               </SelectContent>
             </Select>
