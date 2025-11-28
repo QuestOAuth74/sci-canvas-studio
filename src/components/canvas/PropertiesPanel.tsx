@@ -144,9 +144,17 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   };
 
   const isLineObject = (obj: any) => {
-    return obj?.type === 'path' || 
+    // Check for connector groups (groups with connectorData)
+    const isConnectorGroup = obj?.type === 'group' && (obj as any)?.connectorData;
+    
+    return isConnectorGroup ||
+           obj?.type === 'path' || 
            obj?.type === 'line' || 
-           (obj as any)?.isFreeformLine;
+           (obj as any)?.isFreeformLine ||
+           (obj as any)?.isConnector ||
+           (obj as any)?.isCurvedLine ||
+           (obj as any)?.isOrthogonalLine ||
+           (obj as any)?.isStraightLine;
   };
 
   const isShapeObject = (obj: any) => {
