@@ -30,6 +30,7 @@ export interface ConnectorData {
   strokeWidth: number;
   strokeColor: string;
   waypoints?: Array<{ x: number; y: number }>;
+  gradientConfig?: any; // LineGradientConfig from effects.ts
 }
 
 export interface ShapeWithPorts extends FabricObject {

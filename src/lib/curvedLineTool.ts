@@ -16,6 +16,7 @@ export interface CurvedLineOptions {
   strokeColor?: string;
   snap?: boolean;
   gridSize?: number;
+  gradientConfig?: any; // LineGradientConfig from effects.ts
 }
 
 export class CurvedLineTool {
@@ -36,6 +37,7 @@ export class CurvedLineTool {
       strokeColor: options.strokeColor || '#000000',
       snap: options.snap !== undefined ? options.snap : true,
       gridSize: options.gridSize || 20,
+      gradientConfig: options.gradientConfig || undefined,
     };
   }
 

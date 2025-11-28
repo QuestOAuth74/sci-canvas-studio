@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadAllFonts, getBaseFontName, getCanvasFontFamily, normalizeCanvasTextFonts } from "@/lib/fontLoader";
 import { smoothFabricPath } from "@/lib/pathSmoothing";
-import { GradientConfig, ShadowConfig } from "@/types/effects";
+import { GradientConfig, ShadowConfig, LineGradientConfig } from "@/types/effects";
 import { throttle, debounce, RenderScheduler } from "@/lib/performanceUtils";
 import { safeDownloadDataUrl, reloadCanvasImagesWithCORS } from "@/lib/utils";
 import { removeBackground } from "@/lib/backgroundRemoval";
@@ -174,6 +174,10 @@ interface CanvasContextType {
   
   // Background removal
   removeImageBackground: () => Promise<void>;
+  
+  // Line gradient operations
+  applyLineGradient: (config: any) => void;
+  clearLineGradient: () => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -2110,6 +2114,121 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [selectedObject, canvas, saveState]);
 
+  // Line gradient operations
+  const applyLineGradient = useCallback((config: LineGradientConfig) => {
+    if (!selectedObject || !canvas) return;
+    
+    // Check if it's a line/connector object
+    const isLine = (selectedObject as any).isConnector || 
+                   selectedObject.type === 'path' || 
+                   selectedObject.type === 'line';
+    
+    if (!isLine) {
+      toast.error('Please select a line or connector');
+      return;
+    }
+
+    // Store gradient config on the object
+    (selectedObject as any).gradientConfig = config;
+
+    // Get the path object (might be inside a group for connectors)
+    let pathObj: any = selectedObject;
+    if (selectedObject.type === 'group') {
+      const group = selectedObject as Group;
+      pathObj = group._objects?.[0]; // First object in group is usually the path
+    }
+
+    if (!pathObj || (!pathObj.path && pathObj.type !== 'line')) {
+      toast.error('Invalid line object');
+      return;
+    }
+
+    // Calculate line start and end points
+    let startX = 0, startY = 0, endX = 0, endY = 0;
+    
+    if (pathObj.type === 'line') {
+      startX = pathObj.x1 || 0;
+      startY = pathObj.y1 || 0;
+      endX = pathObj.x2 || 0;
+      endY = pathObj.y2 || 0;
+    } else if (pathObj.path) {
+      // Extract start and end from path commands
+      const pathCommands = pathObj.path;
+      if (pathCommands && pathCommands.length > 0) {
+        const firstCmd = pathCommands[0];
+        const lastCmd = pathCommands[pathCommands.length - 1];
+        startX = firstCmd[1] || 0;
+        startY = firstCmd[2] || 0;
+        endX = lastCmd[lastCmd.length - 2] || 0;
+        endY = lastCmd[lastCmd.length - 1] || 0;
+      }
+    }
+
+    // Calculate line direction and length
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const lineLength = Math.sqrt(dx * dx + dy * dy);
+
+    if (lineLength === 0) {
+      toast.error('Invalid line length');
+      return;
+    }
+
+    // Normalize direction
+    const dirX = dx / lineLength;
+    const dirY = dy / lineLength;
+
+    // Reverse direction if needed
+    const finalDirX = config.direction === 'reverse' ? -dirX : dirX;
+    const finalDirY = config.direction === 'reverse' ? -dirY : dirY;
+
+    // Create gradient along the line
+    const gradient = new Gradient({
+      type: 'linear',
+      coords: {
+        x1: -lineLength / 2 * finalDirX,
+        y1: -lineLength / 2 * finalDirY,
+        x2: lineLength / 2 * finalDirX,
+        y2: lineLength / 2 * finalDirY,
+      },
+      colorStops: config.stops.map(stop => ({
+        offset: stop.offset,
+        color: stop.color,
+        opacity: stop.opacity || 1,
+      }))
+    });
+
+    pathObj.set('stroke', gradient);
+    canvas.requestRenderAll();
+    saveState();
+    toast.success('Line gradient applied');
+  }, [selectedObject, canvas, saveState]);
+
+  const clearLineGradient = useCallback(() => {
+    if (!selectedObject || !canvas) return;
+    
+    // Remove gradient config
+    delete (selectedObject as any).gradientConfig;
+
+    // Get the path object
+    let pathObj: any = selectedObject;
+    if (selectedObject.type === 'group') {
+      const group = selectedObject as Group;
+      pathObj = group._objects?.[0];
+    }
+
+    if (pathObj) {
+      // Reset to solid color (use existing stroke color or default)
+      const connectorData = (selectedObject as any).connectorData;
+      const defaultColor = connectorData?.strokeColor || '#000000';
+      pathObj.set('stroke', defaultColor);
+    }
+
+    canvas.requestRenderAll();
+    saveState();
+    toast.success('Line gradient cleared');
+  }, [selectedObject, canvas, saveState]);
+
   const value: CanvasContextType = {
     canvas,
     setCanvas,
@@ -2225,6 +2344,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     applyShadow,
     clearEffects,
     removeImageBackground,
+    applyLineGradient,
+    clearLineGradient,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

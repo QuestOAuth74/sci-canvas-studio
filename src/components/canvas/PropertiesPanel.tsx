@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { StylePanel } from "./StylePanel";
 import { ArrangePanel } from "./ArrangePanel";
 import { LinePropertiesPanel } from "./LinePropertiesPanel";
+import { LineGradientPanel } from "./LineGradientPanel";
 import { StylePresets } from "./StylePresets";
 import { ImageEraserDialog } from "./ImageEraserDialog";
 import { DiagramSettingsSection } from "./properties/DiagramSettingsSection";
@@ -1124,6 +1125,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
             {/* Line Properties Tab */}
             <TabsContent value="line" className="space-y-4 mt-0">
               <LinePropertiesPanel />
+              <LineGradientPanel />
               
               {/* Freeform Line Controls */}
               {selectedObject && (selectedObject as any).isFreeformLine && (
