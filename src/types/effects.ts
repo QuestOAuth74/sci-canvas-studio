@@ -37,6 +37,17 @@ export interface GlowConfig {
   spread?: number;
 }
 
+export interface LineGradientConfig {
+  type: 'none' | 'fade-out' | 'fade-in' | 'color-transition' | 'signal-diminish' | 'custom';
+  direction: 'along-path' | 'reverse';
+  solidStartPercent: number; // 0-100, how much solid at start
+  solidEndPercent: number;   // 0-100, how much solid at end
+  stops: GradientStop[];
+  startColor: string;
+  endColor: string;
+  endOpacity: number; // 0-1 for fade effects
+}
+
 // Gradient presets
 export const GRADIENT_PRESETS = [
   {
