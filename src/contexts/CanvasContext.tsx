@@ -2160,17 +2160,42 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     (selectedObject as any).gradientConfig = config;
     (targetObj as any).gradientConfig = config;
 
-    // Use percentage-based gradient - much simpler and works for any orientation!
-    // x1=0, x2=1 means gradient flows from start (0%) to end (100%) of the object
+    // Get the path's bounding box for pixel-based gradient calculation
+    const pathBounds = targetObj._getTransformedDimensions();
+
+    // Calculate gradient coordinates based on the path's local dimensions
+    // For paths, we use the path's own coordinate system
+    let gradientCoords: { x1: number; y1: number; x2: number; y2: number };
+
+    // Get the path's width and height
+    const width = pathBounds.x || targetObj.width || 100;
+    const height = pathBounds.y || targetObj.height || 2;
+
+    // Determine if it's more horizontal or vertical
+    const isHorizontal = width >= height;
+
+    if (isHorizontal) {
+      // Gradient flows left-to-right (or right-to-left if reversed)
+      gradientCoords = {
+        x1: config.direction === 'reverse' ? width / 2 : -width / 2,
+        y1: 0,
+        x2: config.direction === 'reverse' ? -width / 2 : width / 2,
+        y2: 0,
+      };
+    } else {
+      // Gradient flows top-to-bottom (or bottom-to-top if reversed)
+      gradientCoords = {
+        x1: 0,
+        y1: config.direction === 'reverse' ? height / 2 : -height / 2,
+        x2: 0,
+        y2: config.direction === 'reverse' ? -height / 2 : height / 2,
+      };
+    }
+
     const gradient = new Gradient({
       type: 'linear',
-      gradientUnits: 'percentage',
-      coords: {
-        x1: config.direction === 'reverse' ? 1 : 0,
-        y1: 0.5,
-        x2: config.direction === 'reverse' ? 0 : 1,
-        y2: 0.5,
-      },
+      gradientUnits: 'pixels',
+      coords: gradientCoords,
       colorStops: config.stops.map(stop => ({
         offset: stop.offset,
         color: stop.color,
