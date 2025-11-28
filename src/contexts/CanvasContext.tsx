@@ -2118,8 +2118,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const applyLineGradient = useCallback((config: LineGradientConfig) => {
     if (!selectedObject || !canvas) return;
     
-    // Check if it's a line/connector object
+    // Check if it's a line/connector/curved line
     const isLine = (selectedObject as any).isConnector || 
+                   (selectedObject as any).isCurvedLine ||
                    selectedObject.type === 'path' || 
                    selectedObject.type === 'line';
     
@@ -2131,74 +2132,46 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Store gradient config on the object
     (selectedObject as any).gradientConfig = config;
 
-    // Get the path object (might be inside a group for connectors)
-    let pathObj: any = selectedObject;
+    // Get the target object (path inside group or the object itself)
+    let targetObj: any = selectedObject;
     if (selectedObject.type === 'group') {
       const group = selectedObject as Group;
-      pathObj = group._objects?.[0]; // First object in group is usually the path
+      // Find the path inside the group (for connectors)
+      targetObj = group._objects?.find(obj => obj.type === 'path') || group._objects?.[0];
     }
 
-    if (!pathObj || (!pathObj.path && pathObj.type !== 'line')) {
+    if (!targetObj) {
       toast.error('Invalid line object');
       return;
     }
 
-    // Calculate line start and end points
-    let startX = 0, startY = 0, endX = 0, endY = 0;
-    
-    if (pathObj.type === 'line') {
-      startX = pathObj.x1 || 0;
-      startY = pathObj.y1 || 0;
-      endX = pathObj.x2 || 0;
-      endY = pathObj.y2 || 0;
-    } else if (pathObj.path) {
-      // Extract start and end from path commands
-      const pathCommands = pathObj.path;
-      if (pathCommands && pathCommands.length > 0) {
-        const firstCmd = pathCommands[0];
-        const lastCmd = pathCommands[pathCommands.length - 1];
-        startX = firstCmd[1] || 0;
-        startY = firstCmd[2] || 0;
-        endX = lastCmd[lastCmd.length - 2] || 0;
-        endY = lastCmd[lastCmd.length - 1] || 0;
-      }
-    }
-
-    // Calculate line direction and length
-    const dx = endX - startX;
-    const dy = endY - startY;
-    const lineLength = Math.sqrt(dx * dx + dy * dy);
-
-    if (lineLength === 0) {
-      toast.error('Invalid line length');
-      return;
-    }
-
-    // Normalize direction
-    const dirX = dx / lineLength;
-    const dirY = dy / lineLength;
-
-    // Reverse direction if needed
-    const finalDirX = config.direction === 'reverse' ? -dirX : dirX;
-    const finalDirY = config.direction === 'reverse' ? -dirY : dirY;
-
-    // Create gradient along the line
+    // Use percentage-based gradient - much simpler and works for any orientation!
+    // x1=0, x2=1 means gradient flows from start (0%) to end (100%) of the object
     const gradient = new Gradient({
       type: 'linear',
+      gradientUnits: 'percentage',
       coords: {
-        x1: -lineLength / 2 * finalDirX,
-        y1: -lineLength / 2 * finalDirY,
-        x2: lineLength / 2 * finalDirX,
-        y2: lineLength / 2 * finalDirY,
+        x1: config.direction === 'reverse' ? 1 : 0,
+        y1: 0.5,
+        x2: config.direction === 'reverse' ? 0 : 1,
+        y2: 0.5,
       },
       colorStops: config.stops.map(stop => ({
         offset: stop.offset,
         color: stop.color,
-        opacity: stop.opacity || 1,
+        opacity: stop.opacity ?? 1,
       }))
     });
 
-    pathObj.set('stroke', gradient);
+    // Apply gradient to stroke
+    targetObj.set('stroke', gradient);
+    targetObj.set('dirty', true);
+    
+    // Also mark parent group as dirty if applicable
+    if (selectedObject.type === 'group') {
+      (selectedObject as Group).set('dirty', true);
+    }
+
     canvas.requestRenderAll();
     saveState();
     toast.success('Line gradient applied');

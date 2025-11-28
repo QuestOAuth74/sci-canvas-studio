@@ -38,7 +38,7 @@ export interface GlowConfig {
 }
 
 export interface LineGradientConfig {
-  type: 'none' | 'fade-out' | 'fade-in' | 'color-transition' | 'signal-diminish' | 'custom';
+  type: 'none' | 'fade-out' | 'fade-in' | 'color-transition' | 'signal-diminish' | 'black-grey' | 'custom';
   direction: 'along-path' | 'reverse';
   solidStartPercent: number; // 0-100, how much solid at start
   solidEndPercent: number;   // 0-100, how much solid at end
