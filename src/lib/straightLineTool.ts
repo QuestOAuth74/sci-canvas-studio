@@ -353,7 +353,7 @@ export class StraightLineTool {
         startMarker.set({
           left: localStart.x,
           top: localStart.y,
-          angle: localAngle + groupAngle,
+          angle: localAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
         });
@@ -369,7 +369,7 @@ export class StraightLineTool {
         endMarker.set({
           left: localEnd.x,
           top: localEnd.y,
-          angle: localAngle + groupAngle,
+          angle: localAngle,
           scaleX: 1 / scaleX,
           scaleY: 1 / scaleY,
         });
