@@ -112,7 +112,14 @@ serve(async (req) => {
 
       const newViewCount = Math.max(0, Math.round((project.view_count || 0) * (1 + inflationPercent / 100)));
       const newLikeCount = Math.max(0, Math.round((project.like_count || 0) * (1 + inflationPercent / 100)));
-      const newClonedCount = Math.max(0, Math.round((project.cloned_count || 0) * (1 + inflationPercent / 100)));
+      
+      // Ensure clone count shows visible growth for small values
+      const baseClonedCount = project.cloned_count || 0;
+      const calculatedClonedCount = Math.round(baseClonedCount * (1 + inflationPercent / 100));
+      // Guarantee at least +1 for non-zero clone counts to show growth
+      const newClonedCount = baseClonedCount > 0 
+        ? Math.max(baseClonedCount + 1, calculatedClonedCount)
+        : 0;
 
       return {
         id: project.id,
