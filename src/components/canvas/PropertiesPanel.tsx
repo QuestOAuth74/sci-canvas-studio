@@ -119,6 +119,19 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     return null;
   };
 
+  // Helper function to check if object supports vertex editing
+  const isVertexEditableObject = (obj: FabricObject | null): boolean => {
+    if (!obj) return false;
+    return (
+      obj.type === 'path' ||
+      obj.type === 'polygon' ||
+      (obj as any).isFreeformLine ||
+      (obj as any).isCurvedLine ||
+      (obj as any).isOrthogonalLine ||
+      (obj as any).isStraightLine
+    );
+  };
+
   // Helper to detect if object is a shape-with-text group
   const isShapeWithTextGroup = (obj: any): boolean => {
     if (obj.type !== 'group') return false;
@@ -1486,8 +1499,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                 />
               )}
 
-              {/* Vertex Editing - Show for paths and polygons */}
-              {selectedObject && (selectedObject.type === 'path' || selectedObject.type === 'polygon' || (selectedObject as any).isFreeformLine) && (
+              {/* Vertex Editing - Show for all line types and shapes */}
+              {isVertexEditableObject(selectedObject) && (
                 <Accordion type="single" defaultValue="vertices" className="w-full mt-3 border-t pt-3">
                   <AccordionItem value="vertices" className="border-none">
                     <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">

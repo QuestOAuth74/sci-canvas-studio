@@ -1,4 +1,4 @@
-import { Canvas, Path, Polygon, Control, FabricObject, util, Point } from "fabric";
+import { Canvas, Path, Polygon, Control, FabricObject, util, Point, Group } from "fabric";
 
 export interface VertexData {
   index: number;
@@ -27,11 +27,31 @@ export class VertexEditingManager {
     }
 
     this.activeObject = object as Path | Polygon;
+    // Handle group-based lines (curved, orthogonal, straight)
+    const isGroupLine = (object as any).isCurvedLine || 
+      (object as any).isOrthogonalLine || 
+      (object as any).isStraightLine;
     
-    // Extract vertices based on object type
-    if (this.isPath(object)) {
+    if (isGroupLine && object.type === 'group') {
+      const group = object as Group;
+      // Find the main path (not arrow markers)
+      const mainPath = group.getObjects().find(obj => 
+        obj.type === 'path' && !(obj as any).isArrowMarker
+      ) as Path | undefined;
+      
+      if (!mainPath) {
+        console.warn('VertexEditingManager: No main path found in line group');
+        return false;
+      }
+      
+      // Store reference to main path for editing
+      this.activeObject = mainPath as Path | Polygon;
+      this.extractPathVertices(mainPath);
+    } else if (this.isPath(object)) {
+      this.activeObject = object as Path | Polygon;
       this.extractPathVertices(object as Path);
     } else if (this.isPolygon(object)) {
+      this.activeObject = object as Path | Polygon;
       this.extractPolygonVertices(object as Polygon);
     }
 
@@ -106,7 +126,25 @@ export class VertexEditingManager {
    * Check if an object can be edited for vertices
    */
   private isEditableObject(object: FabricObject): boolean {
-    return this.isPath(object) || this.isPolygon(object);
+    // Direct path or polygon
+    if (this.isPath(object) || this.isPolygon(object)) {
+      return true;
+    }
+    
+    // Group-based lines (curved, orthogonal, straight)
+    const isGroupLine = (object as any).isCurvedLine || 
+      (object as any).isOrthogonalLine || 
+      (object as any).isStraightLine;
+    
+    if (isGroupLine && object.type === 'group') {
+      const group = object as Group;
+      // Check if group contains a main path
+      return group.getObjects().some(obj => 
+        obj.type === 'path' && !(obj as any).isArrowMarker
+      );
+    }
+    
+    return false;
   }
 
   private isPath(object: FabricObject): boolean {

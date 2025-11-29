@@ -469,16 +469,24 @@ const CanvasContent = () => {
         flipHorizontal();
       }
 
-      // Toggle vertex editing (V) - only for paths and polygons
+      // Toggle vertex editing (V) - for all editable line types
       if (e.key === 'v' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !isEditingText) {
         e.preventDefault();
         const activeObject = canvas?.getActiveObject();
-        if (activeObject && (activeObject.type === 'path' || activeObject.type === 'polygon' || (activeObject as any).isFreeformLine)) {
+        const isEditable = activeObject && (
+          activeObject.type === 'path' || 
+          activeObject.type === 'polygon' ||
+          (activeObject as any).isFreeformLine ||
+          (activeObject as any).isCurvedLine ||
+          (activeObject as any).isOrthogonalLine ||
+          (activeObject as any).isStraightLine
+        );
+        if (isEditable) {
           const newState = !vertexEditingEnabled;
           setVertexEditingEnabled(newState);
           toast.info(`Vertex editing ${newState ? 'enabled' : 'disabled'}`);
         } else {
-          toast.error('Select a path or polygon to edit vertices');
+          toast.error('Select a path, polygon, or line to edit vertices');
         }
         return;
       }

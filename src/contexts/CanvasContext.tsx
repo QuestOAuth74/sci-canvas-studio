@@ -267,13 +267,26 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   useEffect(() => {
     if (selectedObject && vertexEditingEnabled) {
       const interval = setInterval(() => {
-        if (selectedObject && (selectedObject.type === 'path' || selectedObject.type === 'polygon')) {
-          if (selectedObject.type === 'polygon') {
-            setVertexCount((selectedObject as Polygon).points?.length || 0);
-          } else if (selectedObject.type === 'path') {
-            const pathData = (selectedObject as Path).path;
-            setVertexCount(pathData?.length || 0);
+        if (!selectedObject) return;
+        
+        // Handle group-based lines (curved, orthogonal, straight)
+        const isGroupLine = (selectedObject as any).isCurvedLine || 
+          (selectedObject as any).isOrthogonalLine || 
+          (selectedObject as any).isStraightLine;
+        
+        if (isGroupLine && selectedObject.type === 'group') {
+          const group = selectedObject as Group;
+          const mainPath = group.getObjects().find(obj => 
+            obj.type === 'path' && !(obj as any).isArrowMarker
+          ) as Path | undefined;
+          if (mainPath?.path) {
+            setVertexCount(mainPath.path.length || 0);
           }
+        } else if (selectedObject.type === 'polygon') {
+          setVertexCount((selectedObject as Polygon).points?.length || 0);
+        } else if (selectedObject.type === 'path') {
+          const pathData = (selectedObject as Path).path;
+          setVertexCount(pathData?.length || 0);
         }
       }, 500);
       return () => clearInterval(interval);
