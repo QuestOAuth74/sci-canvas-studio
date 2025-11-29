@@ -135,6 +135,96 @@ export class VertexEditingManager {
   }
 
   /**
+   * Insert a vertex on the closest edge to the given point
+   */
+  insertVertexOnEdge(clickX: number, clickY: number): boolean {
+    if (!this.activeObject) return false;
+
+    const target = this.parentGroup || this.activeObject;
+    const vertices = this.originalVertices;
+    
+    // Transform click coordinates to object local space
+    const localPoint = util.transformPoint(
+      { x: clickX, y: clickY },
+      util.invertTransform(target.calcTransformMatrix())
+    );
+
+    // Find the closest edge
+    let closestEdgeIndex = -1;
+    let minDistance = Infinity;
+    let insertPoint = { x: 0, y: 0 };
+
+    for (let i = 0; i < vertices.length; i++) {
+      const v1 = vertices[i];
+      const v2 = vertices[(i + 1) % vertices.length];
+      
+      // Skip control points
+      if (v1.isControl || v2.isControl) continue;
+
+      // Calculate distance from point to line segment
+      const result = this.pointToLineSegmentDistance(
+        localPoint.x, localPoint.y,
+        v1.x, v1.y,
+        v2.x, v2.y
+      );
+
+      if (result.distance < minDistance) {
+        minDistance = result.distance;
+        closestEdgeIndex = i;
+        insertPoint = result.closest;
+      }
+    }
+
+    // If click is within reasonable distance (20 pixels), insert vertex
+    if (closestEdgeIndex !== -1 && minDistance < 20) {
+      // Account for path offset in polygons
+      if (this.isPolygon(this.activeObject)) {
+        const polygon = this.activeObject as Polygon;
+        const pathOffset = polygon.pathOffset || { x: 0, y: 0 };
+        insertPoint.x += pathOffset.x;
+        insertPoint.y += pathOffset.y;
+      }
+
+      return this.addVertex(closestEdgeIndex, insertPoint.x, insertPoint.y);
+    }
+
+    return false;
+  }
+
+  /**
+   * Calculate distance from a point to a line segment
+   */
+  private pointToLineSegmentDistance(
+    px: number, py: number,
+    x1: number, y1: number,
+    x2: number, y2: number
+  ): { distance: number; closest: { x: number; y: number } } {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lengthSquared = dx * dx + dy * dy;
+
+    if (lengthSquared === 0) {
+      // Line segment is a point
+      const dist = Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1));
+      return { distance: dist, closest: { x: x1, y: y1 } };
+    }
+
+    // Calculate projection of point onto line segment
+    let t = ((px - x1) * dx + (py - y1) * dy) / lengthSquared;
+    t = Math.max(0, Math.min(1, t)); // Clamp to [0, 1]
+
+    const closestX = x1 + t * dx;
+    const closestY = y1 + t * dy;
+    
+    const distance = Math.sqrt(
+      (px - closestX) * (px - closestX) + 
+      (py - closestY) * (py - closestY)
+    );
+
+    return { distance, closest: { x: closestX, y: closestY } };
+  }
+
+  /**
    * Check if an object can be edited for vertices
    */
   private isEditableObject(object: FabricObject): boolean {

@@ -711,9 +711,30 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Handle double-click for vertex editing, image placeholders and text box editing
+    // Handle double-click for vertex editing, edge insertion, image placeholders and text box editing
     canvas.on('mouse:dblclick', (e) => {
       const obj = e.target;
+      
+      // Handle vertex edge insertion when vertex editing is enabled
+      if (vertexEditingEnabled && obj && vertexEditingManagerRef.current) {
+        const isVertexEditable = (
+          obj.type === 'path' ||
+          obj.type === 'polygon' ||
+          (obj as any).isFreeformLine ||
+          (obj as any).isCurvedLine ||
+          (obj as any).isOrthogonalLine ||
+          (obj as any).isStraightLine
+        );
+        
+        if (isVertexEditable && e.pointer) {
+          // Try to insert vertex on edge at click position
+          const inserted = vertexEditingManagerRef.current.insertVertexOnEdge(e.pointer.x, e.pointer.y);
+          if (inserted) {
+            toast.success("Vertex added on edge");
+            return;
+          }
+        }
+      }
       
       // Handle vertex editing activation on double-click
       const isVertexEditable = obj && (
@@ -729,7 +750,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         const newState = !vertexEditingEnabled;
         setVertexEditingEnabled(newState);
         if (newState) {
-          toast.success("Vertex editing enabled - Double-click again or press ESC to exit");
+          toast.success("Vertex editing enabled - Double-click edges to add vertices");
         } else {
           toast.info("Vertex editing disabled");
         }
