@@ -72,6 +72,28 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const [isDuplicating, setIsDuplicating] = useState(false);
   const clonedObjectRef = useRef<FabricObject | null>(null);
 
+  // Helper functions for main-thread SVG processing (fallback when Web Worker fails)
+  const calculateSVGComplexityMainThread = (svgContent: string): number => {
+    let score = 0;
+    score += (svgContent.match(/<path/g) || []).length * 5;
+    score += (svgContent.match(/<polygon/g) || []).length * 3;
+    score += (svgContent.match(/<circle/g) || []).length * 1;
+    score += (svgContent.match(/<rect/g) || []).length * 1;
+    score += (svgContent.match(/<text/g) || []).length * 2;
+    score += (svgContent.match(/transform=/g) || []).length * 2;
+    score += (svgContent.match(/filter=/g) || []).length * 10;
+    return score;
+  };
+
+  const simplifySVGMainThread = (svgContent: string): string => {
+    return svgContent
+      .replace(/id="[^"]*"/g, '')
+      .replace(/class="[^"]*"/g, '')
+      .replace(/style="[^"]*opacity:\s*0[^"]*"/g, 'style="display:none"')
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
   const bezierToolRef = useRef<EnhancedBezierTool | null>(null);
   const straightLineToolRef = useRef<StraightLineTool | null>(null);
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
@@ -778,43 +800,62 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           return;
         }
         
-        // Process SVG in Web Worker for validation
-        const worker = new Worker(new URL('@/lib/svgWorker.ts', import.meta.url), { type: 'module' });
+        // Process SVG with Web Worker, fallback to main thread if worker fails
+        let processedSVG = svgData;
+        let complexity = 0;
         
-        const workerResult = await new Promise<any>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            worker.terminate();
-            reject(new Error('Worker timeout'));
-          }, 10000);
+        try {
+          // Attempt Web Worker processing
+          const worker = new Worker(new URL('@/lib/svgWorker.ts', import.meta.url), { type: 'module' });
           
-          worker.onmessage = (e) => {
-            clearTimeout(timeout);
-            worker.terminate();
-            resolve(e.data);
-          };
-          
-          worker.onerror = (err) => {
-            clearTimeout(timeout);
-            worker.terminate();
-            reject(err);
-          };
-          
-          worker.postMessage({ type: 'parse', svgContent: svgData, id: iconId || 'temp' });
-        });
-        
-        // Show any warnings from worker (but continue loading)
-        if (workerResult.data?.warnings?.length > 0) {
-          workerResult.data.warnings.forEach((warning: string) => {
-            toast.warning(warning, {
-              description: 'Icon will still load, but performance may be affected.',
-              duration: 5000
-            });
+          const workerResult = await new Promise<any>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              worker.terminate();
+              reject(new Error('Worker timeout'));
+            }, 10000);
+            
+            worker.onmessage = (e) => {
+              clearTimeout(timeout);
+              worker.terminate();
+              resolve(e.data);
+            };
+            
+            worker.onerror = (err) => {
+              clearTimeout(timeout);
+              worker.terminate();
+              reject(err);
+            };
+            
+            worker.postMessage({ type: 'parse', svgContent: svgData, id: iconId || 'temp' });
           });
+          
+          // Show any warnings from worker (but continue loading)
+          if (workerResult.data?.warnings?.length > 0) {
+            workerResult.data.warnings.forEach((warning: string) => {
+              toast.warning(warning, {
+                description: 'Icon will still load, but performance may be affected.',
+                duration: 5000
+              });
+            });
+          }
+          
+          processedSVG = workerResult.data.svgContent;
+          complexity = workerResult.data.complexity;
+          console.log('Worker processed SVG, complexity:', complexity);
+          
+        } catch (workerError) {
+          // FALLBACK: Process on main thread if worker fails
+          console.warn('Web Worker failed, falling back to main thread:', workerError);
+          
+          // Calculate complexity on main thread
+          complexity = calculateSVGComplexityMainThread(svgData);
+          
+          // Apply simplification for complex SVGs
+          if (complexity > 500 || svgData.length > 512 * 1024) {
+            processedSVG = simplifySVGMainThread(svgData);
+            console.log('Main thread simplified SVG, complexity:', complexity);
+          }
         }
-        
-        // Always use the processed SVG - no blocking
-        const processedSVG = workerResult.data.svgContent;
-        console.log('Worker processed SVG, complexity:', workerResult.data.complexity);
         
         // Sanitize SVG before parsing to fix namespace issues
         const sanitizedSVG = sanitizeSVGNamespaces(processedSVG);
@@ -832,13 +873,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         
         const group = util.groupSVGElements(objects, options);
         
-        // Calculate complexity and apply optimizations
-        const complexity = calculateObjectComplexity(group);
-        console.log('Object complexity:', complexity);
+        // Calculate object complexity and apply optimizations
+        const objectComplexity = calculateObjectComplexity(group);
+        console.log('Object complexity:', objectComplexity);
         
-        if (shouldSimplifyControls(complexity)) {
-          applyComplexityOptimizations(group, complexity);
-          toast.info(`Complex icon (${complexity.totalObjects} objects)`, {
+        if (shouldSimplifyControls(objectComplexity)) {
+          applyComplexityOptimizations(group, objectComplexity);
+          toast.info(`Complex icon (${objectComplexity.totalObjects} objects)`, {
             description: 'Simplified controls applied for better performance'
           });
         }
@@ -850,7 +891,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             svgContent: sanitizedSVG,
             parsedData: group.toObject(),
             timestamp: Date.now(),
-            complexity: workerResult.data.complexity
+            complexity: complexity
           });
         }
         
