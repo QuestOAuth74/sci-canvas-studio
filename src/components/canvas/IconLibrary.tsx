@@ -745,18 +745,42 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                     });
                   }}
                 >
-                  {unpinnedCategories.map((category) => {
+                  {unpinnedCategories.map((category, index) => {
+                    // Insert AI Icons entry just before Anatomy category
+                    const isAnatomyCategory = category.name === 'Anatomy';
+                    const showAIIconsEntry = isAnatomyCategory && onAIIconGenerate && index === unpinnedCategories.findIndex(c => c.name === 'Anatomy');
                     const categoryIcons = iconsByCategory[category.id] || [];
                     const totalPages = getTotalPages(categoryIcons);
                     const currentPage = getCurrentPage(category.id);
                     const paginatedIcons = getPaginatedIcons(category.id, categoryIcons);
                     
                     return (
-                      <AccordionItem 
-                        key={category.id} 
-                        value={category.id}
-                        className="border border-border/40 rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm"
-                      >
+                      <>
+                        {/* AI Icons Entry - shown before Anatomy */}
+                        {showAIIconsEntry && (
+                          <div 
+                            onClick={onAIIconGenerate}
+                            className="border-2 border-purple-500/40 rounded-lg overflow-hidden 
+                                       bg-gradient-to-r from-purple-500/10 via-pink-500/5 to-purple-500/10 
+                                       cursor-pointer hover:border-purple-500/60 transition-all mb-2 animate-fade-in"
+                          >
+                            <div className="px-3 py-2.5 flex items-center gap-2">
+                              <Sparkles className="h-4 w-4 text-purple-500" />
+                              <span className="text-sm font-bold text-foreground">
+                                AI Icons
+                              </span>
+                              <span className="text-xs text-muted-foreground ml-auto">
+                                Generate custom icons
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                        
+                        <AccordionItem 
+                          key={category.id} 
+                          value={category.id}
+                          className="border border-border/40 rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm"
+                        >
                         <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                           <div className="flex items-center justify-between w-full pr-2">
                             <div className="flex items-center gap-2">
@@ -835,6 +859,7 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                           )}
                         </AccordionContent>
                       </AccordionItem>
+                      </>
                     );
                   })}
                 </Accordion>
