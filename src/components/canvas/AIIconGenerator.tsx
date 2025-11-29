@@ -13,7 +13,7 @@ import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, Refresh
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
-import { removeBackground, loadImage, removeUniformBackgroundByFloodFill } from '@/lib/backgroundRemoval';
+import { removeBackground, loadImage, removeUniformBackgroundByFloodFill, BackgroundRemovalProgress } from '@/lib/backgroundRemoval';
 import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
 import { cn } from '@/lib/utils';
 
@@ -349,6 +349,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   
   const [stage, setStage] = useState<GenerationStage>('idle');
   const [progress, setProgress] = useState(0);
+  const [progressMessage, setProgressMessage] = useState<string>('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
   // Load categories
@@ -531,6 +532,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         } else {
           // User wants transparent background - ALWAYS run background removal
           console.log('🧹 Ensuring transparent background...');
+          setProgressMessage('Preparing background removal...');
           const srcBlob = await dataUrlToBlob(data.generatedImage);
           const imgEl = await loadImage(srcBlob);
 
@@ -539,11 +541,18 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           try {
             // Try AI segmentation first (best quality)
             console.log('🤖 Attempting AI background removal...');
-            finalBlob = await removeBackground(imgEl);
+            setProgressMessage('Loading AI background removal model...');
+            finalBlob = await removeBackground(imgEl, (bgProgress: BackgroundRemovalProgress) => {
+              // Map background removal progress to 90-100% range
+              const mappedProgress = 90 + (bgProgress.progress * 0.1);
+              setProgress(Math.round(mappedProgress));
+              setProgressMessage(bgProgress.message);
+            });
             console.log('✅ AI background removal successful');
           } catch (aiError) {
             // Fallback to universal flood-fill removal (handles any uniform background)
             console.warn('⚠️ AI removal failed, using flood-fill fallback:', aiError);
+            setProgressMessage('Using fallback background removal...');
             finalBlob = await removeUniformBackgroundByFloodFill(imgEl, { tolerance: 30 });
             console.log('✅ Flood-fill background removal successful');
           }
@@ -830,6 +839,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setGeneratedImage(null);
     setStage('idle');
     setProgress(0);
+    setProgressMessage('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -839,6 +849,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setGeneratedImage(null);
     setStage('idle');
     setProgress(0);
+    setProgressMessage('');
   };
 
   const isGenerating = stage === 'generating';
@@ -1086,8 +1097,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                 <Label>Progress</Label>
                 <Progress value={progress} className="w-full" />
                 <p className="text-sm text-muted-foreground text-center">
-                  {isGenerating && 'Generating your icon with AI...'}
-                  {isSaving && 'Saving to your library...'}
+                  {progressMessage || (isGenerating && 'Generating your icon with AI...') || (isSaving && 'Saving to your library...')}
                 </p>
               </div>
             )}

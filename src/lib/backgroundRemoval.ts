@@ -31,8 +31,18 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
   return false;
 }
 
-export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
+export interface BackgroundRemovalProgress {
+  stage: 'loading' | 'processing' | 'applying' | 'complete';
+  progress: number; // 0-100
+  message: string;
+}
+
+export const removeBackground = async (
+  imageElement: HTMLImageElement,
+  onProgress?: (progress: BackgroundRemovalProgress) => void
+): Promise<Blob> => {
   try {
+    onProgress?.({ stage: 'loading', progress: 0, message: 'Loading AI model...' });
     console.log('Starting background removal process...');
     console.log('Loading AI model... This may take 10-30 seconds on first use.');
     
@@ -45,7 +55,11 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
       )
     ]) as any;
     
+    onProgress?.({ stage: 'loading', progress: 40, message: 'Model loaded successfully!' });
+    
     console.log('Model loaded successfully!');
+    
+    onProgress?.({ stage: 'processing', progress: 50, message: 'Processing image...' });
     
     // Convert HTMLImageElement to canvas
     const canvas = document.createElement('canvas');
@@ -60,6 +74,8 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     // Get image data as base64 (PNG for lossless quality)
     const imageData = canvas.toDataURL('image/png');
     console.log('Image converted to base64');
+    
+    onProgress?.({ stage: 'processing', progress: 60, message: 'Analyzing image...' });
     
     // Process the image with the segmentation model
     console.log('Processing with segmentation model...');
@@ -145,6 +161,8 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
       throw new Error('No valid mask found in segmentation result');
     }
     
+    onProgress?.({ stage: 'applying', progress: 75, message: 'Removing background...' });
+    
     // Create a new canvas for the masked image
     const outputCanvas = document.createElement('canvas');
     outputCanvas.width = canvas.width;
@@ -198,12 +216,15 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     outputCtx.putImageData(outputImageData, 0, 0);
     console.log('Mask applied successfully');
     
+    onProgress?.({ stage: 'complete', progress: 95, message: 'Finalizing...' });
+    
     // Convert canvas to blob
     return new Promise((resolve, reject) => {
       outputCanvas.toBlob(
         (blob) => {
           if (blob) {
             console.log('Successfully created final blob');
+            onProgress?.({ stage: 'complete', progress: 100, message: 'Complete!' });
             resolve(blob);
           } else {
             reject(new Error('Failed to create blob'));
