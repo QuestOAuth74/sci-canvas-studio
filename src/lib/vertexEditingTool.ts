@@ -326,13 +326,20 @@ export class VertexEditingManager {
       
       // Draw vertex handle
       ctx.beginPath();
-      const size = vertex.isControl ? 4 : 6;
+      const size = vertex.isControl ? 5 : 7;
       ctx.arc(left, top, size, 0, Math.PI * 2);
+      
+      // Add subtle shadow for depth
+      ctx.shadowBlur = 3;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+      ctx.shadowOffsetY = 1;
       
       // Different colors for control points vs regular vertices
       ctx.fillStyle = vertex.isControl ? '#8b5cf6' : '#0D9488';
       ctx.fill();
       
+      // White border for contrast
+      ctx.shadowBlur = 0;
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
       ctx.stroke();
@@ -397,8 +404,39 @@ export class VertexEditingManager {
    * Add a vertex to a path
    */
   private addPathVertex(index: number, x: number, y: number): boolean {
-    // TODO: Implement path vertex insertion
-    console.log('Add path vertex not yet implemented');
+    if (!this.activeObject || !this.isPath(this.activeObject)) return false;
+    
+    const path = this.activeObject as Path;
+    if (!path.path || path.path.length === 0) return false;
+
+    // Find the segment to split
+    let currentIndex = 0;
+    for (let i = 0; i < path.path.length; i++) {
+      const command = path.path[i];
+      const cmd = command[0];
+
+      if (cmd === 'M' || cmd === 'L') {
+        if (currentIndex === index) {
+          // Insert a new L command after this point
+          const newCommand: any = ['L', x, y];
+          path.path.splice(i + 1, 0, newCommand);
+          path.setCoords();
+          path.dirty = true;
+          this.canvas.requestRenderAll();
+          
+          // Re-enable vertex editing with updated vertices
+          this.disableVertexEditing();
+          this.enableVertexEditing(path);
+          return true;
+        }
+        currentIndex++;
+      } else if (cmd === 'Q') {
+        currentIndex += 2;
+      } else if (cmd === 'C') {
+        currentIndex += 3;
+      }
+    }
+    
     return false;
   }
 
@@ -406,8 +444,51 @@ export class VertexEditingManager {
    * Remove a vertex from a path
    */
   private removePathVertex(index: number): boolean {
-    // TODO: Implement path vertex removal
-    console.log('Remove path vertex not yet implemented');
+    if (!this.activeObject || !this.isPath(this.activeObject)) return false;
+    
+    const path = this.activeObject as Path;
+    if (!path.path || path.path.length <= 3) return false; // Need at least 3 commands (M + 2 points)
+
+    // Find the command to remove
+    let currentIndex = 0;
+    for (let i = 0; i < path.path.length; i++) {
+      const command = path.path[i];
+      const cmd = command[0];
+
+      if (cmd === 'M') {
+        if (currentIndex === index && i > 0) {
+          // Can't remove the first M command, but can remove subsequent ones
+          path.path.splice(i, 1);
+          path.setCoords();
+          path.dirty = true;
+          this.canvas.requestRenderAll();
+          
+          // Re-enable vertex editing with updated vertices
+          this.disableVertexEditing();
+          this.enableVertexEditing(path);
+          return true;
+        }
+        currentIndex++;
+      } else if (cmd === 'L') {
+        if (currentIndex === index) {
+          path.path.splice(i, 1);
+          path.setCoords();
+          path.dirty = true;
+          this.canvas.requestRenderAll();
+          
+          // Re-enable vertex editing with updated vertices
+          this.disableVertexEditing();
+          this.enableVertexEditing(path);
+          return true;
+        }
+        currentIndex++;
+      } else if (cmd === 'Q') {
+        currentIndex += 2;
+      } else if (cmd === 'C') {
+        currentIndex += 3;
+      }
+    }
+    
     return false;
   }
 
