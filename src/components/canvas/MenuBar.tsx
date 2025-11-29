@@ -14,7 +14,7 @@ import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialo
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeCanvasTextFonts } from "@/lib/fontLoader";
-import { Type, History, GraduationCap, Palette } from "lucide-react";
+import { Type, History, GraduationCap, Palette, RefreshCw } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 
 interface MenuBarProps {
@@ -103,6 +103,17 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
     } catch (error) {
       console.error('Failed to repair curved lines:', error);
       toast.error("Failed to repair curved lines");
+    }
+  };
+
+  const handleClearIconCache = async () => {
+    try {
+      const { iconCache } = await import('@/lib/iconCache');
+      await iconCache.clear();
+      toast.success("Icon cache cleared! Icons will reload fresh from database on next use.");
+    } catch (error) {
+      console.error('Failed to clear icon cache:', error);
+      toast.error("Failed to clear icon cache");
     }
   };
 
@@ -213,6 +224,10 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
             </MenubarItem>
             <MenubarItem onClick={handleRepairCurvedLines}>
               Repair Curved Lines
+            </MenubarItem>
+            <MenubarItem onClick={handleClearIconCache}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Clear Icon Cache
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={zoomIn}>Zoom In</MenubarItem>
