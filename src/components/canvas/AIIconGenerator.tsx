@@ -16,6 +16,9 @@ import { useUserAssets } from '@/hooks/useUserAssets';
 import { removeBackground, loadImage, removeUniformBackgroundByFloodFill, BackgroundRemovalProgress } from '@/lib/backgroundRemoval';
 import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
 import { cn } from '@/lib/utils';
+import pencilExample from '@/assets/ai-icon-styles/pencil-example.jpg';
+import biomedicalExample from '@/assets/ai-icon-styles/biomedical-example.jpg';
+import oilExample from '@/assets/ai-icon-styles/oil-example.jpg';
 
 interface AIIconGeneratorProps {
   open: boolean;
@@ -27,21 +30,24 @@ type StylePreset = 'pencil' | 'biomedical' | 'oil';
 type GenerationStage = 'idle' | 'uploading' | 'generating' | 'saving' | 'complete' | 'error';
 type CreativityLevel = 'faithful' | 'balanced' | 'creative';
 
-const styleDescriptions: Record<StylePreset, { label: string; desc: string; icon: React.ReactNode }> = {
+const styleDescriptions: Record<StylePreset, { label: string; desc: string; icon: React.ReactNode; example: string }> = {
   pencil: {
     label: 'Pencil Art',
     desc: 'Hand-drawn scientific sketch with fine line work and cross-hatching',
-    icon: <Pencil className="h-5 w-5" />
+    icon: <Pencil className="h-5 w-5" />,
+    example: pencilExample
   },
   biomedical: {
     label: 'Biomedical Vector',
     desc: 'Clean flat vectors with soft pastel gradients - publication ready',
-    icon: <Shapes className="h-5 w-5" />
+    icon: <Shapes className="h-5 w-5" />,
+    example: biomedicalExample
   },
   oil: {
     label: 'Oil Painting',
     desc: 'Rich textured brushstrokes with dramatic artistic lighting',
-    icon: <Palette className="h-5 w-5" />
+    icon: <Palette className="h-5 w-5" />,
+    example: oilExample
   }
 };
 
@@ -785,18 +791,27 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                     onClick={() => setStyle(styleKey)}
                     disabled={isGenerating || isSaving}
                     className={cn(
-                      "p-4 rounded-lg border-2 text-left transition-all",
+                      "p-3 rounded-lg border-2 text-left transition-all overflow-hidden",
                       style === styleKey
-                        ? "border-primary bg-primary/5"
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                         : "border-border hover:border-primary/50",
                       (isGenerating || isSaving) && "opacity-50 cursor-not-allowed"
                     )}
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      {styleDescriptions[styleKey].icon}
-                      <span className="font-medium">{styleDescriptions[styleKey].label}</span>
+                    {/* Example Preview Image */}
+                    <div className="mb-2 rounded overflow-hidden border border-border/50">
+                      <img 
+                        src={styleDescriptions[styleKey].example} 
+                        alt={`${styleDescriptions[styleKey].label} example`}
+                        className="w-full h-20 object-cover"
+                      />
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    
+                    <div className="flex items-center gap-2 mb-1">
+                      {styleDescriptions[styleKey].icon}
+                      <span className="font-medium text-sm">{styleDescriptions[styleKey].label}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-tight">
                       {styleDescriptions[styleKey].desc}
                     </p>
                   </button>
