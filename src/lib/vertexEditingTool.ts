@@ -10,6 +10,8 @@ export interface VertexData {
 export class VertexEditingManager {
   private canvas: Canvas;
   private activeObject: Path | Polygon | null = null;
+  private parentGroup: Group | null = null; // For group-based lines
+  private mainPath: Path | null = null; // The actual path inside a group
   private originalVertices: VertexData[] = [];
   private vertexHandles: Map<number, Control> = new Map();
 
@@ -26,7 +28,6 @@ export class VertexEditingManager {
       return false;
     }
 
-    this.activeObject = object as Path | Polygon;
     // Handle group-based lines (curved, orthogonal, straight)
     const isGroupLine = (object as any).isCurvedLine || 
       (object as any).isOrthogonalLine || 
@@ -44,15 +45,24 @@ export class VertexEditingManager {
         return false;
       }
       
-      // Store reference to main path for editing
-      this.activeObject = mainPath as Path | Polygon;
+      // Store references for group-based line editing
+      this.parentGroup = group;
+      this.mainPath = mainPath;
+      this.activeObject = group as any; // Controls go on the group so they render
       this.extractPathVertices(mainPath);
+      console.log('VertexEditingManager: Enabled for group-based line, vertices:', this.originalVertices.length);
     } else if (this.isPath(object)) {
+      this.parentGroup = null;
+      this.mainPath = null;
       this.activeObject = object as Path | Polygon;
       this.extractPathVertices(object as Path);
+      console.log('VertexEditingManager: Enabled for path, vertices:', this.originalVertices.length);
     } else if (this.isPolygon(object)) {
+      this.parentGroup = null;
+      this.mainPath = null;
       this.activeObject = object as Path | Polygon;
       this.extractPolygonVertices(object as Polygon);
+      console.log('VertexEditingManager: Enabled for polygon, vertices:', this.originalVertices.length);
     }
 
     // Add custom vertex controls
@@ -75,6 +85,8 @@ export class VertexEditingManager {
     
     // Clear state
     this.activeObject = null;
+    this.parentGroup = null;
+    this.mainPath = null;
     this.originalVertices = [];
     this.vertexHandles.clear();
     
@@ -297,23 +309,31 @@ export class VertexEditingManager {
    */
   private createPositionHandler(vertex: VertexData) {
     return (dim: any, finalMatrix: any, fabricObject: FabricObject) => {
+      // For group-based lines, use the mainPath coordinates but apply group transform
+      if (this.parentGroup && this.mainPath) {
+        const localPoint = { x: vertex.x, y: vertex.y };
+        const transformed = util.transformPoint(
+          localPoint,
+          this.parentGroup.calcTransformMatrix()
+        );
+        return new Point(transformed.x, transformed.y);
+      }
+      
       if (this.isPolygon(fabricObject)) {
         const polygon = fabricObject as Polygon;
         const point = polygon.points![vertex.index];
-        return new Point(
-          util.transformPoint(
-            { x: point.x, y: point.y },
-            polygon.calcTransformMatrix()
-          )
+        const transformed = util.transformPoint(
+          { x: point.x, y: point.y },
+          polygon.calcTransformMatrix()
         );
+        return new Point(transformed.x, transformed.y);
       } else if (this.isPath(fabricObject)) {
         // For paths, transform the local vertex position
-        return new Point(
-          util.transformPoint(
-            { x: vertex.x, y: vertex.y },
-            fabricObject.calcTransformMatrix()
-          )
+        const transformed = util.transformPoint(
+          { x: vertex.x, y: vertex.y },
+          fabricObject.calcTransformMatrix()
         );
+        return new Point(transformed.x, transformed.y);
       }
       return new Point(0, 0);
     };
@@ -325,6 +345,26 @@ export class VertexEditingManager {
   private createActionHandler(vertex: VertexData) {
     return (eventData: MouseEvent, transform: any, x: number, y: number): boolean => {
       const target = transform.target;
+      
+      // For group-based lines, transform coordinates and update the mainPath
+      if (this.parentGroup && this.mainPath) {
+        // Transform from canvas space to group local space
+        const groupLocalPoint = util.transformPoint(
+          { x, y },
+          util.invertTransform(this.parentGroup.calcTransformMatrix())
+        );
+        
+        // Update the mainPath with the new vertex position
+        this.updatePathVertex(this.mainPath, vertex.index, groupLocalPoint.x, groupLocalPoint.y);
+        
+        // Mark both path and group as dirty
+        this.mainPath.dirty = true;
+        this.parentGroup.dirty = true;
+        this.parentGroup.setCoords();
+        
+        this.canvas.requestRenderAll();
+        return true;
+      }
       
       // Transform world coordinates back to local object space
       const localPoint = util.transformPoint(
