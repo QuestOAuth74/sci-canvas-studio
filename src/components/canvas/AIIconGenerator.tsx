@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Dna, TestTube, Microscope, Heart, Pill, Syringe, FlaskConical, Activity, Brain, Droplet } from 'lucide-react';
+import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Dna, TestTube, Microscope, Heart, Pill, Syringe, FlaskConical, Activity, Brain, Droplet, Target, Scale } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
@@ -28,6 +28,7 @@ type StylePreset =
   | 'molecular-structure' | 'organ-system' | 'lab-equipment' | 'pathway-diagram'
   | 'microscopy' | 'medical' | 'biochemical' | 'cellular' | 'simple' | 'detailed';
 type GenerationStage = 'idle' | 'uploading' | 'generating' | 'saving' | 'complete' | 'error';
+type CreativityLevel = 'faithful' | 'balanced' | 'creative';
 
 interface IconTemplate {
   id: string;
@@ -235,6 +236,25 @@ const iconTemplates: IconTemplate[] = [
   },
 ];
 
+// Creativity level configuration
+const creativityLevels = {
+  faithful: {
+    label: 'Faithful',
+    icon: Target,
+    description: 'Closely follows reference with minimal changes',
+  },
+  balanced: {
+    label: 'Balanced',
+    icon: Scale,
+    description: 'Moderate interpretation with scientific accuracy',
+  },
+  creative: {
+    label: 'Creative',
+    icon: Sparkles,
+    description: 'Artistic freedom with imaginative interpretation',
+  }
+};
+
 // Helper functions for image processing
 const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
   const res = await fetch(dataUrl);
@@ -317,6 +337,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   // Generation state
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<StylePreset>('simple');
+  const [creativityLevel, setCreativityLevel] = useState<CreativityLevel>('balanced');
   
   // Common state
   const [iconName, setIconName] = useState('');
@@ -467,6 +488,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           prompt: prompt.trim(),
           style,
           backgroundType,
+          creativityLevel,
         }
       });
 
@@ -1000,6 +1022,36 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                     </SelectItem>
                   </SelectContent>
                 </Select>
+            </div>
+
+            {/* Creativity Level Selector */}
+            <div className="space-y-2">
+              <Label>AI Creativity Level</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(creativityLevels).map(([key, level]) => {
+                  const Icon = level.icon;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setCreativityLevel(key as CreativityLevel)}
+                      disabled={isGenerating || isSaving}
+                      className={cn(
+                        "flex flex-col items-center p-3 rounded-lg border transition-all text-center",
+                        creativityLevel === key 
+                          ? "border-primary bg-primary/10 ring-2 ring-primary/20" 
+                          : "border-border hover:border-primary/50",
+                        (isGenerating || isSaving) && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <Icon className="h-5 w-5 mb-1" />
+                      <span className="text-sm font-medium">{level.label}</span>
+                      <span className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
+                        {level.description}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {!generatedImage && (
