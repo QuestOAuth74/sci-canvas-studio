@@ -532,7 +532,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       
       // Handle vertex editing for paths and polygons
       if (vertexEditingManagerRef.current && vertexEditingEnabled) {
-        if (uiSelected && (uiSelected.type === 'path' || uiSelected.type === 'polygon' || (uiSelected as any).isFreeformLine)) {
+        const isEditable = uiSelected && (
+          uiSelected.type === 'path' || 
+          uiSelected.type === 'polygon' || 
+          (uiSelected as any).isFreeformLine ||
+          (uiSelected as any).isCurvedLine ||
+          (uiSelected as any).isOrthogonalLine ||
+          (uiSelected as any).isStraightLine
+        );
+        if (isEditable) {
           vertexEditingManagerRef.current.enableVertexEditing(uiSelected);
         }
       }
@@ -583,7 +591,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       
       // Handle vertex editing for paths and polygons
       if (vertexEditingManagerRef.current && vertexEditingEnabled) {
-        if (uiSelected && (uiSelected.type === 'path' || uiSelected.type === 'polygon' || (uiSelected as any).isFreeformLine)) {
+        const isEditable = uiSelected && (
+          uiSelected.type === 'path' || 
+          uiSelected.type === 'polygon' || 
+          (uiSelected as any).isFreeformLine ||
+          (uiSelected as any).isCurvedLine ||
+          (uiSelected as any).isOrthogonalLine ||
+          (uiSelected as any).isStraightLine
+        );
+        if (isEditable) {
           vertexEditingManagerRef.current.enableVertexEditing(uiSelected);
         }
       }
@@ -1107,7 +1123,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     const selected = canvas.getActiveObject();
     if (!selected) return;
     
-    if (vertexEditingEnabled && (selected.type === 'path' || selected.type === 'polygon' || (selected as any).isFreeformLine)) {
+    const isEditable = selected.type === 'path' || 
+      selected.type === 'polygon' || 
+      (selected as any).isFreeformLine ||
+      (selected as any).isCurvedLine ||
+      (selected as any).isOrthogonalLine ||
+      (selected as any).isStraightLine;
+    
+    if (vertexEditingEnabled && isEditable) {
       const success = vertexEditingManagerRef.current.enableVertexEditing(selected);
       if (success) {
         canvas.requestRenderAll();
