@@ -351,6 +351,10 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState<string>('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  
+  // Refinement state
+  const [refinementFeedback, setRefinementFeedback] = useState('');
+  const [refinementHistory, setRefinementHistory] = useState<Array<{ feedback: string; timestamp: Date }>>([]);
 
   // Load categories
   const loadCategories = useCallback(async () => {
@@ -419,11 +423,17 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setStyle(template.style);
   };
 
-  const handleGenerate = async () => {
-    if (!referenceImage || !prompt.trim()) {
+  const handleGenerate = async (isRefinement = false) => {
+    const effectivePrompt = isRefinement && refinementFeedback.trim() 
+      ? `${prompt}\n\nRefinement: ${refinementFeedback.trim()}`
+      : prompt;
+    
+    if (!referenceImage || !effectivePrompt.trim()) {
       toast({
         title: 'Missing information',
-        description: 'Please upload a reference image and enter a prompt',
+        description: isRefinement 
+          ? 'Please enter refinement feedback'
+          : 'Please upload a reference image and enter a prompt',
         variant: 'destructive',
       });
       return;
@@ -486,7 +496,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         },
         body: {
           image: referenceImage,
-          prompt: prompt.trim(),
+          prompt: effectivePrompt.trim(),
           style,
           backgroundType,
           creativityLevel,
@@ -577,6 +587,15 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       setProgress(100);
       setStage('complete');
       
+      // Track refinement if this was a refinement
+      if (isRefinement && refinementFeedback.trim()) {
+        setRefinementHistory(prev => [...prev, { 
+          feedback: refinementFeedback.trim(), 
+          timestamp: new Date() 
+        }]);
+        setRefinementFeedback('');
+      }
+      
       // Refetch usage after successful generation
       await refetchUsage();
 
@@ -592,8 +611,8 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       }
 
       toast({
-        title: 'Icon generated!',
-        description: 'Review and save your new PNG icon to the library',
+        title: isRefinement ? 'Icon refined!' : 'Icon generated!',
+        description: isRefinement ? 'Your icon has been improved based on your feedback' : 'Review and save your new PNG icon to the library',
       });
 
     } catch (error: any) {
@@ -840,6 +859,8 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setStage('idle');
     setProgress(0);
     setProgressMessage('');
+    setRefinementFeedback('');
+    setRefinementHistory([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -1064,7 +1085,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
             {!generatedImage && (
               <>
                 <Button
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate(false)}
                   disabled={!canGenerate || (usage && !usage.canGenerate)}
                   className="w-full"
                 >
@@ -1109,6 +1130,62 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                   <div className="mt-2 border rounded-lg p-4 bg-muted/30 flex items-center justify-center">
                     <img src={generatedImage} alt="Generated" className="max-h-64 rounded" />
                   </div>
+                </div>
+
+                {/* Refinement Section */}
+                <div className="space-y-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Label className="text-sm font-semibold">Refine Your Icon</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Provide feedback to iteratively improve your icon
+                  </p>
+                  
+                  {refinementHistory.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Previous refinements:</p>
+                      <div className="space-y-1 max-h-20 overflow-y-auto">
+                        {refinementHistory.map((item, idx) => (
+                          <div key={idx} className="text-xs bg-background/50 rounded px-2 py-1">
+                            {idx + 1}. {item.feedback}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="e.g., make it more colorful, simplify the design, add more detail..."
+                      value={refinementFeedback}
+                      onChange={(e) => setRefinementFeedback(e.target.value)}
+                      disabled={isGenerating || isSaving}
+                      className="flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && refinementFeedback.trim() && !isGenerating) {
+                          handleGenerate(true);
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={() => handleGenerate(true)}
+                      disabled={!refinementFeedback.trim() || isGenerating || isSaving}
+                      size="sm"
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-1" />
+                          Refine
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    💡 Tip: Each refinement uses 1 generation credit
+                  </p>
                 </div>
 
                 <div>
