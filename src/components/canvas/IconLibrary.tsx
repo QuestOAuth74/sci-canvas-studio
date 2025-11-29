@@ -77,8 +77,13 @@ const sanitizeSvg = (raw: string): string => {
 const svgToDataUrl = (svg: string): string => {
   const encoded = encodeURIComponent(svg)
     .replace(/%0A/g, "")
-    .replace(/%20/g, " ");
+  .replace(/%20/g, " ");
   return `data:image/svg+xml;charset=utf-8,${encoded}`;
+};
+
+// Helper to check if thumbnail is a URL (not raw SVG)
+const isUrl = (str: string): boolean => {
+  return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:');
 };
 
 export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, onToggleCollapse, onAIIconGenerate }: IconLibraryProps) => {
@@ -446,8 +451,20 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   const renderIconButton = (icon: Icon) => {
     const hasThumbnail = !!icon.thumbnail;
     const isBroken = !!brokenMap[icon.id];
-    const safeSvg = hasThumbnail && !isBroken ? sanitizeSvg(icon.thumbnail!) : '';
-    const thumbSrc = hasThumbnail && !isBroken ? svgToDataUrl(safeSvg) : '';
+    
+    // Determine the thumbnail source - handle both URLs and raw SVG content
+    let thumbSrc = '';
+    if (hasThumbnail && !isBroken) {
+      if (isUrl(icon.thumbnail!)) {
+        // It's already a URL (PNG, JPEG, or data URL) - use directly
+        thumbSrc = icon.thumbnail!;
+      } else {
+        // It's raw SVG content - sanitize and convert to data URL
+        const safeSvg = sanitizeSvg(icon.thumbnail!);
+        thumbSrc = svgToDataUrl(safeSvg);
+      }
+    }
+    
     const isLoaded = !!loadedMap[icon.id];
     
     return (
