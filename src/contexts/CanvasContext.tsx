@@ -39,6 +39,7 @@ interface CanvasContextType {
   setPaperSize: (sizeId: string) => void;
   currentProjectId: string | null;
   setCurrentProjectId: (id: string | null) => void;
+  projectOwnerId: string | null;
   projectName: string;
   setProjectName: (name: string) => void;
   isSaving: boolean;
@@ -219,6 +220,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [historyStep, setHistoryStep] = useState(0);
   
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+  const [projectOwnerId, setProjectOwnerId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("Untitled Diagram");
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved');
@@ -1665,6 +1667,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
       // Update context state
       setCurrentProjectId(data.id);
+      setProjectOwnerId(data.user_id);
       setProjectName(data.name);
       setPaperSize(data.paper_size);
       setCanvasDimensions({
@@ -2283,6 +2286,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     setPaperSize,
     currentProjectId,
     setCurrentProjectId,
+    projectOwnerId,
     projectName,
     setProjectName,
     isSaving,
