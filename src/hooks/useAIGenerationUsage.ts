@@ -5,10 +5,13 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface GenerationUsage {
   canGenerate: boolean;
   isAdmin: boolean;
+  hasPremium: boolean;
   used: number;
   limit: number | null;
   remaining: number | null;
   monthYear: string;
+  approvedCount?: number;
+  needsApproved?: number;
 }
 
 export const useAIGenerationUsage = () => {

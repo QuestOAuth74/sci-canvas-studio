@@ -92,42 +92,39 @@ serve(async (req) => {
 
     console.log('✅ User authenticated successfully:', user.id);
 
-    // Check if user is admin
-    console.log('🔍 Checking user permissions...');
-    const { data: userRole } = await supabaseClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
+    // Check user permissions and rate limits using RPC
+    console.log('🔍 Checking user permissions and rate limits...');
+    const { data: canGenerateData, error: canGenerateError } = await supabaseClient
+      .rpc('can_user_generate', { _user_id: user.id });
 
-    const isAdmin = !!userRole;
+    if (canGenerateError) {
+      console.error('❌ Error checking generation permissions:', canGenerateError);
+      throw new Error('Failed to check generation permissions');
+    }
+
+    console.log('📊 Generation check result:', canGenerateData);
+
+    const isAdmin = canGenerateData.isAdmin;
+    const hasPremium = canGenerateData.hasPremium;
+    const canGenerate = canGenerateData.canGenerate;
+
     console.log('👤 User is admin:', isAdmin);
+    console.log('⭐ User has premium:', hasPremium);
+    console.log('✅ Can generate:', canGenerate);
 
-    // If not admin, check rate limits
-    if (!isAdmin) {
-      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-      
-      console.log('📊 Checking rate limits for month:', currentMonth);
-      
-      const { data: usageData, error: usageError } = await supabaseClient
-        .from('ai_generation_usage')
-        .select('id', { count: 'exact', head: false })
-        .eq('user_id', user.id)
-        .eq('month_year', currentMonth);
-      
-      if (usageError) {
-        console.error('❌ Error checking usage:', usageError);
-        throw new Error('Failed to check usage limits');
-      }
-      
-      const usageCount = usageData?.length || 0;
-      console.log('📈 Current usage count:', usageCount, '/ 2');
-      
-      if (usageCount >= 2) {
-        console.log('⛔ Rate limit exceeded for user:', user.id);
-        throw new Error('RATE_LIMIT_EXCEEDED');
-      }
+    // Check if user has premium access
+    if (!isAdmin && !hasPremium) {
+      const needsApproved = canGenerateData.needsApproved || 3;
+      console.log('⛔ User does not have premium access. Needs', needsApproved, 'more approved projects');
+      throw new Error('PREMIUM_REQUIRED');
+    }
+
+    // Check if user has exceeded rate limit
+    if (!isAdmin && !canGenerate) {
+      const used = canGenerateData.used || 0;
+      const limit = canGenerateData.limit || 3;
+      console.log('⛔ Rate limit exceeded for user:', user.id, `(${used}/${limit})`);
+      throw new Error('RATE_LIMIT_EXCEEDED');
     }
 
     const { image, prompt, style = 'simple', size = '512x512', backgroundType = 'transparent', creativityLevel = 'balanced' } = await req.json();
@@ -278,10 +275,14 @@ serve(async (req) => {
     if (errorMessage === 'RATE_LIMITED') {
       statusCode = 429;
       errorMessage = 'Rate limits exceeded. Please try again later.';
+    } else if (errorMessage === 'PREMIUM_REQUIRED') {
+      statusCode = 403;
+      errorMessage = 'Premium access required';
+      errorContext = 'AI icon generation requires 3+ approved public projects. Share your projects to the community to unlock this feature.';
     } else if (errorMessage === 'RATE_LIMIT_EXCEEDED') {
       statusCode = 429;
       errorMessage = 'Monthly generation limit reached';
-      errorContext = 'You have used your 2 free AI icon generations for this month. Limit resets on the 1st of next month.';
+      errorContext = 'You have used your 3 free AI icon generations for this month. Limit resets on the 1st of next month.';
     } else if (errorMessage === 'CREDITS_DEPLETED') {
       statusCode = 402;
       errorMessage = 'AI credits depleted. Please add credits in Settings → Workspace → Usage.';

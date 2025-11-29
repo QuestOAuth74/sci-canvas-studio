@@ -22,6 +22,7 @@ import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
 import { FeatureUnlockBanner } from '@/components/community/FeatureUnlockBanner';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
 import { DownloadQuotaCard } from '@/components/profile/DownloadQuotaCard';
+import { AIGenerationQuotaCard } from '@/components/profile/AIGenerationQuotaCard';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -947,6 +948,9 @@ export default function Profile() {
           <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
             {/* Download Quota Card - Always Visible */}
             <DownloadQuotaCard />
+            
+            {/* AI Generation Quota Card - Always Visible */}
+            <AIGenerationQuotaCard />
             
             {/* Premium Features - Only for Premium Users */}
             {hasAccess && !featureAccessLoading && (

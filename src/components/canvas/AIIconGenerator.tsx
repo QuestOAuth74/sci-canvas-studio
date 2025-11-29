@@ -655,6 +655,8 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       
       if (error.message === 'TIMEOUT') {
         errorMessage = 'AI generation took too long. Please try with a smaller image or simpler prompt.';
+      } else if (error.message?.includes('PREMIUM_REQUIRED') || error.message?.includes('403')) {
+        errorMessage = 'Premium access required. Share 3+ approved public projects to unlock AI icon generation.';
       } else if (error.message?.includes('RATE_LIMITED') || error.message?.includes('429')) {
         errorMessage = 'Rate limit reached. Please wait a moment and try again.';
       } else if (error.message?.includes('CREDITS_DEPLETED') || error.message?.includes('402')) {
@@ -948,7 +950,13 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           </DialogTitle>
           <DialogDescription>
             Upload a reference image and describe how you want to transform it into a PNG icon
-            {!usageLoading && usage && !usage.isAdmin && usage.remaining === 0 && (
+            {!usageLoading && usage && !usage.isAdmin && !usage.hasPremium && (
+              <div className="mt-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded text-xs text-amber-600 dark:text-amber-400">
+                🔒 AI icon generation requires 3+ approved public projects. 
+                Share {usage.needsApproved || 3} more project{(usage.needsApproved || 3) !== 1 ? 's' : ''} to the community to unlock this feature.
+              </div>
+            )}
+            {!usageLoading && usage && !usage.isAdmin && usage.hasPremium && usage.remaining === 0 && (
               <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive">
                 You've reached your monthly limit of {usage.limit} free generations. 
                 Limit resets on {new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}.
@@ -1139,12 +1147,13 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                   ) : (
                     <>
                       <Sparkles className="h-4 w-4 mr-2" />
-                      {usage && !usage.canGenerate ? 'Limit Reached' : 'Generate Icon'}
+                      {usage && !usage.hasPremium && !usage.isAdmin ? '🔒 Premium Required' : 
+                       usage && !usage.canGenerate ? 'Limit Reached' : 'Generate Icon'}
                     </>
                   )}
                 </Button>
                 
-                {!usageLoading && usage && !usage.canGenerate && !usage.isAdmin && (
+                {!usageLoading && usage && !usage.isAdmin && usage.hasPremium && (
                   <p className="text-xs text-center text-muted-foreground mt-2">
                     Monthly limit: {usage.used}/{usage.limit} used
                   </p>
