@@ -6,6 +6,10 @@ verify_jwt = true
 [functions.inflate-community-metrics]
 verify_jwt = true
 
+[functions.generate-svg-icon]
+verify_jwt = true
+timeout = 120
+
 [functions.rate-limited-login]
 verify_jwt = false
 
