@@ -711,9 +711,30 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Handle double-click for image placeholders and text box editing
+    // Handle double-click for vertex editing, image placeholders and text box editing
     canvas.on('mouse:dblclick', (e) => {
       const obj = e.target;
+      
+      // Handle vertex editing activation on double-click
+      const isVertexEditable = obj && (
+        obj.type === 'path' ||
+        obj.type === 'polygon' ||
+        (obj as any).isFreeformLine ||
+        (obj as any).isCurvedLine ||
+        (obj as any).isOrthogonalLine ||
+        (obj as any).isStraightLine
+      );
+      
+      if (isVertexEditable) {
+        const newState = !vertexEditingEnabled;
+        setVertexEditingEnabled(newState);
+        if (newState) {
+          toast.success("Vertex editing enabled - Double-click again or press ESC to exit");
+        } else {
+          toast.info("Vertex editing disabled");
+        }
+        return;
+      }
       
       // Handle image placeholder click - open file picker
       if (obj && (obj as any).isImagePlaceholder) {
