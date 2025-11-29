@@ -17,6 +17,7 @@ import {
   Crop,
   Clock,
   FileText,
+  Waves,
 } from "lucide-react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
@@ -37,6 +38,7 @@ import { PowerPointGenerator } from "./PowerPointGenerator";
 import { useRecentlyUsedTools } from "@/hooks/useRecentlyUsedTools";
 import { useEffect, useState } from "react";
 import { useImagePlaceholder } from "./ImagePlaceholderTool";
+import { MembraneBrushIconSelector } from "./MembraneBrushIconSelector";
 
 interface ToolbarProps {
   activeTool: string;
@@ -48,6 +50,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const { recentTools, addRecentTool } = useRecentlyUsedTools();
   const [powerpointOpen, setPowerpointOpen] = useState(false);
   const { addImagePlaceholder } = useImagePlaceholder();
+  const [membraneBrushOpen, setMembraneBrushOpen] = useState(false);
   
   const tools = [
     { id: "select", icon: MousePointer2, label: "Select and Transform (1)" },
@@ -270,6 +273,22 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            variant={activeTool.startsWith("membrane-brush") ? "default" : "ghost"}
+            size="icon"
+            onClick={() => setMembraneBrushOpen(true)}
+            className="w-10 h-10"
+          >
+            <Waves className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Membrane Brush - Draw cell membranes with tiled icons</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
             variant={activeTool === "image" ? "default" : "ghost"}
             size="icon"
             onClick={() => handleToolChange("image")}
@@ -373,6 +392,15 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         <PowerPointGenerator 
           open={powerpointOpen} 
           onOpenChange={setPowerpointOpen} 
+        />
+        
+        <MembraneBrushIconSelector
+          open={membraneBrushOpen}
+          onOpenChange={setMembraneBrushOpen}
+          onStart={(iconSVG, options) => {
+            // Trigger the membrane brush tool with the selected icon and options
+            onToolChange(`membrane-brush:${JSON.stringify({ iconSVG, ...options })}`);
+          }}
         />
       </div>
     </div>
