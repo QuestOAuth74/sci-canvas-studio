@@ -10,6 +10,7 @@ import { IconCleanup } from "@/components/admin/IconCleanup";
 import { CategoryManager } from "@/components/admin/CategoryManager";
 import { ThumbnailGenerator } from "@/components/admin/ThumbnailGenerator";
 import { ThumbnailRegenerator } from "@/components/admin/ThumbnailRegenerator";
+import { IconThumbnailRegenerator } from "@/components/admin/IconThumbnailRegenerator";
 import { SubmittedProjects } from "@/components/admin/SubmittedProjects";
 import { TestimonialManager } from "@/components/admin/TestimonialManager";
 import { IconSubmissionManager } from "@/components/admin/IconSubmissionManager";
@@ -177,6 +178,7 @@ const Admin = () => {
               <IconCleanup />
               <ThumbnailGenerator />
               <ThumbnailRegenerator />
+              <IconThumbnailRegenerator />
             </div>
           </section>
 
