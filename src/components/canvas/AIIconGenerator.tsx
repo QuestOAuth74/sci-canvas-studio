@@ -341,7 +341,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   
   // Common state
   const [iconName, setIconName] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('AI Icons');
+  const [selectedCategory, setSelectedCategory] = useState('ai-icons');
   const [categories, setCategories] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [usageRights, setUsageRights] = useState<'free_to_share' | 'own_rights' | 'licensed' | 'public_domain'>('own_rights');
@@ -719,7 +719,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       // Upload to user_assets
       const asset = await uploadAsset({
         file,
-        category: 'AI Icons',
+        category: 'ai-icons',
         tags: ['ai-generated'],
         description: description.trim() || `AI-generated PNG icon from prompt: "${prompt}"`,
         isShared: false // Private to user
@@ -825,7 +825,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       // Submit to icon_submissions table for review
       const submission = await submitIcon({
         name: iconName.trim(),
-        category: 'AI Icons',
+        category: 'ai-icons',
         svg_content: svgContent,
         thumbnail: publicUrl,
         description: description.trim() || `AI-generated PNG icon from prompt: "${prompt}"`,
@@ -890,7 +890,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setPrompt('');
     setStyle('simple');
     setIconName('');
-    setSelectedCategory('AI Icons');
+    setSelectedCategory('ai-icons');
     setDescription('');
     setUsageRights('own_rights');
     setUsageRightsDetails('');

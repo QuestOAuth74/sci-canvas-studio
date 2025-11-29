@@ -7,9 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { ChevronLeft, ChevronRight, Search, X, Star, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X, Star, Sparkles, Plus } from "lucide-react";
 import { usePinnedCategories } from "@/hooks/usePinnedCategories";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import noPreview from "@/assets/no_preview.png";
 import { LoadingProgress } from "@/components/canvas/LoadingProgress";
 
@@ -745,62 +746,66 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                     });
                   }}
                 >
-                  {unpinnedCategories.map((category, index) => {
-                    // Insert AI Icons entry just before Anatomy category
-                    const isAnatomyCategory = category.name === 'Anatomy';
-                    const showAIIconsEntry = isAnatomyCategory && onAIIconGenerate && index === unpinnedCategories.findIndex(c => c.name === 'Anatomy');
+                  {unpinnedCategories.map((category) => {
                     const categoryIcons = iconsByCategory[category.id] || [];
                     const totalPages = getTotalPages(categoryIcons);
                     const currentPage = getCurrentPage(category.id);
                     const paginatedIcons = getPaginatedIcons(category.id, categoryIcons);
                     
+                    // Special styling for AI Icons category
+                    const isAIIconsCategory = category.id === 'ai-icons';
+                    
                     return (
-                      <>
-                        {/* AI Icons Entry - shown before Anatomy */}
-                        {showAIIconsEntry && (
-                          <div 
-                            onClick={onAIIconGenerate}
-                            className="border-2 border-purple-500/40 rounded-lg overflow-hidden 
-                                       bg-gradient-to-r from-purple-500/10 via-pink-500/5 to-purple-500/10 
-                                       cursor-pointer hover:border-purple-500/60 transition-all mb-2 animate-fade-in"
-                          >
-                            <div className="px-3 py-2.5 flex items-center gap-2">
-                              <Sparkles className="h-4 w-4 text-purple-500" />
-                              <span className="text-sm font-bold text-foreground">
-                                AI Icons
-                              </span>
-                              <span className="text-xs text-muted-foreground ml-auto">
-                                Generate custom icons
-                              </span>
-                            </div>
-                          </div>
+                      <AccordionItem 
+                        key={category.id} 
+                        value={category.id}
+                        className={cn(
+                          "rounded-lg overflow-hidden animate-fade-in",
+                          isAIIconsCategory 
+                            ? "border-2 border-purple-500/40 bg-gradient-to-r from-purple-500/10 via-pink-500/5 to-purple-500/10" 
+                            : "border border-border/40 bg-card/50 backdrop-blur-sm"
                         )}
-                        
-                        <AccordionItem 
-                          key={category.id} 
-                          value={category.id}
-                          className="border border-border/40 rounded-lg overflow-hidden bg-card/50 backdrop-blur-sm"
-                        >
+                      >
                         <AccordionTrigger className="px-3 py-2.5 text-sm font-semibold hover:bg-accent/50 hover:no-underline">
                           <div className="flex items-center justify-between w-full pr-2">
                             <div className="flex items-center gap-2">
-                              <div
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  togglePin(category.id);
-                                }}
-                                className="hover:text-yellow-500 transition-colors cursor-pointer"
-                                title="Pin category"
-                              >
-                                <Star className="h-4 w-4" />
-                              </div>
-                              <span className="text-sm font-medium text-foreground/80">
+                              {isAIIconsCategory ? (
+                                <Sparkles className="h-4 w-4 text-purple-500" />
+                              ) : (
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePin(category.id);
+                                  }}
+                                  className="hover:text-yellow-500 transition-colors cursor-pointer"
+                                  title="Pin category"
+                                >
+                                  <Star className="h-4 w-4" />
+                                </div>
+                              )}
+                              <span className={cn("text-sm font-medium text-foreground/80", isAIIconsCategory && "font-bold")}>
                                 {category.name}
                               </span>
                             </div>
-                  <span className="text-xs text-muted-foreground font-normal">
-                    {iconsByCategory[category.id] ? categoryIcons.length : ''}
-                  </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground font-normal">
+                                {categoryIcons.length} icon{categoryIcons.length !== 1 ? 's' : ''}
+                              </span>
+                              {isAIIconsCategory && onAIIconGenerate && (
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-7 px-2 text-xs"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAIIconGenerate();
+                                  }}
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Generate
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-3 pb-3 pt-1">
@@ -812,7 +817,24 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                             </div>
                           ) : categoryIcons.length === 0 ? (
                             <div className="text-center py-4 text-xs text-muted-foreground">
-                              No icons in this category
+                              {isAIIconsCategory ? (
+                                <div className="space-y-2">
+                                  <p>No AI-generated icons yet</p>
+                                  {onAIIconGenerate && (
+                                    <Button 
+                                      size="sm" 
+                                      variant="default"
+                                      onClick={onAIIconGenerate}
+                                      className="mt-2"
+                                    >
+                                      <Sparkles className="h-3 w-3 mr-1" />
+                                      Generate your first AI icon
+                                    </Button>
+                                  )}
+                                </div>
+                              ) : (
+                                'No icons in this category'
+                              )}
                             </div>
                           ) : (
                             <div className="space-y-2">
@@ -859,7 +881,6 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                           )}
                         </AccordionContent>
                       </AccordionItem>
-                      </>
                     );
                   })}
                 </Accordion>
