@@ -15,7 +15,8 @@ Create with:
 - Grayscale tones with occasional soft highlights
 - Scientific accuracy with artistic hand-drawn quality
 - Clean white or transparent background
-- Textbook illustration feel like vintage anatomy drawings`,
+- Textbook illustration feel like vintage anatomy drawings
+- NO text labels, annotations, or written content of any kind`,
 
   biomedical: `Clean flat vector style scientific illustration.
 Create with:
@@ -27,7 +28,8 @@ Create with:
 - Professional scientific accuracy
 - No harsh black outlines - use soft colored edges
 - Modern, approachable scientific illustration style
-- Transparent or clean white background`,
+- Transparent or clean white background
+- NO text labels, annotations, or written content of any kind`,
 
   oil: `Oil painting style artistic scientific illustration.
 Create with:
@@ -38,7 +40,8 @@ Create with:
 - Artistic interpretation while maintaining scientific accuracy
 - Canvas-like texture effect
 - Renaissance medical illustration influence
-- Atmospheric depth and rich visual presence`
+- Atmospheric depth and rich visual presence
+- NO text labels, annotations, or written content of any kind`
 };
 
 const creativityPrompts = {
@@ -54,6 +57,8 @@ Balance originality with recognizability.`,
 Feel free to reimagine the design artistically while preserving the core scientific concept. 
 Explore creative interpretations with varied colors, styles, and artistic elements.`
 };
+
+const noTextDirective = `CRITICAL: Do NOT include any text, labels, annotations, captions, titles, letters, numbers, words, arrows with text, line labels, measurement indicators, or any written content in the image. The illustration must be purely visual with NO text of any kind.`;
 
 function buildEnhancedPrompt(
   userPrompt: string, 
@@ -72,10 +77,13 @@ Ensure the subject has clear edges against the white background.`;
   
   return `${creativityInstruction}
 
+${noTextDirective}
+
 ${basePrompt}. Transform this reference image to create: ${userPrompt}.
 Ensure scientific accuracy, clean edges, and high contrast at small sizes.
 ${backgroundInstruction}
-Optimize for use as a small scientific icon.`;
+Optimize for use as a small scientific icon.
+Remember: NO TEXT, NO LABELS, NO ANNOTATIONS - pure visual illustration only.`;
 }
 
 serve(async (req) => {
