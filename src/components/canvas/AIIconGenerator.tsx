@@ -341,7 +341,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   
   // Common state
   const [iconName, setIconName] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Laboratory');
+  const [selectedCategory, setSelectedCategory] = useState('AI Icons');
   const [categories, setCategories] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [usageRights, setUsageRights] = useState<'free_to_share' | 'own_rights' | 'licensed' | 'public_domain'>('own_rights');
@@ -719,7 +719,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       // Upload to user_assets
       const asset = await uploadAsset({
         file,
-        category: selectedCategory,
+        category: 'AI Icons',
         tags: ['ai-generated'],
         description: description.trim() || `AI-generated PNG icon from prompt: "${prompt}"`,
         isShared: false // Private to user
@@ -825,7 +825,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       // Submit to icon_submissions table for review
       const submission = await submitIcon({
         name: iconName.trim(),
-        category: selectedCategory,
+        category: 'AI Icons',
         svg_content: svgContent,
         thumbnail: publicUrl,
         description: description.trim() || `AI-generated PNG icon from prompt: "${prompt}"`,
@@ -890,7 +890,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setPrompt('');
     setStyle('simple');
     setIconName('');
-    setSelectedCategory('General');
+    setSelectedCategory('AI Icons');
     setDescription('');
     setUsageRights('own_rights');
     setUsageRightsDetails('');
@@ -1307,16 +1307,11 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
 
                 <div>
                   <Label htmlFor="category">Category</Label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory} disabled={isSaving}>
-                    <SelectTrigger id="category" className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="mt-2 px-3 py-2 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-md flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm font-medium">AI Icons</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">All AI-generated icons are automatically saved to this category</p>
                 </div>
 
                 <div>
