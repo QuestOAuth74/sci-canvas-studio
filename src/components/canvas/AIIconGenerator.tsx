@@ -7,17 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Palette } from 'lucide-react';
+import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Dna, TestTube, Microscope, Heart, Pill, Syringe, FlaskConical, Activity, Brain, Droplet } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
 import { removeBackground, loadImage } from '@/lib/backgroundRemoval';
 import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
-import { processSVG } from '@/lib/svgProcessor';
-import { SVGCustomizationEditor } from './SVGCustomizationEditor';
+import { cn } from '@/lib/utils';
 
 interface AIIconGeneratorProps {
   open: boolean;
@@ -30,7 +28,16 @@ type StylePreset =
   | 'molecular-structure' | 'organ-system' | 'lab-equipment' | 'pathway-diagram'
   | 'microscopy' | 'medical' | 'biochemical' | 'cellular' | 'simple' | 'detailed';
 type GenerationStage = 'idle' | 'uploading' | 'generating' | 'saving' | 'complete' | 'error';
-type GenerationMode = 'raster' | 'vector';
+
+interface IconTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: React.ReactNode;
+  prompt: string;
+  style: StylePreset;
+  category: string;
+}
 
 const styleDescriptions: Record<StylePreset, { label: string; desc: string; category: string }> = {
   // Cell Biology
@@ -125,6 +132,109 @@ const styleCategories = {
   'General': ['simple', 'detailed'] as StylePreset[]
 };
 
+// Icon templates with pre-filled prompts
+const iconTemplates: IconTemplate[] = [
+  {
+    id: 'cell-organelles',
+    name: 'Cell & Organelles',
+    description: 'Mitochondria, nucleus, ER',
+    icon: <Activity className="h-5 w-5" />,
+    prompt: 'Scientific illustration of mitochondria with cristae, detailed membrane structure, biological accuracy',
+    style: 'cell-organelle',
+    category: 'Cell Biology'
+  },
+  {
+    id: 'dna-rna',
+    name: 'DNA & RNA',
+    description: 'Helix, nucleotides',
+    icon: <Dna className="h-5 w-5" />,
+    prompt: 'Double helix DNA structure with base pairs visible, molecular biology style',
+    style: 'dna-helix',
+    category: 'Molecular Biology'
+  },
+  {
+    id: 'proteins',
+    name: 'Proteins',
+    description: 'Enzymes, receptors',
+    icon: <Pill className="h-5 w-5" />,
+    prompt: '3D protein structure with alpha helices and beta sheets, scientific visualization',
+    style: 'protein-structure',
+    category: 'Molecular Biology'
+  },
+  {
+    id: 'lab-equipment',
+    name: 'Lab Equipment',
+    description: 'Beakers, pipettes',
+    icon: <FlaskConical className="h-5 w-5" />,
+    prompt: 'Laboratory beaker with liquid, clean technical illustration, scientific glassware',
+    style: 'lab-equipment',
+    category: 'Laboratory'
+  },
+  {
+    id: 'cells',
+    name: 'Cells',
+    description: 'Bacteria, neurons',
+    icon: <Droplet className="h-5 w-5" />,
+    prompt: 'Biological cell with membrane and organelles visible, microscopy style',
+    style: 'cellular',
+    category: 'Cell Biology'
+  },
+  {
+    id: 'organs',
+    name: 'Organs & Anatomy',
+    description: 'Heart, brain, lungs',
+    icon: <Heart className="h-5 w-5" />,
+    prompt: 'Anatomical illustration of human heart with chambers, medical accuracy, cross-section view',
+    style: 'organ-system',
+    category: 'Anatomy'
+  },
+  {
+    id: 'molecules',
+    name: 'Molecules',
+    description: 'ATP, glucose',
+    icon: <TestTube className="h-5 w-5" />,
+    prompt: 'Chemical structure of glucose molecule, ball-and-stick model, chemistry illustration',
+    style: 'molecular-structure',
+    category: 'Chemistry'
+  },
+  {
+    id: 'pathways',
+    name: 'Pathways',
+    description: 'Signaling cascades',
+    icon: <Activity className="h-5 w-5" />,
+    prompt: 'Signaling pathway element with arrow connectors, biochemistry style',
+    style: 'pathway-diagram',
+    category: 'Pathways'
+  },
+  {
+    id: 'microscopy',
+    name: 'Microscopy',
+    description: 'Histology, staining',
+    icon: <Microscope className="h-5 w-5" />,
+    prompt: 'Histological tissue specimen, microscope view with staining pattern',
+    style: 'microscopy',
+    category: 'Microscopy'
+  },
+  {
+    id: 'viruses',
+    name: 'Viruses & Bacteria',
+    description: 'Pathogens, microbes',
+    icon: <Syringe className="h-5 w-5" />,
+    prompt: 'Virus particle with surface proteins visible, microbiology illustration',
+    style: 'medical',
+    category: 'Medical'
+  },
+  {
+    id: 'brain',
+    name: 'Neuroscience',
+    description: 'Brain, neurons',
+    icon: <Brain className="h-5 w-5" />,
+    prompt: 'Human brain cross-section showing different regions, neuroscience illustration',
+    style: 'medical',
+    category: 'Anatomy'
+  },
+];
+
 // Helper functions for image processing
 const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
   const res = await fetch(dataUrl);
@@ -196,15 +306,15 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const { usage, isLoading: usageLoading, refetch: refetchUsage } = useAIGenerationUsage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Generation mode
-  const [generationMode, setGenerationMode] = useState<GenerationMode>('vector');
+  // Template selection
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   
   // Raster mode (image transform) state
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
   const [backgroundType, setBackgroundType] = useState<'transparent' | 'white'>('transparent');
   
-  // Vector mode (text-based SVG) state - no reference image needed
+  // Generation state
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<StylePreset>('simple');
   
@@ -219,9 +329,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const [stage, setStage] = useState<GenerationStage>('idle');
   const [progress, setProgress] = useState(0);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [generatedSVG, setGeneratedSVG] = useState<string | null>(null);
-  const [isPureVector, setIsPureVector] = useState(false);
-  const [showCustomizationEditor, setShowCustomizationEditor] = useState(false);
 
   // Load categories
   const loadCategories = useCallback(async () => {
@@ -284,27 +391,20 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     reader.readAsDataURL(file);
   }, [toast]);
 
+  const selectTemplate = (template: IconTemplate) => {
+    setSelectedTemplate(template.id);
+    setPrompt(template.prompt);
+    setStyle(template.style);
+  };
+
   const handleGenerate = async () => {
-    if (generationMode === 'raster') {
-      // Raster mode - requires reference image
-      if (!referenceImage || !prompt.trim()) {
-        toast({
-          title: 'Missing information',
-          description: 'Please upload a reference image and enter a prompt',
-          variant: 'destructive',
-        });
-        return;
-      }
-    } else {
-      // Vector mode - requires only prompt
-      if (!prompt.trim()) {
-        toast({
-          title: 'Missing information',
-          description: 'Please enter a prompt describing the icon you want to create',
-          variant: 'destructive',
-        });
-        return;
-      }
+    if (!referenceImage || !prompt.trim()) {
+      toast({
+        title: 'Missing information',
+        description: 'Please upload a reference image and enter a prompt',
+        variant: 'destructive',
+      });
+      return;
     }
 
     if (!user) {
@@ -336,8 +436,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         return;
       }
 
-      console.log('🎨 Starting icon generation...');
-      console.log('🔄 Mode:', generationMode);
+      console.log('🎨 Starting PNG icon generation...');
       console.log('📝 Prompt:', prompt);
       console.log('🎭 Style:', style);
       console.log('🔐 Session valid:', !!session.access_token);
@@ -351,158 +450,100 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         console.log(`⏱️ Generating... ${elapsed}s elapsed (${Math.round(newProgress)}%)`);
       }, 1000);
 
-      if (generationMode === 'vector') {
-        // ===== VECTOR MODE: Generate SVG directly from prompt =====
-        console.log('🎨 Vector mode: Generating SVG from prompt...');
+      // ===== PNG MODE: Transform reference image =====
+      console.log('🖼️ Transforming reference image to PNG...');
         
-        const { data, error } = await supabase.functions.invoke('generate-svg-icon', {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
-          },
-          body: {
-            prompt: prompt.trim(),
-            style,
-            scientificCategory: styleDescriptions[style].category
-          }
-        });
+      // Add timeout (2 minutes)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('TIMEOUT')), 120000)
+      );
 
-        // Clear progress timer
-        if (progressInterval) {
-          clearInterval(progressInterval);
-          progressInterval = null;
+      const invokePromise = supabase.functions.invoke('generate-icon-from-reference', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        },
+        body: {
+          image: referenceImage,
+          prompt: prompt.trim(),
+          style,
+          backgroundType,
         }
+      });
 
-        if (error) {
-          console.error('Edge function error:', error);
-          throw error;
-        }
+      // Race between generation and timeout
+      const { data, error } = await Promise.race([
+        invokePromise,
+        timeoutPromise
+      ]) as any;
 
-        if (!data?.success) {
-          throw new Error(data?.error || 'SVG generation failed');
-        }
+      // Clear progress timer
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
 
-        console.log('✅ SVG generated successfully');
-        console.log('📊 Pure vector:', data.isPureVector);
-        setProgress(90);
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Generation failed');
+      }
+
+      console.log('✅ Icon generated successfully');
+      setProgress(90);
         
-        // Process and validate SVG
-        const processed = processSVG(data.svgContent);
-        if (!processed.success) {
-          throw new Error(processed.error || 'SVG validation failed');
-        }
-
-        setGeneratedSVG(processed.svg);
-        setIsPureVector(data.isPureVector);
+      // Normalize to PNG
+      try {
+        console.log('🎨 Normalizing to PNG...');
         
-        // Create a preview image from SVG for display
-        const blob = new Blob([processed.svg!], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        setGeneratedImage(url);
-        
-      } else {
-        // ===== RASTER MODE: Transform reference image to PNG =====
-        console.log('🖼️ Raster mode: Transforming reference image...');
-        
-        // Add timeout (2 minutes)
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('TIMEOUT')), 120000)
-        );
+        if (backgroundType === 'white') {
+          // User wants white background - skip removal, just convert to PNG
+          console.log('⬜ User requested white background, skipping removal');
+          const srcBlob = await dataUrlToBlob(data.generatedImage);
+          const imgEl = await loadImage(srcBlob);
+          const pngDataUrl = drawToPngDataUrl(imgEl);
+          setGeneratedImage(pngDataUrl);
+          console.log('✅ Converted to PNG with white background');
+        } else {
+          // User wants transparent background - existing logic
+          console.log('🔍 Processing for transparent background...');
+          const isJpegLike = data.generatedImage.startsWith('data:image/jpeg') ||
+                             data.generatedImage.startsWith('data:image/jpg') ||
+                             data.generatedImage.startsWith('data:image/webp');
 
-        const invokePromise = supabase.functions.invoke('generate-icon-from-reference', {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`
-          },
-          body: {
-            image: referenceImage,
-            prompt: prompt.trim(),
-            style,
-            backgroundType,
-          }
-        });
+          const srcBlob = await dataUrlToBlob(data.generatedImage);
+          const imgEl = await loadImage(srcBlob);
 
-        // Race between generation and timeout
-        const { data, error } = await Promise.race([
-          invokePromise,
-          timeoutPromise
-        ]) as any;
+          const hasAlpha = detectHasTransparency(imgEl);
+          const looksWhiteBG = !hasAlpha && detectIsLikelyWhiteBackground(imgEl);
 
-        // Clear progress timer
-        if (progressInterval) {
-          clearInterval(progressInterval);
-          progressInterval = null;
-        }
+          let finalBlob: Blob;
 
-        if (error) {
-          console.error('Edge function error:', error);
-          throw error;
-        }
-
-        if (!data?.success) {
-          throw new Error(data?.error || 'Generation failed');
-        }
-
-        console.log('✅ Icon generated successfully');
-        setProgress(90);
-        
-        // Normalize to PNG
-        try {
-          console.log('🎨 Normalizing to PNG...');
-          
-          if (backgroundType === 'white') {
-            // User wants white background - skip removal, just convert to PNG
-            console.log('⬜ User requested white background, skipping removal');
-            const srcBlob = await dataUrlToBlob(data.generatedImage);
-            const imgEl = await loadImage(srcBlob);
-            const pngDataUrl = drawToPngDataUrl(imgEl);
-            setGeneratedImage(pngDataUrl);
-            setGeneratedSVG(null);
-            setIsPureVector(false);
-            console.log('✅ Converted to PNG with white background');
+          if (isJpegLike || looksWhiteBG) {
+            console.log('🧹 Making background transparent (removal path)...');
+            finalBlob = await removeBackground(imgEl);
           } else {
-            // User wants transparent background - existing logic
-            console.log('🔍 Processing for transparent background...');
-            const isJpegLike = data.generatedImage.startsWith('data:image/jpeg') ||
-                               data.generatedImage.startsWith('data:image/jpg') ||
-                               data.generatedImage.startsWith('data:image/webp');
-
-            const srcBlob = await dataUrlToBlob(data.generatedImage);
-            const imgEl = await loadImage(srcBlob);
-
-            const hasAlpha = detectHasTransparency(imgEl);
-            const looksWhiteBG = !hasAlpha && detectIsLikelyWhiteBackground(imgEl);
-
-            let finalBlob: Blob;
-
-            if (isJpegLike || looksWhiteBG) {
-              console.log('🧹 Making background transparent (removal path)...');
-              finalBlob = await removeBackground(imgEl);
-            } else {
-              console.log('✅ Image already has transparency');
-              const pngDataUrl = drawToPngDataUrl(imgEl);
-              finalBlob = await dataUrlToBlob(pngDataUrl);
-            }
-
-            const pngDataUrl = await blobToDataUrl(finalBlob);
-            setGeneratedImage(pngDataUrl);
-            setGeneratedSVG(null);
-            setIsPureVector(false);
-            console.log('✅ Final image is PNG with transparent background');
+            console.log('✅ Image already has transparency');
+            const pngDataUrl = drawToPngDataUrl(imgEl);
+            finalBlob = await dataUrlToBlob(pngDataUrl);
           }
-        } catch (procErr) {
-          console.error('❌ Unable to process image:', procErr);
-          // Last resort: convert to PNG (may remain opaque)
-          try {
-            const fallbackBlob = await dataUrlToBlob(data.generatedImage);
-            const fallbackImg = await loadImage(fallbackBlob);
-            const fallbackDataUrl = drawToPngDataUrl(fallbackImg);
-            setGeneratedImage(fallbackDataUrl);
-            setGeneratedSVG(null);
-            setIsPureVector(false);
-          } catch {
-            setGeneratedImage(data.generatedImage);
-            setGeneratedSVG(null);
-            setIsPureVector(false);
-          }
+
+          const pngDataUrl = await blobToDataUrl(finalBlob);
+          setGeneratedImage(pngDataUrl);
+          console.log('✅ Final image is PNG with transparent background');
+        }
+      } catch (procErr) {
+        console.error('❌ Unable to process image:', procErr);
+        // Last resort: convert to PNG (may remain opaque)
+        try {
+          const fallbackBlob = await dataUrlToBlob(data.generatedImage);
+          const fallbackImg = await loadImage(fallbackBlob);
+          const fallbackDataUrl = drawToPngDataUrl(fallbackImg);
+          setGeneratedImage(fallbackDataUrl);
+        } catch {
+          setGeneratedImage(data.generatedImage);
         }
       }
       
@@ -525,9 +566,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
 
       toast({
         title: 'Icon generated!',
-        description: generationMode === 'vector' 
-          ? 'Vector SVG icon created! Review and save to your library.'
-          : 'Review and save your new icon to the library',
+        description: 'Review and save your new PNG icon to the library',
       });
 
     } catch (error: any) {
@@ -583,24 +622,16 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       setStage('saving');
       setProgress(50);
 
-      let file: File;
-      
-      if (generatedSVG && isPureVector) {
-        // Save as SVG file
-        const blob = new Blob([generatedSVG], { type: 'image/svg+xml' });
-        file = new File([blob], `${iconName}.svg`, { type: 'image/svg+xml' });
-      } else {
-        // Convert base64 to blob for PNG
-        const base64Data = generatedImage.split(',')[1];
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'image/png' });
-        file = new File([blob], `${iconName}.png`, { type: 'image/png' });
+      // Convert base64 to blob for PNG
+      const base64Data = generatedImage.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/png' });
+      const file = new File([blob], `${iconName}.png`, { type: 'image/png' });
 
       setProgress(75);
 
@@ -609,16 +640,15 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         fileName: file.name,
         fileSize: file.size,
         fileType: file.type,
-        category: selectedCategory,
-        isVector: isPureVector
+        category: selectedCategory
       });
 
       // Upload to user_assets
       const asset = await uploadAsset({
         file,
         category: selectedCategory,
-        tags: isPureVector ? ['ai-generated', 'vector'] : ['ai-generated'],
-        description: description.trim() || `AI-generated ${isPureVector ? 'vector' : 'raster'} icon from prompt: "${prompt}"`,
+        tags: ['ai-generated'],
+        description: description.trim() || `AI-generated PNG icon from prompt: "${prompt}"`,
         isShared: false // Private to user
       });
 
@@ -630,7 +660,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       
       toast({
         title: 'Icon saved to your library!',
-        description: `"${iconName}" is now available in your personal assets as ${isPureVector ? 'a scalable vector' : 'an image'}.`,
+        description: `"${iconName}" is now available in your personal assets.`,
       });
       
       // Refetch usage after saving
@@ -684,70 +714,38 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       setStage('saving');
       setProgress(50);
 
-      let svgContent: string;
-      let publicUrl: string;
+      // PNG - wrap in SVG
+      const base64Data = generatedImage.split(',')[1];
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/png' });
 
-      if (generatedSVG && isPureVector) {
-        // True vector SVG - upload directly
-        const blob = new Blob([generatedSVG], { type: 'image/svg+xml' });
-        
-        const filename = `${user.id}/submissions/ai-icon-${Date.now()}.svg`;
-        const { error: uploadError } = await supabase.storage
-          .from('user-assets')
-          .upload(filename, blob, {
-            contentType: 'image/svg+xml',
-            cacheControl: '3600'
-          });
+      const filename = `${user.id}/submissions/ai-icon-${Date.now()}.png`;
+      const { error: uploadError } = await supabase.storage
+        .from('user-assets')
+        .upload(filename, blob, {
+          contentType: 'image/png',
+          cacheControl: '3600'
+        });
 
-        if (uploadError) {
-          console.error('Storage upload error:', uploadError);
-          throw uploadError;
-        }
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw uploadError;
+      }
 
-        // Get public URL
-        const { data: { publicUrl: svgUrl } } = supabase.storage
-          .from('user-assets')
-          .getPublicUrl(filename);
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('user-assets')
+        .getPublicUrl(filename);
 
-        publicUrl = svgUrl;
-        svgContent = generatedSVG; // Use the raw SVG content
-        
-      } else {
-        // Raster PNG - wrap in SVG
-        const base64Data = generatedImage.split(',')[1];
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: 'image/png' });
-
-        const filename = `${user.id}/submissions/ai-icon-${Date.now()}.png`;
-        const { error: uploadError } = await supabase.storage
-          .from('user-assets')
-          .upload(filename, blob, {
-            contentType: 'image/png',
-            cacheControl: '3600'
-          });
-
-        if (uploadError) {
-          console.error('Storage upload error:', uploadError);
-          throw uploadError;
-        }
-
-        // Get public URL
-        const { data: { publicUrl: pngUrl } } = supabase.storage
-          .from('user-assets')
-          .getPublicUrl(filename);
-
-        publicUrl = pngUrl;
-        
-        // Create SVG wrapper for the PNG
-        svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
+      // Create SVG wrapper for the PNG
+      const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512">
   <image href="${publicUrl}" width="512" height="512"/>
 </svg>`;
-      }
 
       setProgress(75);
 
@@ -757,7 +755,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         category: selectedCategory,
         svg_content: svgContent,
         thumbnail: publicUrl,
-        description: description.trim() || `AI-generated ${isPureVector ? 'vector' : 'raster'} icon from prompt: "${prompt}"`,
+        description: description.trim() || `AI-generated PNG icon from prompt: "${prompt}"`,
         usage_rights: usageRights,
         usage_rights_details: usageRightsDetails.trim() || undefined,
       });
@@ -801,6 +799,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   };
 
   const handleReset = () => {
+    setSelectedTemplate(null);
     setReferenceImage(null);
     setReferenceFile(null);
     setPrompt('');
@@ -811,8 +810,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setUsageRights('own_rights');
     setUsageRightsDetails('');
     setGeneratedImage(null);
-    setGeneratedSVG(null);
-    setIsPureVector(false);
     setStage('idle');
     setProgress(0);
     if (fileInputRef.current) {
@@ -822,40 +819,14 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
 
   const handleRegenerate = () => {
     setGeneratedImage(null);
-    setGeneratedSVG(null);
-    setIsPureVector(false);
-    setShowCustomizationEditor(false);
     setStage('idle');
     setProgress(0);
-  };
-
-  const handleCustomize = () => {
-    if (generatedSVG && isPureVector) {
-      setShowCustomizationEditor(true);
-    }
-  };
-
-  const handleApplyCustomization = (modifiedSVG: string) => {
-    // Update the generated SVG with customized version
-    setGeneratedSVG(modifiedSVG);
-    
-    // Update preview image
-    const blob = new Blob([modifiedSVG], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    
-    // Clean up old URL if it exists and is a blob URL
-    if (generatedImage && generatedImage.startsWith('blob:')) {
-      URL.revokeObjectURL(generatedImage);
-    }
-    
-    setGeneratedImage(url);
-    setShowCustomizationEditor(false);
   };
 
   const isGenerating = stage === 'generating';
   const isSaving = stage === 'saving';
   const isComplete = stage === 'complete';
-  const canGenerate = (generationMode === 'vector' || referenceImage) && prompt.trim() && !isGenerating && !isSaving;
+  const canGenerate = referenceImage && prompt.trim() && !isGenerating && !isSaving;
   const canSave = generatedImage && iconName.trim() && !isSaving;
 
   return (
@@ -884,9 +855,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
             )}
           </DialogTitle>
           <DialogDescription>
-            {generationMode === 'vector' 
-              ? 'Describe the scientific icon you want to create and AI will generate a scalable vector SVG'
-              : 'Upload a reference image and describe how you want to transform it into an icon'}
+            Upload a reference image and describe how you want to transform it into a PNG icon
             {!usageLoading && usage && !usage.isAdmin && usage.remaining === 0 && (
               <div className="mt-2 p-2 bg-destructive/10 border border-destructive/20 rounded text-xs text-destructive">
                 You've reached your monthly limit of {usage.limit} free generations. 
@@ -907,79 +876,80 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column - Input */}
           <div className="space-y-4">
-            {/* Generation Mode Selection */}
+            {/* Template Selector */}
             <div className="space-y-2">
-              <Label>Generation Mode</Label>
-              <RadioGroup value={generationMode} onValueChange={(v) => setGenerationMode(v as GenerationMode)} className="grid grid-cols-2 gap-2">
-                <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                  <RadioGroupItem value="vector" id="vector" />
-                  <Label htmlFor="vector" className="flex-1 cursor-pointer">
-                    <div className="font-medium">Vector (SVG)</div>
-                    <div className="text-xs text-muted-foreground">Create from description</div>
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-muted/50 transition-colors">
-                  <RadioGroupItem value="raster" id="raster" />
-                  <Label htmlFor="raster" className="flex-1 cursor-pointer">
-                    <div className="font-medium">Raster (PNG)</div>
-                    <div className="text-xs text-muted-foreground">Transform image</div>
-                  </Label>
-                </div>
-              </RadioGroup>
-              {generationMode === 'vector' && (
-                <p className="text-xs text-muted-foreground p-2 bg-primary/5 rounded border border-primary/10">
-                  ✨ Vector mode creates true scalable SVG icons directly from your description
-                </p>
-              )}
+              <Label>Icon Templates (Optional)</Label>
+              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
+                {iconTemplates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => selectTemplate(template)}
+                    className={cn(
+                      "p-2 rounded-lg border text-left transition-all hover:border-primary/50 hover:bg-muted/30",
+                      selectedTemplate === template.id 
+                        ? "border-primary bg-primary/10" 
+                        : "border-border"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="text-primary">{template.icon}</div>
+                      <div className="font-medium text-xs">{template.name}</div>
+                    </div>
+                    <div className="text-[10px] text-muted-foreground line-clamp-1">{template.description}</div>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Click a template to pre-fill prompt and style settings
+              </p>
             </div>
 
-            {/* Reference Image - Only show in raster mode */}
-            {generationMode === 'raster' && (
-              <div>
-                <Label>Reference Image</Label>
-                <div
-                  className="mt-2 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  {referenceImage ? (
-                    <img src={referenceImage} alt="Reference" className="mx-auto max-h-48 rounded" />
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        PNG, JPG, or WEBP (max 10MB)
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
+            {/* Reference Image */}
+            <div>
+              <Label>Reference Image</Label>
+              <div
+                className="mt-2 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {referenceImage ? (
+                  <img src={referenceImage} alt="Reference" className="mx-auto max-h-48 rounded" />
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      PNG, JPG, or WEBP (max 10MB)
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+            </div>
 
             <div>
-              <Label htmlFor="prompt">
-                {generationMode === 'vector' ? 'Icon Description' : 'Transformation Prompt'}
-              </Label>
+              <Label htmlFor="prompt">Transformation Prompt</Label>
               <Textarea
                 id="prompt"
-                placeholder={generationMode === 'vector' 
-                  ? "e.g., DNA double helix with base pairs, mitochondria with cristae, beaker with liquid"
-                  : "e.g., simplify the design, make it monochrome, remove background"}
+                placeholder="e.g., simplify the design, make it monochrome, enhance contrast, apply scientific style"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 disabled={isGenerating || isSaving}
                 className="mt-2 min-h-[80px]"
                 rows={3}
               />
+              {selectedTemplate && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  ✨ Using template: {iconTemplates.find(t => t.id === selectedTemplate)?.name}
+                </p>
+              )}
             </div>
 
             <div>
@@ -1009,8 +979,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
               </Select>
             </div>
 
-            {generationMode === 'raster' && (
-              <div>
+            <div>
                 <Label htmlFor="background">Background Type</Label>
                 <Select value={backgroundType} onValueChange={(v) => setBackgroundType(v as 'transparent' | 'white')} disabled={isGenerating || isSaving}>
                   <SelectTrigger id="background" className="mt-2">
@@ -1031,8 +1000,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                     </SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-            )}
+            </div>
 
             {!generatedImage && (
               <>
@@ -1079,15 +1047,10 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
             {generatedImage && (
               <>
                 <div>
-                  <Label>Generated Icon {isPureVector && <span className="text-xs text-primary">(Vector SVG ✨)</span>}</Label>
+                  <Label>Generated PNG Icon</Label>
                   <div className="mt-2 border rounded-lg p-4 bg-muted/30 flex items-center justify-center">
                     <img src={generatedImage} alt="Generated" className="max-h-64 rounded" />
                   </div>
-                  {isPureVector && (
-                    <p className="text-xs text-muted-foreground mt-2 p-2 bg-primary/5 rounded border border-primary/10">
-                      ✨ This is a true vector SVG - it will scale perfectly to any size!
-                    </p>
-                  )}
                 </div>
 
                 <div>
@@ -1166,18 +1129,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                 </div>
 
                 <div className="space-y-2">
-                  {isPureVector && (
-                    <Button
-                      variant="outline"
-                      onClick={handleCustomize}
-                      disabled={isSaving}
-                      className="w-full"
-                    >
-                      <Palette className="h-4 w-4 mr-2" />
-                      Customize Colors & Style
-                    </Button>
-                  )}
-                  
                   <p className="text-sm text-muted-foreground">Choose where to save your icon:</p>
                   <div className="grid grid-cols-1 gap-2">
                     <Button
@@ -1264,16 +1215,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           </div>
         )}
       </DialogContent>
-
-      {/* SVG Customization Editor */}
-      {generatedSVG && isPureVector && (
-        <SVGCustomizationEditor
-          open={showCustomizationEditor}
-          onOpenChange={setShowCustomizationEditor}
-          svgContent={generatedSVG}
-          onApply={handleApplyCustomization}
-        />
-      )}
     </Dialog>
   );
 };
