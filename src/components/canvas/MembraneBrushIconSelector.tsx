@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Sparkles, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Sparkles, Search, ChevronLeft, ChevronRight, X, ArrowUp, ArrowRight, ArrowDown, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -71,6 +71,7 @@ interface MembraneBrushIconSelectorProps {
     spacing: number;
     rotateToPath: boolean;
     doubleSided: boolean;
+    orientationOffset: number;
   }) => void;
 }
 
@@ -91,6 +92,7 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
   const [spacing, setSpacing] = useState(0);
   const [rotateToPath, setRotateToPath] = useState(true);
   const [doubleSided, setDoubleSided] = useState(false);
+  const [orientationOffset, setOrientationOffset] = useState(0);
 
   // Pagination helpers
   const getCurrentPage = (categoryId: string) => categoryPages[categoryId] || 0;
@@ -221,6 +223,7 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
       spacing,
       rotateToPath,
       doubleSided,
+      orientationOffset,
     });
     
     onOpenChange(false);
@@ -577,6 +580,105 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
                       checked={doubleSided}
                       onCheckedChange={setDoubleSided}
                     />
+                  </div>
+
+                  {/* Orientation Control */}
+                  <div className="space-y-3 pt-2 border-t">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-sm font-medium">Icon Orientation</Label>
+                      <span className="text-sm text-muted-foreground">{orientationOffset}°</span>
+                    </div>
+                    
+                    {/* Preset Direction Buttons */}
+                    <div className="grid grid-cols-4 gap-2">
+                      <Button 
+                        variant={orientationOffset === 0 ? "default" : "outline"} 
+                        size="sm"
+                        onClick={() => setOrientationOffset(0)}
+                        type="button"
+                      >
+                        <ArrowUp className="h-4 w-4 mr-1" /> Up
+                      </Button>
+                      <Button 
+                        variant={orientationOffset === 90 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setOrientationOffset(90)}
+                        type="button"
+                      >
+                        <ArrowRight className="h-4 w-4 mr-1" /> Right
+                      </Button>
+                      <Button 
+                        variant={orientationOffset === 180 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setOrientationOffset(180)}
+                        type="button"
+                      >
+                        <ArrowDown className="h-4 w-4 mr-1" /> Down
+                      </Button>
+                      <Button 
+                        variant={orientationOffset === 270 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setOrientationOffset(270)}
+                        type="button"
+                      >
+                        <ArrowLeft className="h-4 w-4 mr-1" /> Left
+                      </Button>
+                    </div>
+
+                    {/* Fine-tune Slider */}
+                    <Slider
+                      value={[orientationOffset]}
+                      onValueChange={([value]) => setOrientationOffset(value)}
+                      min={0}
+                      max={360}
+                      step={15}
+                      className="w-full"
+                    />
+
+                    {/* Orientation Preview */}
+                    {selectedIcon && (
+                      <div className="flex items-center gap-3 p-3 border rounded-md bg-muted/30">
+                        <div className="relative w-16 h-16 border rounded flex items-center justify-center bg-background">
+                          {/* Path direction arrow */}
+                          <div className="absolute w-full h-0.5 bg-muted-foreground/50" />
+                          <ArrowRight className="absolute h-4 w-4 text-muted-foreground" />
+                          
+                          {/* Icon preview with rotation */}
+                          <div 
+                            className="w-8 h-8 z-10"
+                            style={{ transform: `rotate(${90 + orientationOffset}deg)` }}
+                          >
+                            {(() => {
+                              let thumbSrc = '';
+                              if (selectedIcon.thumbnail) {
+                                if (isUrl(selectedIcon.thumbnail)) {
+                                  thumbSrc = selectedIcon.thumbnail;
+                                } else {
+                                  thumbSrc = svgToDataUrl(sanitizeSvg(selectedIcon.thumbnail));
+                                }
+                              }
+
+                              return thumbSrc ? (
+                                <img 
+                                  src={thumbSrc} 
+                                  alt="Preview" 
+                                  className="w-full h-full object-contain" 
+                                />
+                              ) : (
+                                <img 
+                                  src={noPreview}
+                                  alt="Preview" 
+                                  className="w-full h-full object-contain opacity-50" 
+                                />
+                              );
+                            })()}
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground flex-1">
+                          Preview shows icon orientation relative to path direction (→)
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

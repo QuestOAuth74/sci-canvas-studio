@@ -12,6 +12,7 @@ export interface MembraneBrushOptions {
   spacing: number;
   rotateToPath: boolean;
   doubleSided: boolean;
+  orientationOffset: number;
 }
 
 export class MembraneBrushTool {
@@ -258,7 +259,9 @@ export class MembraneBrushTool {
             });
             
             if (this.options.rotateToPath) {
-              icon.set({ angle: result.angle + 90 });
+              icon.set({ angle: result.angle + 90 + this.options.orientationOffset });
+            } else {
+              icon.set({ angle: this.options.orientationOffset });
             }
             
             if (isPreview) {
@@ -284,7 +287,7 @@ export class MembraneBrushTool {
                   originY: 'center',
                   selectable: false,
                   evented: false,
-                  angle: this.options.rotateToPath ? result.angle - 90 : 0,
+                  angle: this.options.rotateToPath ? result.angle - 90 + this.options.orientationOffset : this.options.orientationOffset,
                 });
                 
                 if (isPreview) {
