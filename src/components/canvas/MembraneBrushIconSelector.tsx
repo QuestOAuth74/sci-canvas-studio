@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Sparkles, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkles, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,6 +82,9 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
   const [searchQuery, setSearchQuery] = useState("");
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
   const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
+  const [searchResults, setSearchResults] = useState<Icon[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchPage, setSearchPage] = useState(0);
   
   // Brush options
   const [iconSize, setIconSize] = useState(40);
@@ -100,6 +103,29 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
     return icons.slice(startIdx, startIdx + ICONS_PER_PAGE);
   };
   const getTotalPages = (icons: Icon[]) => Math.ceil(icons.length / ICONS_PER_PAGE);
+
+  const getPaginatedSearchResults = () => {
+    const startIdx = searchPage * ICONS_PER_PAGE;
+    return searchResults.slice(startIdx, startIdx + ICONS_PER_PAGE);
+  };
+
+  const getTotalSearchPages = () => Math.ceil(searchResults.length / ICONS_PER_PAGE);
+
+  // Debounced search effect
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      setSearchPage(0);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (open) {
@@ -122,6 +148,31 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
       toast.error("Failed to load icon categories");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const performSearch = async (query: string) => {
+    try {
+      setIsSearching(true);
+      const searchTerms = query.trim().split(/\s+/).join(' & ');
+      
+      const { data, error } = await supabase
+        .from('icons')
+        .select('id, name, category, svg_content, thumbnail')
+        .textSearch('search_vector', searchTerms, {
+          type: 'websearch',
+          config: 'english'
+        })
+        .limit(100);
+
+      if (error) throw error;
+      setSearchResults(data || []);
+      setSearchPage(0);
+    } catch (err) {
+      console.error("Search error:", err);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -205,31 +256,131 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
                 placeholder="Search icons..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 pr-8"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
             </div>
           </div>
 
           {/* Suggested Icons */}
-          <div className="mb-6">
-            <Label className="text-sm font-medium mb-2 block">Suggested for Membranes:</Label>
-            <div className="flex gap-2 flex-wrap">
-              {suggestedIcons.map((item) => (
-                <Button
-                  key={item.search}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSearchQuery(item.search)}
-                >
-                  {item.name}
-                </Button>
-              ))}
+          {!searchQuery.trim() && (
+            <div className="mb-6">
+              <Label className="text-sm font-medium mb-2 block">Suggested for Membranes:</Label>
+              <div className="flex gap-2 flex-wrap">
+                {suggestedIcons.map((item) => (
+                  <Button
+                    key={item.search}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSearchQuery(item.search)}
+                  >
+                    {item.name}
+                  </Button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Categories */}
-          <div className="mb-6">
-            <Label className="text-sm font-medium mb-2 block">All Categories:</Label>
+          {/* Search Results */}
+          {searchQuery.trim() && (
+            <div className="mb-6">
+              <Label className="text-sm font-medium mb-2 block">
+                {isSearching ? "Searching..." : `Search Results (${searchResults.length} icons)`}
+              </Label>
+              {searchResults.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-8 gap-2 border rounded-md p-3">
+                    {getPaginatedSearchResults().map((icon) => {
+                      let thumbSrc = '';
+                      if (icon.thumbnail) {
+                        if (isUrl(icon.thumbnail)) {
+                          thumbSrc = icon.thumbnail;
+                        } else {
+                          thumbSrc = svgToDataUrl(sanitizeSvg(icon.thumbnail));
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={icon.id}
+                          onClick={() => handleIconClick(icon)}
+                          className={`p-2 rounded border transition-all hover:scale-110 ${
+                            selectedIcon?.id === icon.id
+                              ? 'border-primary bg-primary/10 ring-2 ring-primary'
+                              : 'border-border hover:border-primary'
+                          }`}
+                          title={icon.name}
+                        >
+                          {thumbSrc ? (
+                            <img
+                              src={thumbSrc}
+                              alt={icon.name}
+                              className="w-full h-auto"
+                            />
+                          ) : icon.svg_content ? (
+                            <div
+                              dangerouslySetInnerHTML={{ __html: icon.svg_content }}
+                              className="w-full h-auto"
+                            />
+                          ) : (
+                            <img
+                              src={noPreview}
+                              alt="No preview"
+                              className="w-full h-auto opacity-50"
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Search Pagination */}
+                  {getTotalSearchPages() > 1 && (
+                    <div className="flex items-center justify-between mt-3">
+                      <span className="text-xs text-muted-foreground">
+                        Page {searchPage + 1} of {getTotalSearchPages()}
+                        {' '}({searchResults.length} results)
+                      </span>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={searchPage === 0}
+                          onClick={() => setSearchPage(searchPage - 1)}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={searchPage >= getTotalSearchPages() - 1}
+                          onClick={() => setSearchPage(searchPage + 1)}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : !isSearching && (
+                <div className="text-sm text-muted-foreground border rounded-md p-4 text-center">
+                  No icons found for "{searchQuery}"
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Categories - only show when NOT searching */}
+          {!searchQuery.trim() && (
+            <div className="mb-6">
+              <Label className="text-sm font-medium mb-2 block">All Categories:</Label>
             {loading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
@@ -335,7 +486,8 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
                 </Accordion>
               </ScrollArea>
             )}
-          </div>
+            </div>
+          )}
 
           {/* Selected Icon Preview & Options */}
           {selectedIcon && (
