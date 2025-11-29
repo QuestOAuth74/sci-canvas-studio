@@ -16,7 +16,6 @@ import { loadImageWithCORS } from "@/lib/utils";
 import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling";
 import { calculateObjectComplexity, applyComplexityOptimizations, shouldSimplifyControls } from "@/lib/objectComplexity";
 import { isTextBox, handleTextBoxResize, getTextBoxTextElement } from "@/lib/textBoxTool";
-import { VertexEditingManager } from "@/lib/vertexEditingTool";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -100,7 +99,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
   const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
-  const vertexEditingManagerRef = useRef<VertexEditingManager | null>(null);
   
   // Object culling manager for viewport-based performance optimization
   const cullingManagerRef = useRef<ObjectCullingManager>(new ObjectCullingManager());
@@ -125,8 +123,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     textBold,
     textItalic,
     saveState,
-    vertexEditingEnabled,
-    setVertexEditingEnabled,
   } = useCanvas();
 
   useEffect(() => {
@@ -435,9 +431,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     setCanvas(canvas);
     
-    // Initialize vertex editing manager
-    vertexEditingManagerRef.current = new VertexEditingManager(canvas);
-    
     // Normalize all existing text objects with font stacks for special character support
     normalizeCanvasTextFonts(canvas);
 
@@ -530,21 +523,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       setSelectedObject(uiSelected);
       manageCurvedLineHandles(uiSelected);
       
-      // Handle vertex editing for paths and polygons
-      if (vertexEditingManagerRef.current && vertexEditingEnabled) {
-        const isEditable = uiSelected && (
-          uiSelected.type === 'path' || 
-          uiSelected.type === 'polygon' || 
-          (uiSelected as any).isFreeformLine ||
-          (uiSelected as any).isCurvedLine ||
-          (uiSelected as any).isOrthogonalLine ||
-          (uiSelected as any).isStraightLine
-        );
-        if (isEditable) {
-          vertexEditingManagerRef.current.enableVertexEditing(uiSelected);
-        }
-      }
-      
       // Debug text object properties
       debugTextObject(uiSelected, "Selection Created");
       
@@ -589,21 +567,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       setSelectedObject(uiSelected);
       manageCurvedLineHandles(uiSelected);
       
-      // Handle vertex editing for paths and polygons
-      if (vertexEditingManagerRef.current && vertexEditingEnabled) {
-        const isEditable = uiSelected && (
-          uiSelected.type === 'path' || 
-          uiSelected.type === 'polygon' || 
-          (uiSelected as any).isFreeformLine ||
-          (uiSelected as any).isCurvedLine ||
-          (uiSelected as any).isOrthogonalLine ||
-          (uiSelected as any).isStraightLine
-        );
-        if (isEditable) {
-          vertexEditingManagerRef.current.enableVertexEditing(uiSelected);
-        }
-      }
-      
       // Debug text object properties
       debugTextObject(uiSelected, "Selection Updated");
       
@@ -616,11 +579,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     canvas.on('selection:cleared', () => {
       setSelectedObject(null);
       manageCurvedLineHandles(null);
-      
-      // Disable vertex editing when selection is cleared
-      if (vertexEditingManagerRef.current) {
-        vertexEditingManagerRef.current.disableVertexEditing();
-      }
     });
 
     // Normalize fonts when text editing starts
@@ -711,51 +669,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Handle double-click for vertex editing, edge insertion, image placeholders and text box editing
+    // Handle double-click for image placeholders and text box editing
     canvas.on('mouse:dblclick', (e) => {
       const obj = e.target;
-      
-      // Handle vertex edge insertion when vertex editing is enabled
-      if (vertexEditingEnabled && obj && vertexEditingManagerRef.current) {
-        const isVertexEditable = (
-          obj.type === 'path' ||
-          obj.type === 'polygon' ||
-          (obj as any).isFreeformLine ||
-          (obj as any).isCurvedLine ||
-          (obj as any).isOrthogonalLine ||
-          (obj as any).isStraightLine
-        );
-        
-        if (isVertexEditable && e.pointer) {
-          // Try to insert vertex on edge at click position
-          const inserted = vertexEditingManagerRef.current.insertVertexOnEdge(e.pointer.x, e.pointer.y);
-          if (inserted) {
-            toast.success("Vertex added on edge");
-            return;
-          }
-        }
-      }
-      
-      // Handle vertex editing activation on double-click
-      const isVertexEditable = obj && (
-        obj.type === 'path' ||
-        obj.type === 'polygon' ||
-        (obj as any).isFreeformLine ||
-        (obj as any).isCurvedLine ||
-        (obj as any).isOrthogonalLine ||
-        (obj as any).isStraightLine
-      );
-      
-      if (isVertexEditable) {
-        const newState = !vertexEditingEnabled;
-        setVertexEditingEnabled(newState);
-        if (newState) {
-          toast.success("Vertex editing enabled - Double-click edges to add vertices");
-        } else {
-          toast.info("Vertex editing disabled");
-        }
-        return;
-      }
       
       // Handle image placeholder click - open file picker
       if (obj && (obj as any).isImagePlaceholder) {
@@ -1157,32 +1073,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     canvas.requestRenderAll();
   }, [canvas, backgroundColor, backgroundGradient]);
-  
-  // Handle vertex editing toggle
-  useEffect(() => {
-    if (!canvas || !vertexEditingManagerRef.current) return;
-    
-    const selected = canvas.getActiveObject();
-    if (!selected) return;
-    
-    const isEditable = selected.type === 'path' || 
-      selected.type === 'polygon' || 
-      (selected as any).isFreeformLine ||
-      (selected as any).isCurvedLine ||
-      (selected as any).isOrthogonalLine ||
-      (selected as any).isStraightLine;
-    
-    if (vertexEditingEnabled && isEditable) {
-      const success = vertexEditingManagerRef.current.enableVertexEditing(selected);
-      if (success) {
-        canvas.requestRenderAll();
-        toast.success("Vertex editing enabled");
-      }
-    } else {
-      vertexEditingManagerRef.current.disableVertexEditing();
-      canvas.requestRenderAll();
-    }
-  }, [vertexEditingEnabled, canvas]);
 
   // Handle grid rendering - redraws on zoom changes to prevent double grid
   useEffect(() => {

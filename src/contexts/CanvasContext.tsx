@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect, useMemo, useRef } from "react";
-import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, Gradient, Shadow, FabricImage, Point, Polygon } from "fabric";
+import { Canvas as FabricCanvas, FabricObject, Rect, Circle, Path, Group, ActiveSelection, util, Gradient, Shadow, FabricImage, Point } from "fabric";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -179,11 +179,6 @@ interface CanvasContextType {
   // Line gradient operations
   applyLineGradient: (config: any) => void;
   clearLineGradient: () => void;
-  
-  // Vertex editing operations
-  vertexEditingEnabled: boolean;
-  setVertexEditingEnabled: (enabled: boolean) => void;
-  vertexCount: number;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -258,42 +253,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [textListType, setTextListType] = useState<'none' | 'bullet' | 'numbered'>('none');
   const [textSubscript, setTextSubscript] = useState(false);
   const [textSuperscript, setTextSuperscript] = useState(false);
-  
-  // Vertex editing state
-  const [vertexEditingEnabled, setVertexEditingEnabled] = useState(false);
-  const [vertexCount, setVertexCount] = useState(0);
-  
-  // Update vertex count from vertex editing manager
-  useEffect(() => {
-    if (selectedObject && vertexEditingEnabled) {
-      const interval = setInterval(() => {
-        if (!selectedObject) return;
-        
-        // Handle group-based lines (curved, orthogonal, straight)
-        const isGroupLine = (selectedObject as any).isCurvedLine || 
-          (selectedObject as any).isOrthogonalLine || 
-          (selectedObject as any).isStraightLine;
-        
-        if (isGroupLine && selectedObject.type === 'group') {
-          const group = selectedObject as Group;
-          const mainPath = group.getObjects().find(obj => 
-            obj.type === 'path' && !(obj as any).isArrowMarker
-          ) as Path | undefined;
-          if (mainPath?.path) {
-            setVertexCount(mainPath.path.length || 0);
-          }
-        } else if (selectedObject.type === 'polygon') {
-          setVertexCount((selectedObject as Polygon).points?.length || 0);
-        } else if (selectedObject.type === 'path') {
-          const pathData = (selectedObject as Path).path;
-          setVertexCount(pathData?.length || 0);
-        }
-      }, 500);
-      return () => clearInterval(interval);
-    } else {
-      setVertexCount(0);
-    }
-  }, [selectedObject, vertexEditingEnabled]);
   
   // Pin state
   const [isPinned, setIsPinned] = useState(false);
@@ -2418,9 +2377,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     removeImageBackground,
     applyLineGradient,
     clearLineGradient,
-    vertexEditingEnabled,
-    setVertexEditingEnabled,
-    vertexCount,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

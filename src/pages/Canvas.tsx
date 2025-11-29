@@ -131,8 +131,6 @@ const CanvasContent = () => {
     rotateSelected,
     duplicateBelow,
     loadTemplate,
-    vertexEditingEnabled,
-    setVertexEditingEnabled,
   } = useCanvas();
 
   // Enable canvas workspace theme when component mounts
@@ -469,36 +467,6 @@ const CanvasContent = () => {
         flipHorizontal();
       }
 
-      // Exit vertex editing with ESC
-      if (e.key === 'Escape' && vertexEditingEnabled && !isEditingText) {
-        e.preventDefault();
-        setVertexEditingEnabled(false);
-        toast.info("Exited vertex editing mode");
-        return;
-      }
-
-      // Toggle vertex editing (V) - for all editable line types
-      if (e.key === 'v' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !isEditingText) {
-        e.preventDefault();
-        const activeObject = canvas?.getActiveObject();
-        const isEditable = activeObject && (
-          activeObject.type === 'path' || 
-          activeObject.type === 'polygon' ||
-          (activeObject as any).isFreeformLine ||
-          (activeObject as any).isCurvedLine ||
-          (activeObject as any).isOrthogonalLine ||
-          (activeObject as any).isStraightLine
-        );
-        if (isEditable) {
-          const newState = !vertexEditingEnabled;
-          setVertexEditingEnabled(newState);
-          toast.info(`Vertex editing ${newState ? 'enabled' : 'disabled'}`);
-        } else {
-          toast.error('Select a path, polygon, or line to edit vertices');
-        }
-        return;
-      }
-
       // Flip vertical (Shift + V)
       if (e.key === 'V' && e.shiftKey && !e.metaKey && !e.ctrlKey && !isEditingText) {
         e.preventDefault();
@@ -615,7 +583,7 @@ const CanvasContent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow, setVertexEditingEnabled, vertexEditingEnabled]);
+  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow]);
 
   return (
       <>
