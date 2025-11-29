@@ -11,6 +11,7 @@ import { LinePropertiesPanel } from "./LinePropertiesPanel";
 import { LineGradientPanel } from "./LineGradientPanel";
 import { StylePresets } from "./StylePresets";
 import { ImageEraserDialog } from "./ImageEraserDialog";
+import { MembranePropertiesPanel } from "./MembranePropertiesPanel";
 import { DiagramSettingsSection } from "./properties/DiagramSettingsSection";
 import { TextPropertiesSection } from "./properties/TextPropertiesSection";
 import { ShapePropertiesSection } from "./properties/ShapePropertiesSection";
@@ -1277,12 +1278,19 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
             </TabsContent>
             
             <TabsContent value="style" className="space-y-4 mt-0">
+              {/* Membrane Properties - Show for membrane groups */}
+              {selectedObject && selectedObject.type === 'group' && (selectedObject as any).isMembrane && (
+                <div className="mb-4">
+                  <MembranePropertiesPanel membrane={selectedObject as Group} />
+                </div>
+              )}
+
               <StylePresets />
               <div className="h-px bg-border my-2" />
               <StylePanel />
 
-              {/* Icon Color & Tone - Only show for SVG groups (icons) */}
-              {selectedObject && selectedObject.type === 'group' && !isShapeWithTextGroup(selectedObject) && (
+              {/* Icon Color & Tone - Only show for SVG groups (icons) that are NOT membranes */}
+              {selectedObject && selectedObject.type === 'group' && !isShapeWithTextGroup(selectedObject) && !(selectedObject as any).isMembrane && (
                 <Accordion type="multiple" defaultValue={["icon-color"]} className="w-full mt-3 border-t pt-3">
                   <AccordionItem value="icon-color" className="border-none">
                     <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">

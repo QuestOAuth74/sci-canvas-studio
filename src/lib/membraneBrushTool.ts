@@ -109,6 +109,7 @@ export class MembraneBrushTool {
       
       (membrane as any).isMembrane = true;
       (membrane as any).membraneOptions = this.options;
+      (membrane as any).membranePathPoints = this.pathPoints;
       
       this.canvas.add(membrane);
       this.canvas.setActiveObject(membrane);
