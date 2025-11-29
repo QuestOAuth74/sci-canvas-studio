@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
 import { FeatureUnlockBanner } from '@/components/community/FeatureUnlockBanner';
 import { useFeatureAccess } from '@/hooks/useFeatureAccess';
+import { DownloadQuotaCard } from '@/components/profile/DownloadQuotaCard';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -942,9 +943,13 @@ export default function Profile() {
         </Card>
           </div>
 
-          {/* RIGHT COLUMN - Premium Features Sidebar */}
-          {hasAccess && !featureAccessLoading && (
-            <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
+          {/* RIGHT COLUMN - Download Quota & Premium Features Sidebar */}
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
+            {/* Download Quota Card - Always Visible */}
+            <DownloadQuotaCard />
+            
+            {/* Premium Features - Only for Premium Users */}
+            {hasAccess && !featureAccessLoading && (
               <Card className="notebook-sidebar ruled-lines bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] overflow-hidden pl-8 relative paper-shadow">
                 {/* Spiral binding */}
                 <div className="spiral-binding">
@@ -1043,8 +1048,8 @@ export default function Profile() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
