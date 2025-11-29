@@ -251,6 +251,14 @@ export function ShareProjectDialog({ project, isOpen, onClose, onUpdate }: Share
                 </AlertDescription>
               </Alert>
 
+              <Alert className="border-orange-500 bg-orange-50">
+                <AlertCircle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-900">
+                  <strong>Security Notice:</strong> Ensure your diagram doesn't contain sensitive or confidential information. 
+                  All content (text, annotations, metadata) will be publicly visible after approval.
+                </AlertDescription>
+              </Alert>
+
               {/* Title */}
               <div className="space-y-2">
                 <Label htmlFor="title">
