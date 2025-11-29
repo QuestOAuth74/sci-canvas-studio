@@ -7,10 +7,48 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Sparkles, Search } from "lucide-react";
+import { Sparkles, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import noPreview from "@/assets/no_preview.png";
+
+// Helper functions for thumbnail handling
+const isUrl = (str: string): boolean => {
+  return str.startsWith('http://') || str.startsWith('https://') || str.startsWith('data:');
+};
+
+const sanitizeSvg = (raw: string): string => {
+  let svg = raw.trim();
+  svg = svg
+    .replace(/<\?xml[^>]*?>/gi, "")
+    .replace(/<!DOCTYPE[^>]*>/gi, "")
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/\son[a-z]+\s*=\s*"[^"]*"/gi, "");
+
+  if (!svg.includes('viewBox')) {
+    const widthMatch = svg.match(/width\s*=\s*["']([^"']+)["']/i);
+    const heightMatch = svg.match(/height\s*=\s*["']([^"']+)["']/i);
+    if (widthMatch && heightMatch) {
+      const width = parseFloat(widthMatch[1]);
+      const height = parseFloat(heightMatch[1]);
+      if (!isNaN(width) && !isNaN(height)) {
+        svg = svg.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
+      }
+    }
+  }
+  
+  return svg;
+};
+
+const svgToDataUrl = (svg: string): string => {
+  const encoded = encodeURIComponent(svg)
+    .replace(/%0A/g, "")
+    .replace(/%20/g, " ");
+  return `data:image/svg+xml;charset=utf-8,${encoded}`;
+};
+
+const ICONS_PER_PAGE = 20;
 
 interface Category {
   id: string;
@@ -43,12 +81,25 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
   const [selectedIcon, setSelectedIcon] = useState<Icon | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [openAccordions, setOpenAccordions] = useState<string[]>([]);
+  const [categoryPages, setCategoryPages] = useState<Record<string, number>>({});
   
   // Brush options
   const [iconSize, setIconSize] = useState(40);
   const [spacing, setSpacing] = useState(0);
   const [rotateToPath, setRotateToPath] = useState(true);
   const [doubleSided, setDoubleSided] = useState(false);
+
+  // Pagination helpers
+  const getCurrentPage = (categoryId: string) => categoryPages[categoryId] || 0;
+  const setCurrentPage = (categoryId: string, page: number) => {
+    setCategoryPages(prev => ({ ...prev, [categoryId]: page }));
+  };
+  const getPaginatedIcons = (categoryId: string, icons: Icon[]) => {
+    const currentPage = getCurrentPage(categoryId);
+    const startIdx = currentPage * ICONS_PER_PAGE;
+    return icons.slice(startIdx, startIdx + ICONS_PER_PAGE);
+  };
+  const getTotalPages = (icons: Icon[]) => Math.ceil(icons.length / ICONS_PER_PAGE);
 
   useEffect(() => {
     if (open) {
@@ -82,7 +133,7 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
         .from("icons")
         .select("id, name, category, svg_content, thumbnail")
         .eq("category", categoryId)
-        .limit(50);
+        .order("name");
 
       if (error) throw error;
       
@@ -199,33 +250,82 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
                       </AccordionTrigger>
                       <AccordionContent>
                         {iconsByCategory[category.id] ? (
-                          <div className="grid grid-cols-8 gap-2">
-                            {iconsByCategory[category.id].map((icon) => (
-                              <button
-                                key={icon.id}
-                                onClick={() => handleIconClick(icon)}
-                                className={`p-2 rounded border transition-all hover:scale-110 ${
-                                  selectedIcon?.id === icon.id
-                                    ? 'border-primary bg-primary/10 ring-2 ring-primary'
-                                    : 'border-border hover:border-primary'
-                                }`}
-                                title={icon.name}
-                              >
-                                {icon.thumbnail ? (
-                                  <img
-                                    src={icon.thumbnail}
-                                    alt={icon.name}
-                                    className="w-full h-auto"
-                                  />
-                                ) : (
-                                  <div
-                                    dangerouslySetInnerHTML={{ __html: icon.svg_content }}
-                                    className="w-full h-auto"
-                                  />
-                                )}
-                              </button>
-                            ))}
-                          </div>
+                          <>
+                            <div className="grid grid-cols-8 gap-2">
+                              {getPaginatedIcons(category.id, iconsByCategory[category.id]).map((icon) => {
+                                // Determine proper thumbnail source
+                                let thumbSrc = '';
+                                if (icon.thumbnail) {
+                                  if (isUrl(icon.thumbnail)) {
+                                    thumbSrc = icon.thumbnail;
+                                  } else {
+                                    // Raw SVG - convert to data URL
+                                    thumbSrc = svgToDataUrl(sanitizeSvg(icon.thumbnail));
+                                  }
+                                }
+
+                                return (
+                                  <button
+                                    key={icon.id}
+                                    onClick={() => handleIconClick(icon)}
+                                    className={`p-2 rounded border transition-all hover:scale-110 ${
+                                      selectedIcon?.id === icon.id
+                                        ? 'border-primary bg-primary/10 ring-2 ring-primary'
+                                        : 'border-border hover:border-primary'
+                                    }`}
+                                    title={icon.name}
+                                  >
+                                    {thumbSrc ? (
+                                      <img
+                                        src={thumbSrc}
+                                        alt={icon.name}
+                                        className="w-full h-auto"
+                                      />
+                                    ) : icon.svg_content ? (
+                                      <div
+                                        dangerouslySetInnerHTML={{ __html: icon.svg_content }}
+                                        className="w-full h-auto"
+                                      />
+                                    ) : (
+                                      <img
+                                        src={noPreview}
+                                        alt="No preview"
+                                        className="w-full h-auto opacity-50"
+                                      />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Pagination Controls */}
+                            {getTotalPages(iconsByCategory[category.id]) > 1 && (
+                              <div className="flex items-center justify-between mt-3 pt-2 border-t">
+                                <span className="text-xs text-muted-foreground">
+                                  Page {getCurrentPage(category.id) + 1} of {getTotalPages(iconsByCategory[category.id])}
+                                  {' '}({iconsByCategory[category.id].length} icons)
+                                </span>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={getCurrentPage(category.id) === 0}
+                                    onClick={() => setCurrentPage(category.id, getCurrentPage(category.id) - 1)}
+                                  >
+                                    <ChevronLeft className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={getCurrentPage(category.id) >= getTotalPages(iconsByCategory[category.id]) - 1}
+                                    onClick={() => setCurrentPage(category.id, getCurrentPage(category.id) + 1)}
+                                  >
+                                    <ChevronRight className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div className="text-sm text-muted-foreground">Loading icons...</div>
                         )}
@@ -246,18 +346,35 @@ export const MembraneBrushIconSelector = ({ open, onOpenChange, onStart }: Membr
                 {/* Preview */}
                 <div className="flex-shrink-0">
                   <div className="w-24 h-24 border rounded-lg bg-background flex items-center justify-center p-2">
-                    {selectedIcon.thumbnail ? (
-                      <img
-                        src={selectedIcon.thumbnail}
-                        alt={selectedIcon.name}
-                        className="max-w-full max-h-full"
-                      />
-                    ) : (
-                      <div
-                        dangerouslySetInnerHTML={{ __html: selectedIcon.svg_content }}
-                        className="max-w-full max-h-full"
-                      />
-                    )}
+                    {(() => {
+                      let thumbSrc = '';
+                      if (selectedIcon.thumbnail) {
+                        if (isUrl(selectedIcon.thumbnail)) {
+                          thumbSrc = selectedIcon.thumbnail;
+                        } else {
+                          thumbSrc = svgToDataUrl(sanitizeSvg(selectedIcon.thumbnail));
+                        }
+                      }
+
+                      return thumbSrc ? (
+                        <img
+                          src={thumbSrc}
+                          alt={selectedIcon.name}
+                          className="max-w-full max-h-full"
+                        />
+                      ) : selectedIcon.svg_content ? (
+                        <div
+                          dangerouslySetInnerHTML={{ __html: selectedIcon.svg_content }}
+                          className="max-w-full max-h-full"
+                        />
+                      ) : (
+                        <img
+                          src={noPreview}
+                          alt="No preview"
+                          className="max-w-full max-h-full opacity-50"
+                        />
+                      );
+                    })()}
                   </div>
                   <p className="text-xs text-center mt-1 text-muted-foreground">{selectedIcon.name}</p>
                 </div>
