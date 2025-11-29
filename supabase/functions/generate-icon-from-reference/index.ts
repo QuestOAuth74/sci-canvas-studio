@@ -14,12 +14,28 @@ const stylePrompts = {
   detailed: "Detailed scientific illustration icon, high accuracy, educational quality, clear features, transparent background, professional"
 };
 
+const creativityPrompts = {
+  faithful: `IMPORTANT: Recreate this image with high fidelity. 
+Maintain exact proportions, colors, structural details, and overall composition. 
+Make only minimal adjustments for clarity. Stay very close to the original.`,
+  
+  balanced: `Transform this image while maintaining scientific accuracy. 
+Keep key visual elements and proportions but allow stylistic improvements. 
+Balance originality with recognizability.`,
+  
+  creative: `Use this image as creative inspiration. 
+Feel free to reimagine the design artistically while preserving the core scientific concept. 
+Explore creative interpretations with varied colors, styles, and artistic elements.`
+};
+
 function buildEnhancedPrompt(
   userPrompt: string, 
   style: keyof typeof stylePrompts,
-  backgroundType: 'transparent' | 'white' = 'transparent'
+  backgroundType: 'transparent' | 'white' = 'transparent',
+  creativityLevel: 'faithful' | 'balanced' | 'creative' = 'balanced'
 ): string {
   const basePrompt = stylePrompts[style];
+  const creativityInstruction = creativityPrompts[creativityLevel];
   
   const backgroundInstruction = backgroundType === 'transparent'
     ? `Output MUST be a PNG with a fully transparent background (RGBA, alpha channel).
@@ -27,7 +43,9 @@ Do not include any white or colored background, shadows, borders, glow, or backd
     : `Output MUST be a PNG with a clean, solid white background (#FFFFFF).
 Ensure the subject has clear edges against the white background.`;
   
-  return `${basePrompt}. Transform this reference image to create: ${userPrompt}.
+  return `${creativityInstruction}
+
+${basePrompt}. Transform this reference image to create: ${userPrompt}.
 Ensure scientific accuracy, clean edges, and high contrast at small sizes.
 ${backgroundInstruction}
 Optimize for use as a small scientific icon.`;
@@ -112,7 +130,7 @@ serve(async (req) => {
       }
     }
 
-    const { image, prompt, style = 'simple', size = '512x512', backgroundType = 'transparent' } = await req.json();
+    const { image, prompt, style = 'simple', size = '512x512', backgroundType = 'transparent', creativityLevel = 'balanced' } = await req.json();
 
     if (!image || !prompt) {
       throw new Error('Missing required fields: image and prompt');
@@ -129,6 +147,7 @@ serve(async (req) => {
     console.log('📝 Prompt:', prompt);
     console.log('🎭 Style:', style);
     console.log('🖼️ Background type:', backgroundType);
+    console.log('🎨 Creativity level:', creativityLevel);
 
     // Validate image format
     if (!image.startsWith('data:image/')) {
@@ -139,7 +158,8 @@ serve(async (req) => {
     const enhancedPrompt = buildEnhancedPrompt(
       prompt, 
       style as keyof typeof stylePrompts,
-      backgroundType as 'transparent' | 'white'
+      backgroundType as 'transparent' | 'white',
+      creativityLevel as 'faithful' | 'balanced' | 'creative'
     );
     console.log('✨ Enhanced prompt:', enhancedPrompt);
 
