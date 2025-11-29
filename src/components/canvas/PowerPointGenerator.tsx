@@ -149,7 +149,7 @@ export const PowerPointGenerator = ({ open, onOpenChange }: PowerPointGeneratorP
                 AI Generations: {usage.used} of {usage.limit} used this month
               </p>
               <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                Shared across AI Icons, Figures, and PowerPoint • Resets monthly
+                Shared across Biosketch Icons, Figures, and PowerPoint • Resets monthly
               </p>
             </div>
           </div>
