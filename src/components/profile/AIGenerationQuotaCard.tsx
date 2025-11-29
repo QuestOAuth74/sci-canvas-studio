@@ -139,7 +139,7 @@ export function AIGenerationQuotaCard() {
                   Premium Feature Unlocked!
                 </p>
                 <p className="text-sm text-muted-foreground font-['Source_Serif_4']">
-                  You get 3 AI generations per month. Resets on the 1st of each month.
+                  You get 3 AI generations per month (shared across AI Icons, Figures, and PowerPoint). Resets on the 1st of each month.
                 </p>
               </div>
             </div>

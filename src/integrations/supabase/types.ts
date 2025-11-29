@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string | null
           generated_at: string
+          generation_type: string | null
           id: string
           month_year: string
           prompt: string | null
@@ -27,6 +28,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           generated_at?: string
+          generation_type?: string | null
           id?: string
           month_year: string
           prompt?: string | null
@@ -36,6 +38,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           generated_at?: string
+          generation_type?: string | null
           id?: string
           month_year?: string
           prompt?: string | null

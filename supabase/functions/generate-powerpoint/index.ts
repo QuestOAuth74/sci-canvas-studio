@@ -56,47 +56,46 @@ serve(async (req) => {
 
     console.log('✅ User authenticated:', user.id);
 
-    // Check admin access OR premium access (3+ approved submissions)
-    const { data: roles } = await supabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .single();
+    // Check generation quota using unified can_user_generate RPC
+    const { data: quotaData, error: quotaError } = await supabaseAdmin
+      .rpc('can_user_generate', { _user_id: user.id });
 
-    const isAdmin = !!roles;
+    if (quotaError) {
+      console.error('Error checking generation quota:', quotaError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to check generation quota' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    if (!isAdmin) {
-      // Check premium access for non-admin users
-      const { data: accessData, error: accessError } = await supabaseClient
-        .rpc('user_has_premium_access', { check_user_id: user.id });
+    const quota = quotaData as any;
 
-      if (accessError) {
-        console.error('❌ Error checking premium access:', accessError);
-        throw new Error('Failed to verify access');
-      }
+    // Non-premium users cannot generate
+    if (!quota.hasPremium && !quota.isAdmin) {
+      const remaining = quota.needsApproved || 3;
+      return new Response(
+        JSON.stringify({ 
+          error: 'PREMIUM_REQUIRED',
+          message: `Share ${remaining} more approved project${remaining !== 1 ? 's' : ''} to unlock PowerPoint Maker`,
+          remaining,
+          approvedCount: quota.approvedCount || 0
+        }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-      if (!accessData) {
-        // Get remaining count for better error message
-        const { data: progressData } = await supabaseClient
-          .rpc('get_user_premium_progress', { check_user_id: user.id })
-          .single();
-
-        const remaining = (progressData as any)?.remaining || 3;
-
-        return new Response(
-          JSON.stringify({ 
-            error: 'FEATURE_LOCKED',
-            message: `Submit ${remaining} more approved figure${remaining !== 1 ? 's' : ''} to unlock PowerPoint Maker`,
-            remaining
-          }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      console.log('✅ Premium access confirmed');
-    } else {
-      console.log('✅ Admin access - bypassing premium check');
+    // Premium users have monthly limit (admins bypass this check)
+    if (!quota.isAdmin && !quota.canGenerate) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'RATE_LIMIT_EXCEEDED',
+          message: 'Monthly generation limit reached. Resets on the 1st of each month.',
+          used: quota.used,
+          limit: quota.limit,
+          monthYear: quota.monthYear
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const requestBody = await req.json();
@@ -2271,6 +2270,32 @@ ${docOutline.substring(0, 8000)}`,
     }
 
     console.log('PowerPoint generation completed successfully');
+
+    // Track usage in ai_generation_usage table (unless admin)
+    if (!quota.isAdmin) {
+      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+      try {
+        const { error: usageError } = await supabaseAdmin
+          .from('ai_generation_usage')
+          .insert({
+            user_id: user.id,
+            month_year: currentMonth,
+            prompt: 'PowerPoint Generation',
+            style: 'powerpoint_generation',
+            generation_type: 'powerpoint'
+          });
+
+        if (usageError) {
+          console.error('Failed to track usage:', usageError);
+          // Don't fail the request if usage tracking fails
+        } else {
+          console.log('✅ Usage tracked for user:', user.id);
+        }
+      } catch (err) {
+        console.error('Error tracking usage:', err);
+        // Don't fail the request if usage tracking fails
+      }
+    }
 
     return new Response(
       JSON.stringify({ success: true, generationId }),
