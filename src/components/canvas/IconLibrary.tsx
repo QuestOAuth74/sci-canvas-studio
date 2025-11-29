@@ -681,7 +681,10 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                                   </span>
                                 </div>
                   <span className="text-xs text-muted-foreground font-normal">
-                    {iconsByCategory[category.id] ? categoryIcons.length : ''}
+                    {iconsByCategory[category.id] && openAccordions.includes(category.id) 
+                      ? categoryIcons.length 
+                      : ''
+                    }
                   </span>
                               </div>
                             </AccordionTrigger>
@@ -806,7 +809,10 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-muted-foreground font-normal">
-                                {categoryIcons.length} icon{categoryIcons.length !== 1 ? 's' : ''}
+                                {iconsByCategory[category.id] && openAccordions.includes(category.id) 
+                                  ? `${categoryIcons.length} icon${categoryIcons.length !== 1 ? 's' : ''}`
+                                  : ''
+                                }
                               </span>
                               {isAIIconsCategory && onAIIconGenerate && (
                                 <Button 
