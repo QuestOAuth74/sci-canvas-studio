@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, Sparkles, X, Loader2, CheckCircle2, XCircle, AlertCircle, Lock } from "lucide-react";
+import { Upload, Sparkles, X, Loader2, CheckCircle2, XCircle, AlertCircle, Lock, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Canvas as FabricCanvas, FabricImage, Text as FabricText, Group, Rect, Circle, Ellipse, loadSVGFromString, util } from "fabric";
 import { createConnector } from "@/lib/connectorSystem";
 import { useFeatureAccess } from "@/hooks/useFeatureAccess";
+import { useAIGenerationUsage } from "@/hooks/useAIGenerationUsage";
 import { useNavigate } from "react-router-dom";
 import { getCanvasFontFamily } from "@/lib/fontLoader";
 
@@ -187,7 +188,8 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
   const [response, setResponse] = useState<GenerationResponse | null>(null);
   const [activeTab, setActiveTab] = useState("reference");
   const [progressStages, setProgressStages] = useState<ProgressStage[]>(initialProgressStages);
-  const { hasAccess, remaining } = useFeatureAccess();
+  const { hasAccess, remaining, approvedCount } = useFeatureAccess();
+  const { usage, isLoading: quotaLoading, refetch: refetchQuota } = useAIGenerationUsage();
   const navigate = useNavigate();
 
   // Helper to infer category from text content
@@ -268,6 +270,15 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       return;
     }
 
+    // Check monthly quota
+    if (usage && !usage.isAdmin && !usage.canGenerate) {
+      toast.error('Monthly generation limit reached', {
+        description: 'Your quota resets on the 1st of each month.',
+        duration: 5000
+      });
+      return;
+    }
+
     if (!image || !canvas) return;
 
     setIsGenerating(true);
@@ -335,11 +346,32 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
       if (error) throw error;
 
       if (data.error) {
-        // Mark current stage as error
-        setProgressStages(stages => stages.map(s => 
-          s.status === 'active' ? { ...s, status: 'error' } : s
-        ));
-        toast.error(data.error);
+        // Handle specific error types
+        if (data.error === 'PREMIUM_REQUIRED') {
+          setProgressStages(stages => stages.map(s => 
+            s.status === 'active' ? { ...s, status: 'error' } : s
+          ));
+          toast.error(data.message || 'Premium access required', {
+            description: `Share ${data.remaining || 3} more approved projects to unlock`,
+            action: {
+              label: 'View Projects',
+              onClick: () => navigate('/projects')
+            }
+          });
+        } else if (data.error === 'RATE_LIMIT_EXCEEDED') {
+          setProgressStages(stages => stages.map(s => 
+            s.status === 'active' ? { ...s, status: 'error' } : s
+          ));
+          toast.error('Monthly limit reached', {
+            description: 'Your AI generation quota resets on the 1st of each month.',
+            duration: 5000
+          });
+        } else {
+          setProgressStages(stages => stages.map(s => 
+            s.status === 'active' ? { ...s, status: 'error' } : s
+          ));
+          toast.error(data.error);
+        }
       } else {
         // Mark all as complete
         setProgressStages(stages => stages.map(s => ({ 
@@ -350,6 +382,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         
         setResponse(data);
         setActiveTab("checks");
+        
+        // Refetch quota to update UI
+        refetchQuota();
         
         const { metadata } = data;
         toast.success(
@@ -936,6 +971,20 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
               <p className="font-medium text-sm">Feature Locked</p>
               <p className="text-xs text-muted-foreground mt-1">
                 Submit {remaining} more approved figure{remaining !== 1 ? 's' : ''} to unlock AI Figure Generator
+              </p>
+            </div>
+          </div>
+        )}
+
+        {hasAccess && usage && !usage.isAdmin && (
+          <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg flex items-start gap-3 mb-4 border border-blue-200 dark:border-blue-800">
+            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                AI Generations: {usage.used} of {usage.limit} used this month
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                Shared across AI Icons, Figures, and PowerPoint • Resets monthly
               </p>
             </div>
           </div>
