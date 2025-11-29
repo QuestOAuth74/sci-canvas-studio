@@ -219,7 +219,7 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
   }
 };
 
-function removeWhiteByFloodFill(image: HTMLImageElement, { tolerance = 20 } = {}): Promise<Blob> {
+export function removeWhiteByFloodFill(image: HTMLImageElement, { tolerance = 20 } = {}): Promise<Blob> {
   return new Promise((resolve, reject) => {
     try {
       const canvas = document.createElement('canvas');
