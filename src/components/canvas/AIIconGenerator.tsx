@@ -9,12 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Target, Scale, Undo2, Pencil, Shapes, Palette, Send, X } from 'lucide-react';
+import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Target, Scale, Undo2, Pencil, Shapes, Palette, Send, X, Clock, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
 import { removeBackground, loadImage, removeUniformBackgroundByFloodFill } from '@/lib/backgroundRemoval';
 import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
+import { useAIGenerationHistory } from '@/hooks/useAIGenerationHistory';
 import { cn } from '@/lib/utils';
 import pencilExample from '@/assets/ai-icon-styles/pencil-example.jpg';
 import biomedicalExample from '@/assets/ai-icon-styles/biomedical-example.jpg';
@@ -84,6 +85,13 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const { submitIcon } = useIconSubmissions();
   const { uploadAsset } = useUserAssets();
   const { usage, isLoading: usageLoading, refetch: refetchUsage } = useAIGenerationUsage();
+  const { 
+    generations, 
+    loading: historyLoading,
+    saveGeneration, 
+    markSavedToLibrary, 
+    markSubmittedForReview 
+  } = useAIGenerationHistory();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
@@ -100,6 +108,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState<string>('');
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [currentGenerationId, setCurrentGenerationId] = useState<string | null>(null);
   const [refinementFeedback, setRefinementFeedback] = useState('');
   const [refinementHistory, setRefinementHistory] = useState<Array<{ feedback: string; timestamp: Date; imageUrl: string; version: number }>>([]);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
@@ -181,6 +190,24 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       }
       setGeneratedImage(finalImageUrl);
       if (!isRefinement && !originalImage) setOriginalImage(finalImageUrl);
+      
+      // Auto-save to generation history
+      if (referenceImage) {
+        const savedGen = await saveGeneration({
+          prompt: effectivePrompt.trim(),
+          style,
+          creativity_level: creativityLevel,
+          background_type: backgroundType,
+          reference_image_url: referenceImage,
+          generated_image_url: finalImageUrl,
+          icon_name: iconName.trim() || undefined,
+          description: description.trim() || undefined
+        });
+        if (savedGen) {
+          setCurrentGenerationId(savedGen.id);
+        }
+      }
+      
       setProgress(100);
       setStage('complete');
       if (isRefinement && refinementFeedback.trim()) {
@@ -221,6 +248,12 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         description: description.trim() || undefined 
       });
       if (!result) throw new Error('Failed to upload');
+      
+      // Mark as saved in history
+      if (currentGenerationId) {
+        await markSavedToLibrary(currentGenerationId);
+      }
+      
       setProgress(100);
       toast({ title: 'Icon saved!', description: `"${iconName}" has been added to your library` });
       await refetchUsage();
@@ -259,6 +292,12 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         usage_rights_details: usageRightsDetails.trim() || undefined
       });
       if (!submission) throw new Error('Failed to submit');
+      
+      // Mark as submitted in history
+      if (currentGenerationId) {
+        await markSubmittedForReview(currentGenerationId);
+      }
+      
       setProgress(100);
       toast({ title: 'Icon submitted!', description: `"${iconName}" will be reviewed` });
       await refetchUsage();
@@ -287,6 +326,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setUsageRights('own_rights');
     setUsageRightsDetails('');
     setGeneratedImage(null);
+    setCurrentGenerationId(null);
     setStage('idle');
     setProgress(0);
     setProgressMessage('');
@@ -294,6 +334,19 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setRefinementHistory([]);
     setOriginalImage(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const loadPreviousGeneration = (gen: any) => {
+    setReferenceImage(gen.reference_image_url);
+    setGeneratedImage(gen.generated_image_url);
+    setCurrentGenerationId(gen.id);
+    setPrompt(gen.prompt);
+    setIconName(gen.icon_name || '');
+    setDescription(gen.description || '');
+    setStyle(gen.style);
+    setCreativityLevel(gen.creativity_level);
+    setBackgroundType(gen.background_type);
+    setStage('complete');
   };
 
   const handleRegenerate = () => {
@@ -344,6 +397,47 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+          {/* Recent Generations Gallery */}
+          {generations.length > 0 && stage === 'idle' && (
+            <div className="mb-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Recent Generations
+                </h3>
+                <span className="text-xs text-muted-foreground">{generations.length} total</span>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                {generations.slice(0, 10).map((gen) => (
+                  <button
+                    key={gen.id}
+                    onClick={() => loadPreviousGeneration(gen)}
+                    className="group relative flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden border-2 border-primary/20 hover:border-primary/60 transition-all hover:scale-105"
+                  >
+                    <img 
+                      src={gen.generated_image_url} 
+                      alt={gen.prompt}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-1 left-1 right-1">
+                        <p className="text-[10px] text-white truncate font-medium">{gen.prompt}</p>
+                        <div className="flex gap-1 mt-0.5">
+                          {gen.is_saved_to_library && (
+                            <span className="text-[8px] bg-green-500/20 text-green-300 px-1 rounded">Saved</span>
+                          )}
+                          {gen.is_submitted_for_review && (
+                            <span className="text-[8px] bg-blue-500/20 text-blue-300 px-1 rounded">Submitted</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-6">
               <div className="space-y-3">
@@ -467,17 +561,59 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         </div>
 
         {generatedImage && !isGenerating && !isSaving && (
-          <div className="p-4 bg-gradient-to-t from-background to-transparent border-t">
-            <div className="flex justify-between gap-3">
-              <Button variant="ghost" onClick={handleReset}><ArrowLeft className="h-4 w-4 mr-2" />Start Over</Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleSaveToMyLibrary} disabled={!canSave} size="lg">
-                  <Save className="h-4 w-4 mr-2" />Save
-                </Button>
-                <Button onClick={handleSubmitToPublic} disabled={!canSave} className="bg-gradient-to-r from-violet-600 to-purple-600" size="lg">
-                  <Sparkles className="h-4 w-4 mr-2" />Submit
-                </Button>
+          <div className="p-6 border-t space-y-4">
+            {/* Clear Save Options with Visual Cards */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-center">Save Your Icon</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Save to My Library */}
+                <button
+                  onClick={handleSaveToMyLibrary}
+                  disabled={!canSave || (currentGenerationId ? generations.find(g => g.id === currentGenerationId)?.is_saved_to_library : false)}
+                  className="group relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 hover:border-primary/50 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  <div className="p-3 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
+                    <Save className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-semibold mb-1">My Library</p>
+                    <p className="text-xs text-muted-foreground">Save privately to your assets</p>
+                  </div>
+                  {currentGenerationId && generations.find(g => g.id === currentGenerationId)?.is_saved_to_library && (
+                    <Badge variant="secondary" className="absolute top-2 right-2 text-xs">
+                      <Check className="h-3 w-3 mr-1" />
+                      Saved
+                    </Badge>
+                  )}
+                </button>
+
+                {/* Submit to Community */}
+                <button
+                  onClick={handleSubmitToPublic}
+                  disabled={!canSave || (currentGenerationId ? generations.find(g => g.id === currentGenerationId)?.is_submitted_for_review : false)}
+                  className="group relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-blue-600/10 hover:from-blue-500/10 hover:to-blue-600/20 hover:border-blue-500/50 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                >
+                  <div className="p-3 rounded-full bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors">
+                    <Send className="h-6 w-6 text-blue-400" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-semibold mb-1">Submit to Community</p>
+                    <p className="text-xs text-muted-foreground">Share with everyone (requires review)</p>
+                  </div>
+                  {currentGenerationId && generations.find(g => g.id === currentGenerationId)?.is_submitted_for_review && (
+                    <Badge variant="secondary" className="absolute top-2 right-2 text-xs">
+                      <Clock className="h-3 w-3 mr-1" />
+                      Pending
+                    </Badge>
+                  )}
+                </button>
               </div>
+            </div>
+
+            <div className="flex justify-center">
+              <Button variant="ghost" onClick={handleReset} size="sm">
+                <ArrowLeft className="h-4 w-4 mr-2" />Start Over
+              </Button>
             </div>
           </div>
         )}
