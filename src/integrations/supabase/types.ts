@@ -47,6 +47,65 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_icon_generations: {
+        Row: {
+          background_type: string
+          created_at: string | null
+          creativity_level: string
+          description: string | null
+          generated_image_url: string
+          icon_name: string | null
+          id: string
+          is_saved_to_library: boolean | null
+          is_submitted_for_review: boolean | null
+          prompt: string
+          reference_image_url: string
+          style: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          background_type?: string
+          created_at?: string | null
+          creativity_level?: string
+          description?: string | null
+          generated_image_url: string
+          icon_name?: string | null
+          id?: string
+          is_saved_to_library?: boolean | null
+          is_submitted_for_review?: boolean | null
+          prompt: string
+          reference_image_url: string
+          style: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          background_type?: string
+          created_at?: string | null
+          creativity_level?: string
+          description?: string | null
+          generated_image_url?: string
+          icon_name?: string | null
+          id?: string
+          is_saved_to_library?: boolean | null
+          is_submitted_for_review?: boolean | null
+          prompt?: string
+          reference_image_url?: string
+          style?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_icon_generations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_provider_settings: {
         Row: {
           created_at: string | null
