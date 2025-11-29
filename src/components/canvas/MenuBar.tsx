@@ -14,7 +14,7 @@ import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialo
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeCanvasTextFonts } from "@/lib/fontLoader";
-import { Type, History, GraduationCap } from "lucide-react";
+import { Type, History, GraduationCap, Palette } from "lucide-react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 
 interface MenuBarProps {
@@ -22,9 +22,10 @@ interface MenuBarProps {
   onPanelLabelClick?: () => void;
   onVersionHistoryClick?: () => void;
   onScaleBarClick?: () => void;
+  onStyleTransferClick?: () => void;
 }
 
-export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick }: MenuBarProps = {}) => {
+export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
@@ -185,6 +186,16 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
             <MenubarSeparator />
             <MenubarItem onClick={onTemplatesClick}>
               Templates
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+
+        <MenubarMenu>
+          <MenubarTrigger className="font-medium hover:bg-primary/10 transition-all duration-200 hover:border-b-2 hover:border-primary">Tools</MenubarTrigger>
+          <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+            <MenubarItem onClick={onStyleTransferClick}>
+              <Palette className="mr-2 h-4 w-4" />
+              Style Transfer
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>

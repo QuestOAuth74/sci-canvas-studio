@@ -26,6 +26,7 @@ import { VersionHistory } from "@/components/canvas/VersionHistory";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { AIIconGenerator } from "@/components/canvas/AIIconGenerator";
+import { StyleTransferDialog } from '@/components/canvas/StyleTransferDialog';
 import { CommandPalette } from "@/components/canvas/CommandPalette";
 import { AlignmentGuides } from "@/components/canvas/AlignmentGuides";
 import { CropTool } from "@/components/canvas/CropTool";
@@ -63,6 +64,7 @@ const CanvasContent = () => {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [aiIconGeneratorOpen, setAiIconGeneratorOpen] = useState(false);
+  const [styleTransferOpen, setStyleTransferOpen] = useState(false);
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
   const [customCurvedDialogOpen, setCustomCurvedDialogOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
@@ -644,6 +646,12 @@ const CanvasContent = () => {
         }}
       />
 
+      {/* Style Transfer Dialog */}
+      <StyleTransferDialog
+        open={styleTransferOpen}
+        onOpenChange={setStyleTransferOpen}
+      />
+
       {/* Panel Label Tool */}
       <PanelLabelTool 
         open={panelLabelToolOpen}
@@ -762,6 +770,7 @@ const CanvasContent = () => {
               onPanelLabelClick={() => setPanelLabelToolOpen(true)}
               onVersionHistoryClick={() => setVersionHistoryOpen(true)}
               onScaleBarClick={() => setScaleBarToolOpen(true)}
+              onStyleTransferClick={() => setStyleTransferOpen(true)}
             />
             <Tooltip>
               <TooltipTrigger asChild>
