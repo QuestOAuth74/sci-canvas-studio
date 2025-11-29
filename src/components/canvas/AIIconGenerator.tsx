@@ -365,8 +365,8 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0 gap-0">
-        <div className="relative overflow-hidden bg-gradient-to-br from-violet-600/20 via-purple-600/10 to-pink-500/20 p-6 border-b">
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0 gap-0 flex flex-col">
+        <div className="relative overflow-hidden bg-gradient-to-br from-violet-600/20 via-purple-600/10 to-pink-500/20 p-6 border-b flex-shrink-0">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(120,0,255,0.15),transparent_50%)] animate-pulse-soft" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,0,150,0.1),transparent_50%)] animate-pulse-soft" style={{ animationDelay: '1s' }} />
           <DialogHeader className="relative z-10">
@@ -396,7 +396,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           </DialogHeader>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {/* Recent Generations Gallery */}
           {generations.length > 0 && stage === 'idle' && (
             <div className="mb-6 space-y-3">
@@ -558,65 +558,66 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
               )}
             </div>
           </div>
-        </div>
 
-        {generatedImage && !isGenerating && !isSaving && (
-          <div className="p-6 border-t space-y-4">
-            {/* Clear Save Options with Visual Cards */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold text-center">Save Your Icon</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {/* Save to My Library */}
-                <button
-                  onClick={handleSaveToMyLibrary}
-                  disabled={!canSave || (currentGenerationId ? generations.find(g => g.id === currentGenerationId)?.is_saved_to_library : false)}
-                  className="group relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 hover:border-primary/50 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  <div className="p-3 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
-                    <Save className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-semibold mb-1">My Library</p>
-                    <p className="text-xs text-muted-foreground">Save privately to your assets</p>
-                  </div>
-                  {currentGenerationId && generations.find(g => g.id === currentGenerationId)?.is_saved_to_library && (
-                    <Badge variant="secondary" className="absolute top-2 right-2 text-xs">
-                      <Check className="h-3 w-3 mr-1" />
-                      Saved
-                    </Badge>
-                  )}
-                </button>
+          {/* Save Options - Now inside scrollable area */}
+          {generatedImage && !isGenerating && !isSaving && (
+            <div className="mt-6 pt-6 border-t space-y-4">
+              {/* Clear Save Options with Visual Cards */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-center">Save Your Icon</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Save to My Library */}
+                  <button
+                    onClick={handleSaveToMyLibrary}
+                    disabled={!canSave || (currentGenerationId ? generations.find(g => g.id === currentGenerationId)?.is_saved_to_library : false)}
+                    className="group relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20 hover:border-primary/50 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  >
+                    <div className="p-3 rounded-full bg-primary/20 group-hover:bg-primary/30 transition-colors">
+                      <Save className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold mb-1">My Library</p>
+                      <p className="text-xs text-muted-foreground">Save privately to your assets</p>
+                    </div>
+                    {currentGenerationId && generations.find(g => g.id === currentGenerationId)?.is_saved_to_library && (
+                      <Badge variant="secondary" className="absolute top-2 right-2 text-xs">
+                        <Check className="h-3 w-3 mr-1" />
+                        Saved
+                      </Badge>
+                    )}
+                  </button>
 
-                {/* Submit to Community */}
-                <button
-                  onClick={handleSubmitToPublic}
-                  disabled={!canSave || (currentGenerationId ? generations.find(g => g.id === currentGenerationId)?.is_submitted_for_review : false)}
-                  className="group relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-blue-600/10 hover:from-blue-500/10 hover:to-blue-600/20 hover:border-blue-500/50 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  <div className="p-3 rounded-full bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors">
-                    <Send className="h-6 w-6 text-blue-400" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-semibold mb-1">Submit to Community</p>
-                    <p className="text-xs text-muted-foreground">Share with everyone (requires review)</p>
-                  </div>
-                  {currentGenerationId && generations.find(g => g.id === currentGenerationId)?.is_submitted_for_review && (
-                    <Badge variant="secondary" className="absolute top-2 right-2 text-xs">
-                      <Clock className="h-3 w-3 mr-1" />
-                      Pending
-                    </Badge>
-                  )}
-                </button>
+                  {/* Submit to Community */}
+                  <button
+                    onClick={handleSubmitToPublic}
+                    disabled={!canSave || (currentGenerationId ? generations.find(g => g.id === currentGenerationId)?.is_submitted_for_review : false)}
+                    className="group relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-blue-600/10 hover:from-blue-500/10 hover:to-blue-600/20 hover:border-blue-500/50 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  >
+                    <div className="p-3 rounded-full bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors">
+                      <Send className="h-6 w-6 text-blue-400" />
+                    </div>
+                    <div className="text-center">
+                      <p className="font-semibold mb-1">Submit to Community</p>
+                      <p className="text-xs text-muted-foreground">Share with everyone (requires review)</p>
+                    </div>
+                    {currentGenerationId && generations.find(g => g.id === currentGenerationId)?.is_submitted_for_review && (
+                      <Badge variant="secondary" className="absolute top-2 right-2 text-xs">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Pending
+                      </Badge>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-center">
+                <Button variant="ghost" onClick={handleReset} size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />Start Over
+                </Button>
               </div>
             </div>
-
-            <div className="flex justify-center">
-              <Button variant="ghost" onClick={handleReset} size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />Start Over
-              </Button>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
