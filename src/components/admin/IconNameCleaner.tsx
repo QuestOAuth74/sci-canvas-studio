@@ -21,10 +21,14 @@ export const IconNameCleaner = () => {
   const [stats, setStats] = useState({ total: 0, corrupted: 0 });
 
   const cleanIconName = (name: string, svgContent: string): string => {
-    // Pattern 1: Remove upload metadata (e.g., "10_wDT1GQ3d8PCBt5ojQqQqvC_1760821060631_na1fn_...")
-    let cleaned = name.replace(/^\d+_[a-zA-Z0-9]+_\d+_[a-zA-Z0-9]+_/, '');
+    // Pattern 1: Remove CSS class definitions
+    let cleaned = name.replace(/\.cls-\d+\s*\{[^}]*\}/gi, '');
+    cleaned = cleaned.replace(/\{[^}]*\}/g, ''); // Remove any remaining CSS blocks
     
-    // Pattern 2: Try to decode Base64 encoded paths
+    // Pattern 2: Remove upload metadata (e.g., "10_wDT1GQ3d8PCBt5ojQqQqvC_1760821060631_na1fn_...")
+    cleaned = cleaned.replace(/^\d+_[a-zA-Z0-9]+_\d+_[a-zA-Z0-9]+_/, '');
+    
+    // Pattern 3: Try to decode Base64 encoded paths
     if (cleaned.includes('_L2hvbWU') || cleaned.includes('_na1fn_')) {
       const base64Match = cleaned.match(/_(L2[a-zA-Z0-9+/=]+)/);
       if (base64Match) {
@@ -40,7 +44,7 @@ export const IconNameCleaner = () => {
       }
     }
     
-    // Pattern 3: Try to extract name from SVG metadata
+    // Pattern 4: Try to extract name from SVG metadata
     try {
       const titleMatch = svgContent.match(/<title[^>]*>(.*?)<\/title>/i);
       const descMatch = svgContent.match(/<desc[^>]*>(.*?)<\/desc>/i);
@@ -54,12 +58,12 @@ export const IconNameCleaner = () => {
       console.warn('Failed to extract SVG metadata:', e);
     }
     
-    // Pattern 4: Convert camelCase/PascalCase to readable text
+    // Pattern 5: Convert camelCase/PascalCase to readable text
     cleaned = cleaned
       .replace(/([a-z])([A-Z])/g, '$1 $2')
       .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
     
-    // Pattern 5: Clean up common patterns
+    // Pattern 6: Clean up common patterns
     cleaned = cleaned
       .replace(/[-_]+/g, ' ')
       .replace(/\d{4,}/g, '') // Remove long numbers
@@ -67,7 +71,7 @@ export const IconNameCleaner = () => {
       .replace(/\s+/g, ' ')
       .trim();
     
-    // Pattern 6: Capitalize words properly
+    // Pattern 7: Capitalize words properly
     cleaned = cleaned
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -101,13 +105,19 @@ export const IconNameCleaner = () => {
       
       const potentialFixes: IconNameFix[] = [];
       
-      // Identify corrupted names (containing encoded data or upload metadata)
+      // Identify corrupted names (containing encoded data, upload metadata, or CSS definitions)
       for (const icon of icons) {
         const isCorrupted = 
           icon.name.includes('_na1fn_') ||
           icon.name.includes('_L2hvbWU') ||
           /^\d+_[a-zA-Z0-9]+_\d+_[a-zA-Z0-9]+_/.test(icon.name) ||
-          icon.name.length > 80;
+          icon.name.length > 80 ||
+          // CSS class definitions
+          /\.cls-\d+/i.test(icon.name) ||
+          /\{\s*fill:/i.test(icon.name) ||
+          /\{\s*stroke:/i.test(icon.name) ||
+          /fill:\s*#[a-f0-9]{3,6}/i.test(icon.name) ||
+          /stroke:\s*#[a-f0-9]{3,6}/i.test(icon.name);
         
         if (isCorrupted) {
           const cleanedName = cleanIconName(icon.name, icon.svg_content);
