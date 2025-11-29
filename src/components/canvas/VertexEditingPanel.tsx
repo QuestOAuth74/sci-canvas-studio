@@ -39,7 +39,7 @@ export const VertexEditingPanel = () => {
             <div className="text-xs text-muted-foreground">
               <strong>Activation:</strong> Double-click on a shape or line to activate vertex editing.
               <br />
-              <strong>Usage:</strong> Drag vertex handles to reshape.
+              <strong>Usage:</strong> Drag vertex handles to reshape. Double-click on edges to add new vertices.
             </div>
           </div>
 
@@ -98,11 +98,11 @@ export const VertexEditingPanel = () => {
               <br />
               • Double-click shape/line - Activate vertex editing
               <br />
+              • Double-click edge - Add vertex at that position
+              <br />
               • V - Toggle vertex editing mode
               <br />
               • ESC - Exit vertex editing
-              <br />
-              • Double-click edge - Add vertex (coming soon)
             </div>
           </div>
         </>
