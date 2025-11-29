@@ -13,7 +13,7 @@ import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, Refresh
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
-import { removeBackground, loadImage, removeUniformBackgroundByFloodFill, BackgroundRemovalProgress } from '@/lib/backgroundRemoval';
+import { removeBackground, loadImage, removeUniformBackgroundByFloodFill } from '@/lib/backgroundRemoval';
 import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
 import { cn } from '@/lib/utils';
 import pencilExample from '@/assets/ai-icon-styles/pencil-example.jpg';
@@ -165,16 +165,16 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         const imgEl = await loadImage(srcBlob);
         finalImageUrl = drawToPngDataUrl(imgEl);
       } else {
-        setProgressMessage('Preparing background removal...');
+        setProgressMessage('Removing background with AI...');
         const srcBlob = await dataUrlToBlob(data.generatedImage);
         const imgEl = await loadImage(srcBlob);
         try {
-          const finalBlob = await removeBackground(imgEl, (bg: BackgroundRemovalProgress) => {
-            setProgress(90 + bg.progress * 0.1);
-            setProgressMessage(bg.message);
-          });
+          setProgress(92);
+          const finalBlob = await removeBackground(imgEl);
+          setProgress(98);
           finalImageUrl = await blobToDataUrl(finalBlob);
         } catch {
+          setProgressMessage('Using fallback background removal...');
           const fallbackBlob = await removeUniformBackgroundByFloodFill(imgEl, { tolerance: 30 });
           finalImageUrl = await blobToDataUrl(fallbackBlob);
         }
@@ -210,8 +210,16 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
       const blob = new Blob([new Uint8Array(byteNumbers)], { type: 'image/png' });
+      
+      // Convert Blob to File
+      const file = new File([blob], `${iconName.trim()}.png`, { type: 'image/png' });
+      
       setProgress(50);
-      const result = await uploadAsset(blob, iconName.trim(), 'ai-icons', description.trim());
+      const result = await uploadAsset({ 
+        file, 
+        category: 'ai-icons', 
+        description: description.trim() || undefined 
+      });
       if (!result) throw new Error('Failed to upload');
       setProgress(100);
       toast({ title: 'Icon saved!', description: `"${iconName}" has been added to your library` });
