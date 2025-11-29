@@ -11,6 +11,7 @@ import { LinePropertiesPanel } from "./LinePropertiesPanel";
 import { LineGradientPanel } from "./LineGradientPanel";
 import { StylePresets } from "./StylePresets";
 import { ImageEraserDialog } from "./ImageEraserDialog";
+import { VertexEditingPanel } from "./VertexEditingPanel";
 import { DiagramSettingsSection } from "./properties/DiagramSettingsSection";
 import { TextPropertiesSection } from "./properties/TextPropertiesSection";
 import { ShapePropertiesSection } from "./properties/ShapePropertiesSection";
@@ -1483,6 +1484,20 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                   onStrokeChange={handleShapeStrokeColorChange}
                   recentColors={recentColors}
                 />
+              )}
+
+              {/* Vertex Editing - Show for paths and polygons */}
+              {selectedObject && (selectedObject.type === 'path' || selectedObject.type === 'polygon' || (selectedObject as any).isFreeformLine) && (
+                <Accordion type="single" defaultValue="vertices" className="w-full mt-3 border-t pt-3">
+                  <AccordionItem value="vertices" className="border-none">
+                    <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
+                      <span className="text-xs font-semibold uppercase tracking-wider">Vertex Editing</span>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3 pt-1">
+                      <VertexEditingPanel />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               )}
 
               {/* Eraser Controls - Only show when eraser tool is active */}
