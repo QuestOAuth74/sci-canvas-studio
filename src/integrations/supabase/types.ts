@@ -348,6 +348,38 @@ export type Database = {
           },
         ]
       }
+      community_downloads: {
+        Row: {
+          download_format: string
+          downloaded_at: string
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          download_format: string
+          downloaded_at?: string
+          id?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          download_format?: string
+          downloaded_at?: string
+          id?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_downloads_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_messages: {
         Row: {
           admin_notes: string | null
@@ -1307,6 +1339,10 @@ export type Database = {
         }[]
       }
       can_user_generate: { Args: { _user_id: string }; Returns: Json }
+      check_project_ownership: {
+        Args: { check_project_id: string; check_user_id: string }
+        Returns: boolean
+      }
       cleanup_old_login_attempts: { Args: never; Returns: undefined }
       clone_project: {
         Args: { new_project_name: string; source_project_id: string }
@@ -1325,6 +1361,17 @@ export type Database = {
           relevance_score: number
           slug: string
           title: string
+        }[]
+      }
+      get_user_download_quota: {
+        Args: { check_user_id: string }
+        Returns: {
+          can_download: boolean
+          downloads_used: number
+          has_unlimited: boolean
+          projects_until_unlimited: number
+          remaining_downloads: number
+          shared_projects: number
         }[]
       }
       get_user_generation_count: {

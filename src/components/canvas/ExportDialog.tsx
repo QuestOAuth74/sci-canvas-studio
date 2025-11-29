@@ -5,6 +5,10 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Download } from "lucide-react";
+import { useCommunityDownloads } from "@/hooks/useCommunityDownloads";
+import { useCanvas } from "@/contexts/CanvasContext";
+import { DownloadQuotaBanner } from "./DownloadQuotaBanner";
+import { toast } from "sonner";
 
 const EXPORT_PRESETS = [
   {
@@ -43,11 +47,14 @@ interface ExportDialogProps {
 }
 
 export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvasHeight, hasSelection }: ExportDialogProps) => {
+  const { currentProjectId, projectOwnerId } = useCanvas();
+  const { quota, checkOwnership, recordDownload } = useCommunityDownloads();
   const [format, setFormat] = useState<'png' | 'png-transparent' | 'jpg'>('png');
   const [dpi, setDpi] = useState<150 | 300 | 600>(300);
   const [selectionOnly, setSelectionOnly] = useState(false);
+  const [isOwnProject, setIsOwnProject] = useState<boolean | null>(null);
 
-  // Load preferences from localStorage when dialog opens
+  // Load preferences and check ownership when dialog opens
   useEffect(() => {
     if (open) {
       const saved = localStorage.getItem('export_preferences');
@@ -60,8 +67,13 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
           console.error('Failed to load export preferences:', e);
         }
       }
+      
+      // Check project ownership
+      if (currentProjectId) {
+        checkOwnership(currentProjectId).then(setIsOwnProject);
+      }
     }
-  }, [open]);
+  }, [open, currentProjectId, checkOwnership]);
 
   // Calculate export dimensions based on DPI
   const calculateDimensions = (targetDpi: number) => {
@@ -92,7 +104,24 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
     setDpi(preset.dpi);
   };
 
-  const handleExport = () => {
+  const handleExport = async () => {
+    // If it's a community project (not owned by user), check quota
+    if (isOwnProject === false) {
+      if (!quota.canDownload) {
+        toast.error(
+          quota.projectsUntilUnlimited > 0 
+            ? `Download limit reached. Share ${quota.projectsUntilUnlimited} more project${quota.projectsUntilUnlimited !== 1 ? 's' : ''} to unlock unlimited downloads!`
+            : 'Download limit reached. Share 3 projects to unlock unlimited downloads!'
+        );
+        return;
+      }
+      
+      // Record the download
+      if (currentProjectId) {
+        recordDownload({ projectId: currentProjectId, format });
+      }
+    }
+    
     // Save preferences to localStorage
     localStorage.setItem('export_preferences', JSON.stringify({ format, dpi }));
     onExport(format, dpi, selectionOnly);
@@ -110,6 +139,11 @@ export const ExportDialog = ({ open, onOpenChange, onExport, canvasWidth, canvas
         </DialogHeader>
 
         <div className="space-y-6 py-4 overflow-y-auto max-h-[60vh]">
+          {/* Community Download Quota Banner */}
+          {isOwnProject === false && (
+            <DownloadQuotaBanner quota={quota} />
+          )}
+          
           {/* Export Presets */}
           <div className="space-y-3">
             <Label className="text-base font-semibold">Quick Presets</Label>
