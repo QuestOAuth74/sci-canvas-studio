@@ -224,8 +224,6 @@ export class MembraneBrushTool {
   private async placeIconsAlongPath(isPreview: boolean): Promise<FabricObject[]> {
     const smoothedPoints = this.smoothPath(this.pathPoints);
     const pathLength = this.calculatePathLength(smoothedPoints);
-    const effectiveSpacing = this.options.iconSize + this.options.spacing;
-    const numIcons = Math.max(2, Math.floor(pathLength / effectiveSpacing));
     
     const icons: FabricObject[] = [];
     
@@ -238,7 +236,24 @@ export class MembraneBrushTool {
         }
         
         const iconTemplate = new Group(objects);
-        const scale = this.options.iconSize / Math.max(iconTemplate.width || 1, iconTemplate.height || 1);
+        const iconWidth = iconTemplate.width || 1;
+        const iconHeight = iconTemplate.height || 1;
+        const scale = this.options.iconSize / Math.max(iconWidth, iconHeight);
+        
+        // Calculate actual scaled dimensions
+        const scaledWidth = iconWidth * scale;
+        const scaledHeight = iconHeight * scale;
+        
+        // Determine which dimension is along the path based on rotation
+        const baseAngle = this.options.rotateToPath ? 90 : 0;
+        const totalRotation = baseAngle + this.options.orientationOffset;
+        const normalizedAngle = ((totalRotation % 360) + 360) % 360;
+        const isVerticalOrientation = (normalizedAngle >= 45 && normalizedAngle < 135) || 
+                                       (normalizedAngle >= 225 && normalizedAngle < 315);
+        
+        const effectiveDimension = isVerticalOrientation ? scaledHeight : scaledWidth;
+        const effectiveSpacing = effectiveDimension + this.options.spacing;
+        const numIcons = Math.max(2, Math.floor(pathLength / effectiveSpacing));
         
         for (let i = 0; i < numIcons; i++) {
           const distance = (i / (numIcons - 1)) * pathLength;
