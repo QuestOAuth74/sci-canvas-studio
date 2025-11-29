@@ -169,8 +169,8 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
       // Normalize mask value from 0-255 to 0-1
       const maskValue = bestMask.mask.data[i] / 255;
       
-      // Invert to keep subject instead of background
-      let alpha = 1 - maskValue;
+      // RMBG-1.4 outputs high values for subject, so use mask directly
+      let alpha = maskValue;
       
       // Apply smoothing curve for better edge quality
       // Use a cubic easing function for smoother transitions
