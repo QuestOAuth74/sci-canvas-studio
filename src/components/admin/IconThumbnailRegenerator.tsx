@@ -16,6 +16,8 @@ interface IconStats {
   withBlackFill: number;
 }
 
+const BATCH_SIZE = 100; // Process 100 icons at a time to avoid timeout
+
 export const IconThumbnailRegenerator = () => {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
@@ -62,22 +64,11 @@ export const IconThumbnailRegenerator = () => {
         .from('icons')
         .select('*', { count: 'exact', head: true });
 
-      // Get icons with black strokes
-      const { count: blackStrokeCount } = await supabase
-        .from('icons')
-        .select('*', { count: 'exact', head: true })
-        .or('svg_content.ilike.%stroke="black"%,svg_content.ilike.%stroke="#000"%,svg_content.ilike.%stroke:#000%');
-
-      // Get icons with black fills
-      const { count: blackFillCount } = await supabase
-        .from('icons')
-        .select('*', { count: 'exact', head: true })
-        .or('svg_content.ilike.%fill="black"%,svg_content.ilike.%fill="#000"%,svg_content.ilike.%fill:#000%');
-
+      // Simplified stats - actual filtering happens client-side during regeneration
       setStats({
         total: totalCount || 0,
-        withBlackStroke: blackStrokeCount || 0,
-        withBlackFill: blackFillCount || 0,
+        withBlackStroke: 0,
+        withBlackFill: 0,
       });
     } catch (error) {
       console.error('Error loading stats:', error);
@@ -140,77 +131,81 @@ export const IconThumbnailRegenerator = () => {
         return;
       }
 
-      // Build query
-      let query = supabase
-        .from('icons')
-        .select('id, svg_content, category');
-
-      // Apply category filter
-      if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
-      }
-
-      // Apply black stroke/fill filter if both options are selected
-      if (removeBlackStroke || removeBlackFill) {
-        const conditions = [];
-        if (removeBlackStroke) {
-          conditions.push('svg_content.ilike.%stroke="black"%');
-          conditions.push('svg_content.ilike.%stroke="#000"%');
-          conditions.push('svg_content.ilike.%stroke:#000%');
-        }
-        if (removeBlackFill) {
-          conditions.push('svg_content.ilike.%fill="black"%');
-          conditions.push('svg_content.ilike.%fill="#000"%');
-          conditions.push('svg_content.ilike.%fill:#000%');
-        }
-        query = query.or(conditions.join(','));
-      }
-
-      const { data: icons, error } = await query;
-
-      if (error) throw error;
-
-      if (!icons || icons.length === 0) {
-        toast.info('No icons match the selected criteria');
-        setIsRegenerating(false);
-        return;
-      }
-
-      setTotalIcons(icons.length);
       let successCount = 0;
       let failedCount = 0;
+      let offset = 0;
+      let hasMore = true;
+      let processedTotal = 0;
 
-      // Process each icon
-      for (let i = 0; i < icons.length; i++) {
-        if (isCancelled) {
-          toast.info('Regeneration cancelled');
+      // First, get total count for progress tracking
+      let countQuery = supabase.from('icons').select('*', { count: 'exact', head: true });
+      if (selectedCategory !== 'all') {
+        countQuery = countQuery.eq('category', selectedCategory);
+      }
+      const { count: totalCount } = await countQuery;
+      setTotalIcons(totalCount || 0);
+
+      // Process in batches to avoid timeout
+      while (hasMore && !isCancelled) {
+        let query = supabase
+          .from('icons')
+          .select('id, svg_content, category')
+          .range(offset, offset + BATCH_SIZE - 1);
+
+        if (selectedCategory !== 'all') {
+          query = query.eq('category', selectedCategory);
+        }
+
+        const { data: icons, error } = await query;
+
+        if (error) throw error;
+
+        if (!icons || icons.length === 0) {
+          hasMore = false;
           break;
         }
 
-        const icon = icons[i];
-        setCurrentIcon(i + 1);
-        setProgress(((i + 1) / icons.length) * 100);
+        // Filter on client side for black strokes/fills
+        for (const icon of icons) {
+          if (isCancelled) {
+            toast.info('Regeneration cancelled');
+            break;
+          }
 
-        try {
-          const cleanedThumbnail = generateCleanThumbnail(icon.svg_content);
+          const hasBlackStroke = removeBlackStroke && 
+            /stroke=["'](black|#000)/i.test(icon.svg_content);
+          const hasBlackFill = removeBlackFill && 
+            /fill=["'](black|#000)/i.test(icon.svg_content);
 
-          const { error: updateError } = await supabase
-            .from('icons')
-            .update({ thumbnail: cleanedThumbnail })
-            .eq('id', icon.id);
+          // Only process if icon matches criteria
+          if (hasBlackStroke || hasBlackFill) {
+            try {
+              const cleanedThumbnail = generateCleanThumbnail(icon.svg_content);
+              
+              const { error: updateError } = await supabase
+                .from('icons')
+                .update({ thumbnail: cleanedThumbnail })
+                .eq('id', icon.id);
 
-          if (updateError) throw updateError;
-          successCount++;
-        } catch (error) {
-          console.error(`Failed to regenerate thumbnail for icon ${icon.id}:`, error);
-          failedCount++;
+              if (updateError) throw updateError;
+              successCount++;
+            } catch (error) {
+              console.error(`Failed for icon ${icon.id}:`, error);
+              failedCount++;
+            }
+          }
+
+          processedTotal++;
+          setCurrentIcon(processedTotal);
+          setProgress((processedTotal / (totalCount || 1)) * 100);
         }
+
+        offset += BATCH_SIZE;
+        hasMore = icons.length === BATCH_SIZE;
       }
 
       setResult({ success: successCount, failed: failedCount });
       toast.success(`Regenerated ${successCount} icon thumbnails`);
-      
-      // Reload stats
       await loadStats();
     } catch (error) {
       console.error('Error regenerating thumbnails:', error);
@@ -275,19 +270,12 @@ export const IconThumbnailRegenerator = () => {
           </Alert>
         )}
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border bg-card p-4">
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <div className="text-sm text-muted-foreground">Total Icons</div>
-          </div>
-          <div className="rounded-lg border bg-card p-4">
-            <div className="text-2xl font-bold text-orange-600">{stats.withBlackStroke}</div>
-            <div className="text-sm text-muted-foreground">With Black Strokes</div>
-          </div>
-          <div className="rounded-lg border bg-card p-4">
-            <div className="text-2xl font-bold text-red-600">{stats.withBlackFill}</div>
-            <div className="text-sm text-muted-foreground">With Black Fills</div>
-          </div>
+        <div className="rounded-lg border bg-card p-4">
+          <div className="text-2xl font-bold">{stats.total}</div>
+          <div className="text-sm text-muted-foreground">Total Icons in Library</div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Icons will be scanned client-side during regeneration
+          </p>
         </div>
 
         <div className="space-y-4">
