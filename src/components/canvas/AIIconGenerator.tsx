@@ -10,13 +10,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw } from 'lucide-react';
+import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Palette } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
 import { removeBackground, loadImage } from '@/lib/backgroundRemoval';
 import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
 import { processSVG } from '@/lib/svgProcessor';
+import { SVGCustomizationEditor } from './SVGCustomizationEditor';
 
 interface AIIconGeneratorProps {
   open: boolean;
@@ -220,6 +221,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generatedSVG, setGeneratedSVG] = useState<string | null>(null);
   const [isPureVector, setIsPureVector] = useState(false);
+  const [showCustomizationEditor, setShowCustomizationEditor] = useState(false);
 
   // Load categories
   const loadCategories = useCallback(async () => {
@@ -822,8 +824,32 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setGeneratedImage(null);
     setGeneratedSVG(null);
     setIsPureVector(false);
+    setShowCustomizationEditor(false);
     setStage('idle');
     setProgress(0);
+  };
+
+  const handleCustomize = () => {
+    if (generatedSVG && isPureVector) {
+      setShowCustomizationEditor(true);
+    }
+  };
+
+  const handleApplyCustomization = (modifiedSVG: string) => {
+    // Update the generated SVG with customized version
+    setGeneratedSVG(modifiedSVG);
+    
+    // Update preview image
+    const blob = new Blob([modifiedSVG], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    
+    // Clean up old URL if it exists and is a blob URL
+    if (generatedImage && generatedImage.startsWith('blob:')) {
+      URL.revokeObjectURL(generatedImage);
+    }
+    
+    setGeneratedImage(url);
+    setShowCustomizationEditor(false);
   };
 
   const isGenerating = stage === 'generating';
@@ -1140,6 +1166,18 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                 </div>
 
                 <div className="space-y-2">
+                  {isPureVector && (
+                    <Button
+                      variant="outline"
+                      onClick={handleCustomize}
+                      disabled={isSaving}
+                      className="w-full"
+                    >
+                      <Palette className="h-4 w-4 mr-2" />
+                      Customize Colors & Style
+                    </Button>
+                  )}
+                  
                   <p className="text-sm text-muted-foreground">Choose where to save your icon:</p>
                   <div className="grid grid-cols-1 gap-2">
                     <Button
@@ -1226,6 +1264,16 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           </div>
         )}
       </DialogContent>
+
+      {/* SVG Customization Editor */}
+      {generatedSVG && isPureVector && (
+        <SVGCustomizationEditor
+          open={showCustomizationEditor}
+          onOpenChange={setShowCustomizationEditor}
+          svgContent={generatedSVG}
+          onApply={handleApplyCustomization}
+        />
+      )}
     </Dialog>
   );
 };
