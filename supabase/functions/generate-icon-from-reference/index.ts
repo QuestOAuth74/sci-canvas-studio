@@ -7,11 +7,38 @@ const corsHeaders = {
 };
 
 const stylePrompts = {
-  medical: "Professional medical illustration icon, anatomical accuracy, clean lines, textbook quality, transparent background, simple and clear, high contrast",
-  biochemical: "Biochemical pathway icon, molecular structure, scientific diagram style, clear symbols, transparent background, professional quality",
-  cellular: "Cellular biology icon, microscopic detail, scientific illustration, clean and professional, transparent background",
-  simple: "Simple icon design, minimal details, clear silhouette, professional scientific style, transparent background, easy to recognize",
-  detailed: "Detailed scientific illustration icon, high accuracy, educational quality, clear features, transparent background, professional"
+  pencil: `Hand-drawn pencil sketch style scientific illustration.
+Create with:
+- Fine pencil line work with varying pressure
+- Subtle cross-hatching for shading and depth
+- Sketch-like imperfect lines that feel organic
+- Grayscale tones with occasional soft highlights
+- Scientific accuracy with artistic hand-drawn quality
+- Clean white or transparent background
+- Textbook illustration feel like vintage anatomy drawings`,
+
+  biomedical: `Clean flat vector style scientific illustration.
+Create with:
+- Smooth, clean vector shapes with no rough edges
+- Soft pastel color palette (muted pinks, blues, greens, purples)
+- Subtle gradients for depth, never harsh shadows
+- Consistent line weights throughout
+- Minimal design focusing on essential shapes
+- Professional scientific accuracy
+- No harsh black outlines - use soft colored edges
+- Modern, approachable scientific illustration style
+- Transparent or clean white background`,
+
+  oil: `Oil painting style artistic scientific illustration.
+Create with:
+- Rich, textured brush strokes visible in the rendering
+- Deep, saturated color palette with warm undertones
+- Dramatic lighting with painterly shadows
+- Blended edges that feel soft and organic
+- Artistic interpretation while maintaining scientific accuracy
+- Canvas-like texture effect
+- Renaissance medical illustration influence
+- Atmospheric depth and rich visual presence`
 };
 
 const creativityPrompts = {

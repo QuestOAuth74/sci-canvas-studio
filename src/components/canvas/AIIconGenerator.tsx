@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Dna, TestTube, Microscope, Heart, Pill, Syringe, FlaskConical, Activity, Brain, Droplet, Target, Scale, Undo2 } from 'lucide-react';
+import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Dna, TestTube, Microscope, Heart, Pill, Syringe, FlaskConical, Activity, Brain, Droplet, Target, Scale, Undo2, Pencil, Shapes, Palette } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
@@ -23,218 +23,27 @@ interface AIIconGeneratorProps {
   onIconGenerated?: () => void;
 }
 
-type StylePreset = 
-  | 'cell-organelle' | 'cell-membrane' | 'dna-helix' | 'protein-structure'
-  | 'molecular-structure' | 'organ-system' | 'lab-equipment' | 'pathway-diagram'
-  | 'microscopy' | 'medical' | 'biochemical' | 'cellular' | 'simple' | 'detailed';
+type StylePreset = 'pencil' | 'biomedical' | 'oil';
 type GenerationStage = 'idle' | 'uploading' | 'generating' | 'saving' | 'complete' | 'error';
 type CreativityLevel = 'faithful' | 'balanced' | 'creative';
 
-interface IconTemplate {
-  id: string;
-  name: string;
-  description: string;
-  icon: React.ReactNode;
-  prompt: string;
-  style: StylePreset;
-  category: string;
-}
-
-const styleDescriptions: Record<StylePreset, { label: string; desc: string; category: string }> = {
-  // Cell Biology
-  'cell-organelle': {
-    label: 'Cell Organelle',
-    desc: 'Detailed cellular structures with membrane compartments',
-    category: 'Cell Biology'
+const styleDescriptions: Record<StylePreset, { label: string; desc: string; icon: React.ReactNode }> = {
+  pencil: {
+    label: 'Pencil Art',
+    desc: 'Hand-drawn scientific sketch with fine line work and cross-hatching',
+    icon: <Pencil className="h-5 w-5" />
   },
-  'cell-membrane': {
-    label: 'Cell Membrane',
-    desc: 'Phospholipid bilayer with embedded proteins',
-    category: 'Cell Biology'
+  biomedical: {
+    label: 'Biomedical Vector',
+    desc: 'Clean flat vectors with soft pastel gradients - publication ready',
+    icon: <Shapes className="h-5 w-5" />
   },
-  'cellular': {
-    label: 'Cellular',
-    desc: 'General cellular biology and microscopic details',
-    category: 'Cell Biology'
-  },
-  // Molecular Biology
-  'dna-helix': {
-    label: 'DNA Helix',
-    desc: 'Double helix structure with base pairs',
-    category: 'Molecular Biology'
-  },
-  'protein-structure': {
-    label: 'Protein Structure',
-    desc: 'Alpha helices, beta sheets, tertiary structure',
-    category: 'Molecular Biology'
-  },
-  'biochemical': {
-    label: 'Biochemical',
-    desc: 'Molecular structures and pathways',
-    category: 'Molecular Biology'
-  },
-  // Chemistry
-  'molecular-structure': {
-    label: 'Molecular Structure',
-    desc: 'Chemical bonds and molecular geometry',
-    category: 'Chemistry'
-  },
-  // Anatomy
-  'organ-system': {
-    label: 'Organ System',
-    desc: 'Anatomical accuracy with tissue layers',
-    category: 'Anatomy'
-  },
-  'medical': {
-    label: 'Medical',
-    desc: 'Medical illustration with anatomical accuracy',
-    category: 'Anatomy'
-  },
-  // Laboratory
-  'lab-equipment': {
-    label: 'Lab Equipment',
-    desc: 'Scientific glassware and precision instruments',
-    category: 'Laboratory'
-  },
-  // Pathways
-  'pathway-diagram': {
-    label: 'Pathway Diagram',
-    desc: 'Signaling pathways with arrows and connections',
-    category: 'Pathways'
-  },
-  // Microscopy
-  'microscopy': {
-    label: 'Microscopy',
-    desc: 'Microscope view with histological appearance',
-    category: 'Microscopy'
-  },
-  // General
-  'simple': {
-    label: 'Simple',
-    desc: 'Minimal, clear silhouette',
-    category: 'General'
-  },
-  'detailed': {
-    label: 'Detailed',
-    desc: 'High detail scientific illustration',
-    category: 'General'
+  oil: {
+    label: 'Oil Painting',
+    desc: 'Rich textured brushstrokes with dramatic artistic lighting',
+    icon: <Palette className="h-5 w-5" />
   }
 };
-
-// Group styles by category for better organization
-const styleCategories = {
-  'Cell Biology': ['cell-organelle', 'cell-membrane', 'cellular'] as StylePreset[],
-  'Molecular Biology': ['dna-helix', 'protein-structure', 'biochemical'] as StylePreset[],
-  'Chemistry': ['molecular-structure'] as StylePreset[],
-  'Anatomy': ['organ-system', 'medical'] as StylePreset[],
-  'Laboratory': ['lab-equipment'] as StylePreset[],
-  'Pathways': ['pathway-diagram'] as StylePreset[],
-  'Microscopy': ['microscopy'] as StylePreset[],
-  'General': ['simple', 'detailed'] as StylePreset[]
-};
-
-// Icon templates with pre-filled prompts
-const iconTemplates: IconTemplate[] = [
-  {
-    id: 'cell-organelles',
-    name: 'Cell & Organelles',
-    description: 'Mitochondria, nucleus, ER',
-    icon: <Activity className="h-5 w-5" />,
-    prompt: 'Scientific illustration of mitochondria with cristae, detailed membrane structure, biological accuracy',
-    style: 'cell-organelle',
-    category: 'Cell Biology'
-  },
-  {
-    id: 'dna-rna',
-    name: 'DNA & RNA',
-    description: 'Helix, nucleotides',
-    icon: <Dna className="h-5 w-5" />,
-    prompt: 'Double helix DNA structure with base pairs visible, molecular biology style',
-    style: 'dna-helix',
-    category: 'Molecular Biology'
-  },
-  {
-    id: 'proteins',
-    name: 'Proteins',
-    description: 'Enzymes, receptors',
-    icon: <Pill className="h-5 w-5" />,
-    prompt: '3D protein structure with alpha helices and beta sheets, scientific visualization',
-    style: 'protein-structure',
-    category: 'Molecular Biology'
-  },
-  {
-    id: 'lab-equipment',
-    name: 'Lab Equipment',
-    description: 'Beakers, pipettes',
-    icon: <FlaskConical className="h-5 w-5" />,
-    prompt: 'Laboratory beaker with liquid, clean technical illustration, scientific glassware',
-    style: 'lab-equipment',
-    category: 'Laboratory'
-  },
-  {
-    id: 'cells',
-    name: 'Cells',
-    description: 'Bacteria, neurons',
-    icon: <Droplet className="h-5 w-5" />,
-    prompt: 'Biological cell with membrane and organelles visible, microscopy style',
-    style: 'cellular',
-    category: 'Cell Biology'
-  },
-  {
-    id: 'organs',
-    name: 'Organs & Anatomy',
-    description: 'Heart, brain, lungs',
-    icon: <Heart className="h-5 w-5" />,
-    prompt: 'Anatomical illustration of human heart with chambers, medical accuracy, cross-section view',
-    style: 'organ-system',
-    category: 'Anatomy'
-  },
-  {
-    id: 'molecules',
-    name: 'Molecules',
-    description: 'ATP, glucose',
-    icon: <TestTube className="h-5 w-5" />,
-    prompt: 'Chemical structure of glucose molecule, ball-and-stick model, chemistry illustration',
-    style: 'molecular-structure',
-    category: 'Chemistry'
-  },
-  {
-    id: 'pathways',
-    name: 'Pathways',
-    description: 'Signaling cascades',
-    icon: <Activity className="h-5 w-5" />,
-    prompt: 'Signaling pathway element with arrow connectors, biochemistry style',
-    style: 'pathway-diagram',
-    category: 'Pathways'
-  },
-  {
-    id: 'microscopy',
-    name: 'Microscopy',
-    description: 'Histology, staining',
-    icon: <Microscope className="h-5 w-5" />,
-    prompt: 'Histological tissue specimen, microscope view with staining pattern',
-    style: 'microscopy',
-    category: 'Microscopy'
-  },
-  {
-    id: 'viruses',
-    name: 'Viruses & Bacteria',
-    description: 'Pathogens, microbes',
-    icon: <Syringe className="h-5 w-5" />,
-    prompt: 'Virus particle with surface proteins visible, microbiology illustration',
-    style: 'medical',
-    category: 'Medical'
-  },
-  {
-    id: 'brain',
-    name: 'Neuroscience',
-    description: 'Brain, neurons',
-    icon: <Brain className="h-5 w-5" />,
-    prompt: 'Human brain cross-section showing different regions, neuroscience illustration',
-    style: 'medical',
-    category: 'Anatomy'
-  },
-];
 
 // Creativity level configuration
 const creativityLevels = {
@@ -326,9 +135,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const { usage, isLoading: usageLoading, refetch: refetchUsage } = useAIGenerationUsage();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Template selection
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  
   // Raster mode (image transform) state
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [referenceFile, setReferenceFile] = useState<File | null>(null);
@@ -336,7 +142,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   
   // Generation state
   const [prompt, setPrompt] = useState('');
-  const [style, setStyle] = useState<StylePreset>('simple');
+  const [style, setStyle] = useState<StylePreset>('biomedical');
   const [creativityLevel, setCreativityLevel] = useState<CreativityLevel>('balanced');
   
   // Common state
@@ -422,12 +228,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     };
     reader.readAsDataURL(file);
   }, [toast]);
-
-  const selectTemplate = (template: IconTemplate) => {
-    setSelectedTemplate(template.id);
-    setPrompt(template.prompt);
-    setStyle(template.style);
-  };
 
   const handleGenerate = async (isRefinement = false) => {
     const effectivePrompt = isRefinement && refinementFeedback.trim() 
@@ -886,11 +686,10 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   };
 
   const handleReset = () => {
-    setSelectedTemplate(null);
     setReferenceImage(null);
     setReferenceFile(null);
     setPrompt('');
-    setStyle('simple');
+    setStyle('biomedical');
     setIconName('');
     setSelectedCategory('ai-icons');
     setDescription('');
@@ -976,32 +775,33 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column - Input */}
           <div className="space-y-4">
-            {/* Template Selector */}
+            {/* Art Style Selector */}
             <div className="space-y-2">
-              <Label>Icon Templates (Optional)</Label>
-              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
-                {iconTemplates.map((template) => (
+              <Label>Art Style</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {(['pencil', 'biomedical', 'oil'] as StylePreset[]).map((styleKey) => (
                   <button
-                    key={template.id}
-                    onClick={() => selectTemplate(template)}
+                    key={styleKey}
+                    onClick={() => setStyle(styleKey)}
+                    disabled={isGenerating || isSaving}
                     className={cn(
-                      "p-2 rounded-lg border text-left transition-all hover:border-primary/50 hover:bg-muted/30",
-                      selectedTemplate === template.id 
-                        ? "border-primary bg-primary/10" 
-                        : "border-border"
+                      "p-4 rounded-lg border-2 text-left transition-all",
+                      style === styleKey
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50",
+                      (isGenerating || isSaving) && "opacity-50 cursor-not-allowed"
                     )}
                   >
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="text-primary">{template.icon}</div>
-                      <div className="font-medium text-xs">{template.name}</div>
+                    <div className="flex items-center gap-2 mb-2">
+                      {styleDescriptions[styleKey].icon}
+                      <span className="font-medium">{styleDescriptions[styleKey].label}</span>
                     </div>
-                    <div className="text-[10px] text-muted-foreground line-clamp-1">{template.description}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {styleDescriptions[styleKey].desc}
+                    </p>
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Click a template to pre-fill prompt and style settings
-              </p>
             </div>
 
             {/* Reference Image */}
@@ -1045,38 +845,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                 className="mt-2 min-h-[80px]"
                 rows={3}
               />
-              {selectedTemplate && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  ✨ Using template: {iconTemplates.find(t => t.id === selectedTemplate)?.name}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="style">Scientific Style</Label>
-              <Select value={style} onValueChange={(v) => setStyle(v as StylePreset)} disabled={isGenerating || isSaving}>
-                <SelectTrigger id="style" className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(styleCategories).map(([category, styles]) => (
-                    <div key={category}>
-                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">{category}</div>
-                      {styles.map((styleKey) => {
-                        const styleInfo = styleDescriptions[styleKey];
-                        return (
-                          <SelectItem key={styleKey} value={styleKey}>
-                            <div>
-                              <div className="font-medium">{styleInfo.label}</div>
-                              <div className="text-xs text-muted-foreground">{styleInfo.desc}</div>
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
 
             <div>
