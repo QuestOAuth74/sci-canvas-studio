@@ -327,7 +327,7 @@ export const IconManager = () => {
             return (
               <div 
                 key={icon.id} 
-                className={`border rounded-lg p-3 space-y-2 transition-all ${
+                className={`border rounded-lg p-3 space-y-2 transition-all overflow-hidden ${
                   isSelected 
                     ? 'border-primary bg-primary/5 ring-2 ring-primary' 
                     : 'border-border'
@@ -364,7 +364,11 @@ export const IconManager = () => {
                     />
                   )}
                 </div>
-                <p className="text-sm font-medium truncate">{icon.name}</p>
+                <div className="w-full overflow-hidden">
+                  <p className="text-sm font-medium truncate" title={icon.name}>
+                    {icon.name}
+                  </p>
+                </div>
                 <p className="text-xs text-muted-foreground truncate">
                   {icon.icon_categories?.name || icon.category}
                 </p>
