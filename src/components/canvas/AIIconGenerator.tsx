@@ -13,7 +13,7 @@ import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, Refresh
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
-import { removeBackground, loadImage } from '@/lib/backgroundRemoval';
+import { removeBackground, loadImage, removeWhiteByFloodFill } from '@/lib/backgroundRemoval';
 import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
 import { cn } from '@/lib/utils';
 
@@ -529,27 +529,23 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           setGeneratedImage(pngDataUrl);
           console.log('✅ Converted to PNG with white background');
         } else {
-          // User wants transparent background - existing logic
-          console.log('🔍 Processing for transparent background...');
-          const isJpegLike = data.generatedImage.startsWith('data:image/jpeg') ||
-                             data.generatedImage.startsWith('data:image/jpg') ||
-                             data.generatedImage.startsWith('data:image/webp');
-
+          // User wants transparent background - ALWAYS run background removal
+          console.log('🧹 Ensuring transparent background...');
           const srcBlob = await dataUrlToBlob(data.generatedImage);
           const imgEl = await loadImage(srcBlob);
 
-          const hasAlpha = detectHasTransparency(imgEl);
-          const looksWhiteBG = !hasAlpha && detectIsLikelyWhiteBackground(imgEl);
-
           let finalBlob: Blob;
 
-          if (isJpegLike || looksWhiteBG) {
-            console.log('🧹 Making background transparent (removal path)...');
+          try {
+            // Try AI segmentation first (best quality)
+            console.log('🤖 Attempting AI background removal...');
             finalBlob = await removeBackground(imgEl);
-          } else {
-            console.log('✅ Image already has transparency');
-            const pngDataUrl = drawToPngDataUrl(imgEl);
-            finalBlob = await dataUrlToBlob(pngDataUrl);
+            console.log('✅ AI background removal successful');
+          } catch (aiError) {
+            // Fallback to flood-fill removal
+            console.warn('⚠️ AI removal failed, using flood-fill fallback:', aiError);
+            finalBlob = await removeWhiteByFloodFill(imgEl, { tolerance: 30 });
+            console.log('✅ Flood-fill background removal successful');
           }
 
           const pngDataUrl = await blobToDataUrl(finalBlob);
