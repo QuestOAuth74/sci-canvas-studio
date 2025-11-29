@@ -37,7 +37,7 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     console.log('Loading AI model... This may take 10-30 seconds on first use.');
     
     const segmenter = await Promise.race([
-      pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
+      pipeline('image-segmentation', 'briaai/RMBG-1.4', {
         device: 'auto',
       }),
       new Promise((_, reject) => 
@@ -99,7 +99,7 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
       for (let i = 0; i < segment.mask.data.length; i++) {
         sum += segment.mask.data[i];
       }
-      const coverage = (sum / segment.mask.data.length) * 100;
+      const coverage = (sum / segment.mask.data.length / 255) * 100;
       
       // Score the mask: prefer coverage between 20-80% (likely subject, not background)
       let score = 0;
@@ -166,8 +166,8 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     
     // Apply inverted mask to alpha channel with anti-aliasing
     for (let i = 0; i < bestMask.mask.data.length; i++) {
-      // Get the mask value (0 to 1)
-      const maskValue = bestMask.mask.data[i];
+      // Normalize mask value from 0-255 to 0-1
+      const maskValue = bestMask.mask.data[i] / 255;
       
       // Invert to keep subject instead of background
       let alpha = 1 - maskValue;
@@ -219,7 +219,48 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
   }
 };
 
-export function removeWhiteByFloodFill(image: HTMLImageElement, { tolerance = 20 } = {}): Promise<Blob> {
+// Detect dominant edge color by sampling border pixels
+function detectDominantEdgeColor(data: Uint8ClampedArray, width: number, height: number): { r: number; g: number; b: number } {
+  const samples: { r: number; g: number; b: number }[] = [];
+  
+  // Sample top and bottom edges
+  for (let x = 0; x < width; x += Math.max(1, Math.floor(width / 20))) {
+    const topIdx = x * 4;
+    const bottomIdx = ((height - 1) * width + x) * 4;
+    samples.push({ r: data[topIdx], g: data[topIdx + 1], b: data[topIdx + 2] });
+    samples.push({ r: data[bottomIdx], g: data[bottomIdx + 1], b: data[bottomIdx + 2] });
+  }
+  
+  // Sample left and right edges
+  for (let y = 0; y < height; y += Math.max(1, Math.floor(height / 20))) {
+    const leftIdx = y * width * 4;
+    const rightIdx = (y * width + width - 1) * 4;
+    samples.push({ r: data[leftIdx], g: data[leftIdx + 1], b: data[leftIdx + 2] });
+    samples.push({ r: data[rightIdx], g: data[rightIdx + 1], b: data[rightIdx + 2] });
+  }
+  
+  // Calculate average
+  const avg = samples.reduce((acc, s) => ({
+    r: acc.r + s.r,
+    g: acc.g + s.g,
+    b: acc.b + s.b
+  }), { r: 0, g: 0, b: 0 });
+  
+  return {
+    r: Math.round(avg.r / samples.length),
+    g: Math.round(avg.g / samples.length),
+    b: Math.round(avg.b / samples.length)
+  };
+}
+
+// Check if color matches target within tolerance
+function colorMatches(r: number, g: number, b: number, target: { r: number; g: number; b: number }, tolerance: number): boolean {
+  return Math.abs(r - target.r) <= tolerance &&
+         Math.abs(g - target.g) <= tolerance &&
+         Math.abs(b - target.b) <= tolerance;
+}
+
+export function removeUniformBackgroundByFloodFill(image: HTMLImageElement, { tolerance = 30 } = {}): Promise<Blob> {
   return new Promise((resolve, reject) => {
     try {
       const canvas = document.createElement('canvas');
@@ -232,19 +273,20 @@ export function removeWhiteByFloodFill(image: HTMLImageElement, { tolerance = 20
       const { width, height } = canvas;
       const imgData = ctx.getImageData(0, 0, width, height);
       const data = imgData.data;
+      
+      // Detect the dominant edge color (works for white, gray, beige, any uniform background)
+      const bgColor = detectDominantEdgeColor(data, width, height);
+      console.log('🎨 Detected background color:', bgColor);
+      
       const visited = new Uint8Array(width * height);
-
-      const nearWhite = (r: number, g: number, b: number) =>
-        (255 - r) <= tolerance && (255 - g) <= tolerance && (255 - b) <= tolerance;
-
       const q: number[] = [];
 
-      const pushIfWhite = (x: number, y: number) => {
+      const pushIfMatches = (x: number, y: number) => {
         if (x < 0 || y < 0 || x >= width || y >= height) return;
         const i = (y * width + x);
         if (visited[i]) return;
         const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
-        if (nearWhite(r, g, b)) {
+        if (colorMatches(r, g, b, bgColor, tolerance)) {
           visited[i] = 1;
           q.push(i);
         }
@@ -252,12 +294,12 @@ export function removeWhiteByFloodFill(image: HTMLImageElement, { tolerance = 20
 
       // Seed from all borders
       for (let x = 0; x < width; x++) {
-        pushIfWhite(x, 0);
-        pushIfWhite(x, height - 1);
+        pushIfMatches(x, 0);
+        pushIfMatches(x, height - 1);
       }
       for (let y = 0; y < height; y++) {
-        pushIfWhite(0, y);
-        pushIfWhite(width - 1, y);
+        pushIfMatches(0, y);
+        pushIfMatches(width - 1, y);
       }
 
       // Flood fill
@@ -270,13 +312,13 @@ export function removeWhiteByFloodFill(image: HTMLImageElement, { tolerance = 20
         data[i * 4 + 3] = 0;
 
         // Neighbors
-        pushIfWhite(x + 1, y);
-        pushIfWhite(x - 1, y);
-        pushIfWhite(x, y + 1);
-        pushIfWhite(x, y - 1);
+        pushIfMatches(x + 1, y);
+        pushIfMatches(x - 1, y);
+        pushIfMatches(x, y + 1);
+        pushIfMatches(x, y - 1);
       }
 
-      // Premultiply edges to reduce white halo
+      // Premultiply edges to reduce color fringing
       for (let p = 0; p < data.length; p += 4) {
         const a = data[p + 3] / 255;
         if (a > 0 && a < 1) {

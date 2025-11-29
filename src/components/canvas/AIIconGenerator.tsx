@@ -13,7 +13,7 @@ import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, Refresh
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
-import { removeBackground, loadImage, removeWhiteByFloodFill } from '@/lib/backgroundRemoval';
+import { removeBackground, loadImage, removeUniformBackgroundByFloodFill } from '@/lib/backgroundRemoval';
 import { useAIGenerationUsage } from '@/hooks/useAIGenerationUsage';
 import { cn } from '@/lib/utils';
 
@@ -542,9 +542,9 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
             finalBlob = await removeBackground(imgEl);
             console.log('✅ AI background removal successful');
           } catch (aiError) {
-            // Fallback to flood-fill removal
+            // Fallback to universal flood-fill removal (handles any uniform background)
             console.warn('⚠️ AI removal failed, using flood-fill fallback:', aiError);
-            finalBlob = await removeWhiteByFloodFill(imgEl, { tolerance: 30 });
+            finalBlob = await removeUniformBackgroundByFloodFill(imgEl, { tolerance: 30 });
             console.log('✅ Flood-fill background removal successful');
           }
 
