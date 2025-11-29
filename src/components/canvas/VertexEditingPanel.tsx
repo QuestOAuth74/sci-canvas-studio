@@ -37,7 +37,9 @@ export const VertexEditingPanel = () => {
             </div>
 
             <div className="text-xs text-muted-foreground">
-              Drag vertex handles to reshape. Double-click edges to add vertices.
+              <strong>Activation:</strong> Double-click on a shape or line to activate vertex editing.
+              <br />
+              <strong>Usage:</strong> Drag vertex handles to reshape.
             </div>
           </div>
 
@@ -78,12 +80,6 @@ export const VertexEditingPanel = () => {
           </div>
 
           <div className="space-y-2">
-            <div className="text-xs text-muted-foreground">
-              Drag vertex handles to reshape. Double-click edges to add vertices. Press Delete to remove selected vertex.
-            </div>
-          </div>
-
-          <div className="space-y-2">
             <Button
               variant="outline"
               size="sm"
@@ -100,9 +96,11 @@ export const VertexEditingPanel = () => {
             <div className="text-xs text-muted-foreground">
               <strong>Keyboard Shortcuts:</strong>
               <br />
-              • V - Toggle vertex editing
+              • Double-click shape/line - Activate vertex editing
               <br />
-              • Delete - Remove selected vertex (coming soon)
+              • V - Toggle vertex editing mode
+              <br />
+              • ESC - Exit vertex editing
               <br />
               • Double-click edge - Add vertex (coming soon)
             </div>

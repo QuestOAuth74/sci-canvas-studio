@@ -469,6 +469,14 @@ const CanvasContent = () => {
         flipHorizontal();
       }
 
+      // Exit vertex editing with ESC
+      if (e.key === 'Escape' && vertexEditingEnabled && !isEditingText) {
+        e.preventDefault();
+        setVertexEditingEnabled(false);
+        toast.info("Exited vertex editing mode");
+        return;
+      }
+
       // Toggle vertex editing (V) - for all editable line types
       if (e.key === 'v' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !isEditingText) {
         e.preventDefault();

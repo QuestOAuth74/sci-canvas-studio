@@ -266,14 +266,17 @@ export class VertexEditingManager {
     this.originalVertices.forEach((vertex, idx) => {
       const controlKey = `vertex_${idx}`;
       
-      controls[controlKey] = new Control({
+      const control = new Control({
         positionHandler: this.createPositionHandler(vertex),
         actionHandler: this.createActionHandler(vertex),
         render: this.createRenderFunction(vertex),
         cursorStyle: 'move',
-        // @ts-ignore - Custom property for tracking
-        __vertexIndex: idx,
       });
+      
+      // Store the vertex index on the control for position handler
+      (control as any).__vertexIndex = vertex.index;
+      
+      controls[controlKey] = control;
     });
 
     // Assign controls to the object
@@ -305,42 +308,56 @@ export class VertexEditingManager {
   }
 
   /**
-   * Create position handler for a vertex control
+   * Create position handler for a vertex control.
+   * Uses official Fabric.js pattern with pathOffset and viewportTransform.
    */
   private createPositionHandler(vertex: VertexData) {
-    return (dim: any, finalMatrix: any, fabricObject: FabricObject) => {
+    const self = this;
+    return function(this: Control, dim: any, finalMatrix: any, fabricObject: FabricObject) {
+      const pointIndex = (this as any).__vertexIndex;
+      
       // For group-based lines, use the mainPath coordinates but apply group transform
-      if (this.parentGroup && this.mainPath) {
+      if (self.parentGroup && self.mainPath) {
         const localPoint = { x: vertex.x, y: vertex.y };
-        const transformed = util.transformPoint(
+        return util.transformPoint(
           localPoint,
-          this.parentGroup.calcTransformMatrix()
+          util.multiplyTransformMatrices(
+            fabricObject.canvas?.viewportTransform || [1, 0, 0, 1, 0, 0],
+            self.parentGroup.calcTransformMatrix()
+          )
         );
-        return new Point(transformed.x, transformed.y);
       }
       
-      if (this.isPolygon(fabricObject)) {
+      if (self.isPolygon(fabricObject)) {
         const polygon = fabricObject as Polygon;
-        const point = polygon.points![vertex.index];
-        const transformed = util.transformPoint(
-          { x: point.x, y: point.y },
-          polygon.calcTransformMatrix()
+        const point = polygon.points![pointIndex];
+        const pathOffset = polygon.pathOffset || { x: 0, y: 0 };
+        
+        const x = point.x - pathOffset.x;
+        const y = point.y - pathOffset.y;
+        
+        return util.transformPoint(
+          { x, y },
+          util.multiplyTransformMatrices(
+            fabricObject.canvas?.viewportTransform || [1, 0, 0, 1, 0, 0],
+            fabricObject.calcTransformMatrix()
+          )
         );
-        return new Point(transformed.x, transformed.y);
-      } else if (this.isPath(fabricObject)) {
-        // For paths, transform the local vertex position
-        const transformed = util.transformPoint(
+      } else if (self.isPath(fabricObject)) {
+        return util.transformPoint(
           { x: vertex.x, y: vertex.y },
-          fabricObject.calcTransformMatrix()
+          util.multiplyTransformMatrices(
+            fabricObject.canvas?.viewportTransform || [1, 0, 0, 1, 0, 0],
+            fabricObject.calcTransformMatrix()
+          )
         );
-        return new Point(transformed.x, transformed.y);
       }
       return new Point(0, 0);
     };
   }
 
   /**
-   * Create action handler for dragging a vertex
+   * Create action handler for dragging a vertex with proper coordinate transforms.
    */
   private createActionHandler(vertex: VertexData) {
     return (eventData: MouseEvent, transform: any, x: number, y: number): boolean => {
@@ -366,22 +383,37 @@ export class VertexEditingManager {
         return true;
       }
       
-      // Transform world coordinates back to local object space
-      const localPoint = util.transformPoint(
-        { x, y },
-        util.invertTransform(target.calcTransformMatrix())
-      );
-
       if (this.isPolygon(target)) {
         const polygon = target as Polygon;
-        if (polygon.points && polygon.points[vertex.index]) {
-          polygon.points[vertex.index] = localPoint;
-          polygon.setCoords();
-          polygon.dirty = true;
-        }
+        
+        // Transform world coordinates back to local object space
+        const localPoint = util.transformPoint(
+          { x, y },
+          util.invertTransform(polygon.calcTransformMatrix())
+        );
+        
+        // Account for path offset
+        const pathOffset = polygon.pathOffset || { x: 0, y: 0 };
+        const finalPoint = {
+          x: localPoint.x + pathOffset.x,
+          y: localPoint.y + pathOffset.y
+        };
+        
+        polygon.points![vertex.index] = finalPoint;
+        polygon.dirty = true;
+        polygon.setCoords();
       } else if (this.isPath(target)) {
-        // Update path data for the vertex
+        // Transform world coordinates back to local object space
+        const localPoint = util.transformPoint(
+          { x, y },
+          util.invertTransform(target.calcTransformMatrix())
+        );
+        
+        // Update the path vertex
         this.updatePathVertex(target as Path, vertex.index, localPoint.x, localPoint.y);
+        
+        target.dirty = true;
+        target.setCoords();
       }
 
       this.canvas.requestRenderAll();
