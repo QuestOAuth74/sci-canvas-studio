@@ -14,9 +14,83 @@ export class VertexEditingManager {
   private mainPath: Path | null = null; // The actual path inside a group
   private originalVertices: VertexData[] = [];
   private vertexHandles: Map<number, Control> = new Map();
+  private hoveredVertexIndex: number | null = null; // Track which vertex is hovered
+  private mousePosition: { x: number; y: number } | null = null;
 
   constructor(canvas: Canvas) {
     this.canvas = canvas;
+    this.setupMouseTracking();
+  }
+
+  /**
+   * Setup mouse tracking for vertex hover detection
+   */
+  private setupMouseTracking(): void {
+    this.canvas.on('mouse:move', (e) => {
+      if (!this.activeObject || !e.pointer) {
+        this.hoveredVertexIndex = null;
+        return;
+      }
+
+      this.mousePosition = { x: e.pointer.x, y: e.pointer.y };
+      
+      // Check if mouse is near any vertex handle
+      let foundHover = false;
+      const target = this.parentGroup || this.activeObject;
+      
+      for (let i = 0; i < this.originalVertices.length; i++) {
+        const vertex = this.originalVertices[i];
+        
+        // Calculate vertex world position
+        let worldPos: Point;
+        if (this.parentGroup && this.mainPath) {
+          worldPos = util.transformPoint(
+            { x: vertex.x, y: vertex.y },
+            util.multiplyTransformMatrices(
+              this.canvas.viewportTransform || [1, 0, 0, 1, 0, 0],
+              this.parentGroup.calcTransformMatrix()
+            )
+          );
+        } else if (this.isPolygon(this.activeObject)) {
+          const polygon = this.activeObject as Polygon;
+          const point = polygon.points![vertex.index];
+          const pathOffset = polygon.pathOffset || { x: 0, y: 0 };
+          worldPos = util.transformPoint(
+            { x: point.x - pathOffset.x, y: point.y - pathOffset.y },
+            util.multiplyTransformMatrices(
+              this.canvas.viewportTransform || [1, 0, 0, 1, 0, 0],
+              polygon.calcTransformMatrix()
+            )
+          );
+        } else {
+          worldPos = util.transformPoint(
+            { x: vertex.x, y: vertex.y },
+            util.multiplyTransformMatrices(
+              this.canvas.viewportTransform || [1, 0, 0, 1, 0, 0],
+              target.calcTransformMatrix()
+            )
+          );
+        }
+        
+        // Check if mouse is within 15 pixels of vertex
+        const distance = Math.sqrt(
+          Math.pow(e.pointer.x - worldPos.x, 2) + 
+          Math.pow(e.pointer.y - worldPos.y, 2)
+        );
+        
+        if (distance < 15) {
+          this.hoveredVertexIndex = i;
+          foundHover = true;
+          this.canvas.requestRenderAll();
+          break;
+        }
+      }
+      
+      if (!foundHover && this.hoveredVertexIndex !== null) {
+        this.hoveredVertexIndex = null;
+        this.canvas.requestRenderAll();
+      }
+    });
   }
 
   /**
@@ -89,6 +163,8 @@ export class VertexEditingManager {
     this.mainPath = null;
     this.originalVertices = [];
     this.vertexHandles.clear();
+    this.hoveredVertexIndex = null;
+    this.mousePosition = null;
     
     this.canvas.requestRenderAll();
   }
@@ -512,9 +588,10 @@ export class VertexEditingManager {
   }
 
   /**
-   * Create render function for a vertex handle
+   * Create render function for a vertex handle with tooltip
    */
   private createRenderFunction(vertex: VertexData) {
+    const self = this;
     return (
       ctx: CanvasRenderingContext2D,
       left: number,
@@ -543,6 +620,55 @@ export class VertexEditingManager {
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
       ctx.stroke();
+      
+      // Draw tooltip if this vertex is hovered
+      const vertexIndex = self.originalVertices.findIndex(v => v.index === vertex.index && v.x === vertex.x && v.y === vertex.y);
+      if (self.hoveredVertexIndex === vertexIndex) {
+        // Format coordinates
+        const coordX = Math.round(vertex.x);
+        const coordY = Math.round(vertex.y);
+        const label = vertex.isControl 
+          ? `Control #${vertex.index}\n(${coordX}, ${coordY})`
+          : `Vertex #${vertex.index}\n(${coordX}, ${coordY})`;
+        
+        // Set tooltip text style
+        ctx.font = '11px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        
+        // Split label into lines
+        const lines = label.split('\n');
+        const lineHeight = 14;
+        const padding = 6;
+        
+        // Measure text width
+        const widths = lines.map(line => ctx.measureText(line).width);
+        const maxWidth = Math.max(...widths);
+        const tooltipWidth = maxWidth + padding * 2;
+        const tooltipHeight = lines.length * lineHeight + padding * 2;
+        
+        // Position tooltip above and to the right of vertex
+        const tooltipX = left + 12;
+        const tooltipY = top - 12;
+        
+        // Draw tooltip background
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowOffsetY = 2;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        ctx.fillRect(tooltipX, tooltipY - tooltipHeight, tooltipWidth, tooltipHeight);
+        
+        // Draw tooltip text
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ffffff';
+        lines.forEach((line, i) => {
+          ctx.fillText(
+            line,
+            tooltipX + padding,
+            tooltipY - tooltipHeight + padding + (i + 1) * lineHeight - 2
+          );
+        });
+      }
       
       ctx.restore();
     };
