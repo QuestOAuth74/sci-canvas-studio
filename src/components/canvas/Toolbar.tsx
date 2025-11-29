@@ -10,6 +10,7 @@ import {
   PenTool,
   Eraser,
   Image,
+  ImagePlus,
   Star,
   Hexagon,
   Spline,
@@ -35,6 +36,7 @@ import { ZoomCalloutTool } from "./ZoomCalloutTool";
 import { PowerPointGenerator } from "./PowerPointGenerator";
 import { useRecentlyUsedTools } from "@/hooks/useRecentlyUsedTools";
 import { useEffect, useState } from "react";
+import { useImagePlaceholder } from "./ImagePlaceholderTool";
 
 interface ToolbarProps {
   activeTool: string;
@@ -45,6 +47,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const { canvas, selectedObject, setCropMode, setSelectedObject } = useCanvas();
   const { recentTools, addRecentTool } = useRecentlyUsedTools();
   const [powerpointOpen, setPowerpointOpen] = useState(false);
+  const { addImagePlaceholder } = useImagePlaceholder();
   
   const tools = [
     { id: "select", icon: MousePointer2, label: "Select and Transform (1)" },
@@ -277,6 +280,25 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         </TooltipTrigger>
         <TooltipContent side="right">
           <p>Insert Image (8)</p>
+        </TooltipContent>
+      </Tooltip>
+      
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              addImagePlaceholder();
+              onToolChange("select");
+            }}
+            className="w-10 h-10"
+          >
+            <ImagePlus className="h-5 w-5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          <p>Image Placeholder</p>
         </TooltipContent>
       </Tooltip>
       

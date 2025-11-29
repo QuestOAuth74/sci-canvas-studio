@@ -647,9 +647,61 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Handle double-click to edit text box content
+    // Handle double-click for image placeholders and text box editing
     canvas.on('mouse:dblclick', (e) => {
       const obj = e.target;
+      
+      // Handle image placeholder click - open file picker
+      if (obj && (obj as any).isImagePlaceholder) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = async (event) => {
+          const file = (event.target as HTMLInputElement).files?.[0];
+          if (!file) return;
+
+          try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+              const dataUrl = e.target?.result as string;
+              
+              // Load image with CORS handling
+              const imgElement = await loadImageWithCORS(dataUrl);
+              
+              // Get placeholder bounds and position
+              const placeholderLeft = obj.left || 0;
+              const placeholderTop = obj.top || 0;
+              const placeholderWidth = obj.getScaledWidth();
+              const placeholderHeight = obj.getScaledHeight();
+              
+              // Create new FabricImage
+              const fabricImage = new FabricImage(imgElement, {
+                left: placeholderLeft,
+                top: placeholderTop,
+                scaleX: placeholderWidth / imgElement.width,
+                scaleY: placeholderHeight / imgElement.height,
+                crossOrigin: 'anonymous',
+              });
+              
+              // Remove placeholder and add image
+              canvas.remove(obj);
+              canvas.add(fabricImage);
+              canvas.setActiveObject(fabricImage);
+              canvas.renderAll();
+              
+              toast.success("Image added successfully!");
+            };
+            reader.readAsDataURL(file);
+          } catch (error) {
+            console.error("Error loading image:", error);
+            toast.error("Failed to load image");
+          }
+        };
+        input.click();
+        return;
+      }
+      
+      // Handle text box editing
       if (obj && isTextBox(obj)) {
         const textElement = getTextBoxTextElement(obj);
         if (textElement) {
