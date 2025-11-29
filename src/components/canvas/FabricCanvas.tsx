@@ -16,6 +16,7 @@ import { loadImageWithCORS } from "@/lib/utils";
 import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling";
 import { calculateObjectComplexity, applyComplexityOptimizations, shouldSimplifyControls } from "@/lib/objectComplexity";
 import { isTextBox, handleTextBoxResize, getTextBoxTextElement } from "@/lib/textBoxTool";
+import { VertexEditingManager } from "@/lib/vertexEditingTool";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -99,6 +100,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const orthogonalLineToolRef = useRef<OrthogonalLineTool | null>(null);
   const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
+  const vertexEditingManagerRef = useRef<VertexEditingManager | null>(null);
   
   // Object culling manager for viewport-based performance optimization
   const cullingManagerRef = useRef<ObjectCullingManager>(new ObjectCullingManager());
@@ -123,6 +125,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     textBold,
     textItalic,
     saveState,
+    vertexEditingEnabled,
+    setVertexEditingEnabled,
   } = useCanvas();
 
   useEffect(() => {
@@ -431,6 +435,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     setCanvas(canvas);
     
+    // Initialize vertex editing manager
+    vertexEditingManagerRef.current = new VertexEditingManager(canvas);
+    
     // Normalize all existing text objects with font stacks for special character support
     normalizeCanvasTextFonts(canvas);
 
@@ -523,6 +530,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       setSelectedObject(uiSelected);
       manageCurvedLineHandles(uiSelected);
       
+      // Handle vertex editing for paths and polygons
+      if (vertexEditingManagerRef.current && vertexEditingEnabled) {
+        if (uiSelected && (uiSelected.type === 'path' || uiSelected.type === 'polygon' || (uiSelected as any).isFreeformLine)) {
+          vertexEditingManagerRef.current.enableVertexEditing(uiSelected);
+        }
+      }
+      
       // Debug text object properties
       debugTextObject(uiSelected, "Selection Created");
       
@@ -567,6 +581,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       setSelectedObject(uiSelected);
       manageCurvedLineHandles(uiSelected);
       
+      // Handle vertex editing for paths and polygons
+      if (vertexEditingManagerRef.current && vertexEditingEnabled) {
+        if (uiSelected && (uiSelected.type === 'path' || uiSelected.type === 'polygon' || (uiSelected as any).isFreeformLine)) {
+          vertexEditingManagerRef.current.enableVertexEditing(uiSelected);
+        }
+      }
+      
       // Debug text object properties
       debugTextObject(uiSelected, "Selection Updated");
       
@@ -579,6 +600,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     canvas.on('selection:cleared', () => {
       setSelectedObject(null);
       manageCurvedLineHandles(null);
+      
+      // Disable vertex editing when selection is cleared
+      if (vertexEditingManagerRef.current) {
+        vertexEditingManagerRef.current.disableVertexEditing();
+      }
     });
 
     // Normalize fonts when text editing starts
@@ -1073,6 +1099,25 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     canvas.requestRenderAll();
   }, [canvas, backgroundColor, backgroundGradient]);
+  
+  // Handle vertex editing toggle
+  useEffect(() => {
+    if (!canvas || !vertexEditingManagerRef.current) return;
+    
+    const selected = canvas.getActiveObject();
+    if (!selected) return;
+    
+    if (vertexEditingEnabled && (selected.type === 'path' || selected.type === 'polygon' || (selected as any).isFreeformLine)) {
+      const success = vertexEditingManagerRef.current.enableVertexEditing(selected);
+      if (success) {
+        canvas.requestRenderAll();
+        toast.success("Vertex editing enabled");
+      }
+    } else {
+      vertexEditingManagerRef.current.disableVertexEditing();
+      canvas.requestRenderAll();
+    }
+  }, [vertexEditingEnabled, canvas]);
 
   // Handle grid rendering - redraws on zoom changes to prevent double grid
   useEffect(() => {
