@@ -131,6 +131,8 @@ const CanvasContent = () => {
     rotateSelected,
     duplicateBelow,
     loadTemplate,
+    vertexEditingEnabled,
+    setVertexEditingEnabled,
   } = useCanvas();
 
   // Enable canvas workspace theme when component mounts
@@ -467,6 +469,20 @@ const CanvasContent = () => {
         flipHorizontal();
       }
 
+      // Toggle vertex editing (V) - only for paths and polygons
+      if (e.key === 'v' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !isEditingText) {
+        e.preventDefault();
+        const activeObject = canvas?.getActiveObject();
+        if (activeObject && (activeObject.type === 'path' || activeObject.type === 'polygon' || (activeObject as any).isFreeformLine)) {
+          const newState = !vertexEditingEnabled;
+          setVertexEditingEnabled(newState);
+          toast.info(`Vertex editing ${newState ? 'enabled' : 'disabled'}`);
+        } else {
+          toast.error('Select a path or polygon to edit vertices');
+        }
+        return;
+      }
+
       // Flip vertical (Shift + V)
       if (e.key === 'V' && e.shiftKey && !e.metaKey && !e.ctrlKey && !isEditingText) {
         e.preventDefault();
@@ -583,7 +599,7 @@ const CanvasContent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow]);
+  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow, setVertexEditingEnabled, vertexEditingEnabled]);
 
   return (
       <>
