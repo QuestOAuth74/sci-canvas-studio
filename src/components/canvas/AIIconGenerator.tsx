@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Dna, TestTube, Microscope, Heart, Pill, Syringe, FlaskConical, Activity, Brain, Droplet, Target, Scale } from 'lucide-react';
+import { Sparkles, Upload, Image as ImageIcon, Loader2, ArrowLeft, Save, RefreshCw, Dna, TestTube, Microscope, Heart, Pill, Syringe, FlaskConical, Activity, Brain, Droplet, Target, Scale, Undo2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIconSubmissions } from '@/hooks/useIconSubmissions';
 import { useUserAssets } from '@/hooks/useUserAssets';
@@ -354,7 +354,13 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   
   // Refinement state
   const [refinementFeedback, setRefinementFeedback] = useState('');
-  const [refinementHistory, setRefinementHistory] = useState<Array<{ feedback: string; timestamp: Date }>>([]);
+  const [refinementHistory, setRefinementHistory] = useState<Array<{ 
+    feedback: string; 
+    timestamp: Date; 
+    imageUrl: string;
+    version: number;
+  }>>([]);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
 
   // Load categories
   const loadCategories = useCallback(async () => {
@@ -531,12 +537,15 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       try {
         console.log('🎨 Normalizing to PNG...');
         
+        let finalImageUrl: string;
+        
         if (backgroundType === 'white') {
           // User wants white background - skip removal, just convert to PNG
           console.log('⬜ User requested white background, skipping removal');
           const srcBlob = await dataUrlToBlob(data.generatedImage);
           const imgEl = await loadImage(srcBlob);
           const pngDataUrl = drawToPngDataUrl(imgEl);
+          finalImageUrl = pngDataUrl;
           setGeneratedImage(pngDataUrl);
           console.log('✅ Converted to PNG with white background');
         } else {
@@ -568,8 +577,14 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           }
 
           const pngDataUrl = await blobToDataUrl(finalBlob);
+          finalImageUrl = pngDataUrl;
           setGeneratedImage(pngDataUrl);
           console.log('✅ Final image is PNG with transparent background');
+        }
+        
+        // Set original image on first generation (not refinement)
+        if (!isRefinement && !originalImage) {
+          setOriginalImage(finalImageUrl);
         }
       } catch (procErr) {
         console.error('❌ Unable to process image:', procErr);
@@ -579,8 +594,18 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           const fallbackImg = await loadImage(fallbackBlob);
           const fallbackDataUrl = drawToPngDataUrl(fallbackImg);
           setGeneratedImage(fallbackDataUrl);
+          
+          // Set original if first generation
+          if (!isRefinement && !originalImage) {
+            setOriginalImage(fallbackDataUrl);
+          }
         } catch {
           setGeneratedImage(data.generatedImage);
+          
+          // Set original if first generation
+          if (!isRefinement && !originalImage) {
+            setOriginalImage(data.generatedImage);
+          }
         }
       }
       
@@ -588,10 +613,12 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       setStage('complete');
       
       // Track refinement if this was a refinement
-      if (isRefinement && refinementFeedback.trim()) {
+      if (isRefinement && refinementFeedback.trim() && generatedImage) {
         setRefinementHistory(prev => [...prev, { 
           feedback: refinementFeedback.trim(), 
-          timestamp: new Date() 
+          timestamp: new Date(),
+          imageUrl: generatedImage,
+          version: prev.length + 1
         }]);
         setRefinementFeedback('');
       }
@@ -844,6 +871,18 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     }
   };
 
+  const handleRevertToVersion = (imageUrl: string, version: number) => {
+    setGeneratedImage(imageUrl);
+    
+    // Remove refinements after this version
+    setRefinementHistory(prev => prev.slice(0, version));
+    
+    toast({
+      title: 'Reverted to version',
+      description: `Successfully reverted to version ${version}`,
+    });
+  };
+
   const handleReset = () => {
     setSelectedTemplate(null);
     setReferenceImage(null);
@@ -861,6 +900,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setProgressMessage('');
     setRefinementFeedback('');
     setRefinementHistory([]);
+    setOriginalImage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -871,6 +911,8 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     setStage('idle');
     setProgress(0);
     setProgressMessage('');
+    setRefinementHistory([]);
+    setOriginalImage(null);
   };
 
   const isGenerating = stage === 'generating';
@@ -1132,6 +1174,82 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                   </div>
                 </div>
 
+                {/* Version Comparison Gallery */}
+                {(originalImage || refinementHistory.length > 0) && (
+                  <div className="space-y-2 p-3 bg-muted/30 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-semibold">Version History</Label>
+                      <span className="text-xs text-muted-foreground">
+                        {refinementHistory.length + 1} version{refinementHistory.length !== 0 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                      {/* Original version */}
+                      {originalImage && (
+                        <div className="space-y-1">
+                          <div 
+                            className={cn(
+                              "relative border-2 rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-105",
+                              generatedImage === originalImage ? "border-primary ring-2 ring-primary/20" : "border-border"
+                            )}
+                            onClick={() => handleRevertToVersion(originalImage, 0)}
+                          >
+                            <img src={originalImage} alt="Original" className="w-full h-20 object-contain bg-muted/50 p-1" />
+                            {generatedImage === originalImage && (
+                              <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded">
+                                Current
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-center text-muted-foreground font-medium">Original</p>
+                        </div>
+                      )}
+                      
+                      {/* Refinement versions */}
+                      {refinementHistory.map((item, idx) => (
+                        <div key={idx} className="space-y-1">
+                          <div 
+                            className={cn(
+                              "relative border-2 rounded-lg overflow-hidden cursor-pointer transition-all hover:scale-105 group",
+                              generatedImage === item.imageUrl ? "border-primary ring-2 ring-primary/20" : "border-border"
+                            )}
+                            onClick={() => handleRevertToVersion(item.imageUrl, item.version)}
+                          >
+                            <img src={item.imageUrl} alt={`Version ${item.version}`} className="w-full h-20 object-contain bg-muted/50 p-1" />
+                            {generatedImage === item.imageUrl && (
+                              <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded">
+                                Current
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Undo2 className="h-4 w-4 text-white" />
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-center text-muted-foreground line-clamp-2" title={item.feedback}>
+                            v{item.version}: {item.feedback}
+                          </p>
+                        </div>
+                      ))}
+                      
+                      {/* Current/latest version if different from all stored versions */}
+                      {generatedImage && !originalImage && refinementHistory.length === 0 && (
+                        <div className="space-y-1">
+                          <div className="relative border-2 border-primary ring-2 ring-primary/20 rounded-lg overflow-hidden">
+                            <img src={generatedImage} alt="Current" className="w-full h-20 object-contain bg-muted/50 p-1" />
+                            <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded">
+                              Current
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-center text-muted-foreground font-medium">Current</p>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground italic">
+                      💡 Click any version to revert to it
+                    </p>
+                  </div>
+                )}
+
                 {/* Refinement Section */}
                 <div className="space-y-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -1141,19 +1259,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
                   <p className="text-xs text-muted-foreground">
                     Provide feedback to iteratively improve your icon
                   </p>
-                  
-                  {refinementHistory.length > 0 && (
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground">Previous refinements:</p>
-                      <div className="space-y-1 max-h-20 overflow-y-auto">
-                        {refinementHistory.map((item, idx) => (
-                          <div key={idx} className="text-xs bg-background/50 rounded px-2 py-1">
-                            {idx + 1}. {item.feedback}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                   
                   <div className="flex gap-2">
                     <Input
