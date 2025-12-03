@@ -8,6 +8,7 @@ interface UserExportData {
   country: string | null;
   field_of_study: string | null;
   created_at: string;
+  last_login_at: string | null;
   project_count: number;
 }
 
@@ -21,6 +22,7 @@ export const exportUsersToExcel = (users: UserExportData[]) => {
     'Field of Study': user.field_of_study || 'Not specified',
     'Total Projects': user.project_count,
     'Join Date': format(new Date(user.created_at), 'MMM dd, yyyy'),
+    'Last Login': user.last_login_at ? format(new Date(user.last_login_at), 'MMM dd, yyyy HH:mm') : 'Never',
     'User ID': user.id
   }));
 
@@ -36,6 +38,7 @@ export const exportUsersToExcel = (users: UserExportData[]) => {
     { wch: 25 },  // Field of Study
     { wch: 15 },  // Total Projects
     { wch: 15 },  // Join Date
+    { wch: 18 },  // Last Login
     { wch: 40 }   // User ID
   ];
 
