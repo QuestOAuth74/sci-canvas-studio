@@ -51,7 +51,7 @@ export default function Community() {
   const [projects, setProjects] = useState<CommunityProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'cloned' | 'liked'>('recent');
+  const [sortBy, setSortBy] = useState<'recent' | 'popular' | 'cloned' | 'liked'>('popular');
   const [selectedProject, setSelectedProject] = useState<CommunityProject | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
