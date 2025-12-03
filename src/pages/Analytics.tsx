@@ -23,6 +23,7 @@ interface UserAnalytics {
   avatar_url: string | null;
   quote: string | null;
   created_at: string;
+  last_login_at: string | null;
   project_count: number;
 }
 
@@ -43,7 +44,7 @@ const Analytics = () => {
       // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, full_name, country, field_of_study, avatar_url, quote, created_at');
+        .select('id, email, full_name, country, field_of_study, avatar_url, quote, created_at, last_login_at');
       
       if (profilesError) throw profilesError;
 
@@ -402,6 +403,12 @@ const Analytics = () => {
                     >
                       Joined {sortColumn === 'created_at' && (sortDirection === 'asc' ? '↑' : '↓')}
                     </TableHead>
+                    <TableHead 
+                      className="cursor-pointer hover:text-primary font-semibold"
+                      onClick={() => handleSort('last_login_at')}
+                    >
+                      Last Login {sortColumn === 'last_login_at' && (sortDirection === 'asc' ? '↑' : '↓')}
+                    </TableHead>
                     <TableHead className="text-center font-semibold">
                       Actions
                     </TableHead>
@@ -435,6 +442,12 @@ const Analytics = () => {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(user.created_at), 'MMM d, yyyy')}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.last_login_at 
+                          ? format(new Date(user.last_login_at), 'MMM d, yyyy HH:mm')
+                          : <span className="italic">Never</span>
+                        }
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex gap-2 justify-center">

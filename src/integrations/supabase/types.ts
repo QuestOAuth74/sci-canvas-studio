@@ -884,6 +884,7 @@ export type Database = {
           field_of_study: string | null
           full_name: string | null
           id: string
+          last_login_at: string | null
           quote: string | null
           updated_at: string | null
         }
@@ -896,6 +897,7 @@ export type Database = {
           field_of_study?: string | null
           full_name?: string | null
           id: string
+          last_login_at?: string | null
           quote?: string | null
           updated_at?: string | null
         }
@@ -908,6 +910,7 @@ export type Database = {
           field_of_study?: string | null
           full_name?: string | null
           id?: string
+          last_login_at?: string | null
           quote?: string | null
           updated_at?: string | null
         }

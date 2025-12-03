@@ -132,6 +132,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set the session from the edge function response
     if (data.session) {
       await supabase.auth.setSession(data.session);
+      
+      // Update last login timestamp
+      await supabase
+        .from('profiles')
+        .update({ last_login_at: new Date().toISOString() })
+        .eq('id', data.session.user.id);
+      
       toast.success('Welcome back!');
     }
     
