@@ -204,7 +204,7 @@ export default function Community() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Projects</p>
+                    <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Shared Projects</p>
                     <p className="text-3xl font-bold mt-1 font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats.totalProjects}</p>
                   </div>
                   <div className="w-12 h-12 rounded-full bg-[hsl(var(--ink-blue))]/10 border-2 border-[hsl(var(--ink-blue))]/20 flex items-center justify-center">
