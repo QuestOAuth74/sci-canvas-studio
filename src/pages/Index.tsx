@@ -16,6 +16,7 @@ import { SignupToast } from "@/components/SignupToast";
 import { InstitutionCarousel } from "@/components/InstitutionCarousel";
 import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 import { CommunityCarousel } from "@/components/community/CommunityCarousel";
+import { MaintenanceBanner } from "@/components/MaintenanceBanner";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -41,6 +42,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen notebook-page relative overflow-hidden">
+      {/* Maintenance Banner */}
+      <MaintenanceBanner />
+      
       {/* Subtle paper aging effect in corners */}
       <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-[hsl(var(--pencil-gray)_/_0.03)] to-transparent pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-[hsl(var(--pencil-gray)_/_0.02)] to-transparent pointer-events-none" />
