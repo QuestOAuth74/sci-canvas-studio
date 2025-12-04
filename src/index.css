@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Maintenance Banner Animation */
+@keyframes maintenance-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(245, 158, 11, 0.3);
+  }
+}
+
+.maintenance-banner-animated {
+  animation: maintenance-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .maintenance-banner-animated {
+    animation: none;
+  }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
