@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush, Control, FabricObject, Gradient } from "fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
@@ -17,6 +17,7 @@ import { loadImageWithCORS } from "@/lib/utils";
 import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling";
 import { calculateObjectComplexity, applyComplexityOptimizations, shouldSimplifyControls } from "@/lib/objectComplexity";
 import { isTextBox, handleTextBoxResize, getTextBoxTextElement } from "@/lib/textBoxTool";
+import { IconColorEditor } from "./IconColorEditor";
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -72,6 +73,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
   const [isDuplicating, setIsDuplicating] = useState(false);
   const clonedObjectRef = useRef<FabricObject | null>(null);
+
+  // Icon color editor state
+  const [colorEditorOpen, setColorEditorOpen] = useState(false);
+  const [pendingIconData, setPendingIconData] = useState<{ svgData: string; iconId?: string } | null>(null);
 
   // Helper functions for main-thread SVG processing (fallback when Web Worker fails)
   const calculateSVGComplexityMainThread = (svgContent: string): number => {
@@ -761,10 +766,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     });
 
 
-    // Listen for custom event to add icons to canvas
+    // Listen for custom event to add icons to canvas - show color editor first
     const handleAddIcon = async (event: CustomEvent) => {
       const { svgData, iconId } = event.detail;
+      
+      // Store the pending icon data and open color editor
+      setPendingIconData({ svgData, iconId });
+      setColorEditorOpen(true);
+    };
 
+    // Function to actually add icon to canvas (called after color customization)
+    const addIconToCanvasInternal = async (svgData: string, iconId?: string) => {
       try {
         const startTime = performance.now();
         
@@ -798,7 +810,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           canvas.add(group);
           canvas.setActiveObject(group);
           canvas.requestRenderAll();
-          toast.success("Icon added to canvas (cached)");
+          toast.success("Icon added to canvas");
           return;
         }
         
@@ -928,7 +940,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     };
 
+    // Handler for confirmed icon addition (after color customization or skip)
+    const handleAddIconConfirmed = async (event: CustomEvent) => {
+      const { svgData, iconId } = event.detail;
+      await addIconToCanvasInternal(svgData, iconId);
+    };
+
     window.addEventListener("addIconToCanvas", handleAddIcon as EventListener);
+    window.addEventListener("addIconToCanvasConfirmed", handleAddIconConfirmed as EventListener);
 
     // Handle adding asset from library
     const handleAddAsset = async (event: CustomEvent) => {
@@ -994,6 +1013,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
       return () => {
         window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
+        window.removeEventListener("addIconToCanvasConfirmed", handleAddIconConfirmed as EventListener);
         window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
         setCanvas(null);
         canvas.dispose();
@@ -3749,28 +3769,61 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     ? 'shadow-[0_0_0_2px_hsl(var(--primary)/0.5)] rounded-sm' 
     : '';
 
+  // Handle color editor callbacks
+  const handleColorEditorApply = useCallback((modifiedSVG: string) => {
+    if (pendingIconData) {
+      // Dispatch confirmed event with modified SVG
+      window.dispatchEvent(new CustomEvent("addIconToCanvasConfirmed", {
+        detail: { svgData: modifiedSVG, iconId: pendingIconData.iconId }
+      }));
+      setPendingIconData(null);
+    }
+  }, [pendingIconData]);
+
+  const handleColorEditorSkip = useCallback(() => {
+    if (pendingIconData) {
+      // Dispatch confirmed event with original SVG
+      window.dispatchEvent(new CustomEvent("addIconToCanvasConfirmed", {
+        detail: { svgData: pendingIconData.svgData, iconId: pendingIconData.iconId }
+      }));
+      setPendingIconData(null);
+    }
+  }, [pendingIconData]);
+
   return (
-    <div
-      className="w-full h-full overflow-auto relative"
-      style={gridEnabled ? {
-        background: 'linear-gradient(90deg, #f0f0f0 1px, transparent 1px), linear-gradient(#f0f0f0 1px, transparent 1px)',
-        backgroundSize: '20px 20px'
-      } : undefined}
-    >
-      <div className="w-full h-full flex items-start justify-center p-4">
-        <div className={`shadow-2xl bg-white transition-all duration-200 ${toolModeClass}`} style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
-          <div 
-            style={{
-              width: `${(canvasDimensions.width || 1200) * (zoom / 100)}px`,
-              height: `${(canvasDimensions.height || 800) * (zoom / 100)}px`,
-              position: 'relative',
-              display: 'inline-block',
-            }}
-          >
-            <canvas ref={canvasRef} />
+    <>
+      <div
+        className="w-full h-full overflow-auto relative"
+        style={gridEnabled ? {
+          background: 'linear-gradient(90deg, #f0f0f0 1px, transparent 1px), linear-gradient(#f0f0f0 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        } : undefined}
+      >
+        <div className="w-full h-full flex items-start justify-center p-4">
+          <div className={`shadow-2xl bg-white transition-all duration-200 ${toolModeClass}`} style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
+            <div 
+              style={{
+                width: `${(canvasDimensions.width || 1200) * (zoom / 100)}px`,
+                height: `${(canvasDimensions.height || 800) * (zoom / 100)}px`,
+                position: 'relative',
+                display: 'inline-block',
+              }}
+            >
+              <canvas ref={canvasRef} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Icon Color Editor Dialog */}
+      <IconColorEditor
+        open={colorEditorOpen}
+        onOpenChange={setColorEditorOpen}
+        svgContent={pendingIconData?.svgData || ''}
+        iconId={pendingIconData?.iconId}
+        onApply={handleColorEditorApply}
+        onSkip={handleColorEditorSkip}
+      />
+    </>
   );
 };
