@@ -61,21 +61,21 @@ export const MaintenanceBanner = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="relative w-full bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 dark:from-amber-900/30 dark:via-yellow-900/20 dark:to-amber-900/30 border-b-2 border-dashed border-amber-400/60 dark:border-amber-600/40">
+    <div className="relative w-full bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 dark:from-amber-900/30 dark:via-yellow-900/20 dark:to-amber-900/30 border-b-2 border-dashed border-amber-400/60 dark:border-amber-600/40 maintenance-banner-animated">
       {/* Notebook paper texture effect */}
       <div className="absolute inset-0 opacity-30 pointer-events-none" 
            style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(139, 69, 19, 0.05) 20px, rgba(139, 69, 19, 0.05) 21px)' }} />
       
       <div className="container mx-auto px-4 py-3 relative">
         <div className="flex items-center justify-center gap-3">
-          {/* Wrench icon with pencil-sketch style */}
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200/80 dark:bg-amber-800/50 flex items-center justify-center border border-amber-400/50 dark:border-amber-600/50 shadow-sm">
-            <Wrench className="w-4 h-4 text-amber-700 dark:text-amber-300" />
+          {/* Wrench icon with pencil-sketch style and pulse animation */}
+          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-200/80 dark:bg-amber-800/50 flex items-center justify-center border border-amber-400/50 dark:border-amber-600/50 shadow-sm animate-pulse">
+            <Wrench className="w-5 h-5 text-amber-700 dark:text-amber-300" />
           </div>
           
-          {/* Message */}
-          <p className="text-sm md:text-base font-medium text-amber-900 dark:text-amber-100" style={{ fontFamily: "'Caveat', cursive" }}>
-            <span className="hidden sm:inline">🔧 </span>
+          {/* Message with larger font */}
+          <p className="text-lg md:text-xl font-semibold text-amber-900 dark:text-amber-100" style={{ fontFamily: "'Caveat', cursive" }}>
+            <span className="hidden sm:inline-block animate-bounce">🔧 </span>
             {message}
           </p>
           
