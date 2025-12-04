@@ -13,9 +13,6 @@ timeout = 120
 [functions.rate-limited-login]
 verify_jwt = false
 
-[functions.subscribe-newsletter]
-verify_jwt = false
-
 [functions.send-share-email]
 verify_jwt = true
 
