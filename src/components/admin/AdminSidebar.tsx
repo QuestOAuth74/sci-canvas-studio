@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FolderKanban,
-  Mail,
   MessageSquare,
   BookOpen,
   Upload,
@@ -48,7 +47,6 @@ const menuItems: MenuGroup[] = [
     items: [
       { id: 'announcements', label: 'Announcements', icon: Megaphone },
       { id: 'submitted-projects', label: 'Submitted Projects', icon: FolderKanban },
-      { id: 'newsletter', label: 'Newsletter', icon: Mail },
       { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
     ]
   },
