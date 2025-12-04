@@ -1,29 +1,57 @@
 import { useState, useEffect } from 'react';
 import { X, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
 
-// Toggle this to show/hide the banner
-const MAINTENANCE_ENABLED = true;
-const MAINTENANCE_MESSAGE = "We're performing scheduled maintenance. Some features may be temporarily unavailable.";
 const DISMISSAL_KEY = 'maintenance_banner_dismissed';
 const DISMISSAL_HOURS = 24;
 
+interface MaintenanceSettings {
+  enabled: boolean;
+  message: string;
+}
+
 export const MaintenanceBanner = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (!MAINTENANCE_ENABLED) return;
-    
-    const dismissedAt = localStorage.getItem(DISMISSAL_KEY);
-    if (dismissedAt) {
-      const dismissedTime = parseInt(dismissedAt, 10);
-      const hoursSinceDismissal = (Date.now() - dismissedTime) / (1000 * 60 * 60);
-      if (hoursSinceDismissal < DISMISSAL_HOURS) {
+    fetchMaintenanceSettings();
+  }, []);
+
+  const fetchMaintenanceSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('setting_value')
+        .eq('setting_key', 'maintenance_mode')
+        .single();
+
+      if (error) {
+        console.error('Error fetching maintenance settings:', error);
         return;
       }
+
+      const settings = data?.setting_value as unknown as MaintenanceSettings;
+      
+      if (!settings?.enabled) return;
+
+      // Check if user has dismissed the banner recently
+      const dismissedAt = localStorage.getItem(DISMISSAL_KEY);
+      if (dismissedAt) {
+        const dismissedTime = parseInt(dismissedAt, 10);
+        const hoursSinceDismissal = (Date.now() - dismissedTime) / (1000 * 60 * 60);
+        if (hoursSinceDismissal < DISMISSAL_HOURS) {
+          return;
+        }
+      }
+
+      setMessage(settings.message || "We're performing scheduled maintenance.");
+      setIsVisible(true);
+    } catch (error) {
+      console.error('Error fetching maintenance settings:', error);
     }
-    setIsVisible(true);
-  }, []);
+  };
 
   const handleDismiss = () => {
     localStorage.setItem(DISMISSAL_KEY, Date.now().toString());
@@ -48,7 +76,7 @@ export const MaintenanceBanner = () => {
           {/* Message */}
           <p className="text-sm md:text-base font-medium text-amber-900 dark:text-amber-100" style={{ fontFamily: "'Caveat', cursive" }}>
             <span className="hidden sm:inline">🔧 </span>
-            {MAINTENANCE_MESSAGE}
+            {message}
           </p>
           
           {/* Dismiss button */}

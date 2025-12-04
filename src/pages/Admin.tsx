@@ -21,6 +21,7 @@ import { ContactMessagesManager } from "@/components/admin/ContactMessagesManage
 import { ToolFeedbackManager } from "@/components/admin/ToolFeedbackManager";
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
+import { MaintenanceToggle } from "@/components/admin/MaintenanceToggle";
 import { Separator } from "@/components/ui/separator";
 import { SEOHead } from "@/components/SEO/SEOHead";
 
@@ -101,6 +102,17 @@ const Admin = () => {
 
           <main className="flex-1 overflow-auto">
             <div className="p-8 space-y-12">
+              {/* Maintenance Mode */}
+              <section id="maintenance">
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold tracking-tight">Maintenance Mode</h2>
+                  <p className="text-muted-foreground">Toggle the maintenance banner on the homepage</p>
+                </div>
+                <MaintenanceToggle />
+              </section>
+
+              <Separator className="my-12" />
+
               {/* Community Metrics */}
               <section id="community-metrics">
                 <div className="mb-6">

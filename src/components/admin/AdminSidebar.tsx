@@ -15,6 +15,7 @@ import {
   Star,
   LineChart,
   Megaphone,
+  Wrench,
 } from "lucide-react";
 import {
   Sidebar,
@@ -45,6 +46,7 @@ const menuItems: MenuGroup[] = [
   {
     group: "Management",
     items: [
+      { id: 'maintenance', label: 'Maintenance Mode', icon: Wrench },
       { id: 'announcements', label: 'Announcements', icon: Megaphone },
       { id: 'submitted-projects', label: 'Submitted Projects', icon: FolderKanban },
       { id: 'testimonials', label: 'Testimonials', icon: MessageSquare },
