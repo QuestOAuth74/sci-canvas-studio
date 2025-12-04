@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,27 @@ const THICKNESS_PRESETS = [
   { label: 'Medium', value: 2 },
   { label: 'Thick', value: 4 },
   { label: 'Extra Thick', value: 6 },
+];
+
+// Standard markers
+const STANDARD_MARKERS: { value: ArrowMarkerType; label: string }[] = [
+  { value: 'none', label: 'None' },
+  { value: 'arrow', label: 'Arrow' },
+  { value: 'open-arrow', label: 'Open Arrow' },
+  { value: 'diamond', label: 'Diamond' },
+  { value: 'circle', label: 'Circle' },
+  { value: 'block', label: 'Block' },
+  { value: 'tee', label: 'T-bar' },
+];
+
+// Biological pathway markers
+const BIOLOGICAL_MARKERS: { value: ArrowMarkerType; label: string; description: string }[] = [
+  { value: 'inhibition', label: 'Inhibition', description: 'Blocks/inhibits target' },
+  { value: 'activation', label: 'Activation', description: 'Activates target' },
+  { value: 'phosphorylation', label: 'Phosphorylation', description: 'Adds phosphate group' },
+  { value: 'binding', label: 'Binding', description: 'Complex formation' },
+  { value: 'catalysis', label: 'Catalysis', description: 'Enzyme activity' },
+  { value: 'stimulation', label: 'Stimulation', description: 'Positive regulation' },
 ];
 
 export const LinePropertiesPanel = () => {
@@ -75,12 +96,23 @@ export const LinePropertiesPanel = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                <SelectItem value="arrow">Arrow</SelectItem>
-                <SelectItem value="open-arrow">Open Arrow</SelectItem>
-                <SelectItem value="diamond">Diamond</SelectItem>
-                <SelectItem value="circle">Circle</SelectItem>
-                <SelectItem value="block">Block</SelectItem>
+                <SelectGroup>
+                  <SelectLabel className="text-xs text-muted-foreground">Standard</SelectLabel>
+                  {STANDARD_MARKERS.map(marker => (
+                    <SelectItem key={marker.value} value={marker.value}>{marker.label}</SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel className="text-xs text-muted-foreground">Biological Pathway</SelectLabel>
+                  {BIOLOGICAL_MARKERS.map(marker => (
+                    <SelectItem key={marker.value} value={marker.value}>
+                      <span className="flex items-center gap-2">
+                        {marker.label}
+                        <span className="text-[10px] text-muted-foreground">({marker.description})</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -92,12 +124,23 @@ export const LinePropertiesPanel = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">None</SelectItem>
-                <SelectItem value="arrow">Arrow</SelectItem>
-                <SelectItem value="open-arrow">Open Arrow</SelectItem>
-                <SelectItem value="diamond">Diamond</SelectItem>
-                <SelectItem value="circle">Circle</SelectItem>
-                <SelectItem value="block">Block</SelectItem>
+                <SelectGroup>
+                  <SelectLabel className="text-xs text-muted-foreground">Standard</SelectLabel>
+                  {STANDARD_MARKERS.map(marker => (
+                    <SelectItem key={marker.value} value={marker.value}>{marker.label}</SelectItem>
+                  ))}
+                </SelectGroup>
+                <SelectGroup>
+                  <SelectLabel className="text-xs text-muted-foreground">Biological Pathway</SelectLabel>
+                  {BIOLOGICAL_MARKERS.map(marker => (
+                    <SelectItem key={marker.value} value={marker.value}>
+                      <span className="flex items-center gap-2">
+                        {marker.label}
+                        <span className="text-[10px] text-muted-foreground">({marker.description})</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>

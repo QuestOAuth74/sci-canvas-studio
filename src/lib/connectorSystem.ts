@@ -4,6 +4,7 @@ import { calculateShapePorts, findNearestPort } from "./portManager";
 import { routeStraight, routeCurved, routeOrthogonal, pointsToPath, smoothOrthogonalPath } from "./lineRouting";
 
 // Create arrow marker polygon
+// Create arrow marker polygon
 function createArrowMarker(
   x: number,
   y: number,
@@ -19,8 +20,11 @@ function createArrowMarker(
   const sin = Math.sin(angleRad);
 
   let points: { x: number; y: number }[] = [];
+  let fill = color;
+  let strokeWidth = 2;
 
   switch (markerType) {
+    // Standard markers
     case 'arrow':
       points = [
         { x: 0, y: 0 },
@@ -34,6 +38,7 @@ function createArrowMarker(
         { x: 0, y: 0 },
         { x: -size, y: size / 2 },
       ];
+      fill = 'transparent';
       break;
     case 'diamond':
       points = [
@@ -45,7 +50,7 @@ function createArrowMarker(
       break;
     case 'circle':
       // Approximate circle with polygon
-      const segments = 8;
+      const segments = 12;
       for (let i = 0; i < segments; i++) {
         const a = (i / segments) * Math.PI * 2;
         points.push({
@@ -63,12 +68,83 @@ function createArrowMarker(
       ];
       break;
     case 'tee':
-      // Perpendicular bar at the end (like inhibition marker)
+      // Perpendicular bar at the end
       points = [
-        { x: 0, y: -size / 2 },
-        { x: 0, y: size / 2 },
+        { x: 0, y: -size * 0.7 },
+        { x: 0, y: size * 0.7 },
+      ];
+      strokeWidth = 3;
+      break;
+      
+    // Biological pathway markers
+    case 'inhibition':
+      // T-bar (flat perpendicular line) - classic inhibition symbol
+      points = [
+        { x: 0, y: -size * 0.8 },
+        { x: 0, y: size * 0.8 },
+      ];
+      strokeWidth = 3;
+      break;
+    case 'activation':
+      // Filled triangle arrow - standard activation
+      points = [
+        { x: 0, y: 0 },
+        { x: -size * 1.2, y: -size * 0.6 },
+        { x: -size * 1.2, y: size * 0.6 },
       ];
       break;
+    case 'phosphorylation':
+      // Circle with P inside - represented as a larger filled circle
+      // The P is implied by convention
+      const pSegments = 16;
+      for (let i = 0; i < pSegments; i++) {
+        const a = (i / pSegments) * Math.PI * 2;
+        points.push({
+          x: -size * 0.6 + (size * 0.6) * Math.cos(a),
+          y: (size * 0.6) * Math.sin(a),
+        });
+      }
+      break;
+    case 'binding':
+      // Half circle / cup shape - indicates binding/complex formation
+      const bindingSegments = 10;
+      points.push({ x: 0, y: -size * 0.6 });
+      for (let i = 0; i <= bindingSegments; i++) {
+        const a = -Math.PI / 2 + (i / bindingSegments) * Math.PI;
+        points.push({
+          x: -size * 0.5 + (size * 0.5) * Math.cos(a),
+          y: (size * 0.6) * Math.sin(a),
+        });
+      }
+      points.push({ x: 0, y: size * 0.6 });
+      fill = 'transparent';
+      strokeWidth = 2.5;
+      break;
+    case 'catalysis':
+      // Open/hollow circle - indicates catalysis/enzyme activity
+      const catSegments = 16;
+      for (let i = 0; i < catSegments; i++) {
+        const a = (i / catSegments) * Math.PI * 2;
+        points.push({
+          x: -size * 0.5 + (size * 0.5) * Math.cos(a),
+          y: (size * 0.5) * Math.sin(a),
+        });
+      }
+      fill = 'transparent';
+      strokeWidth = 2;
+      break;
+    case 'stimulation':
+      // Open triangle arrow - indicates stimulation/positive regulation
+      points = [
+        { x: -size * 1.2, y: -size * 0.6 },
+        { x: 0, y: 0 },
+        { x: -size * 1.2, y: size * 0.6 },
+      ];
+      fill = 'transparent';
+      strokeWidth = 2.5;
+      break;
+    default:
+      return null;
   }
 
   // Rotate and translate points
@@ -78,9 +154,9 @@ function createArrowMarker(
   }));
 
   return new Polygon(transformedPoints, {
-    fill: markerType === 'open-arrow' ? 'transparent' : color,
+    fill: fill,
     stroke: color,
-    strokeWidth: 2,
+    strokeWidth: strokeWidth,
     selectable: false,
     evented: false,
     strokeUniform: true,
