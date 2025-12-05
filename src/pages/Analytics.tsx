@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye, User, Globe, GraduationCap, Download } from "lucide-react";
 import { toast } from "sonner";
 import { exportUsersToExcel } from "@/lib/excelExport";
@@ -494,17 +494,60 @@ const Analytics = () => {
                       />
                     </PaginationItem>
                     
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          onClick={() => setCurrentPage(page)}
-                          isActive={currentPage === page}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
+                    {(() => {
+                      const getVisiblePages = (): (number | 'ellipsis')[] => {
+                        if (totalPages <= 7) {
+                          return Array.from({ length: totalPages }, (_, i) => i + 1);
+                        }
+                        
+                        const pages: (number | 'ellipsis')[] = [];
+                        
+                        // Always show first 3
+                        pages.push(1, 2, 3);
+                        
+                        // Add ellipsis if current is far from start
+                        if (currentPage > 5) {
+                          pages.push('ellipsis');
+                        }
+                        
+                        // Pages around current (if not already included)
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                          if (i > 3 && i < totalPages - 2 && !pages.includes(i)) {
+                            pages.push(i);
+                          }
+                        }
+                        
+                        // Add ellipsis if current is far from end
+                        if (currentPage < totalPages - 4) {
+                          pages.push('ellipsis');
+                        }
+                        
+                        // Always show last 3
+                        for (let i = totalPages - 2; i <= totalPages; i++) {
+                          if (!pages.includes(i)) {
+                            pages.push(i);
+                          }
+                        }
+                        
+                        return pages;
+                      };
+                      
+                      return getVisiblePages().map((page, index) => (
+                        <PaginationItem key={`${page}-${index}`}>
+                          {page === 'ellipsis' ? (
+                            <PaginationEllipsis />
+                          ) : (
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          )}
+                        </PaginationItem>
+                      ));
+                    })()}
                     
                     <PaginationItem>
                       <PaginationNext 
