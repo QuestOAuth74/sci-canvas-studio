@@ -10,6 +10,15 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const Blog = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -159,35 +168,97 @@ const Blog = () => {
                   </div>
                   
                   {/* Pagination */}
-                  {totalCount > postsPerPage && (
-                    <div className="flex justify-center items-center gap-4 mt-12">
-                      <Button
-                        onClick={() => {
-                          setCurrentPage(p => Math.max(1, p - 1));
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        disabled={currentPage === 1}
-                        variant="outline"
-                      >
-                        ← Previous
-                      </Button>
+                  {totalCount > postsPerPage && (() => {
+                    const totalPages = Math.ceil(totalCount / postsPerPage);
+                    
+                    const getVisiblePages = (): (number | 'ellipsis')[] => {
+                      if (totalPages <= 7) {
+                        return Array.from({ length: totalPages }, (_, i) => i + 1);
+                      }
                       
-                      <span className="text-sm text-muted-foreground">
-                        Page {currentPage} of {Math.ceil(totalCount / postsPerPage)}
-                      </span>
+                      const pages: (number | 'ellipsis')[] = [];
                       
-                      <Button
-                        onClick={() => {
-                          setCurrentPage(p => Math.min(Math.ceil(totalCount / postsPerPage), p + 1));
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        disabled={currentPage >= Math.ceil(totalCount / postsPerPage)}
-                        variant="outline"
-                      >
-                        Next →
-                      </Button>
-                    </div>
-                  )}
+                      // Always show first 3
+                      pages.push(1, 2, 3);
+                      
+                      // Add ellipsis if current is far from start
+                      if (currentPage > 5) {
+                        pages.push('ellipsis');
+                      }
+                      
+                      // Pages around current (if not already included)
+                      for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                        if (i > 3 && i < totalPages - 2 && !pages.includes(i)) {
+                          pages.push(i);
+                        }
+                      }
+                      
+                      // Add ellipsis if current is far from end
+                      if (currentPage < totalPages - 4) {
+                        pages.push('ellipsis');
+                      }
+                      
+                      // Always show last 3
+                      for (let i = totalPages - 2; i <= totalPages; i++) {
+                        if (!pages.includes(i)) {
+                          pages.push(i);
+                        }
+                      }
+                      
+                      return pages;
+                    };
+                    
+                    return (
+                      <div className="flex justify-center mt-12">
+                        <Pagination>
+                          <PaginationContent className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow rounded-lg p-2">
+                            <PaginationItem>
+                              <PaginationPrevious 
+                                onClick={() => {
+                                  setCurrentPage(p => Math.max(1, p - 1));
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className={`font-source-serif ${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[hsl(var(--highlighter-yellow))]/30'}`}
+                              />
+                            </PaginationItem>
+                            
+                            {getVisiblePages().map((page, index) => (
+                              <PaginationItem key={`${page}-${index}`}>
+                                {page === 'ellipsis' ? (
+                                  <PaginationEllipsis />
+                                ) : (
+                                  <PaginationLink
+                                    onClick={() => {
+                                      setCurrentPage(page);
+                                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    isActive={currentPage === page}
+                                    className={`cursor-pointer font-source-serif ${
+                                      currentPage === page 
+                                        ? 'bg-[hsl(var(--ink-blue))] text-white border-2 border-[hsl(var(--ink-blue))]' 
+                                        : 'hover:bg-[hsl(var(--highlighter-yellow))]/30'
+                                    }`}
+                                  >
+                                    {page}
+                                  </PaginationLink>
+                                )}
+                              </PaginationItem>
+                            ))}
+                            
+                            <PaginationItem>
+                              <PaginationNext 
+                                onClick={() => {
+                                  setCurrentPage(p => Math.min(totalPages, p + 1));
+                                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className={`font-source-serif ${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[hsl(var(--highlighter-yellow))]/30'}`}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    );
+                  })()}
                 </>
               ) : !searchQuery ? (
                 <div className="text-center py-16 border border-dashed border-border rounded-lg">
