@@ -1,13 +1,20 @@
 import { Button } from "@/components/ui/button";
-import { Facebook, Twitter, Linkedin, Mail, Link as LinkIcon } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Mail, Link as LinkIcon, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ShareButtonsProps {
   url: string;
   title: string;
+  compact?: boolean;
 }
 
-export const ShareButtons = ({ url, title }: ShareButtonsProps) => {
+export const ShareButtons = ({ url, title, compact = false }: ShareButtonsProps) => {
   const { toast } = useToast();
 
   const shareLinks = {
@@ -25,59 +32,104 @@ export const ShareButtons = ({ url, title }: ShareButtonsProps) => {
     });
   };
 
+  if (compact) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" className="text-[hsl(var(--ink-blue))]">
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem asChild>
+            <a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center cursor-pointer">
+              <Twitter className="h-4 w-4 mr-2" />
+              Twitter
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href={shareLinks.facebook} target="_blank" rel="noopener noreferrer" className="flex items-center cursor-pointer">
+              <Facebook className="h-4 w-4 mr-2" />
+              Facebook
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href={shareLinks.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center cursor-pointer">
+              <Linkedin className="h-4 w-4 mr-2" />
+              LinkedIn
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href={shareLinks.email} className="flex items-center cursor-pointer">
+              <Mail className="h-4 w-4 mr-2" />
+              Email
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={copyLink} className="cursor-pointer">
+            <LinkIcon className="h-4 w-4 mr-2" />
+            Copy Link
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="font-semibold">Share this post</h3>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-        >
-          <a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer">
-            <Twitter className="h-4 w-4 mr-2" />
-            Twitter
-          </a>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-        >
-          <a href={shareLinks.facebook} target="_blank" rel="noopener noreferrer">
-            <Facebook className="h-4 w-4 mr-2" />
-            Facebook
-          </a>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-        >
-          <a href={shareLinks.linkedin} target="_blank" rel="noopener noreferrer">
-            <Linkedin className="h-4 w-4 mr-2" />
-            LinkedIn
-          </a>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          asChild
-        >
-          <a href={shareLinks.email}>
-            <Mail className="h-4 w-4 mr-2" />
-            Email
-          </a>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={copyLink}
-        >
-          <LinkIcon className="h-4 w-4 mr-2" />
-          Copy Link
-        </Button>
-      </div>
+    <div className="flex flex-wrap gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        asChild
+        className="border-[hsl(var(--pencil-gray))]/30 hover:bg-[hsl(var(--cream))]"
+      >
+        <a href={shareLinks.twitter} target="_blank" rel="noopener noreferrer">
+          <Twitter className="h-4 w-4 mr-2" />
+          Twitter
+        </a>
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        asChild
+        className="border-[hsl(var(--pencil-gray))]/30 hover:bg-[hsl(var(--cream))]"
+      >
+        <a href={shareLinks.facebook} target="_blank" rel="noopener noreferrer">
+          <Facebook className="h-4 w-4 mr-2" />
+          Facebook
+        </a>
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        asChild
+        className="border-[hsl(var(--pencil-gray))]/30 hover:bg-[hsl(var(--cream))]"
+      >
+        <a href={shareLinks.linkedin} target="_blank" rel="noopener noreferrer">
+          <Linkedin className="h-4 w-4 mr-2" />
+          LinkedIn
+        </a>
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        asChild
+        className="border-[hsl(var(--pencil-gray))]/30 hover:bg-[hsl(var(--cream))]"
+      >
+        <a href={shareLinks.email}>
+          <Mail className="h-4 w-4 mr-2" />
+          Email
+        </a>
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={copyLink}
+        className="border-[hsl(var(--pencil-gray))]/30 hover:bg-[hsl(var(--cream))]"
+      >
+        <LinkIcon className="h-4 w-4 mr-2" />
+        Copy Link
+      </Button>
     </div>
   );
 };
