@@ -11,6 +11,7 @@ import { UserMenu } from '@/components/auth/UserMenu';
 import { 
   Pagination, 
   PaginationContent, 
+  PaginationEllipsis,
   PaginationItem, 
   PaginationLink, 
   PaginationNext, 
@@ -526,21 +527,64 @@ export default function Projects() {
                         />
                       </PaginationItem>
                       
-                      {[...Array(totalPages)].map((_, i) => (
-                        <PaginationItem key={i}>
-                          <PaginationLink
-                            onClick={() => setCurrentPage(i + 1)}
-                            isActive={currentPage === i + 1}
-                            className={`cursor-pointer font-source-serif ${
-                              currentPage === i + 1 
-                                ? 'bg-[hsl(var(--highlighter-yellow))]/60 border-2 border-[hsl(var(--pencil-gray))] handwritten text-lg' 
-                                : 'hover:bg-[hsl(var(--highlighter-yellow))]/20'
-                            }`}
-                          >
-                            {i + 1}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
+                      {(() => {
+                        const getVisiblePages = (): (number | 'ellipsis')[] => {
+                          if (totalPages <= 7) {
+                            return Array.from({ length: totalPages }, (_, i) => i + 1);
+                          }
+                          
+                          const pages: (number | 'ellipsis')[] = [];
+                          
+                          // Always show first 3
+                          pages.push(1, 2, 3);
+                          
+                          // Add ellipsis if current is far from start
+                          if (currentPage > 5) {
+                            pages.push('ellipsis');
+                          }
+                          
+                          // Pages around current (if not already included)
+                          for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                            if (i > 3 && i < totalPages - 2 && !pages.includes(i)) {
+                              pages.push(i);
+                            }
+                          }
+                          
+                          // Add ellipsis if current is far from end
+                          if (currentPage < totalPages - 4) {
+                            pages.push('ellipsis');
+                          }
+                          
+                          // Always show last 3
+                          for (let i = totalPages - 2; i <= totalPages; i++) {
+                            if (!pages.includes(i)) {
+                              pages.push(i);
+                            }
+                          }
+                          
+                          return pages;
+                        };
+                        
+                        return getVisiblePages().map((page, index) => (
+                          <PaginationItem key={`${page}-${index}`}>
+                            {page === 'ellipsis' ? (
+                              <PaginationEllipsis />
+                            ) : (
+                              <PaginationLink
+                                onClick={() => setCurrentPage(page)}
+                                isActive={currentPage === page}
+                                className={`cursor-pointer font-source-serif ${
+                                  currentPage === page 
+                                    ? 'bg-[hsl(var(--highlighter-yellow))]/60 border-2 border-[hsl(var(--pencil-gray))] handwritten text-lg' 
+                                    : 'hover:bg-[hsl(var(--highlighter-yellow))]/20'
+                                }`}
+                              >
+                                {page}
+                              </PaginationLink>
+                            )}
+                          </PaginationItem>
+                        ));
+                      })()}
                       
                       <PaginationItem>
                         <PaginationNext 
