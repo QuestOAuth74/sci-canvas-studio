@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -320,34 +321,64 @@ export default function Community() {
                       />
                     </PaginationItem>
                     
-                    {[...Array(Math.min(totalPages, 7))].map((_, i) => {
-                      let pageNum;
-                      if (totalPages <= 7) {
-                        pageNum = i + 1;
-                      } else if (currentPage <= 4) {
-                        pageNum = i + 1;
-                      } else if (currentPage >= totalPages - 3) {
-                        pageNum = totalPages - 6 + i;
-                      } else {
-                        pageNum = currentPage - 3 + i;
-                      }
+                    {(() => {
+                      const getVisiblePages = (): (number | 'ellipsis')[] => {
+                        if (totalPages <= 7) {
+                          return Array.from({ length: totalPages }, (_, i) => i + 1);
+                        }
+                        
+                        const pages: (number | 'ellipsis')[] = [];
+                        
+                        // Always show first 3
+                        pages.push(1, 2, 3);
+                        
+                        // Add ellipsis if current is far from start
+                        if (currentPage > 5) {
+                          pages.push('ellipsis');
+                        }
+                        
+                        // Pages around current (if not already included)
+                        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                          if (i > 3 && i < totalPages - 2 && !pages.includes(i)) {
+                            pages.push(i);
+                          }
+                        }
+                        
+                        // Add ellipsis if current is far from end
+                        if (currentPage < totalPages - 4) {
+                          pages.push('ellipsis');
+                        }
+                        
+                        // Always show last 3
+                        for (let i = totalPages - 2; i <= totalPages; i++) {
+                          if (!pages.includes(i)) {
+                            pages.push(i);
+                          }
+                        }
+                        
+                        return pages;
+                      };
                       
-                      return (
-                        <PaginationItem key={i}>
-                          <PaginationLink
-                            onClick={() => setCurrentPage(pageNum)}
-                            isActive={currentPage === pageNum}
-                            className={`cursor-pointer font-source-serif ${
-                              currentPage === pageNum 
-                                ? 'bg-[hsl(var(--ink-blue))] text-white border-2 border-[hsl(var(--ink-blue))]' 
-                                : 'hover:bg-[hsl(var(--highlighter-yellow))]/30'
-                            }`}
-                          >
-                            {pageNum}
-                          </PaginationLink>
+                      return getVisiblePages().map((page, index) => (
+                        <PaginationItem key={`${page}-${index}`}>
+                          {page === 'ellipsis' ? (
+                            <PaginationEllipsis />
+                          ) : (
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className={`cursor-pointer font-source-serif ${
+                                currentPage === page 
+                                  ? 'bg-[hsl(var(--ink-blue))] text-white border-2 border-[hsl(var(--ink-blue))]' 
+                                  : 'hover:bg-[hsl(var(--highlighter-yellow))]/30'
+                              }`}
+                            >
+                              {page}
+                            </PaginationLink>
+                          )}
                         </PaginationItem>
-                      );
-                    })}
+                      ));
+                    })()}
                     
                     <PaginationItem>
                       <PaginationNext 
