@@ -222,6 +222,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       toast({ title: isRefinement ? 'Icon refined!' : 'Icon generated!', description: 'Review and save your icon' });
     } catch (error: any) {
       if (progressInterval) clearInterval(progressInterval);
+      console.error('Error generating icon:', error);
       setStage('error');
       toast({ title: 'Generation failed', description: error.message || 'Please try again', variant: 'destructive' });
     }
@@ -261,6 +262,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       onOpenChange(false);
       onIconGenerated?.();
     } catch (error: any) {
+      console.error('Error saving icon to library:', error);
       setStage('error');
       toast({ title: 'Save failed', description: error.message || 'Please try again', variant: 'destructive' });
     }
@@ -305,6 +307,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
       onOpenChange(false);
       onIconGenerated?.();
     } catch (error: any) {
+      console.error('Error submitting icon:', error);
       setStage('error');
       toast({ title: 'Submission failed', description: error.message || 'Please try again', variant: 'destructive' });
     }

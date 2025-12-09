@@ -52,7 +52,8 @@ export const ContactMessagesManager = () => {
       queryClient.invalidateQueries({ queryKey: ["contact-messages"] });
       toast.success("Message status updated");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error updating message status:', error);
       toast.error("Failed to update message status");
     },
   });
@@ -71,7 +72,8 @@ export const ContactMessagesManager = () => {
       toast.success("Notes saved");
       setNotesDialogOpen(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error saving notes:', error);
       toast.error("Failed to save notes");
     },
   });
@@ -90,7 +92,8 @@ export const ContactMessagesManager = () => {
       toast.success("Message deleted");
       setDeleteDialogOpen(false);
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error deleting message:', error);
       toast.error("Failed to delete message");
     },
   });
@@ -108,7 +111,8 @@ export const ContactMessagesManager = () => {
       queryClient.invalidateQueries({ queryKey: ["contact-messages"] });
       toast.success("All messages marked as read");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error marking all messages as read:', error);
       toast.error("Failed to mark all messages as read");
     },
   });
@@ -150,6 +154,7 @@ export const ContactMessagesManager = () => {
       }
     },
     onError: (error) => {
+      console.error('Error sending reply:', error);
       toast.error("Failed to send reply: " + error.message);
     }
   });

@@ -48,6 +48,7 @@ export const useCustomTemplates = () => {
       toast.success('Template created successfully');
     },
     onError: (error: any) => {
+      console.error('Error creating template:', error);
       toast.error(`Failed to create template: ${error.message}`);
     },
   });
@@ -75,6 +76,7 @@ export const useCustomTemplates = () => {
       toast.success('Template updated successfully');
     },
     onError: (error: any) => {
+      console.error('Error updating template:', error);
       toast.error(`Failed to update template: ${error.message}`);
     },
   });
@@ -93,6 +95,7 @@ export const useCustomTemplates = () => {
       toast.success('Template deleted successfully');
     },
     onError: (error: any) => {
+      console.error('Error deleting template:', error);
       toast.error(`Failed to delete template: ${error.message}`);
     },
   });

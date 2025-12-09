@@ -168,17 +168,4 @@ CREATE POLICY "Only admins can manage categories"
 ON public.icon_categories FOR ALL
 USING (public.has_role(auth.uid(), 'admin'));
 
--- 10. Insert default categories
-INSERT INTO public.icon_categories (id, name) VALUES
-  ('bioicons-chemistry', 'Bioicons - Chemistry'),
-  ('bioicons-biology', 'Bioicons - Biology'),
-  ('bioicons-physics', 'Bioicons - Physics'),
-  ('bioicons-medical', 'Bioicons - Medical'),
-  ('cells', 'Cells & Organelles'),
-  ('molecules', 'Molecules & Proteins'),
-  ('lab', 'Lab Equipment'),
-  ('anatomy', 'Anatomy'),
-  ('plants', 'Plants'),
-  ('animals', 'Animals'),
-  ('symbols', 'Symbols & Arrows'),
-  ('other', 'Other');
+-- 10. Default categories are seeded by the seed script (scripts/seed.ts)

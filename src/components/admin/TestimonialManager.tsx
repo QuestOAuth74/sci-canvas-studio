@@ -41,6 +41,7 @@ export const TestimonialManager = () => {
       .order("created_at", { ascending: false });
 
     if (error) {
+      console.error('Error fetching testimonials:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -63,6 +64,7 @@ export const TestimonialManager = () => {
       .eq("id", id);
 
     if (error) {
+      console.error('Error approving testimonial:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -84,6 +86,7 @@ export const TestimonialManager = () => {
       .eq("id", id);
 
     if (error) {
+      console.error('Error rejecting testimonial:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -107,6 +110,7 @@ export const TestimonialManager = () => {
       .eq("id", deleteId);
 
     if (error) {
+      console.error('Error deleting testimonial:', error);
       toast({
         variant: "destructive",
         title: "Error",

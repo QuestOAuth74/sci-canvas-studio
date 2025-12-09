@@ -189,6 +189,7 @@ const EmailNotifications = () => {
       }
     },
     onError: (error: any) => {
+      console.error('Error sending emails:', error);
       toast({
         title: "Error sending emails",
         description: error.message,

@@ -169,6 +169,7 @@ export default function Auth() {
     setIsLoading(false);
 
     if (error) {
+      console.error('Error resetting password:', error);
       toast({
         title: "Error",
         description: error.message,
@@ -210,6 +211,7 @@ export default function Auth() {
     setIsLoading(false);
 
     if (error) {
+      console.error('Error updating password:', error);
       toast({
         title: "Error",
         description: error.message,

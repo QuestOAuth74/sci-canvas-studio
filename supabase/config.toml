@@ -8,7 +8,6 @@ verify_jwt = true
 
 [functions.generate-svg-icon]
 verify_jwt = true
-timeout = 120
 
 [functions.rate-limited-login]
 verify_jwt = false
@@ -27,11 +26,12 @@ verify_jwt = false
 
 [functions.generate-figure-from-reference]
 verify_jwt = true
-timeout = 180
 
 [functions.generate-icon-from-reference]
 verify_jwt = true
 
 [functions.generate-powerpoint]
 verify_jwt = true
-timeout = 180
+
+[functions.send-email]
+verify_jwt = false

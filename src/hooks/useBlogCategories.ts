@@ -15,6 +15,7 @@ export const useBlogCategories = () => {
         .order('order_index', { ascending: true });
 
       if (error) {
+        console.error('Error fetching categories:', error);
         toast({
           title: "Error",
           description: "Failed to fetch categories",
@@ -50,7 +51,8 @@ export const useCreateCategory = () => {
         description: "Category created successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error creating category:', error);
       toast({
         title: "Error",
         description: "Failed to create category",
@@ -83,7 +85,8 @@ export const useUpdateCategory = () => {
         description: "Category updated successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error updating category:', error);
       toast({
         title: "Error",
         description: "Failed to update category",
@@ -113,7 +116,8 @@ export const useDeleteCategory = () => {
         description: "Category deleted successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error deleting category:', error);
       toast({
         title: "Error",
         description: "Failed to delete category",

@@ -99,6 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     
     if (error) {
+      console.error('Error during sign up:', error);
       toast.error(error.message);
     } else {
       toast.success('Account created! Please check your email to verify.');
@@ -114,17 +115,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (functionError) {
+      console.error('Error during sign in:', functionError);
       toast.error(functionError.message);
       return { error: functionError };
     }
 
     if (!data.success) {
-      const errorMessage = data.rateLimited 
-        ? data.error 
+      const errorMessage = data.rateLimited
+        ? data.error
         : data.remainingAttempts !== undefined
           ? `${data.error}. ${data.remainingAttempts} attempt(s) remaining.`
           : data.error;
-      
+
+      console.error('Sign in failed:', data.error);
       toast.error(errorMessage);
       return { error: { message: data.error } };
     }
@@ -151,6 +154,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     // Ignore "Session not found" errors since the goal is to be logged out
     if (error && !error.message.includes('Session not found') && !error.message.includes('session_not_found')) {
+      console.error('Error during sign out:', error);
       toast.error(error.message);
     } else {
       toast.success('Signed out successfully');

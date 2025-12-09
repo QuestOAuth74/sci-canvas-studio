@@ -44,6 +44,7 @@ export const CategoryManager = () => {
       .insert([{ id, name: newCategoryName }]);
 
     if (error) {
+      console.error('Error adding category:', error);
       if (error.code === '23505') {
         toast.error("Category already exists");
       } else {
@@ -63,6 +64,7 @@ export const CategoryManager = () => {
       .eq('id', id);
 
     if (error) {
+      console.error('Error deleting category:', error);
       toast.error("Failed to delete category");
     } else {
       toast.success("Category deleted");

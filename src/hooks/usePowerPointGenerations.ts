@@ -45,6 +45,7 @@ export const usePowerPointGenerations = () => {
       toast.success('Generation deleted successfully');
     },
     onError: (error) => {
+      console.error('Error deleting generation:', error);
       toast.error(`Failed to delete: ${error.message}`);
     },
   });
@@ -68,6 +69,7 @@ export const usePowerPointGenerations = () => {
 
       toast.success('Download started');
     } catch (error: any) {
+      console.error('Error downloading generation:', error);
       toast.error(`Failed to download: ${error.message}`);
     }
   };

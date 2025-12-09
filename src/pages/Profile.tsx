@@ -116,7 +116,8 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ['user-notifications', user?.id] });
       toast.success('Notification marked as read');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error marking notification as read:', error);
       toast.error('Failed to mark notification as read');
     }
   });
@@ -136,7 +137,8 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ['user-notifications', user?.id] });
       toast.success('All notifications marked as read');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error marking all notifications as read:', error);
       toast.error('Failed to mark notifications as read');
     }
   });
@@ -155,7 +157,8 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ['user-notifications', user?.id] });
       toast.success('Notification deleted');
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error deleting notification:', error);
       toast.error('Failed to delete notification');
     }
   });
@@ -188,6 +191,7 @@ export default function Profile() {
       setConfirmPassword('');
     },
     onError: (error: any) => {
+      console.error('Error updating password:', error);
       toast.error(error.message || 'Failed to update password');
     }
   });

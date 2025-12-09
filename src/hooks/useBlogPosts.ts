@@ -99,6 +99,7 @@ export const useBlogPosts = (options?: {
       const { data, error, count } = await query;
 
       if (error) {
+        console.error('Error fetching blog posts:', error);
         toast({
           title: "Error",
           description: "Failed to fetch blog posts",
@@ -164,6 +165,7 @@ export const useBlogPost = (slug: string) => {
         .maybeSingle();
 
       if (error) {
+        console.error('Error fetching blog post:', error);
         toast({
           title: "Error",
           description: "Failed to fetch blog post",

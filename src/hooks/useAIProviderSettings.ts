@@ -55,6 +55,7 @@ export const useAIProviderSettings = () => {
       });
     },
     onError: (error: any) => {
+      console.error('Error updating AI provider settings:', error);
       toast({
         title: 'Update failed',
         description: error.message || 'Failed to update AI provider settings.',

@@ -79,6 +79,7 @@ export const ToolFeedbackManager = () => {
       toast.success('All feedback marked as viewed');
       fetchFeedbacks();
     } catch (error) {
+      console.error('Error marking feedback as viewed:', error);
       toast.error('Failed to mark all feedback as viewed');
     }
   };

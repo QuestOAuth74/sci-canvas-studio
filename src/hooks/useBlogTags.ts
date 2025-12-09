@@ -15,6 +15,7 @@ export const useBlogTags = () => {
         .order('name', { ascending: true });
 
       if (error) {
+        console.error('Error fetching tags:', error);
         toast({
           title: "Error",
           description: "Failed to fetch tags",
@@ -50,7 +51,8 @@ export const useCreateTag = () => {
         description: "Tag created successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error creating tag:', error);
       toast({
         title: "Error",
         description: "Failed to create tag",
@@ -80,7 +82,8 @@ export const useDeleteTag = () => {
         description: "Tag deleted successfully",
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Error deleting tag:', error);
       toast({
         title: "Error",
         description: "Failed to delete tag",
