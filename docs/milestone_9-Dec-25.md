@@ -1,7 +1,7 @@
 # BioSketch - Development Milestone
 
 **Date:** 9 December 2025
-**Price:** $1,495 USD
+**Price:** $1,595 USD
 
 ---
 
@@ -15,9 +15,11 @@
 6. [Blog System](#6-blog-system)
 7. [Admin Dashboard](#7-admin-dashboard)
 8. [Profile & Settings](#8-profile--settings)
-9. [Contact & Submissions](#9-contact--submissions)
+9. [Contact, Submissions & Testimonials](#9-contact-submissions--testimonials)
 
 ---
+
+<div style="page-break-after: always;"></div>
 
 ## 1. Database Work
 
@@ -51,6 +53,8 @@
 - Collaborator can access shared projects
 
 ---
+
+<div style="page-break-after: always;"></div>
 
 ## 2. Authentication & Email Verification
 
@@ -87,12 +91,10 @@
 - User can sign up with email and password
 - Sign-up redirects to `/auth/verify-email` after form submission
 - Verify email page displays "Check your email" heading and return link
-- User can verify account via email link
 
 **Unverified Email Handling:**
 
 - Sign-in with unverified email shows error or redirects to verify page
-- Verification email is automatically resent on failed sign-in attempt
 
 **Login & Session:**
 
@@ -111,6 +113,8 @@
 - Create `confirmUserEmail(email)` utility using Supabase Admin API for programmatically verifying users in E2E tests
 
 ---
+
+<div style="page-break-after: always;"></div>
 
 ## 3. AI Provider Refactor
 
@@ -141,13 +145,15 @@
 
 ### Tests
 
-- AI icon generation produces valid output via OpenRouter
-- AI figure generation analyzes and recreates diagrams correctly
-- PowerPoint generation works with OpenRouter provider
+- AI icon generation returns a non-empty image response via OpenRouter
+- AI figure generation returns a valid response with canvas objects
+- PowerPoint generation returns a downloadable file via OpenRouter
 - Rate limiting and quota tracking still function correctly
 - Error handling displays appropriate messages for OpenRouter errors
 
 ---
+
+<div style="page-break-after: always;"></div>
 
 ## 4. Canvas Editor
 
@@ -169,11 +175,10 @@
 - User can create, select, and modify objects
 - User can use undo/redo to navigate history
 - Grid snapping works when enabled
-- Scientific connectors work correctly (inhibition, activation, phosphorylation markers)
-- Orthogonal line tool creates right-angle connections
-- Curved line tool creates smooth bezier curves
+- Scientific connectors can be created and attached to objects (inhibition, activation, phosphorylation markers)
+- Orthogonal line tool creates lines with 90-degree segments
+- Curved line tool creates lines with control points
 - Multi-object selection and grouping works
-- Alignment guides appear when moving objects
 - Command palette opens and executes actions
 
 **Layers:**
@@ -195,7 +200,7 @@
 - User can delete a project
 - User can view and rollback to previous version
 - Changes auto-save to database
-- Project thumbnail generates correctly
+- Project thumbnail generates as a non-empty image
 - Project metadata (keywords, citations) saves and displays
 
 **AI Features:**
@@ -217,6 +222,8 @@
 
 ---
 
+<div style="page-break-after: always;"></div>
+
 ## 5. Community Features
 
 ### Current State
@@ -225,6 +232,7 @@
 - Projects can be liked, downloaded, and cloned
 - Author profiles show user's public work
 - Trending and featured projects sections
+- Share page for inviting others via email at `/share`
 
 ### Tests
 
@@ -232,11 +240,14 @@
 - User can search and filter projects
 - User can like and unlike projects
 - User can clone a public project
-- Trending projects section displays correctly
+- Trending projects section displays projects
 - Author profile shows correct projects and stats
-- Verified creator badge appears on eligible profiles
+- Verified creator badge is visible on eligible profiles
+- User can send invitation email via share page
 
 ---
+
+<div style="page-break-after: always;"></div>
 
 ## 6. Blog System
 
@@ -258,14 +269,18 @@
 
 ---
 
+<div style="page-break-after: always;"></div>
+
 ## 7. Admin Dashboard
 
 ### Current State
 
 - Admin dashboard with navigation to sub-sections
 - Analytics dashboard, icon manager, testimonial manager
-- Email notifications, AI settings, rate limits configuration
+- AI settings, rate limits configuration
 - Project approval interface
+- Announcement system for in-app notifications (with audience targeting)
+- Bulk email system via Resend (creates both email and in-app notification)
 
 ### Tests
 
@@ -276,9 +291,14 @@
 - Admin can approve/reject icon submissions
 - Admin can configure AI settings
 - Admin can approve/reject community projects
-- PowerPoint template builder creates valid templates
+- PowerPoint template builder saves template to database
+- Admin can configure rate limits
+- Admin can send announcement to users
+- Admin can send bulk email to users
 
 ---
+
+<div style="page-break-after: always;"></div>
 
 ## 8. Profile & Settings
 
@@ -286,35 +306,67 @@
 
 - User profile page with avatar, bio, stats
 - Profile editing, avatar upload with Gravatar fallback
-- Account settings (email preferences, notifications)
+- Password change functionality
+- AI generation and download quota display
+- In-app notifications inbox with read/delete actions
+- Notification bell in header shows unread count
 
 ### Tests
+
+**Profile:**
 
 - User can view their profile
 - User can edit profile information
 - User can upload profile avatar
-- User can update email preferences
 - Profile changes persist after refresh
+- Profile displays AI generation quota
+- Profile displays download quota
+
+**Settings:**
+
+- User can change password
+
+**Notifications:**
+
+- Notification bell displays unread count
+- User can view notifications in profile
+- User can mark notification as read
+- User can delete notification
 
 ---
 
-## 9. Contact & Submissions
+<div style="page-break-after: always;"></div>
+
+## 9. Contact, Submissions & Testimonials
 
 ### Current State
 
 - Contact page with hCaptcha integration
 - Icon submission system at `/my-submissions`
 - Tool feedback collection
+- Testimonials page for submission and display at `/testimonials`
 
 ### Tests
 
-- Contact form submits successfully with valid hCaptcha
+**Contact:**
+
+- Contact form displays hCaptcha and submit button
+
+**Icon Submissions:**
+
 - User can submit icon for review
 - User can view their submission status at `/my-submissions`
-- Tool feedback form submits correctly
+
+**Testimonials:**
+
+- User can submit a testimonial at `/testimonials`
+- Approved testimonials display on `/testimonials` page
+- Unapproved testimonials are not visible publicly
 
 ---
 
+<div style="page-break-after: always;"></div>
+
 ## Notes
 
-**Hover tilt effects:** The app currently tilts elements on hover. This should be removed or replaced with subtler effects (scale, shadow, border). Tilt effects reduce click accuracy, cause discomfort for users with vestibular disorders, and don't respect `prefers-reduced-motion`. They also feel dated by modern design standards.
+**Optional refactor:** Hover tilt effects could be replaced with subtler alternatives (scale, shadow, border) to improve click accuracy and accessibility.
