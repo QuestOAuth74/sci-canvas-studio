@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, Palette, Beaker, BookOpen, Eye, Sparkles } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { ChevronDown, Palette, Beaker, BookOpen, Eye, Sparkles, Pipette } from "lucide-react";
+import { toast } from "sonner";
 import {
   allScientificPalettes,
   hexToHsl,
@@ -41,8 +43,29 @@ export const AdvancedColorPicker = ({
   const hueRef = useRef<HTMLDivElement>(null);
   const [isDraggingSatBright, setIsDraggingSatBright] = useState(false);
   const [isDraggingHue, setIsDraggingHue] = useState(false);
+  const [isEyedropperSupported] = useState(() => 'EyeDropper' in window);
 
-  // Sync external value changes
+  // Eyedropper handler
+  const handleEyedropper = async () => {
+    if (!('EyeDropper' in window)) {
+      toast.error("Eyedropper not supported in this browser");
+      return;
+    }
+    
+    try {
+      // @ts-ignore - EyeDropper API types
+      const eyeDropper = new window.EyeDropper();
+      const result = await eyeDropper.open();
+      const sampledColor = result.sRGBHex;
+      onChange(sampledColor);
+      setHexInput(sampledColor);
+      setHsl(hexToHsl(sampledColor));
+      toast.success(`Sampled: ${sampledColor}`);
+    } catch (e) {
+      // User cancelled or error
+      console.log("Eyedropper cancelled");
+    }
+  };
   useEffect(() => {
     const newHsl = hexToHsl(value);
     setHsl(newHsl);
@@ -240,6 +263,26 @@ export const AdvancedColorPicker = ({
           className="w-10 h-10 rounded-lg border border-border shadow-inner"
           style={{ backgroundColor: value }}
         />
+        
+        {/* Eyedropper Button */}
+        {isEyedropperSupported && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0"
+                onClick={handleEyedropper}
+              >
+                <Pipette className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <span className="text-xs">Pick color from screen</span>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        
         <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as typeof inputMode)} className="flex-1">
           <TabsList className="h-6 p-0.5 w-full">
             <TabsTrigger value="hex" className="text-[10px] h-5 flex-1">HEX</TabsTrigger>
