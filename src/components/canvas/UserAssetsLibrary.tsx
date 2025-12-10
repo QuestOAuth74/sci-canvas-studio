@@ -145,8 +145,8 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-blue-50/60">
-      <div className="p-4 border-b border-blue-100/80 space-y-3">
+    <div className="flex flex-col h-full bg-blue-100/60">
+      <div className="p-4 border-b border-blue-200/80 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-slate-900">My Assets</h3>
           <Button
@@ -159,7 +159,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
           </Button>
         </div>
 
-        <div className="flex gap-1 p-1 bg-blue-100/50 rounded-lg">
+        <div className="flex gap-1 p-1 bg-blue-200/50 rounded-lg">
           <button
             className={`flex-1 h-8 text-xs rounded-md transition-all flex items-center justify-center gap-1 font-medium ${
               viewMode === 'my-assets' 

@@ -689,7 +689,7 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-blue-50/60 border-b border-blue-100/80 shadow-sm">
+      <header className="bg-blue-100/60 border-b border-blue-200/80 shadow-sm">
         <div className="px-3 py-1.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img 
@@ -800,7 +800,7 @@ const CanvasContent = () => {
             maxSize={20}
             className="min-h-0"
           >
-            <div className={`bg-blue-50/60 border-r border-blue-100/80 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
+            <div className={`bg-blue-100/60 border-r border-blue-200/80 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
             {isIconLibraryCollapsed ? (
               <div className="p-2">
                 <Button
@@ -814,9 +814,9 @@ const CanvasContent = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b border-blue-200/60 bg-blue-100/40 flex items-center justify-between">
+                <div className="p-2 border-b border-blue-300/60 bg-blue-200/40 flex items-center justify-between">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-100/70">
+                    <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-200/70">
                       <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Icons</TabsTrigger>
                       <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Assets</TabsTrigger>
                     </TabsList>
@@ -927,7 +927,7 @@ const CanvasContent = () => {
             }}
             className="min-h-0"
           >
-            <div className={`bg-blue-50/60 border-l border-blue-100/80 flex flex-col overflow-hidden min-h-0 h-full`}>
+            <div className={`bg-blue-100/60 border-l border-blue-200/80 flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-2">
               <Button
@@ -941,9 +941,9 @@ const CanvasContent = () => {
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b border-blue-200/60 bg-blue-100/40 flex items-center justify-between">
+              <div className="p-2 border-b border-blue-300/60 bg-blue-200/40 flex items-center justify-between">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-100/70">
+                  <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-200/70">
                     <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Properties</TabsTrigger>
                     <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Layers</TabsTrigger>
                   </TabsList>
