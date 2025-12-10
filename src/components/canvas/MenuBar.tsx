@@ -132,7 +132,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
     <>
       <Menubar className="border-none bg-transparent shadow-none" data-onboarding="menu-bar">
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-primary/10 transition-all duration-200 hover:border-b-2 hover:border-primary">File</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-blue-100/60 transition-all duration-200 hover:border-b-2 hover:border-primary">File</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={handleNew}>
               New <MenubarShortcut>⌘N</MenubarShortcut>
@@ -159,7 +159,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-primary/10 transition-all duration-200 hover:border-b-2 hover:border-primary">Edit</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-blue-100/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Edit</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={undo}>
               Undo <MenubarShortcut>⌘Z</MenubarShortcut>
@@ -186,7 +186,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-primary/10 transition-all duration-200 hover:border-b-2 hover:border-primary">Insert</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-blue-100/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Insert</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={onPanelLabelClick}>
               Figure Panel Labels (A, B, C...)
@@ -202,7 +202,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-primary/10 transition-all duration-200 hover:border-b-2 hover:border-primary">Tools</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-blue-100/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Tools</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={onStyleTransferClick}>
               <Palette className="mr-2 h-4 w-4" />
@@ -212,7 +212,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-primary/10 transition-all duration-200 hover:border-b-2 hover:border-primary">View</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-blue-100/60 transition-all duration-200 hover:border-b-2 hover:border-primary">View</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={() => setGridEnabled(!gridEnabled)}>
               {gridEnabled ? "✓ " : ""}Grid
@@ -238,7 +238,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-primary/10 transition-all duration-200 hover:border-b-2 hover:border-primary">Arrange</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-blue-100/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Arrange</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={bringToFront}>Bring to Front</MenubarItem>
             <MenubarItem onClick={sendToBack}>Send to Back</MenubarItem>
@@ -252,7 +252,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-primary/10 transition-all duration-200 hover:border-b-2 hover:border-primary">Help</MenubarTrigger>
+          <MenubarTrigger className="font-medium hover:bg-blue-100/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Help</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={startOnboarding}>
               <GraduationCap className="mr-2 h-4 w-4" />
