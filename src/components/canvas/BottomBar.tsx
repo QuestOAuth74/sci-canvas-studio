@@ -1,8 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Plus,
-  CaretCircleDown,
   Lightbulb,
   Cursor,
   PenNib,
@@ -15,13 +12,27 @@ import {
   Scribble,
   Waves,
   Command,
+  FloppyDisk,
+  Check,
+  CloudArrowUp,
 } from "@phosphor-icons/react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { IconProps } from "@phosphor-icons/react";
+import { PageTabs } from "./PageTabs";
+import { ProjectPage } from "@/hooks/useProjectPages";
 
 interface BottomBarProps {
   activeTool: string;
   hasSelection: boolean;
+  // Page management props
+  pages?: ProjectPage[];
+  currentPageIndex?: number;
+  isSavingPage?: boolean;
+  onSwitchPage?: (index: number) => void;
+  onAddPage?: () => void;
+  onDeletePage?: (pageId: string) => void;
+  onRenamePage?: (pageId: string, newName: string) => void;
+  onDuplicatePage?: (pageId: string) => void;
 }
 
 type PhosphorIcon = React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>;
@@ -118,7 +129,18 @@ const TOOL_INFO: Record<string, {
   },
 };
 
-export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
+export const BottomBar = ({ 
+  activeTool, 
+  hasSelection,
+  pages = [],
+  currentPageIndex = 0,
+  isSavingPage = false,
+  onSwitchPage,
+  onAddPage,
+  onDeletePage,
+  onRenamePage,
+  onDuplicatePage,
+}: BottomBarProps) => {
   const { canvas, selectedObject, isSaving } = useCanvas();
   
   // Get tool info, handling membrane-brush prefix
@@ -164,32 +186,40 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
   ).length || 0;
   
   const ToolIcon = toolInfo.icon;
+  
+  // Check if pages are enabled
+  const hasPages = pages.length > 0 && onSwitchPage && onAddPage;
 
   return (
     <div className="h-11 bg-background/95 backdrop-blur-sm border-t border-border/60 shadow-sm flex items-center px-4 gap-4 justify-between">
       {/* Left: Page controls */}
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/10 hover:scale-105 transition-all duration-200">
-          <Plus size={18} weight="regular" />
-        </Button>
-        
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs bg-muted/50 hover:bg-muted/70 rounded-md transition-all duration-200">
-            Page-1
-            <CaretCircleDown size={14} weight="regular" className="ml-1" />
-          </Button>
-        </div>
+      <div className="flex items-center gap-2 min-w-0 flex-shrink">
+        {hasPages ? (
+          <PageTabs
+            pages={pages}
+            currentPageIndex={currentPageIndex}
+            onSwitchPage={onSwitchPage}
+            onAddPage={onAddPage}
+            onDeletePage={onDeletePage || (() => {})}
+            onRenamePage={onRenamePage || (() => {})}
+            onDuplicatePage={onDuplicatePage || (() => {})}
+          />
+        ) : (
+          <Badge variant="secondary" className="text-[10px] px-2 py-0.5 bg-muted/60">
+            Page 1
+          </Badge>
+        )}
         
         {/* Object count badge */}
-        <Badge variant="secondary" className="text-[10px] px-2 py-0.5 bg-muted/60">
+        <Badge variant="secondary" className="text-[10px] px-2 py-0.5 bg-muted/60 shrink-0">
           {objectCount} objects
         </Badge>
       </div>
 
       {/* Center: Active Tool & Hint */}
-      <div className="flex items-center gap-3 flex-1 justify-center">
+      <div className="flex items-center gap-3 flex-1 justify-center min-w-0">
         {/* Active Tool Indicator */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20 transition-all duration-200">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20 transition-all duration-200 shrink-0">
           <div className="flex items-center justify-center w-6 h-6 bg-primary/20 rounded-md">
             <ToolIcon size={16} weight="duotone" className="text-primary" />
           </div>
@@ -202,14 +232,14 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
         </div>
         
         {/* Hint */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/40 rounded-lg border border-border/40 max-w-md">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/40 rounded-lg border border-border/40 max-w-md min-w-0">
           <Lightbulb size={16} weight="duotone" className="text-amber-500 flex-shrink-0" />
           <span className="text-xs text-muted-foreground truncate">{toolInfo.hint}</span>
         </div>
       </div>
 
       {/* Right: Selection info & Status */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         {/* Selection indicator */}
         {selectionInfo && (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 rounded-md border border-blue-500/20 animate-fade-in">
@@ -218,11 +248,27 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
           </div>
         )}
         
-        {/* Saving indicator */}
-        {isSaving && (
+        {/* Page saving indicator */}
+        {isSavingPage && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 rounded-md border border-blue-500/20">
+            <CloudArrowUp size={14} weight="duotone" className="text-blue-500 animate-pulse" />
+            <span className="text-xs font-medium text-blue-600">Saving...</span>
+          </div>
+        )}
+        
+        {/* Project saving indicator */}
+        {isSaving && !isSavingPage && (
           <div className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/10 rounded-md border border-amber-500/20">
-            <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+            <FloppyDisk size={14} weight="duotone" className="text-amber-500 animate-pulse" />
             <span className="text-xs font-medium text-amber-600">Saving...</span>
+          </div>
+        )}
+        
+        {/* Saved indicator (show when not saving and pages exist) */}
+        {!isSaving && !isSavingPage && hasPages && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500/10 rounded-md border border-green-500/20">
+            <Check size={14} weight="bold" className="text-green-600" />
+            <span className="text-xs font-medium text-green-600">Saved</span>
           </div>
         )}
         
