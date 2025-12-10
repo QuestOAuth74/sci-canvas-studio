@@ -526,16 +526,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   return (
-    <div className="h-full flex flex-col bg-[hsl(var(--cream))]/95 backdrop-blur-sm notebook-sidebar ruled-lines" data-onboarding="icon-library">
-      {/* Spiral binding decoration */}
-      <div className="spiral-binding">
-        {[...Array(15)].map((_, i) => (
-          <div key={i} className="spiral-hole" />
-        ))}
-      </div>
-      
+    <div className="h-full flex flex-col bg-white" data-onboarding="icon-library">
       {/* Toggle button - always visible */}
-      <div className="p-2 pl-8 border-b-2 border-[hsl(var(--pencil-gray))] flex items-center justify-between">
+      <div className="p-2 border-b border-slate-200/80 flex items-center justify-between">
         <Button
           variant="ghost"
           size="icon"
@@ -550,11 +543,11 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
         <>
-          <div className="p-4 pl-8 border-b-2 border-[hsl(var(--pencil-gray))] space-y-3">
+          <div className="p-4 border-b border-slate-200/80 space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="notebook-section-header">Icons</h3>
-                <p className="text-xs text-muted-foreground mt-1">Click any icon to add to canvas</p>
+                <h3 className="text-sm font-semibold text-slate-900">Icons</h3>
+                <p className="text-xs text-slate-500 mt-1">Click any icon to add to canvas</p>
               </div>
               {onAIIconGenerate && (
                 <Button
@@ -628,12 +621,12 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
           )}
           
           {!loading && !searchQuery && (
-            <ScrollArea type="always" className="flex-1 min-h-0 px-3 pl-8 pr-1">
+            <ScrollArea type="always" className="flex-1 min-h-0 px-3 pr-1">
               <div className="space-y-2 py-3">
                 {/* Pinned Categories Section */}
                 {pinnedCategories.length > 0 && (
                   <>
-                    <div className="notebook-section-header px-2 mb-2 text-sm">
+                    <div className="px-2 mb-2 text-xs font-semibold text-slate-700 uppercase tracking-wide">
                       📌 Pinned
                     </div>
                     <Accordion 

@@ -126,17 +126,10 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[hsl(var(--cream))]/95 backdrop-blur-sm notebook-sidebar ruled-lines">
-      {/* Spiral binding decoration */}
-      <div className="spiral-binding">
-        {[...Array(12)].map((_, i) => (
-          <div key={i} className="spiral-hole" />
-        ))}
-      </div>
-      
-      <div className="p-4 pl-8 border-b space-y-3">
+    <div className="flex flex-col h-full bg-white">
+      <div className="p-4 border-b border-slate-200/80 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="notebook-section-header">My Assets</h3>
+          <h3 className="text-sm font-semibold text-slate-900">My Assets</h3>
           <Button
             size="sm"
             variant="outline"
@@ -147,12 +140,12 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
           </Button>
         </div>
 
-        <div className="flex gap-1 p-1 bg-[hsl(var(--cream))] rounded-lg border-2 border-[hsl(var(--pencil-gray))]">
+        <div className="flex gap-1 p-1 bg-slate-100 rounded-lg">
           <button
-            className={`flex-1 h-8 text-xs rounded-md transition-all flex items-center justify-center gap-1 font-source-serif ${
+            className={`flex-1 h-8 text-xs rounded-md transition-all flex items-center justify-center gap-1 font-medium ${
               viewMode === 'my-assets' 
-                ? 'paper-tab-active' 
-                : 'paper-tab'
+                ? 'bg-white text-slate-900 shadow-sm' 
+                : 'text-slate-600 hover:text-slate-900'
             }`}
             onClick={() => setViewMode('my-assets')}
           >
@@ -160,10 +153,10 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
             My Files
           </button>
           <button
-            className={`flex-1 h-8 text-xs rounded-md transition-all flex items-center justify-center gap-1 font-source-serif ${
+            className={`flex-1 h-8 text-xs rounded-md transition-all flex items-center justify-center gap-1 font-medium ${
               viewMode === 'community' 
-                ? 'paper-tab-active' 
-                : 'paper-tab'
+                ? 'bg-white text-slate-900 shadow-sm' 
+                : 'text-slate-600 hover:text-slate-900'
             }`}
             onClick={() => setViewMode('community')}
           >
