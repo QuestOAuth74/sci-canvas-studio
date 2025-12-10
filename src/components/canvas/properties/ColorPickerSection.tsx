@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ChevronDown } from "lucide-react";
+import { AdvancedColorPicker } from "../AdvancedColorPicker";
 
 interface ColorPickerSectionProps {
   label: string;
@@ -9,6 +12,9 @@ interface ColorPickerSectionProps {
   recentColors?: string[];
   palette?: string[];
   showHex?: boolean;
+  showOpacity?: boolean;
+  opacity?: number;
+  onOpacityChange?: (opacity: number) => void;
 }
 
 const DEFAULT_PALETTE = [
@@ -24,12 +30,17 @@ export const ColorPickerSection = ({
   recentColors = [],
   palette = DEFAULT_PALETTE,
   showHex = true,
+  showOpacity = false,
+  opacity = 100,
+  onOpacityChange,
 }: ColorPickerSectionProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div className="space-y-2">
       <Label className="text-xs font-medium">{label}</Label>
       
-      {/* Color Grid */}
+      {/* Quick Color Grid */}
       <div className="grid grid-cols-6 gap-1.5">
         {palette.map((color) => (
           <button
@@ -45,41 +56,56 @@ export const ColorPickerSection = ({
         ))}
       </div>
 
-      {/* Color Input */}
-      {showHex && (
-        <div className="flex items-center gap-2">
-          <Input 
-            type="color" 
+      {/* Advanced Picker Popover */}
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full h-8 justify-between text-xs"
+          >
+            <div className="flex items-center gap-2">
+              <div
+                className="w-5 h-5 rounded border border-border shadow-inner"
+                style={{ backgroundColor: value }}
+              />
+              <span className="font-mono text-muted-foreground">{value}</span>
+            </div>
+            <ChevronDown className="h-3 w-3 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent 
+          className="w-72 p-3" 
+          side="left" 
+          align="start"
+          sideOffset={8}
+        >
+          <AdvancedColorPicker
             value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="h-9 w-14 p-1 cursor-pointer" 
+            onChange={(color) => {
+              onChange(color);
+            }}
+            recentColors={recentColors}
+            showOpacity={showOpacity}
+            opacity={opacity}
+            onOpacityChange={onOpacityChange}
           />
-          <Input 
-            type="text" 
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="h-9 text-xs flex-1 font-mono" 
-            placeholder="#000000"
-          />
-        </div>
-      )}
+        </PopoverContent>
+      </Popover>
 
       {/* Recent Colors */}
       {recentColors.length > 0 && (
         <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Recent</Label>
           <div className="flex gap-1 flex-wrap">
-            {recentColors.map((color, idx) => (
-              <Button
+            {recentColors.slice(0, 8).map((color, idx) => (
+              <button
                 key={`${color}-${idx}`}
-                variant="outline"
-                size="icon"
-                className="h-7 w-7 p-0 border-2 hover:scale-110 transition-all duration-200"
+                onClick={() => onChange(color)}
+                className="h-6 w-6 rounded border-2 hover:scale-110 transition-all duration-200"
                 style={{ 
                   backgroundColor: color,
                   borderColor: value === color ? 'hsl(var(--primary))' : 'hsl(var(--border))',
                 }}
-                onClick={() => onChange(color)}
                 title={color}
               />
             ))}
