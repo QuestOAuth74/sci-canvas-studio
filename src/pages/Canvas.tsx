@@ -588,7 +588,7 @@ const CanvasContent = () => {
   return (
       <>
       <OnboardingTutorial />
-      <div className="h-screen bg-muted/30 flex flex-col">
+      <div className="h-screen bg-gradient-to-br from-slate-100 via-blue-50/50 to-slate-100 flex flex-col">
       {/* Mobile Warning Dialog */}
       <MobileWarningDialog />
       
@@ -712,7 +712,7 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm">
+      <header className="bg-white border-b border-slate-200/80 shadow-sm">
         <div className="px-3 py-1.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img 
@@ -823,7 +823,7 @@ const CanvasContent = () => {
             maxSize={20}
             className="min-h-0"
           >
-            <div className={`bg-background border-r border-border/50 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
+            <div className={`bg-white border-r border-slate-200/80 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
             {isIconLibraryCollapsed ? (
               <div className="p-2">
                 <Button
@@ -837,11 +837,11 @@ const CanvasContent = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b border-border/50 flex items-center justify-between">
+                <div className="p-2 border-b border-slate-100 flex items-center justify-between">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-8 bg-muted/50">
-                      <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">Icons</TabsTrigger>
-                      <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">Assets</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 h-8 bg-slate-100/80">
+                      <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Icons</TabsTrigger>
+                      <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Assets</TabsTrigger>
                     </TabsList>
                   </Tabs>
                   <Button
@@ -886,8 +886,8 @@ const CanvasContent = () => {
               <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
               {/* Canvas */}
-              <ScrollArea className="flex-1 relative min-h-0">
-          <div className="p-8">
+              <ScrollArea className="flex-1 relative min-h-0 bg-slate-200/30">
+          <div className="p-6">
             <CanvasContextMenu
               selectedObject={selectedObject}
               hasClipboard={hasClipboard}
@@ -950,7 +950,7 @@ const CanvasContent = () => {
             }}
             className="min-h-0"
           >
-            <div className={`bg-background border-l border-border/50 flex flex-col overflow-hidden min-h-0 h-full`}>
+            <div className={`bg-white border-l border-slate-200/80 flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-2">
               <Button
@@ -964,11 +964,11 @@ const CanvasContent = () => {
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b border-border/50 flex items-center justify-between">
+              <div className="p-2 border-b border-slate-100 flex items-center justify-between">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-8 bg-muted/50">
-                    <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">Properties</TabsTrigger>
-                    <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm">Layers</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-8 bg-slate-100/80">
+                    <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Properties</TabsTrigger>
+                    <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Layers</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button

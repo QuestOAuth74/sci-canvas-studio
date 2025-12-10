@@ -78,7 +78,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
   const activeToolButtonClass = "h-8 w-8 bg-primary text-primary-foreground hover:bg-primary/90";
 
   return (
-    <div className="flex items-center gap-0.5 px-3 py-1.5 bg-background/95 backdrop-blur-sm border-b border-border/50 shadow-sm" data-onboarding="toolbar">
+    <div className="flex items-center gap-0.5 px-3 py-1.5 bg-white border-b border-slate-200/80 shadow-sm" data-onboarding="toolbar">
       {/* Edit Tools */}
       <div className="flex items-center gap-0.5">
         <Tooltip>
