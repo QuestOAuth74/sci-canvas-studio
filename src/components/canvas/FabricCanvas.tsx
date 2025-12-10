@@ -145,14 +145,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       // Check if component unmounted during async font loading
       if (isDisposed) return;
       
-      // Set global control styles on FabricObject prototype (grip-style handles)
-      FabricObject.prototype.cornerColor = 'transparent';     // Custom render handles this
-      FabricObject.prototype.cornerStrokeColor = 'transparent';
-      FabricObject.prototype.cornerStyle = 'rect';            // Base style (overridden by custom render)
-      FabricObject.prototype.cornerSize = 14;                 // Slightly larger for grip handles
-      FabricObject.prototype.transparentCorners = true;
-      FabricObject.prototype.borderColor = '#3B82F6';         // Blue selection border
-      FabricObject.prototype.borderScaleFactor = 1.5;         // Thinner border
+      // Set global control styles on FabricObject prototype (BioRender-style blue theme)
+      FabricObject.prototype.cornerColor = '#3B82F6';        // Blue-500 corners
+      FabricObject.prototype.cornerStrokeColor = '#ffffff';
+      FabricObject.prototype.cornerStyle = 'circle';         // Rounded corners like BioRender
+      FabricObject.prototype.cornerSize = 10;                // Slightly larger for better grab
+      FabricObject.prototype.transparentCorners = false;
+      FabricObject.prototype.borderColor = '#3B82F6';        // Blue selection border
+      FabricObject.prototype.borderScaleFactor = 1.5;        // Thinner border
       FabricObject.prototype.padding = 4;
       (FabricObject.prototype as any).hasRotatingPoint = true;        // Enable rotation handle globally
       (FabricObject.prototype as any).rotatingPointOffset = 45;       // Distance above object
@@ -173,15 +173,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         return;
       }
 
-    // Apply control styling to all objects added to canvas (grip-style handles)
+    // Apply control styling to all objects added to canvas (BioRender-style blue theme)
     fabricCanvas.on('object:added', (e) => {
       if (e.target) {
         e.target.set({
-          cornerColor: 'transparent',
-          cornerStrokeColor: 'transparent',
-          cornerStyle: 'rect',
-          cornerSize: 14,
-          transparentCorners: true,
+          cornerColor: '#3B82F6',
+          cornerStrokeColor: '#ffffff',
+          cornerStyle: 'circle',
+          cornerSize: 10,
+          transparentCorners: false,
           borderColor: '#3B82F6',
           borderScaleFactor: 1.5,
           padding: 4,
@@ -207,178 +207,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
       }
     });
-
-    // Custom grip-style corner control rendering (matches panel resizer design)
-    const renderCornerControl = (
-      ctx: CanvasRenderingContext2D,
-      left: number,
-      top: number,
-      _styleOverride: any,
-      _fabricObject: any
-    ) => {
-      const width = 12;
-      const height = 12;
-      const borderRadius = 3;
-      
-      ctx.save();
-      ctx.translate(left, top);
-      
-      // Draw subtle shadow
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-      ctx.shadowOffsetY = 1;
-      
-      // Draw rounded rectangle background
-      ctx.fillStyle = '#f8f8f8';
-      ctx.strokeStyle = '#e2e2e2';
-      ctx.lineWidth = 1;
-      
-      ctx.beginPath();
-      ctx.moveTo(-width/2 + borderRadius, -height/2);
-      ctx.lineTo(width/2 - borderRadius, -height/2);
-      ctx.quadraticCurveTo(width/2, -height/2, width/2, -height/2 + borderRadius);
-      ctx.lineTo(width/2, height/2 - borderRadius);
-      ctx.quadraticCurveTo(width/2, height/2, width/2 - borderRadius, height/2);
-      ctx.lineTo(-width/2 + borderRadius, height/2);
-      ctx.quadraticCurveTo(-width/2, height/2, -width/2, height/2 - borderRadius);
-      ctx.lineTo(-width/2, -height/2 + borderRadius);
-      ctx.quadraticCurveTo(-width/2, -height/2, -width/2 + borderRadius, -height/2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      
-      // Reset shadow for grip dots
-      ctx.shadowBlur = 0;
-      
-      // Draw grip dots (2x3 pattern)
-      ctx.fillStyle = '#a0a0a0';
-      const dotSize = 1.5;
-      const dotSpacingX = 3;
-      const dotSpacingY = 2.5;
-      
-      for (let row = -1; row <= 1; row++) {
-        for (let col = -0.5; col <= 0.5; col++) {
-          ctx.beginPath();
-          ctx.arc(col * dotSpacingX, row * dotSpacingY, dotSize, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-      
-      ctx.restore();
-    };
-
-    // Custom grip-style edge control rendering (horizontal for ml/mr, vertical for mt/mb)
-    const renderHorizontalEdgeControl = (
-      ctx: CanvasRenderingContext2D,
-      left: number,
-      top: number,
-      _styleOverride: any,
-      _fabricObject: any
-    ) => {
-      const width = 14;
-      const height = 8;
-      const borderRadius = 2;
-      
-      ctx.save();
-      ctx.translate(left, top);
-      
-      // Draw subtle shadow
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-      ctx.shadowOffsetY = 1;
-      
-      // Draw pill-shaped background
-      ctx.fillStyle = '#f8f8f8';
-      ctx.strokeStyle = '#e2e2e2';
-      ctx.lineWidth = 1;
-      
-      ctx.beginPath();
-      ctx.moveTo(-width/2 + borderRadius, -height/2);
-      ctx.lineTo(width/2 - borderRadius, -height/2);
-      ctx.quadraticCurveTo(width/2, -height/2, width/2, -height/2 + borderRadius);
-      ctx.lineTo(width/2, height/2 - borderRadius);
-      ctx.quadraticCurveTo(width/2, height/2, width/2 - borderRadius, height/2);
-      ctx.lineTo(-width/2 + borderRadius, height/2);
-      ctx.quadraticCurveTo(-width/2, height/2, -width/2, height/2 - borderRadius);
-      ctx.lineTo(-width/2, -height/2 + borderRadius);
-      ctx.quadraticCurveTo(-width/2, -height/2, -width/2 + borderRadius, -height/2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      
-      // Reset shadow for grip lines
-      ctx.shadowBlur = 0;
-      
-      // Draw 3 vertical grip lines
-      ctx.strokeStyle = '#a0a0a0';
-      ctx.lineWidth = 1.5;
-      ctx.lineCap = 'round';
-      
-      for (let i = -1; i <= 1; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * 3, -2);
-        ctx.lineTo(i * 3, 2);
-        ctx.stroke();
-      }
-      
-      ctx.restore();
-    };
-
-    const renderVerticalEdgeControl = (
-      ctx: CanvasRenderingContext2D,
-      left: number,
-      top: number,
-      _styleOverride: any,
-      _fabricObject: any
-    ) => {
-      const width = 8;
-      const height = 14;
-      const borderRadius = 2;
-      
-      ctx.save();
-      ctx.translate(left, top);
-      
-      // Draw subtle shadow
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-      ctx.shadowOffsetY = 1;
-      
-      // Draw pill-shaped background
-      ctx.fillStyle = '#f8f8f8';
-      ctx.strokeStyle = '#e2e2e2';
-      ctx.lineWidth = 1;
-      
-      ctx.beginPath();
-      ctx.moveTo(-width/2 + borderRadius, -height/2);
-      ctx.lineTo(width/2 - borderRadius, -height/2);
-      ctx.quadraticCurveTo(width/2, -height/2, width/2, -height/2 + borderRadius);
-      ctx.lineTo(width/2, height/2 - borderRadius);
-      ctx.quadraticCurveTo(width/2, height/2, width/2 - borderRadius, height/2);
-      ctx.lineTo(-width/2 + borderRadius, height/2);
-      ctx.quadraticCurveTo(-width/2, height/2, -width/2, height/2 - borderRadius);
-      ctx.lineTo(-width/2, -height/2 + borderRadius);
-      ctx.quadraticCurveTo(-width/2, -height/2, -width/2 + borderRadius, -height/2);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      
-      // Reset shadow for grip lines
-      ctx.shadowBlur = 0;
-      
-      // Draw 3 horizontal grip lines
-      ctx.strokeStyle = '#a0a0a0';
-      ctx.lineWidth = 1.5;
-      ctx.lineCap = 'round';
-      
-      for (let i = -1; i <= 1; i++) {
-        ctx.beginPath();
-        ctx.moveTo(-2, i * 3);
-        ctx.lineTo(2, i * 3);
-        ctx.stroke();
-      }
-      
-      ctx.restore();
-    };
 
     // Custom rotation control rendering (BioRender-style hand grab icon with hover glow)
     const renderRotationControl = (
@@ -598,71 +426,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Create custom grip-style resize controls
-    // Get default control handlers from Fabric
-    const defaultControls = FabricObject.prototype.controls;
-    
-    // Corner controls (tl, tr, bl, br) with grip dots
-    const createCornerControl = (x: number, y: number, cursorStyle: string) => {
-      const baseControl = defaultControls.br;
-      return new Control({
-        x,
-        y,
-        cursorStyleHandler: () => cursorStyle,
-        actionHandler: baseControl?.actionHandler,
-        actionName: 'scale',
-        render: renderCornerControl,
-      });
-    };
-
-    // Edge controls with grip lines
-    const createEdgeControl = (x: number, y: number, cursorStyle: string, isHorizontal: boolean, controlKey: string) => {
-      const baseControl = defaultControls[controlKey];
-      return new Control({
-        x,
-        y,
-        cursorStyleHandler: () => cursorStyle,
-        actionHandler: baseControl?.actionHandler,
-        actionName: isHorizontal ? 'scaleX' : 'scaleY',
-        render: isHorizontal ? renderHorizontalEdgeControl : renderVerticalEdgeControl,
-      });
-    };
-
-    // Create all resize controls
-    const tlControl = createCornerControl(-0.5, -0.5, 'nw-resize');
-    const trControl = createCornerControl(0.5, -0.5, 'ne-resize');
-    const blControl = createCornerControl(-0.5, 0.5, 'sw-resize');
-    const brControl = createCornerControl(0.5, 0.5, 'se-resize');
-    
-    const mlControl = createEdgeControl(-0.5, 0, 'w-resize', true, 'ml');
-    const mrControlResize = createEdgeControl(0.5, 0, 'e-resize', true, 'mr');
-    const mtControl = createEdgeControl(0, -0.5, 'n-resize', false, 'mt');
-    const mbControl = createEdgeControl(0, 0.5, 's-resize', false, 'mb');
-
-    // Apply custom controls to FabricObject prototype
-    FabricObject.prototype.controls.tl = tlControl;
-    FabricObject.prototype.controls.tr = trControl;
-    FabricObject.prototype.controls.bl = blControl;
-    FabricObject.prototype.controls.br = brControl;
-    FabricObject.prototype.controls.ml = mlControl;
-    FabricObject.prototype.controls.mr = mrControlResize;
-    FabricObject.prototype.controls.mt = mtControl;
-    FabricObject.prototype.controls.mb = mbControl;
-
-    // Apply to all major object types
-    rotationTargetClasses.forEach((Ctor) => {
-      if (Ctor && Ctor.prototype && Ctor.prototype.controls) {
-        Ctor.prototype.controls.tl = tlControl;
-        Ctor.prototype.controls.tr = trControl;
-        Ctor.prototype.controls.bl = blControl;
-        Ctor.prototype.controls.br = brControl;
-        Ctor.prototype.controls.ml = mlControl;
-        Ctor.prototype.controls.mr = mrControlResize;
-        Ctor.prototype.controls.mt = mtControl;
-        Ctor.prototype.controls.mb = mbControl;
-      }
-    });
-
     fabricCanvas.isDrawingMode = false;
     
     // Initialize connector visual feedback
@@ -679,14 +442,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
     
-    // Apply control styles to any existing objects on canvas (grip-style handles)
+    // Apply control styles to any existing objects on canvas (BioRender-style blue theme)
     fabricCanvas.getObjects().forEach((obj) => {
       obj.set({
-        cornerColor: 'transparent',
-        cornerStrokeColor: 'transparent',
-        cornerStyle: 'rect',
-        cornerSize: 14,
-        transparentCorners: true,
+        cornerColor: '#3B82F6',
+        cornerStrokeColor: '#ffffff',
+        cornerStyle: 'circle',
+        cornerSize: 10,
+        transparentCorners: false,
         borderColor: '#3B82F6',
       });
     });
