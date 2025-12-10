@@ -66,9 +66,11 @@ export const ColorPickerSection = ({
             <div className="flex items-center gap-2">
               <div
                 className="w-5 h-5 rounded border border-border shadow-inner"
-                style={{ backgroundColor: value }}
+                style={{ backgroundColor: typeof value === 'string' ? value : '#888888' }}
               />
-              <span className="font-mono text-muted-foreground">{value}</span>
+              <span className="font-mono text-muted-foreground">
+                {typeof value === 'string' ? value : 'Gradient'}
+              </span>
             </div>
             <ChevronDown className="h-3 w-3 opacity-50" />
           </Button>
