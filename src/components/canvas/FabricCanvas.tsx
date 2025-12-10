@@ -153,6 +153,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       FabricObject.prototype.transparentCorners = false;
       FabricObject.prototype.borderColor = '#3B82F6';        // Blue selection border
       FabricObject.prototype.borderScaleFactor = 1.5;        // Thinner border
+      FabricObject.prototype.borderDashArray = [6, 4];       // Dashed border for better visibility
       FabricObject.prototype.padding = 4;
       (FabricObject.prototype as any).hasRotatingPoint = true;        // Enable rotation handle globally
       (FabricObject.prototype as any).rotatingPointOffset = 45;       // Distance above object
@@ -327,6 +328,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           transparentCorners: false,
           borderColor: '#3B82F6',
           borderScaleFactor: 1.5,
+          borderDashArray: [6, 4],
           padding: 4,
           hasControls: true,
           hasRotatingPoint: true,
@@ -607,6 +609,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         cornerSize: 12,
         transparentCorners: false,
         borderColor: '#3B82F6',
+        borderDashArray: [6, 4],
       });
       // Apply custom grip renderers to existing objects
       if (obj.controls) {
