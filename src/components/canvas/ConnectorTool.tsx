@@ -9,16 +9,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { 
-  MoveHorizontal,
+  ArrowsLeftRight,
   ArrowRight,
-  ArrowLeftRight,
-  Workflow,
-  Route,
-  Network,
+  LineSegment,
+  FlowArrow,
+  Path,
+  TreeStructure,
   GitCommit,
-  Minus,
-  ArrowRightCircle,
-} from "lucide-react";
+  ArrowCircleRight,
+} from "@phosphor-icons/react";
 
 interface ConnectorToolProps {
   onConnectorSelect: (connectorType: string) => void;
@@ -38,22 +37,22 @@ export const ConnectorTool = ({ onConnectorSelect, activeTool }: ConnectorToolPr
           size="icon" 
           className="h-8 w-8"
         >
-          <Workflow className="h-4 w-4" />
+          <FlowArrow size={18} weight={isConnectorActive ? "duotone" : "regular"} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56 bg-card z-50">
         <DropdownMenuLabel>Smart Connectors</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => onConnectorSelect('connector-straight')}>
-            <MoveHorizontal className="mr-2 h-4 w-4" />
+            <ArrowsLeftRight size={18} weight="regular" className="mr-2" />
             <span>Straight Connector</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onConnectorSelect('connector-curved')}>
-            <Route className="mr-2 h-4 w-4" />
+            <Path size={18} weight="regular" className="mr-2" />
             <span>Curved Connector</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onConnectorSelect('connector-orthogonal')}>
-            <Network className="mr-2 h-4 w-4" />
+            <TreeStructure size={18} weight="regular" className="mr-2" />
             <span>Orthogonal Connector</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -62,23 +61,23 @@ export const ConnectorTool = ({ onConnectorSelect, activeTool }: ConnectorToolPr
         <DropdownMenuLabel>Line Styles</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => onConnectorSelect('line-arrow')}>
-            <ArrowRight className="mr-2 h-4 w-4" />
+            <ArrowRight size={18} weight="regular" className="mr-2" />
             <span>Arrow Line →</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onConnectorSelect('line-double-arrow')}>
-            <ArrowLeftRight className="mr-2 h-4 w-4" />
+            <ArrowsLeftRight size={18} weight="regular" className="mr-2" />
             <span>Double Arrow ↔</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onConnectorSelect('line-plain')}>
-            <Minus className="mr-2 h-4 w-4" />
+            <LineSegment size={18} weight="regular" className="mr-2" />
             <span>Plain Line</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onConnectorSelect('line-circle-arrow')}>
-            <ArrowRightCircle className="mr-2 h-4 w-4" />
+            <ArrowCircleRight size={18} weight="regular" className="mr-2" />
             <span>Circle Arrow</span>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onConnectorSelect('line-diamond')}>
-            <GitCommit className="mr-2 h-4 w-4" />
+            <GitCommit size={18} weight="regular" className="mr-2" />
             <span>Diamond Line (UML)</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>

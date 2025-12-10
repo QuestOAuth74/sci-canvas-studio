@@ -14,7 +14,13 @@ import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialo
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeCanvasTextFonts } from "@/lib/fontLoader";
-import { Type, History, GraduationCap, Palette, RefreshCw } from "lucide-react";
+import {
+  TextT,
+  Clock,
+  GraduationCap,
+  Palette,
+  ArrowsClockwise,
+} from "@phosphor-icons/react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 
 interface MenuBarProps {
@@ -148,7 +154,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
             <MenubarItem onClick={handleSave}>Save As...</MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={onVersionHistoryClick}>
-              <History className="mr-2 h-4 w-4" />
+              <Clock size={16} weight="regular" className="mr-2" />
               Version History <MenubarShortcut>⌘H</MenubarShortcut>
             </MenubarItem>
             <MenubarSeparator />
@@ -205,7 +211,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
           <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Tools</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={onStyleTransferClick}>
-              <Palette className="mr-2 h-4 w-4" />
+              <Palette size={16} weight="regular" className="mr-2" />
               Style Transfer
             </MenubarItem>
           </MenubarContent>
@@ -219,14 +225,14 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={handleNormalizeFonts}>
-              <Type className="mr-2 h-4 w-4" />
+              <TextT size={16} weight="regular" className="mr-2" />
               Normalize Fonts
             </MenubarItem>
             <MenubarItem onClick={handleRepairCurvedLines}>
               Repair Curved Lines
             </MenubarItem>
             <MenubarItem onClick={handleClearIconCache}>
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <ArrowsClockwise size={16} weight="regular" className="mr-2" />
               Clear Icon Cache
             </MenubarItem>
             <MenubarSeparator />
@@ -255,7 +261,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
           <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Help</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
             <MenubarItem onClick={startOnboarding}>
-              <GraduationCap className="mr-2 h-4 w-4" />
+              <GraduationCap size={16} weight="regular" className="mr-2" />
               Restart Tutorial
             </MenubarItem>
             <MenubarSeparator />
