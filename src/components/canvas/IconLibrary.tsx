@@ -526,14 +526,14 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
   };
 
   return (
-    <div className="h-full flex flex-col bg-medical-slate" data-onboarding="icon-library">
+    <div className="h-full flex flex-col bg-white" data-onboarding="icon-library">
       {/* Toggle button - always visible */}
-      <div className="p-2 border-b border-slate-700/50 flex items-center justify-between">
+      <div className="p-2 border-b border-slate-200/80 flex items-center justify-between">
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggleCollapse}
-          className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700/50"
+          className="h-8 w-8"
           title={isCollapsed ? "Expand icon library" : "Collapse icon library"}
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -543,18 +543,18 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
         <>
-          <div className="p-4 border-b border-slate-700/50 space-y-3">
+          <div className="p-4 border-b border-slate-200/80 space-y-3">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-white">Icons</h3>
-                <p className="text-xs text-slate-400 mt-1">Click any icon to add to canvas</p>
+                <h3 className="text-sm font-semibold text-slate-900">Icons</h3>
+                <p className="text-xs text-slate-500 mt-1">Click any icon to add to canvas</p>
               </div>
               {onAIIconGenerate && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={onAIIconGenerate}
-                  className="h-8 gap-1.5 border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                  className="h-8 gap-1.5"
                 >
                   <Sparkles className="h-3 w-3" />
                   <span className="text-xs">AI</span>
@@ -563,21 +563,21 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
             </div>
             
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search icons..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-9 pl-9 pr-8 text-xs bg-slate-800/50 border-slate-600/50 text-slate-200 placeholder:text-slate-500"
+                className="h-9 pl-9 pr-8 text-xs"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-slate-700/50 rounded-sm transition-colors"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-accent rounded-sm transition-colors"
                   title="Clear search"
                 >
-                  <X className="h-3.5 w-3.5 text-slate-500" />
+                  <X className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               )}
             </div>

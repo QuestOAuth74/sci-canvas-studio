@@ -157,25 +157,25 @@ export const LayersPanel = () => {
   );
 
   return (
-    <div className="w-full h-full bg-medical-slate flex flex-col overflow-auto">
+    <div className="w-full h-full bg-white flex flex-col overflow-auto">
       {/* Header */}
-      <div className="p-4 border-b border-slate-700/50">
-        <h3 className="text-sm font-semibold text-white mb-3">Layers</h3>
+      <div className="p-4 border-b border-slate-200/80">
+        <h3 className="text-sm font-semibold text-slate-900 mb-3">Layers</h3>
         <div className="relative mb-2">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder="Search layers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-8 pl-8 text-xs bg-slate-800/50 border-slate-600/50 text-slate-200 placeholder:text-slate-500"
+            className="h-8 pl-8 text-xs"
           />
         </div>
       </div>
       
       {/* Bulk Actions */}
       {selectedLayers.length > 0 && (
-        <div className="p-2 border-b border-slate-700/50 bg-slate-800/50 flex items-center gap-2">
-          <span className="text-xs text-slate-400 flex-1">
+        <div className="p-2 border-b bg-accent/10 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground flex-1">
             {selectedLayers.length} selected
           </span>
           <Button
@@ -216,8 +216,8 @@ export const LayersPanel = () => {
                   handleLayerClick(layer);
                   handleLayerSelect(layer.id, e.ctrlKey || e.metaKey);
                 }}
-                className={`flex items-center gap-2 p-2 rounded hover:bg-slate-700/50 cursor-pointer group transition-colors ${
-                  isSelected(layer) || isLayerSelected(layer.id) ? 'bg-medical-teal/20' : ''
+                className={`flex items-center gap-2 p-2 rounded hover:bg-accent cursor-pointer group transition-colors ${
+                  isSelected(layer) || isLayerSelected(layer.id) ? 'bg-accent' : ''
                 }`}
               >
                 {/* Thumbnail */}
@@ -245,7 +245,7 @@ export const LayersPanel = () => {
                   <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                 )}
                 
-                <span className={`flex-1 text-sm truncate transition-opacity text-slate-200 ${!layer.visible && 'opacity-50'}`}>
+                <span className={`flex-1 text-sm truncate transition-opacity ${!layer.visible && 'opacity-50'}`}>
                   {layer.name}
                 </span>
               </div>

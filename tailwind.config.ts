@@ -94,18 +94,6 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Medical Blue Theme Colors
-        medical: {
-          navy: "hsl(212 52% 25%)",
-          "navy-light": "hsl(212 45% 30%)",
-          "navy-dark": "hsl(212 55% 18%)",
-          slate: "hsl(217 33% 17%)",
-          "slate-light": "hsl(217 28% 22%)",
-          "slate-dark": "hsl(217 38% 12%)",
-          teal: "hsl(174 83% 32%)",
-          "teal-light": "hsl(174 75% 40%)",
-          "teal-dark": "hsl(174 90% 25%)",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",

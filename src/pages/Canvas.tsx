@@ -688,14 +688,14 @@ const CanvasContent = () => {
         );
       })()}
 
-      {/* Top Header with Menu - Medical Navy Theme */}
-      <header className="bg-gradient-to-r from-medical-navy to-medical-navy-dark border-b border-medical-slate shadow-lg">
+      {/* Top Header with Menu */}
+      <header className="bg-white border-b border-slate-200/80 shadow-sm">
         <div className="px-3 py-1.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img 
               src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
               alt="BioSketch" 
-              className="h-7 object-contain brightness-0 invert"
+              className="h-7 object-contain"
             />
             <Tooltip>
               <TooltipTrigger asChild>
@@ -703,7 +703,7 @@ const CanvasContent = () => {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigate("/")} 
-                  className="h-8 w-8 text-slate-300 hover:text-white hover:bg-white/10"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -718,13 +718,13 @@ const CanvasContent = () => {
                 onKeyDown={handleNameKeyDown}
                 onBlur={saveName}
                 autoFocus
-                className="h-7 text-sm font-medium max-w-[200px] bg-white/10 border-white/20 text-white placeholder:text-slate-400"
+                className="h-7 text-sm font-medium max-w-[200px]"
                 maxLength={100}
               />
             ) : (
               <button
                 onClick={startEditingName}
-                className="text-sm font-medium text-white hover:bg-white/10 px-2 py-1 rounded transition-colors"
+                className="text-sm font-medium text-foreground hover:bg-muted px-2 py-1 rounded transition-colors"
                 title="Click to rename"
               >
                 {projectName}
@@ -733,7 +733,7 @@ const CanvasContent = () => {
           </div>
           <div className="flex items-center gap-1.5">
             {isSaving && (
-              <span className="text-xs flex items-center gap-1.5 px-2 py-1 text-slate-300">
+              <span className="text-xs flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
                 <Loader2 className="h-3 w-3 animate-spin" />
                 Saving...
               </span>
@@ -751,7 +751,7 @@ const CanvasContent = () => {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => setShowShortcuts(true)}
-                  className="h-8 w-8 text-slate-300 hover:text-white hover:bg-white/10"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 >
                   <HelpCircle className="h-4 w-4" />
                 </Button>
@@ -763,7 +763,7 @@ const CanvasContent = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setAiGeneratorOpen(true)}
-                className="h-8 text-slate-300 hover:text-white hover:bg-white/10"
+                className="h-8 text-muted-foreground hover:text-foreground"
               >
                 <Sparkles className="h-4 w-4 mr-1.5" />
                 AI
@@ -773,7 +773,7 @@ const CanvasContent = () => {
               onClick={() => saveProject(true)} 
               disabled={isSaving} 
               size="sm" 
-              className="h-8 bg-medical-teal hover:bg-medical-teal-light text-white shadow-md"
+              className="h-8 bg-primary hover:bg-primary/90"
               data-action="save"
             >
               <Save className="h-3.5 w-3.5 mr-1.5" />
@@ -800,32 +800,32 @@ const CanvasContent = () => {
             maxSize={20}
             className="min-h-0"
           >
-            <div className={`bg-medical-slate border-r border-slate-700/50 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
+            <div className={`bg-white border-r border-slate-200/80 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
             {isIconLibraryCollapsed ? (
               <div className="p-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsIconLibraryCollapsed(false)}
-                  className="w-full text-slate-400 hover:text-white hover:bg-slate-700/50"
+                  className="w-full text-muted-foreground hover:text-foreground"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b border-slate-700/50 flex items-center justify-between">
+                <div className="p-2 border-b border-slate-100 flex items-center justify-between">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-8 bg-slate-800/80">
-                      <TabsTrigger value="icons" className="text-xs text-slate-400 data-[state=active]:bg-medical-teal data-[state=active]:text-white data-[state=active]:shadow-sm">Icons</TabsTrigger>
-                      <TabsTrigger value="assets" className="text-xs text-slate-400 data-[state=active]:bg-medical-teal data-[state=active]:text-white data-[state=active]:shadow-sm">Assets</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 h-8 bg-slate-100/80">
+                      <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Icons</TabsTrigger>
+                      <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Assets</TabsTrigger>
                     </TabsList>
                   </Tabs>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsIconLibraryCollapsed(true)}
-                    className="ml-1 h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700/50"
+                    className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -927,32 +927,32 @@ const CanvasContent = () => {
             }}
             className="min-h-0"
           >
-            <div className={`bg-medical-slate border-l border-slate-700/50 flex flex-col overflow-hidden min-h-0 h-full`}>
+            <div className={`bg-white border-l border-slate-200/80 flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsPropertiesPanelCollapsed(false)}
-                className="w-full text-slate-400 hover:text-white hover:bg-slate-700/50"
+                className="w-full text-muted-foreground hover:text-foreground"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b border-slate-700/50 flex items-center justify-between">
+              <div className="p-2 border-b border-slate-100 flex items-center justify-between">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-8 bg-slate-800/80">
-                    <TabsTrigger value="properties" className="text-xs text-slate-400 data-[state=active]:bg-medical-teal data-[state=active]:text-white data-[state=active]:shadow-sm">Properties</TabsTrigger>
-                    <TabsTrigger value="layers" className="text-xs text-slate-400 data-[state=active]:bg-medical-teal data-[state=active]:text-white data-[state=active]:shadow-sm">Layers</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-8 bg-slate-100/80">
+                    <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Properties</TabsTrigger>
+                    <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Layers</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsPropertiesPanelCollapsed(true)}
-                  className="ml-1 h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700/50"
+                  className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>

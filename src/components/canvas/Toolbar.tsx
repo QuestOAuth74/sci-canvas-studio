@@ -81,11 +81,11 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   };
 
   const toolButtonBase = "w-9 h-9 rounded-md transition-all duration-150";
-  const toolButtonActive = `${toolButtonBase} bg-medical-teal text-white shadow-md`;
-  const toolButtonInactive = `${toolButtonBase} text-slate-400 hover:text-white hover:bg-slate-700/60`;
+  const toolButtonActive = `${toolButtonBase} bg-primary text-primary-foreground shadow-sm`;
+  const toolButtonInactive = `${toolButtonBase} text-muted-foreground hover:text-foreground hover:bg-muted/60`;
 
   return (
-    <div className="h-full flex flex-col bg-slate-800 border-r border-slate-700/50 overflow-y-auto min-h-0 w-12">
+    <div className="h-full flex flex-col bg-white border-r border-slate-200/80 overflow-y-auto min-h-0 w-12">
       <div className="flex-1 flex flex-col items-center gap-0.5 py-2 px-1 overflow-y-auto">
         {/* Core Tools */}
         {tools.map((tool) => (
@@ -106,7 +106,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           </Tooltip>
         ))}
 
-        <div className="w-6 h-px bg-slate-600/50 my-1" />
+        <div className="w-6 h-px bg-border/50 my-1" />
 
         {/* Shapes */}
         <Tooltip>
@@ -120,7 +120,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         
         <ShapesWithTextDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
 
-        <div className="w-6 h-px bg-slate-600/50 my-1" />
+        <div className="w-6 h-px bg-border/50 my-1" />
 
         {/* Lines */}
         <div data-onboarding="lines-section">
@@ -131,7 +131,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         <ConnectorTool onConnectorSelect={handleToolChange} activeTool={activeTool} />
         <ZoomCalloutTool onCalloutSelect={handleToolChange} activeTool={activeTool} />
 
-        <div className="w-6 h-px bg-slate-600/50 my-1" />
+        <div className="w-6 h-px bg-border/50 my-1" />
 
         {/* Content Tools */}
         <Tooltip>
@@ -238,7 +238,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           <TooltipContent side="right" className="text-xs">Eraser</TooltipContent>
         </Tooltip>
 
-        <div className="w-6 h-px bg-slate-600/50 my-1" />
+        <div className="w-6 h-px bg-border/50 my-1" />
 
         <Tooltip>
           <TooltipTrigger asChild>
