@@ -74,11 +74,11 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
     onToolChange?.(newTool);
   };
 
-  const toolButtonClass = "h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors";
-  const activeToolButtonClass = "h-8 w-8 bg-primary text-primary-foreground hover:bg-primary/90";
+  const toolButtonClass = "h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors";
+  const activeToolButtonClass = "h-8 w-8 bg-medical-teal text-white hover:bg-medical-teal-light shadow-sm";
 
   return (
-    <div className="flex items-center gap-0.5 px-3 py-1.5 bg-white border-b border-slate-200/80 shadow-sm" data-onboarding="toolbar">
+    <div className="flex items-center gap-0.5 px-3 py-1.5 bg-slate-800 border-b border-slate-700/50 shadow-md" data-onboarding="toolbar">
       {/* Edit Tools */}
       <div className="flex items-center gap-0.5">
         <Tooltip>
@@ -100,7 +100,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
 
       {/* Clipboard */}
       <div className="flex items-center gap-0.5">
@@ -132,7 +132,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
 
       {/* Alignment */}
       <div className="flex items-center gap-0.5">
@@ -164,7 +164,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
 
       {/* Layer Controls */}
       <div className="flex items-center gap-0.5">
@@ -205,7 +205,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
 
       {/* Grouping */}
       <div className="flex items-center gap-0.5">
@@ -228,7 +228,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
 
       {/* View Tools */}
       <div className="flex items-center gap-0.5">
@@ -257,12 +257,12 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       
       {activeTool === "text" && (
         <>
-          <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+          <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
           <TextFormattingPanel />
         </>
       )}
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
 
       {/* View Options */}
       <div className="flex items-center gap-0.5">
@@ -296,27 +296,27 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
 
       <FeatureAccessBadge />
 
       {/* Save Status - Centered */}
       <div className="flex-1 flex items-center justify-center">
         {saveStatus === 'saved' && (
-          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 rounded-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Saved</span>
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-emerald-500/20 rounded-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-emerald-400 font-medium">Saved</span>
           </span>
         )}
         {saveStatus === 'saving' && (
-          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 rounded-md">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-            <span className="text-amber-600 dark:text-amber-400 font-medium">Saving...</span>
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-amber-500/20 rounded-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <span className="text-amber-400 font-medium">Saving...</span>
           </span>
         )}
         {saveStatus === 'unsaved' && (
-          <span className="text-xs flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
-            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50"></span>
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 text-slate-500">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
             <span>Unsaved</span>
           </span>
         )}
@@ -326,18 +326,18 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomOut}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700/60" onClick={zoomOut}>
               <ZoomOut className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Zoom Out</TooltipContent>
         </Tooltip>
         
-        <span className="text-xs font-medium px-2 py-1 bg-muted/50 rounded min-w-[3rem] text-center text-foreground">{zoom}%</span>
+        <span className="text-xs font-medium px-2 py-1 bg-slate-700/50 rounded min-w-[3rem] text-center text-slate-300">{zoom}%</span>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomIn}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700/60" onClick={zoomIn}>
               <ZoomIn className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
@@ -346,14 +346,14 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomToFit}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-700/60" onClick={zoomToFit}>
               <Maximize className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Fit to Screen</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+        <Separator orientation="vertical" className="h-5 mx-1.5 bg-slate-600/40" />
 
         <QuickSettings />
       </div>
