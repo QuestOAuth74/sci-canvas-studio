@@ -1,24 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  MousePointer2,
-  Square,
-  Circle,
-  Triangle,
-  Minus,
-  Type,
-  PenTool,
-  Eraser,
+  Cursor,
+  PenNib,
+  Scribble,
+  TextT,
   Image,
-  ImagePlus,
-  Star,
-  Hexagon,
-  Spline,
+  Eraser,
   Crop,
-  Clock,
-  FileText,
   Waves,
-} from "lucide-react";
+  FilePpt,
+  ImageSquare,
+} from "@phosphor-icons/react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
 import {
@@ -62,19 +55,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const [membraneBrushOpen, setMembraneBrushOpen] = useState(false);
   
   const tools = [
-    { id: "select", icon: MousePointer2, label: "Select and Transform", shortcut: "1" },
-    { id: "pen", icon: PenTool, label: "Draw Bezier Curves", shortcut: "B" },
-    { id: "freeform-line", icon: Spline, label: "Freeform Curved Line", shortcut: "F" },
+    { id: "select", Icon: Cursor, label: "Select and Transform", shortcut: "1" },
+    { id: "pen", Icon: PenNib, label: "Draw Bezier Curves", shortcut: "B" },
+    { id: "freeform-line", Icon: Scribble, label: "Freeform Curved Line", shortcut: "F" },
   ];
-
-  // Map tool IDs to their icons and labels for recent tools
-  const toolIconMap: Record<string, { icon: any; label: string }> = {
-    "pen": { icon: PenTool, label: "Bezier Curves" },
-    "freeform-line": { icon: Spline, label: "Freeform Line" },
-    "text": { icon: Type, label: "Text" },
-    "image": { icon: Image, label: "Image" },
-    "eraser": { icon: Eraser, label: "Eraser" },
-  };
   
   const isImageSelected = selectedObject && selectedObject.type === 'image';
 
@@ -108,7 +92,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
                 onClick={() => handleToolChange(tool.id)}
                 className={activeTool === tool.id ? toolButtonActive : toolButtonInactive}
               >
-                <tool.icon className="h-4 w-4" />
+                <tool.Icon 
+                  size={18} 
+                  weight={activeTool === tool.id ? "duotone" : "regular"} 
+                />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" className="flex items-center gap-2">
@@ -160,7 +147,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               className={activeTool === "text" ? toolButtonActive : toolButtonInactive}
               data-tool="text"
             >
-              <Type className="h-4 w-4" />
+              <TextT 
+                size={18} 
+                weight={activeTool === "text" ? "duotone" : "regular"} 
+              />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="flex items-center gap-2">
@@ -177,7 +167,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               onClick={() => setMembraneBrushOpen(true)}
               className={activeTool.startsWith("membrane-brush") ? toolButtonActive : toolButtonInactive}
             >
-              <Waves className="h-4 w-4" />
+              <Waves 
+                size={18} 
+                weight={activeTool.startsWith("membrane-brush") ? "duotone" : "regular"} 
+              />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="text-xs font-medium">Membrane Brush</TooltipContent>
@@ -191,7 +184,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               onClick={() => handleToolChange("image")}
               className={activeTool === "image" ? toolButtonActive : toolButtonInactive}
             >
-              <Image className="h-4 w-4" />
+              <Image 
+                size={18} 
+                weight={activeTool === "image" ? "duotone" : "regular"} 
+              />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="flex items-center gap-2">
@@ -211,7 +207,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               }}
               className={toolButtonInactive}
             >
-              <ImagePlus className="h-4 w-4" />
+              <ImageSquare size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="text-xs font-medium">Image Placeholder</TooltipContent>
@@ -241,7 +237,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               className={toolButtonInactive}
               disabled={!(selectedObject && (selectedObject.type === 'image' || selectedObject.type === 'group'))}
             >
-              <Crop className="h-4 w-4" />
+              <Crop size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="text-xs font-medium">Crop</TooltipContent>
@@ -255,7 +251,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               onClick={() => handleToolChange("eraser")}
               className={activeTool === "eraser" ? toolButtonActive : toolButtonInactive}
             >
-              <Eraser className="h-4 w-4" />
+              <Eraser 
+                size={18} 
+                weight={activeTool === "eraser" ? "duotone" : "regular"} 
+              />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="flex items-center gap-2">
@@ -276,7 +275,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               onClick={() => setPowerpointOpen(true)}
               className={toolButtonInactive}
             >
-              <FileText className="h-4 w-4" />
+              <FilePpt size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="text-xs font-medium">PowerPoint</TooltipContent>

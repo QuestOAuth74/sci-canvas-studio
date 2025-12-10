@@ -1,27 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  Undo,
-  Redo,
-  ZoomIn,
-  ZoomOut,
-  Maximize,
-  Copy,
+  ArrowCounterClockwise,
+  ArrowClockwise,
   Scissors,
-  Clipboard,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Grid3x3,
+  Copy,
+  ClipboardText,
+  TextAlignLeft,
+  TextAlignCenter,
+  TextAlignRight,
+  CaretDoubleUp,
+  CaretUp,
+  CaretDown,
+  CaretDoubleDown,
+  SelectionAll,
+  SplitVertical,
+  GridFour,
   Ruler,
-  Type,
-  ChevronsUp,
-  ChevronUp,
-  ChevronDown,
-  ChevronsDown,
-  Group,
-  Ungroup,
-} from "lucide-react";
+  MagnifyingGlassPlus,
+  MagnifyingGlassMinus,
+  CornersOut,
+  TextT,
+} from "@phosphor-icons/react";
 import {
   Tooltip,
   TooltipContent,
@@ -34,7 +34,6 @@ import { QuickSettings } from "./QuickSettings";
 import { FeatureAccessBadge } from "./FeatureAccessBadge";
 import { TextOnPathTool } from "./TextOnPathTool";
 import { TextBoxTool } from "./TextBoxTool";
-import { useState } from "react";
 
 interface TopToolbarProps {
   onExport: () => void;
@@ -84,7 +83,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={undo}>
-              <Undo className="h-4 w-4" />
+              <ArrowCounterClockwise size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Undo (⌘Z)</TooltipContent>
@@ -93,7 +92,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={redo}>
-              <Redo className="h-4 w-4" />
+              <ArrowClockwise size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Redo (⌘⇧Z)</TooltipContent>
@@ -107,7 +106,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={cut}>
-              <Scissors className="h-4 w-4" />
+              <Scissors size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Cut (⌘X)</TooltipContent>
@@ -116,7 +115,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={copy}>
-              <Copy className="h-4 w-4" />
+              <Copy size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Copy (⌘C)</TooltipContent>
@@ -125,7 +124,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={paste}>
-              <Clipboard className="h-4 w-4" />
+              <ClipboardText size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Paste (⌘V)</TooltipContent>
@@ -139,7 +138,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={alignLeft}>
-              <AlignLeft className="h-4 w-4" />
+              <TextAlignLeft size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Align Left</TooltipContent>
@@ -148,7 +147,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={alignCenter}>
-              <AlignCenter className="h-4 w-4" />
+              <TextAlignCenter size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Align Center</TooltipContent>
@@ -157,7 +156,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={alignRight}>
-              <AlignRight className="h-4 w-4" />
+              <TextAlignRight size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Align Right</TooltipContent>
@@ -171,7 +170,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={bringToFront}>
-              <ChevronsUp className="h-4 w-4" />
+              <CaretDoubleUp size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Bring to Front</TooltipContent>
@@ -180,7 +179,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={bringForward}>
-              <ChevronUp className="h-4 w-4" />
+              <CaretUp size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Bring Forward</TooltipContent>
@@ -189,7 +188,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={sendBackward}>
-              <ChevronDown className="h-4 w-4" />
+              <CaretDown size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Send Backward</TooltipContent>
@@ -198,7 +197,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={sendToBack}>
-              <ChevronsDown className="h-4 w-4" />
+              <CaretDoubleDown size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Send to Back</TooltipContent>
@@ -212,7 +211,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={groupSelected}>
-              <Group className="h-4 w-4" />
+              <SelectionAll size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Group (⌘G)</TooltipContent>
@@ -221,7 +220,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className={toolButtonClass} onClick={ungroupSelected}>
-              <Ungroup className="h-4 w-4" />
+              <SplitVertical size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Ungroup (⌘⇧G)</TooltipContent>
@@ -240,7 +239,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
               className={activeTool === "text" ? activeToolButtonClass : toolButtonClass}
               onClick={handleTextToolClick}
             >
-              <Type className="h-4 w-4" />
+              <TextT size={18} weight={activeTool === "text" ? "duotone" : "regular"} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Text Tool</TooltipContent>
@@ -275,7 +274,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
               onClick={() => setGridEnabled(!gridEnabled)}
               data-grid-toggle
             >
-              <Grid3x3 className="h-4 w-4" />
+              <GridFour size={18} weight={gridEnabled ? "duotone" : "regular"} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Toggle Grid</TooltipContent>
@@ -289,7 +288,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
               className={rulersEnabled ? activeToolButtonClass : toolButtonClass}
               onClick={() => setRulersEnabled(!rulersEnabled)}
             >
-              <Ruler className="h-4 w-4" />
+              <Ruler size={18} weight={rulersEnabled ? "duotone" : "regular"} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Toggle Rulers</TooltipContent>
@@ -327,7 +326,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomOut}>
-              <ZoomOut className="h-3.5 w-3.5" />
+              <MagnifyingGlassMinus size={16} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Zoom Out</TooltipContent>
@@ -338,7 +337,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomIn}>
-              <ZoomIn className="h-3.5 w-3.5" />
+              <MagnifyingGlassPlus size={16} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Zoom In</TooltipContent>
@@ -347,7 +346,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomToFit}>
-              <Maximize className="h-3.5 w-3.5" />
+              <CornersOut size={16} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Fit to Screen</TooltipContent>

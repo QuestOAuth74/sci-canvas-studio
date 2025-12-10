@@ -1,36 +1,54 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ChevronDown, Lightbulb, MousePointer2, PenTool, Square, Type, Image, Eraser, Minus, Move, Spline, Waves, Command } from "lucide-react";
+import {
+  Plus,
+  CaretCircleDown,
+  Lightbulb,
+  Cursor,
+  PenNib,
+  Square,
+  TextT,
+  Image,
+  Eraser,
+  LineSegment,
+  HandGrabbing,
+  Scribble,
+  Waves,
+  Command,
+} from "@phosphor-icons/react";
 import { useCanvas } from "@/contexts/CanvasContext";
+import { IconProps } from "@phosphor-icons/react";
 
 interface BottomBarProps {
   activeTool: string;
   hasSelection: boolean;
 }
 
+type PhosphorIcon = React.ForwardRefExoticComponent<IconProps & React.RefAttributes<SVGSVGElement>>;
+
 const TOOL_INFO: Record<string, { 
   name: string; 
   hint: string; 
   shortcut?: string;
-  icon: React.ElementType;
+  icon: PhosphorIcon;
 }> = {
   select: { 
     name: "Select", 
     hint: "Click objects to select. Drag to move. Hold Shift for multi-select.", 
     shortcut: "1",
-    icon: MousePointer2 
+    icon: Cursor 
   },
   pen: { 
     name: "Pen", 
     hint: "Click to place points. Press Enter to finish the path.", 
     shortcut: "B",
-    icon: PenTool 
+    icon: PenNib 
   },
   "freeform-line": { 
     name: "Freeform Line", 
     hint: "Click and drag to draw a curved line. Release to finish.", 
     shortcut: "F",
-    icon: Spline 
+    icon: Scribble 
   },
   rectangle: { 
     name: "Rectangle", 
@@ -53,7 +71,7 @@ const TOOL_INFO: Record<string, {
     name: "Text", 
     hint: "Click anywhere on the canvas to add text.", 
     shortcut: "T",
-    icon: Type 
+    icon: TextT 
   },
   image: { 
     name: "Image", 
@@ -71,22 +89,22 @@ const TOOL_INFO: Record<string, {
     name: "Line", 
     hint: "Click start and end points. Press Esc to cancel.", 
     shortcut: "5",
-    icon: Minus 
+    icon: LineSegment 
   },
   "orthogonal-line": { 
     name: "Orthogonal Line", 
     hint: "Draw lines with 90° bends for clean connections.",
-    icon: Minus 
+    icon: LineSegment 
   },
   "curved-line": { 
     name: "Curved Line", 
     hint: "Create smooth curves. Drag the green handle to adjust.",
-    icon: Spline 
+    icon: Scribble 
   },
   connector: { 
     name: "Connector", 
     hint: "Click on objects to connect them with smart routing.",
-    icon: Move 
+    icon: HandGrabbing 
   },
   crop: { 
     name: "Crop", 
@@ -108,7 +126,7 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
   const toolInfo = TOOL_INFO[toolKey] || { 
     name: "Select", 
     hint: "Select a tool from the left toolbar to get started.",
-    icon: MousePointer2,
+    icon: Cursor,
     shortcut: undefined
   };
   
@@ -152,13 +170,13 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
       {/* Left: Page controls */}
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/10 hover:scale-105 transition-all duration-200">
-          <Plus className="h-4 w-4" />
+          <Plus size={18} weight="regular" />
         </Button>
         
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="sm" className="h-7 px-2 text-xs bg-muted/50 hover:bg-muted/70 rounded-md transition-all duration-200">
             Page-1
-            <ChevronDown className="h-3 w-3 ml-1" />
+            <CaretCircleDown size={14} weight="regular" className="ml-1" />
           </Button>
         </div>
         
@@ -173,7 +191,7 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
         {/* Active Tool Indicator */}
         <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20 transition-all duration-200">
           <div className="flex items-center justify-center w-6 h-6 bg-primary/20 rounded-md">
-            <ToolIcon className="h-3.5 w-3.5 text-primary" />
+            <ToolIcon size={16} weight="duotone" className="text-primary" />
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-semibold text-foreground leading-tight">{toolInfo.name}</span>
@@ -185,7 +203,7 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
         
         {/* Hint */}
         <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/40 rounded-lg border border-border/40 max-w-md">
-          <Lightbulb className="h-3.5 w-3.5 text-amber-500 flex-shrink-0" />
+          <Lightbulb size={16} weight="duotone" className="text-amber-500 flex-shrink-0" />
           <span className="text-xs text-muted-foreground truncate">{toolInfo.hint}</span>
         </div>
       </div>
@@ -210,7 +228,7 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
         
         {/* Keyboard shortcut hint */}
         <div className="hidden md:flex items-center gap-1 text-[10px] text-muted-foreground">
-          <Command className="h-3 w-3" />
+          <Command size={14} weight="regular" />
           <span>K for commands</span>
         </div>
       </div>
