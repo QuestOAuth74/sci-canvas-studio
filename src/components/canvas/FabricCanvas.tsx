@@ -208,7 +208,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Custom rotation control rendering (BioRender-style hand grab icon)
+    // Custom rotation control rendering (BioRender-style hand grab icon with hover glow)
     const renderRotationControl = (
       ctx: CanvasRenderingContext2D,
       left: number,
@@ -217,22 +217,40 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       fabricObject: any
     ) => {
       const size = 28;
-      const isHovering = fabricObject.canvas?.getActiveObject() === fabricObject;
+      const isSelected = fabricObject.canvas?.getActiveObject() === fabricObject;
+      const isRotating = (fabricObject as any).isRotating;
       
-      // Fade slightly when not selected
-      const opacity = isHovering ? 1.0 : 0.85;
+      // Enhanced glow when rotating or selected
+      const glowIntensity = isRotating ? 16 : (isSelected ? 10 : 0);
+      const opacity = isSelected ? 1.0 : 0.85;
       
       ctx.save();
       ctx.globalAlpha = opacity;
       ctx.translate(left, top);
       
-      // Add subtle drop shadow for depth
+      // Draw outer glow effect when selected (subtle blue glow)
+      if (glowIntensity > 0) {
+        ctx.shadowBlur = glowIntensity;
+        ctx.shadowColor = 'rgba(59, 130, 246, 0.6)'; // Blue glow
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        
+        // Draw glow circle (slightly larger)
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+        ctx.beginPath();
+        ctx.arc(0, 0, size / 2 + 3, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+      }
+      
+      // Reset and add subtle drop shadow for depth
       ctx.shadowBlur = 6;
       ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
       ctx.shadowOffsetY = 2;
+      ctx.shadowOffsetX = 0;
       
       // Draw circular background (BioRender blue theme)
-      ctx.fillStyle = '#3B82F6';
+      ctx.fillStyle = isRotating ? '#2563EB' : '#3B82F6'; // Darker when rotating
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
       
@@ -244,6 +262,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       
       // Reset shadow for icon drawing
       ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
       
       // Draw hand/grab icon (simplified hand with fingers)
       ctx.strokeStyle = '#ffffff';
