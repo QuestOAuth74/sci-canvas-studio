@@ -134,14 +134,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       // Load fonts before initializing canvas
       await loadAllFonts();
       
-      // Set global control styles on FabricObject prototype (applies to all objects)
-      FabricObject.prototype.cornerColor = '#EF4444';        // Red square dots
+      // Set global control styles on FabricObject prototype (BioRender-style blue theme)
+      FabricObject.prototype.cornerColor = '#3B82F6';        // Blue-500 corners
       FabricObject.prototype.cornerStrokeColor = '#ffffff';
-      FabricObject.prototype.cornerStyle = 'rect';           // Square corners
-      FabricObject.prototype.cornerSize = 8;
+      FabricObject.prototype.cornerStyle = 'circle';         // Rounded corners like BioRender
+      FabricObject.prototype.cornerSize = 10;                // Slightly larger for better grab
       FabricObject.prototype.transparentCorners = false;
-      FabricObject.prototype.borderColor = '#EF4444';        // Red selection border
-      FabricObject.prototype.borderScaleFactor = 2;
+      FabricObject.prototype.borderColor = '#3B82F6';        // Blue selection border
+      FabricObject.prototype.borderScaleFactor = 1.5;        // Thinner border
       FabricObject.prototype.padding = 4;
       (FabricObject.prototype as any).hasRotatingPoint = true;        // Enable rotation handle globally
       (FabricObject.prototype as any).rotatingPointOffset = 45;       // Distance above object
@@ -156,17 +156,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         centeredRotation: true,
       });
 
-    // Apply control styling to all objects added to canvas
+    // Apply control styling to all objects added to canvas (BioRender-style blue theme)
     canvas.on('object:added', (e) => {
       if (e.target) {
         e.target.set({
-          cornerColor: '#EF4444',
+          cornerColor: '#3B82F6',
           cornerStrokeColor: '#ffffff',
-          cornerStyle: 'rect',
-          cornerSize: 8,
+          cornerStyle: 'circle',
+          cornerSize: 10,
           transparentCorners: false,
-          borderColor: '#EF4444',
-          borderScaleFactor: 2,
+          borderColor: '#3B82F6',
+          borderScaleFactor: 1.5,
           padding: 4,
           hasControls: true,
           hasRotatingPoint: true,
@@ -191,7 +191,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Custom rotation control rendering (semi-circle with arrow like BioRender)
+    // Custom rotation control rendering (BioRender-style hand grab icon)
     const renderRotationControl = (
       ctx: CanvasRenderingContext2D,
       left: number,
@@ -199,42 +199,28 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       _styleOverride: any,
       fabricObject: any
     ) => {
-      console.debug(
-        "[ChemixRotation] render",
-        fabricObject.type,
-        {
-          left: Math.round(left),
-          top: Math.round(top),
-          angle: Math.round(fabricObject.angle || 0),
-          hasControls: fabricObject.hasControls,
-          hasRotatingPoint: fabricObject.hasRotatingPoint,
-          lockRotation: fabricObject.lockRotation,
-        }
-      );
-      
-      const size = 36; // Temporarily enlarged for visibility
+      const size = 28;
       const isHovering = fabricObject.canvas?.getActiveObject() === fabricObject;
       
-      // Fade out when not hovering
-      const opacity = isHovering ? 1.0 : 0.7;
+      // Fade slightly when not selected
+      const opacity = isHovering ? 1.0 : 0.85;
       
       ctx.save();
       ctx.globalAlpha = opacity;
       ctx.translate(left, top);
-      ctx.rotate(util.degreesToRadians(fabricObject.angle || 0));
       
-      // Add subtle drop shadow
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowOffsetY = 1;
+      // Add subtle drop shadow for depth
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      ctx.shadowOffsetY = 2;
       
-      // Draw circular background - BRIGHT MAGENTA FOR DEBUG VISIBILITY
-      ctx.fillStyle = '#ff00ff';
+      // Draw circular background (BioRender blue theme)
+      ctx.fillStyle = '#3B82F6';
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3; // Thicker border for visibility
+      ctx.lineWidth = 2;
       
       ctx.beginPath();
-      ctx.arc(0, 0, size / 2, 0, Math.PI * 2); // Full circle
+      ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
@@ -242,37 +228,39 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       // Reset shadow for icon drawing
       ctx.shadowBlur = 0;
       
-      // Draw circular rotation icon (two curved arrows)
+      // Draw hand/grab icon (simplified hand with fingers)
       ctx.strokeStyle = '#ffffff';
       ctx.fillStyle = '#ffffff';
       ctx.lineWidth = 1.5;
       ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       
-      // Left curved arrow
+      // Palm base (rounded rectangle)
       ctx.beginPath();
-      ctx.arc(-2, 0, 4.5, Math.PI * 0.65, Math.PI * 1.85, false);
+      ctx.moveTo(-4, 1);
+      ctx.lineTo(-4, 5);
+      ctx.quadraticCurveTo(-4, 6, -3, 6);
+      ctx.lineTo(3, 6);
+      ctx.quadraticCurveTo(4, 6, 4, 5);
+      ctx.lineTo(4, 1);
       ctx.stroke();
       
-      // Left arrow head
-      ctx.beginPath();
-      ctx.moveTo(-5.5, -2.5);
-      ctx.lineTo(-6.5, -0.5);
-      ctx.lineTo(-4.5, -1);
-      ctx.closePath();
-      ctx.fill();
+      // Four fingers (vertical lines going up)
+      const fingerX = [-3, -1, 1, 3];
+      const fingerHeight = [-5, -6, -6, -5];
+      fingerX.forEach((x, i) => {
+        ctx.beginPath();
+        ctx.moveTo(x, 1);
+        ctx.lineTo(x, fingerHeight[i]);
+        ctx.stroke();
+      });
       
-      // Right curved arrow
+      // Thumb (angled to the left)
       ctx.beginPath();
-      ctx.arc(2, 0, 4.5, Math.PI * 1.15, Math.PI * 0.35, true);
+      ctx.moveTo(-4, 3);
+      ctx.lineTo(-6, 1);
+      ctx.lineTo(-6, -1);
       ctx.stroke();
-      
-      // Right arrow head
-      ctx.beginPath();
-      ctx.moveTo(5.5, 2.5);
-      ctx.lineTo(6.5, 0.5);
-      ctx.lineTo(4.5, 1);
-      ctx.closePath();
-      ctx.fill();
       
       ctx.restore();
       
@@ -418,15 +406,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
     
-    // Apply control styles to any existing objects on canvas
+    // Apply control styles to any existing objects on canvas (BioRender-style blue theme)
     canvas.getObjects().forEach((obj) => {
       obj.set({
-        cornerColor: '#EF4444',
+        cornerColor: '#3B82F6',
         cornerStrokeColor: '#ffffff',
-        cornerStyle: 'rect',
-        cornerSize: 8,
+        cornerStyle: 'circle',
+        cornerSize: 10,
         transparentCorners: false,
-        borderColor: '#EF4444',
+        borderColor: '#3B82F6',
       });
     });
     canvas.requestRenderAll();
