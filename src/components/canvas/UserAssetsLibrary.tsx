@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Search, Upload, Trash2, MoreVertical, FolderOpen, Share2, Users } from 'lucide-react';
-import { useUserAssets } from '@/hooks/useUserAssets';
+import { useUserAssets, UserAsset } from '@/hooks/useUserAssets';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -27,6 +28,12 @@ import {
   PaginationPrevious,
   PaginationEllipsis,
 } from '@/components/ui/pagination';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { AssetUploadDialog } from './AssetUploadDialog';
 
 interface UserAssetsLibraryProps {
@@ -53,7 +60,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'my-assets' | 'community'>('my-assets');
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 10;
 
   // Get the current asset list based on view mode
   const currentAssets = viewMode === 'my-assets' ? assets : sharedAssets;
@@ -125,9 +132,21 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
+  const isImageType = (fileType: string) => {
+    return ['svg', 'png', 'jpg', 'jpeg', 'gif', 'webp'].includes(fileType.toLowerCase());
+  };
+
+  // Synchronous URL getter for thumbnails
+  const getAssetThumbnailUrl = (asset: UserAsset): string => {
+    const { data } = supabase.storage
+      .from('user-assets')
+      .getPublicUrl(asset.storage_path);
+    return data.publicUrl;
+  };
+
   return (
-    <div className="flex flex-col h-full bg-white">
-      <div className="p-4 border-b border-slate-200/80 space-y-3">
+    <div className="flex flex-col h-full bg-blue-50/60">
+      <div className="p-4 border-b border-blue-100/80 space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold text-slate-900">My Assets</h3>
           <Button
@@ -140,7 +159,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
           </Button>
         </div>
 
-        <div className="flex gap-1 p-1 bg-slate-100 rounded-lg">
+        <div className="flex gap-1 p-1 bg-blue-100/50 rounded-lg">
           <button
             className={`flex-1 h-8 text-xs rounded-md transition-all flex items-center justify-center gap-1 font-medium ${
               viewMode === 'my-assets' 
@@ -205,11 +224,13 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-2">
+        <div className="p-4">
           {loading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 w-full" />
-            ))
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-square w-full rounded-lg" />
+              ))}
+            </div>
           ) : filteredAssets.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <FolderOpen className="h-12 w-12 text-muted-foreground/50 mb-3" />
@@ -236,80 +257,78 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
               )}
             </div>
           ) : (
-            paginatedAssets.map((asset) => (
-              <div
-                key={asset.id}
-                className="group relative flex items-center gap-3 p-3 glass-panel cursor-pointer hover:shadow-md transition-all"
-                onClick={() => handleAssetClick(asset)}
-              >
-                <div className="flex-shrink-0 w-12 h-12 rounded bg-muted flex items-center justify-center overflow-hidden">
-                  {asset.file_type === 'svg' ? (
-                    <svg className="w-8 h-8 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2"/>
-                      <path d="M9 9h6v6H9z" strokeWidth="2"/>
-                    </svg>
-                  ) : (
-                    <div className="text-xs font-mono text-muted-foreground">
-                      {asset.file_type.toUpperCase()}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium truncate">{asset.original_name}</p>
-                    {viewMode === 'my-assets' && asset.is_shared && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs bg-primary/10 text-primary">
-                        <Share2 className="h-3 w-3" />
-                        Shared
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{formatFileSize(asset.file_size)}</span>
-                    <span>•</span>
-                    <span className="truncate">{asset.category}</span>
-                  </div>
-                </div>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {viewMode === 'my-assets' && (
-                      <DropdownMenuItem
-                        onClick={(e) => handleShare(asset.id, asset.is_shared, e)}
+            <div className="grid grid-cols-5 gap-2">
+              {paginatedAssets.map((asset) => (
+                <TooltipProvider key={asset.id} delayDuration={300}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="group relative aspect-square rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-blue-300 hover:shadow-md transition-all overflow-hidden"
+                        onClick={() => handleAssetClick(asset)}
                       >
-                        <Share2 className="h-4 w-4 mr-2" />
-                        {asset.is_shared ? 'Unshare' : 'Share with community'}
-                      </DropdownMenuItem>
-                    )}
-                    {viewMode === 'my-assets' && (
-                      <DropdownMenuItem
-                        className="text-destructive"
-                        onClick={(e) => handleDelete(asset.id, e)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            ))
+                        {/* Thumbnail preview */}
+                        <div className="absolute inset-0 flex items-center justify-center p-2">
+                          {isImageType(asset.file_type) ? (
+                            <img
+                              src={getAssetThumbnailUrl(asset)}
+                              alt={asset.original_name}
+                              className="max-w-full max-h-full object-contain"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="text-xs font-mono text-muted-foreground uppercase">
+                              {asset.file_type}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Shared badge */}
+                        {viewMode === 'my-assets' && asset.is_shared && (
+                          <div className="absolute top-1 right-1 bg-primary/10 rounded-full p-0.5">
+                            <Share2 className="h-2.5 w-2.5 text-primary" />
+                          </div>
+                        )}
+                        
+                        {/* Action menu overlay on hover */}
+                        {viewMode === 'my-assets' && (
+                          <div className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                <Button variant="ghost" size="sm" className="h-5 w-5 p-0 bg-white/90 hover:bg-white shadow-sm">
+                                  <MoreVertical className="h-3 w-3" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="start">
+                                <DropdownMenuItem onClick={(e) => handleShare(asset.id, asset.is_shared, e)}>
+                                  <Share2 className="h-4 w-4 mr-2" />
+                                  {asset.is_shared ? 'Unshare' : 'Share'}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive" onClick={(e) => handleDelete(asset.id, e)}>
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        )}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-[200px]">
+                      <p className="font-medium truncate">{asset.original_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(asset.file_size)} • {asset.category || 'Uncategorized'}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ))}
+            </div>
           )}
         </div>
       </ScrollArea>
 
       {filteredAssets.length > ITEMS_PER_PAGE && (
-        <div className="p-4 border-t space-y-2">
+        <div className="p-3 border-t border-blue-100/80 space-y-2">
           <Pagination>
             <PaginationContent>
               <PaginationItem>
@@ -353,7 +372,7 @@ export function UserAssetsLibrary({ onAssetSelect }: UserAssetsLibraryProps) {
           </Pagination>
           
           <p className="text-xs text-center text-muted-foreground">
-            Showing {startIndex + 1}-{Math.min(endIndex, filteredAssets.length)} of {filteredAssets.length}
+            {startIndex + 1}-{Math.min(endIndex, filteredAssets.length)} of {filteredAssets.length}
           </p>
         </div>
       )}
