@@ -47,7 +47,6 @@ import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { useProjectPages } from "@/hooks/useProjectPages";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -76,7 +75,7 @@ const CanvasContent = () => {
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
-  const { isAdmin, user } = useAuth();
+  const { isAdmin } = useAuth();
   const { startOnboarding } = useOnboarding();
   
   // State for resizable right panel width with localStorage persistence
@@ -84,7 +83,6 @@ const CanvasContent = () => {
     const saved = localStorage.getItem('canvas_right_panel_width');
     return saved ? Math.min(400, Math.max(200, parseInt(saved, 10))) : 280; // Default 280px, clamped 200-400
   });
-
   const {
     canvas,
     selectedObject,
@@ -131,25 +129,7 @@ const CanvasContent = () => {
     rotateSelected,
     duplicateBelow,
     loadTemplate,
-    paperSize,
   } = useCanvas();
-
-  // Multi-page support
-  const {
-    pages,
-    currentPageIndex,
-    isSavingPage,
-    addPage,
-    switchToPage,
-    deletePage,
-    renamePage,
-    duplicatePage,
-    migrateToPages,
-  } = useProjectPages({
-    projectId: currentProjectId,
-    canvas,
-    userId: user?.id || null,
-  });
 
   // Enable canvas workspace theme when component mounts
   useEffect(() => {
@@ -200,25 +180,6 @@ const CanvasContent = () => {
       setCurrentProjectId(projectId);
     }
   }, [searchParams, canvas, loadProject]);
-
-  // Migrate existing project to pages if needed
-  useEffect(() => {
-    if (!currentProjectId || !canvas || !user?.id || pages.length > 0) return;
-    
-    // When a project is loaded but has no pages, migrate it
-    const canvasData = canvas.toJSON();
-    const hasObjects = canvasData.objects && canvasData.objects.length > 0;
-    
-    if (hasObjects) {
-      migrateToPages(
-        currentProjectId,
-        canvasData,
-        canvasDimensions.width,
-        canvasDimensions.height,
-        paperSize
-      );
-    }
-  }, [currentProjectId, canvas, user?.id, pages.length, migrateToPages, canvasDimensions, paperSize]);
 
   // Check if first-time user and show welcome dialog
   useEffect(() => {
@@ -1046,18 +1007,7 @@ const CanvasContent = () => {
         </ResizablePanelGroup>
 
       {/* Bottom Bar */}
-      <BottomBar 
-        activeTool={activeTool} 
-        hasSelection={!!selectedObject}
-        pages={pages}
-        currentPageIndex={currentPageIndex}
-        isSavingPage={isSavingPage}
-        onSwitchPage={switchToPage}
-        onAddPage={addPage}
-        onDeletePage={deletePage}
-        onRenamePage={renamePage}
-        onDuplicatePage={duplicatePage}
-      />
+      <BottomBar activeTool={activeTool} hasSelection={!!selectedObject} />
 
       {/* Rating Widget */}
       <ToolRatingWidget />
