@@ -62,9 +62,9 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const [membraneBrushOpen, setMembraneBrushOpen] = useState(false);
   
   const tools = [
-    { id: "select", icon: MousePointer2, label: "Select and Transform (1)" },
-    { id: "pen", icon: PenTool, label: "Draw Bezier Curves (B)" },
-    { id: "freeform-line", icon: Spline, label: "Freeform Curved Line (F)" },
+    { id: "select", icon: MousePointer2, label: "Select and Transform", shortcut: "1" },
+    { id: "pen", icon: PenTool, label: "Draw Bezier Curves", shortcut: "B" },
+    { id: "freeform-line", icon: Spline, label: "Freeform Curved Line", shortcut: "F" },
   ];
 
   // Map tool IDs to their icons and labels for recent tools
@@ -111,13 +111,11 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
                 <tool.icon className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="text-xs font-medium">
-              <div className="flex flex-col">
-                <span>{tool.label.split(' (')[0]}</span>
-                <span className="text-muted-foreground text-[10px]">
-                  {tool.label.includes('(') ? `(${tool.label.split('(')[1]}` : ''}
-                </span>
-              </div>
+            <TooltipContent side="right" className="flex items-center gap-2">
+              <span className="text-xs font-medium">{tool.label}</span>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border border-border shadow-sm">
+                {tool.shortcut}
+              </kbd>
             </TooltipContent>
           </Tooltip>
         ))}
@@ -165,11 +163,9 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <Type className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs font-medium">
-            <div className="flex flex-col">
-              <span>Text</span>
-              <span className="text-muted-foreground text-[10px]">(T)</span>
-            </div>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span className="text-xs font-medium">Text</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border border-border shadow-sm">T</kbd>
           </TooltipContent>
         </Tooltip>
         
@@ -198,7 +194,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <Image className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs font-medium">Image</TooltipContent>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span className="text-xs font-medium">Image</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border border-border shadow-sm">8</kbd>
+          </TooltipContent>
         </Tooltip>
         
         <Tooltip>
@@ -259,7 +258,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <Eraser className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs font-medium">Eraser</TooltipContent>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span className="text-xs font-medium">Eraser</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border border-border shadow-sm">9</kbd>
+          </TooltipContent>
         </Tooltip>
 
         <div className="w-8 h-px bg-blue-300/50 my-1.5" />
