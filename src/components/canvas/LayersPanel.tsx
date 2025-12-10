@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff, Lock, Search, Trash2 } from "lucide-react";
+import { Eye, EyeSlash, Lock, MagnifyingGlass, Trash } from "@phosphor-icons/react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { FabricObject } from "fabric";
 import { toast } from "sonner";
@@ -162,7 +162,7 @@ export const LayersPanel = () => {
       <div className="p-4 border-b border-slate-200/80">
         <h3 className="text-sm font-semibold text-slate-900 mb-3">Layers</h3>
         <div className="relative mb-2">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <MagnifyingGlass size={14} weight="regular" className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search layers..."
             value={searchQuery}
@@ -184,7 +184,7 @@ export const LayersPanel = () => {
             onClick={handleBulkDelete}
             className="h-7 text-xs"
           >
-            <Trash2 className="h-3 w-3 mr-1" />
+            <Trash size={14} weight="regular" className="mr-1" />
             Delete
           </Button>
         </div>
@@ -235,14 +235,14 @@ export const LayersPanel = () => {
                   onClick={(e) => toggleVisibility(layer.id, e)}
                 >
                   {layer.visible ? (
-                    <Eye className="h-4 w-4 text-primary" />
+                    <Eye size={18} weight="regular" className="text-primary" />
                   ) : (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    <EyeSlash size={18} weight="regular" className="text-muted-foreground" />
                   )}
                 </Button>
                 
                 {layer.locked && (
-                  <Lock className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <Lock size={14} weight="regular" className="text-muted-foreground shrink-0" />
                 )}
                 
                 <span className={`flex-1 text-sm truncate transition-opacity ${!layer.visible && 'opacity-50'}`}>
