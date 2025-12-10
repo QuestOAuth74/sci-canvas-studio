@@ -100,7 +100,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
       {/* Clipboard */}
       <div className="flex items-center gap-0.5">
@@ -132,7 +132,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
       {/* Alignment */}
       <div className="flex items-center gap-0.5">
@@ -164,7 +164,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
       {/* Layer Controls */}
       <div className="flex items-center gap-0.5">
@@ -205,7 +205,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
       {/* Grouping */}
       <div className="flex items-center gap-0.5">
@@ -228,7 +228,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
       {/* View Tools */}
       <div className="flex items-center gap-0.5">
@@ -257,12 +257,12 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       
       {activeTool === "text" && (
         <>
-          <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+          <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
           <TextFormattingPanel />
         </>
       )}
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
       {/* View Options */}
       <div className="flex items-center gap-0.5">
@@ -296,7 +296,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
       <FeatureAccessBadge />
 
@@ -353,7 +353,7 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
           <TooltipContent>Fit to Screen</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="h-5 mx-1.5 bg-border/40" />
+        <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
         <QuickSettings />
       </div>

@@ -814,9 +814,9 @@ const CanvasContent = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b border-blue-100/60 flex items-center justify-between">
+                <div className="p-2 border-b border-blue-200/60 bg-blue-100/40 flex items-center justify-between">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-100/50">
+                    <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-100/70">
                       <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Icons</TabsTrigger>
                       <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Assets</TabsTrigger>
                     </TabsList>
@@ -941,9 +941,9 @@ const CanvasContent = () => {
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b border-blue-100/60 flex items-center justify-between">
+              <div className="p-2 border-b border-blue-200/60 bg-blue-100/40 flex items-center justify-between">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-100/50">
+                  <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-100/70">
                     <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Properties</TabsTrigger>
                     <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Layers</TabsTrigger>
                   </TabsList>

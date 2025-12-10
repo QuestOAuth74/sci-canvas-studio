@@ -106,7 +106,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           </Tooltip>
         ))}
 
-        <div className="w-6 h-px bg-border/50 my-1" />
+        <div className="w-6 h-px bg-blue-200/70 my-1" />
 
         {/* Shapes */}
         <Tooltip>
@@ -120,7 +120,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         
         <ShapesWithTextDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
 
-        <div className="w-6 h-px bg-border/50 my-1" />
+        <div className="w-6 h-px bg-blue-200/70 my-1" />
 
         {/* Lines */}
         <div data-onboarding="lines-section">
