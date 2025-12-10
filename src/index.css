@@ -520,62 +520,113 @@ All colors MUST be HSL.
     line-height: var(--line-height-loose);
   }
 
-  /* Canvas Workspace Theme - Professional Scientific Design */
+  /* Canvas Workspace Theme - Professional Medical Blue Design */
   
-  /* Canvas-specific color variables */
+  /* Medical Blue Theme - Canvas-specific color variables */
   .canvas-workspace {
-    /* Workspace Background - Clean white with subtle warmth */
+    /* Deep Navy Header & Primary Panels */
+    --medical-navy: 212 52% 25%;
+    --medical-navy-light: 212 45% 30%;
+    --medical-navy-dark: 212 55% 18%;
+    
+    /* Slate Blue Sidebars */
+    --medical-slate: 217 33% 17%;
+    --medical-slate-light: 217 28% 22%;
+    --medical-slate-dark: 217 38% 12%;
+    
+    /* Medical Teal Accents */
+    --medical-teal: 174 83% 32%;
+    --medical-teal-light: 174 75% 40%;
+    --medical-teal-dark: 174 90% 25%;
+    
+    /* Clean Workspace */
     --canvas-bg-primary: 0 0% 100%;
-    --canvas-bg-secondary: 210 20% 98%;
-    --canvas-bg-tertiary: 210 15% 96%;
+    --canvas-bg-secondary: 210 20% 96%;
+    --canvas-bg-tertiary: 210 15% 93%;
     
-    /* Workspace UI Elements */
-    --canvas-sidebar-bg: 210 18% 96%;
-    --canvas-panel-bg: 0 0% 100%;
-    --canvas-panel-border: 210 15% 88%;
+    /* Panel Colors - Dark Theme */
+    --canvas-sidebar-bg: 217 33% 17%;
+    --canvas-panel-bg: 217 33% 17%;
+    --canvas-panel-border: 217 25% 25%;
+    --canvas-header-bg: 212 52% 25%;
     
-    /* Accent Colors - Scientific Purple-Blue */
-    --canvas-accent-primary: 245 60% 58%;
-    --canvas-accent-secondary: 210 70% 55%;
-    --canvas-accent-tertiary: 195 65% 55%;
-    
-    /* Text & Icons */
-    --canvas-text-primary: 210 25% 20%;
-    --canvas-text-secondary: 210 15% 45%;
-    --canvas-text-muted: 210 10% 65%;
+    /* Text on Dark Backgrounds */
+    --canvas-text-light: 0 0% 100%;
+    --canvas-text-secondary-light: 210 20% 75%;
+    --canvas-text-muted-light: 210 15% 55%;
     
     /* Interactive Elements */
-    --canvas-hover-bg: 245 55% 96%;
-    --canvas-active-bg: 245 60% 58%;
-    --canvas-selection-border: 245 60% 58%;
+    --canvas-hover-bg: 174 50% 25%;
+    --canvas-active-bg: 174 83% 32%;
+    --canvas-selection-border: 174 83% 32%;
   }
 
-  /* Canvas Workspace Theme - Dark Mode */
+  /* Canvas Workspace Theme - Dark Mode (Medical Blue) */
   .canvas-workspace.dark {
-    /* Workspace Background - Dark with warmth */
-    --canvas-bg-primary: 220 20% 16%;
-    --canvas-bg-secondary: 220 18% 18%;
-    --canvas-bg-tertiary: 220 15% 20%;
+    /* Even deeper colors for dark mode */
+    --medical-navy: 212 55% 20%;
+    --medical-slate: 217 38% 12%;
+    --medical-teal: 174 75% 35%;
     
-    /* Workspace UI Elements */
-    --canvas-sidebar-bg: 220 18% 16%;
-    --canvas-panel-bg: 220 20% 18%;
-    --canvas-panel-border: 220 15% 28%;
+    /* Workspace Background */
+    --canvas-bg-primary: 220 20% 14%;
+    --canvas-bg-secondary: 220 18% 16%;
+    --canvas-bg-tertiary: 220 15% 18%;
     
-    /* Accent Colors - Brighter for dark mode */
-    --canvas-accent-primary: 245 65% 65%;
-    --canvas-accent-secondary: 210 75% 60%;
-    --canvas-accent-tertiary: 195 70% 60%;
+    /* Panel Colors */
+    --canvas-sidebar-bg: 217 38% 12%;
+    --canvas-panel-bg: 217 35% 14%;
+    --canvas-panel-border: 217 25% 22%;
+    --canvas-header-bg: 212 55% 18%;
     
-    /* Text & Icons */
-    --canvas-text-primary: 210 20% 90%;
-    --canvas-text-secondary: 210 15% 70%;
-    --canvas-text-muted: 210 10% 50%;
+    /* Text on Dark Backgrounds */
+    --canvas-text-light: 0 0% 95%;
+    --canvas-text-secondary-light: 210 20% 70%;
+    --canvas-text-muted-light: 210 15% 50%;
     
     /* Interactive Elements */
-    --canvas-hover-bg: 245 40% 22%;
-    --canvas-active-bg: 245 65% 65%;
-    --canvas-selection-border: 245 65% 65%;
+    --canvas-hover-bg: 174 45% 22%;
+    --canvas-active-bg: 174 75% 35%;
+    --canvas-selection-border: 174 75% 35%;
+  }
+  
+  /* Medical Blue Panel Utilities */
+  .medical-panel {
+    background-color: hsl(var(--medical-slate));
+    border-color: hsl(var(--canvas-panel-border));
+  }
+  
+  .medical-header {
+    background: linear-gradient(135deg, hsl(var(--medical-navy)) 0%, hsl(var(--medical-navy-dark)) 100%);
+  }
+  
+  .medical-sidebar {
+    background-color: hsl(var(--medical-slate));
+    border-color: hsl(var(--canvas-panel-border));
+  }
+  
+  .medical-tool-button {
+    @apply text-slate-400 hover:text-white hover:bg-teal-600/30 transition-all duration-150 rounded-md;
+  }
+  
+  .medical-tool-button-active {
+    @apply bg-teal-600 text-white shadow-md;
+  }
+  
+  .medical-tab {
+    @apply text-slate-400 hover:text-slate-200 data-[state=active]:text-white data-[state=active]:bg-teal-600/80;
+  }
+  
+  .medical-input {
+    @apply bg-slate-800/50 border-slate-600/50 text-slate-200 placeholder:text-slate-500;
+  }
+  
+  .medical-accordion-trigger {
+    @apply text-slate-300 hover:text-white hover:bg-slate-700/50;
+  }
+  
+  .medical-section-label {
+    @apply text-xs uppercase tracking-wider text-slate-500 font-medium;
   }
 
   /* Scientific Workspace Patterns */
