@@ -27,7 +27,7 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
   const hint = TOOL_HINTS[activeTool] || "Select a tool from the left toolbar to get started.";
   
   return (
-    <div className="h-10 bg-gradient-to-r from-background via-muted/10 to-background border-t-2 border-primary/10 shadow-lg flex items-center px-4 gap-4 justify-between">
+    <div className="h-10 bg-white border-t border-slate-200/80 shadow-sm flex items-center px-4 gap-4 justify-between">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-primary/10 hover:scale-110 transition-all duration-200">
           <Plus className="h-4 w-4" />
