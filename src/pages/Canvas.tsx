@@ -41,7 +41,6 @@ import { ScaleBarTool } from "@/components/canvas/ScaleBarTool";
 import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
-import { EmptyCanvasState } from "@/components/canvas/EmptyCanvasState";
 import { TipBanner } from "@/components/canvas/TipBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
@@ -76,7 +75,6 @@ const CanvasContent = () => {
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
-  const [showEmptyState, setShowEmptyState] = useState(false);
   const { isAdmin } = useAuth();
   const { startOnboarding } = useOnboarding();
   
@@ -199,27 +197,6 @@ const CanvasContent = () => {
       }
     }
   }, [canvas, searchParams]);
-
-  // Check if canvas is empty to show empty state
-  useEffect(() => {
-    if (!canvas) return;
-    
-    const checkEmpty = () => {
-      const objects = canvas.getObjects();
-      const hasContent = objects.length > 0;
-      setShowEmptyState(!hasContent && !showWelcomeDialog);
-    };
-    
-    checkEmpty();
-    
-    canvas.on('object:added', checkEmpty);
-    canvas.on('object:removed', checkEmpty);
-    
-    return () => {
-      canvas.off('object:added', checkEmpty);
-      canvas.off('object:removed', checkEmpty);
-    };
-  }, [canvas, showWelcomeDialog]);
 
   // Check for recovery on load
   useEffect(() => {
@@ -1040,20 +1017,6 @@ const CanvasContent = () => {
           localStorage.setItem('canvas_welcome_completed', 'true');
         }}
       />
-
-      {/* Empty Canvas State */}
-      {showEmptyState && (
-        <EmptyCanvasState
-          onOpenTemplates={() => setTemplatesDialogOpen(true)}
-          onStartTutorial={() => startOnboarding()}
-          onQuickStart={(type) => {
-            // Quick start templates based on type
-            setTemplatesDialogOpen(true);
-            // Could filter templates by type in the future
-          }}
-          onStartBlank={() => setShowEmptyState(false)}
-        />
-      )}
 
       {/* Tip Banner - Shows on first canvas load */}
       <TipBanner />
