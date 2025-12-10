@@ -130,9 +130,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    // Track canvas reference and disposal state for proper cleanup
+    let fabricCanvas: Canvas | null = null;
+    let isDisposed = false;
+    
+    // Event handler references for cleanup
+    let handleAddIcon: ((event: CustomEvent) => Promise<void>) | null = null;
+    let handleAddAsset: ((event: CustomEvent) => Promise<void>) | null = null;
+
     const initCanvas = async () => {
       // Load fonts before initializing canvas
       await loadAllFonts();
+      
+      // Check if component unmounted during async font loading
+      if (isDisposed) return;
       
       // Set global control styles on FabricObject prototype (BioRender-style blue theme)
       FabricObject.prototype.cornerColor = '#3B82F6';        // Blue-500 corners
@@ -147,7 +158,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       (FabricObject.prototype as any).rotatingPointOffset = 45;       // Distance above object
       (FabricObject.prototype as any).hasControls = true;             // Ensure controls are visible
 
-      const canvas = new Canvas(canvasRef.current!, {
+      fabricCanvas = new Canvas(canvasRef.current!, {
         width: canvasDimensions.width,
         height: canvasDimensions.height,
         backgroundColor: backgroundColor,
@@ -155,9 +166,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         centeredScaling: false,
         centeredRotation: true,
       });
+      
+      // Check again after canvas creation
+      if (isDisposed) {
+        fabricCanvas.dispose();
+        return;
+      }
 
     // Apply control styling to all objects added to canvas (BioRender-style blue theme)
-    canvas.on('object:added', (e) => {
+    fabricCanvas.on('object:added', (e) => {
       if (e.target) {
         e.target.set({
           cornerColor: '#3B82F6',
@@ -341,11 +358,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
     
     // Track when rotation ends to hide angle label
-    canvas.on('mouse:up', () => {
-      const activeObj = canvas.getActiveObject();
+    fabricCanvas.on('mouse:up', () => {
+      const activeObj = fabricCanvas?.getActiveObject();
       if (activeObj && (activeObj as any).isRotating) {
         (activeObj as any).isRotating = false;
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
@@ -390,24 +407,24 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    canvas.isDrawingMode = false;
+    fabricCanvas.isDrawingMode = false;
     
     // Initialize connector visual feedback
-    connectorFeedbackRef.current = new ConnectorVisualFeedback(canvas);
+    connectorFeedbackRef.current = new ConnectorVisualFeedback(fabricCanvas);
     
     // Initialize object culling manager
-    cullingManagerRef.current.setCanvas(canvas);
+    cullingManagerRef.current.setCanvas(fabricCanvas);
     throttledCullRef.current = createThrottledCuller(cullingManagerRef.current, 100);
     
     // Apply culling on viewport changes (pan/zoom)
-    canvas.on('after:render', () => {
+    fabricCanvas.on('after:render', () => {
       if (throttledCullRef.current) {
         throttledCullRef.current();
       }
     });
     
     // Apply control styles to any existing objects on canvas (BioRender-style blue theme)
-    canvas.getObjects().forEach((obj) => {
+    fabricCanvas.getObjects().forEach((obj) => {
       obj.set({
         cornerColor: '#3B82F6',
         cornerStrokeColor: '#ffffff',
@@ -417,12 +434,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         borderColor: '#3B82F6',
       });
     });
-    canvas.requestRenderAll();
+    fabricCanvas.requestRenderAll();
     
-    setCanvas(canvas);
+    // Set canvas to context only if not disposed
+    if (!isDisposed) {
+      setCanvas(fabricCanvas);
+    }
     
     // Normalize all existing text objects with font stacks for special character support
-    normalizeCanvasTextFonts(canvas);
+    normalizeCanvasTextFonts(fabricCanvas);
 
     // Helper function to ensure Chemix rotation control is always present
     const ensureChemixRotationControl = (obj: FabricObject | any) => {
@@ -437,18 +457,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
 
     // Apply rotation control to all existing objects
-    canvas.getObjects().forEach((obj: FabricObject) => {
+    fabricCanvas.getObjects().forEach((obj: FabricObject) => {
       const customObj = obj as any;
       if (!customObj.isControlHandle && !customObj.isHandleLine && !customObj.isGuideLine) {
         ensureChemixRotationControl(obj);
       }
     });
-    canvas.requestRenderAll();
+    fabricCanvas.requestRenderAll();
 
     // Helper function to manage curved line control handle visibility
     const manageCurvedLineHandles = (selectedObj: FabricObject | null) => {
       // First, hide ALL curved line handles on the canvas
-      canvas.getObjects().forEach((obj) => {
+      fabricCanvas?.getObjects().forEach((obj) => {
         if ((obj as any).isCurvedLine) {
           const curveData = obj as any;
           if (curveData.controlHandle) {
@@ -475,17 +495,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
       }
       
-      canvas.requestRenderAll();
+      fabricCanvas?.requestRenderAll();
     };
 
     // Track selected objects with debug and auto-fix for invisible text
-    canvas.on('selection:created', (e) => {
+    fabricCanvas.on('selection:created', (e) => {
       const rawSelected = e.selected?.[0] || null;
       let uiSelected: FabricObject | null = rawSelected;
       
       // If a control handle or guide line is selected, map to parent curved line for the UI
       if (rawSelected && ((rawSelected as any).isControlHandle || (rawSelected as any).isHandleLine)) {
-        const parentCurve = canvas.getObjects().find(obj => {
+        const parentCurve = fabricCanvas?.getObjects().find(obj => {
           const curveData = obj as any;
           return curveData.isCurvedLine && 
                  (curveData.controlHandle === rawSelected || 
@@ -517,18 +537,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       debugTextObject(uiSelected, "Selection Created");
       
       // Auto-fix invisible text
-      if (uiSelected && fixInvisibleText(uiSelected, canvas)) {
+      if (uiSelected && fixInvisibleText(uiSelected, fabricCanvas!)) {
         toast.info("Fixed invisible text (reset opacity/fill)");
       }
     });
     
-    canvas.on('selection:updated', (e) => {
+    fabricCanvas.on('selection:updated', (e) => {
       const rawSelected = e.selected?.[0] || null;
       let uiSelected: FabricObject | null = rawSelected;
       
       // If a control handle or guide line is selected, map to parent curved line for the UI
       if (rawSelected && ((rawSelected as any).isControlHandle || (rawSelected as any).isHandleLine)) {
-        const parentCurve = canvas.getObjects().find(obj => {
+        const parentCurve = fabricCanvas?.getObjects().find(obj => {
           const curveData = obj as any;
           return curveData.isCurvedLine && 
                  (curveData.controlHandle === rawSelected || 
@@ -550,7 +570,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         
         // Ensure rotation control is present
         ensureChemixRotationControl(uiSelected);
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
       
       // UI uses uiSelected (parent curve for handles)
@@ -561,36 +581,36 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       debugTextObject(uiSelected, "Selection Updated");
       
       // Auto-fix invisible text
-      if (uiSelected && fixInvisibleText(uiSelected, canvas)) {
+      if (uiSelected && fixInvisibleText(uiSelected, fabricCanvas!)) {
         toast.info("Fixed invisible text (reset opacity/fill)");
       }
     });
     
-    canvas.on('selection:cleared', () => {
+    fabricCanvas.on('selection:cleared', () => {
       setSelectedObject(null);
       manageCurvedLineHandles(null);
     });
 
     // Normalize fonts when text editing starts
-    canvas.on('text:editing:entered', (e: any) => {
+    fabricCanvas.on('text:editing:entered', (e: any) => {
       if (e.target) {
         normalizeEditingTextFont(e.target);
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
     // Normalize fonts when text content changes (safety net)
-    canvas.on('text:changed', (e: any) => {
+    fabricCanvas.on('text:changed', (e: any) => {
       const target = e.target;
       if (target && (target.type === 'textbox' || target.type === 'text')) {
         normalizeEditingTextFont(target);
         target.dirty = true;
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
     // Finalize fonts and layout when exiting edit mode
-    canvas.on('text:editing:exited', (e: any) => {
+    fabricCanvas.on('text:editing:exited', (e: any) => {
       const target = e.target;
       if (target && (target.type === 'textbox' || target.type === 'text')) {
         normalizeEditingTextFont(target);
@@ -601,13 +621,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           target.setCoords();
         }
         target.dirty = true;
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
     // Alt+Drag duplication handlers
-    canvas.on('mouse:down', async (e) => {
-      const activeObject = canvas.getActiveObject();
+    fabricCanvas.on('mouse:down', async (e) => {
+      const activeObject = fabricCanvas?.getActiveObject();
       
       if (e.e.altKey && activeObject && activeTool === 'select') {
         e.e.preventDefault();
@@ -620,18 +640,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             evented: true,
           });
           
-          canvas.add(cloned);
-          canvas.setActiveObject(cloned);
+          fabricCanvas?.add(cloned);
+          fabricCanvas?.setActiveObject(cloned);
           clonedObjectRef.current = cloned;
           setIsDuplicating(true);
-          canvas.requestRenderAll();
+          fabricCanvas?.requestRenderAll();
         } catch (error) {
           console.error('Failed to clone object:', error);
         }
       }
     });
 
-    canvas.on('mouse:up', () => {
+    fabricCanvas.on('mouse:up', () => {
       if (isDuplicating) {
         setIsDuplicating(false);
         clonedObjectRef.current = null;
@@ -642,25 +662,25 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Handle text box resize - track scaling state to avoid feedback loops
     let isScalingTextBox = false;
 
-    canvas.on('object:scaling', (e) => {
+    fabricCanvas.on('object:scaling', (e) => {
       if (e.target && isTextBox(e.target)) {
         isScalingTextBox = true;
       }
     });
 
-    canvas.on('mouse:up', () => {
+    fabricCanvas.on('mouse:up', () => {
       if (isScalingTextBox) {
-        const obj = canvas.getActiveObject();
+        const obj = fabricCanvas?.getActiveObject();
         if (obj && isTextBox(obj)) {
           handleTextBoxResize(obj);
-          canvas.requestRenderAll();
+          fabricCanvas?.requestRenderAll();
         }
         isScalingTextBox = false;
       }
     });
 
     // Handle double-click for image placeholders and text box editing
-    canvas.on('mouse:dblclick', (e) => {
+    fabricCanvas.on('mouse:dblclick', (e) => {
       const obj = e.target;
       
       // Handle image placeholder click - open file picker
@@ -696,10 +716,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               });
               
               // Remove placeholder and add image
-              canvas.remove(obj);
-              canvas.add(fabricImage);
-              canvas.setActiveObject(fabricImage);
-              canvas.renderAll();
+              fabricCanvas?.remove(obj);
+              fabricCanvas?.add(fabricImage);
+              fabricCanvas?.setActiveObject(fabricImage);
+              fabricCanvas?.renderAll();
               
               toast.success("Image added successfully!");
             };
@@ -717,10 +737,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (obj && isTextBox(obj)) {
         const textElement = getTextBoxTextElement(obj);
         if (textElement) {
-          canvas.setActiveObject(textElement);
+          fabricCanvas?.setActiveObject(textElement);
           textElement.enterEditing();
           textElement.selectAll();
-          canvas.requestRenderAll();
+          fabricCanvas?.requestRenderAll();
         }
       }
     });
@@ -729,28 +749,28 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // (previous object:modified snapping handler deleted)
 
     // Add drag feedback for better micro-interactions
-    canvas.on('object:moving', (e) => {
+    fabricCanvas.on('object:moving', (e) => {
       if (e.target) {
         e.target.set({ opacity: 0.85 }); // Slightly transparent while dragging
       }
     });
 
-    canvas.on('object:modified', (e) => {
+    fabricCanvas.on('object:modified', (e) => {
       if (e.target) {
         e.target.set({ opacity: 1 }); // Restore full opacity after drag
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
-    canvas.on('mouse:move', (e) => {
-      if (e.e.altKey && canvas.getActiveObject() && activeTool === 'select') {
-        canvas.setCursor('copy');
+    fabricCanvas.on('mouse:move', (e) => {
+      if (e.e.altKey && fabricCanvas?.getActiveObject() && activeTool === 'select') {
+        fabricCanvas?.setCursor('copy');
       }
     });
 
 
     // Listen for custom event to add icons to canvas
-    const handleAddIcon = async (event: CustomEvent) => {
+    handleAddIcon = async (event: CustomEvent) => {
       const { svgData, iconId } = event.detail;
 
       try {
@@ -774,18 +794,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           }
           
           // Scale and position
-          const maxW = (canvas.width || 0) * 0.6;
-          const maxH = (canvas.height || 0) * 0.6;
+          const maxW = (fabricCanvas?.width || 0) * 0.6;
+          const maxH = (fabricCanvas?.height || 0) * 0.6;
           const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
           group.scale(scale);
           group.set({
-            left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
-            top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+            left: (fabricCanvas?.width || 0) / 2 - (group.width || 0) * scale / 2,
+            top: (fabricCanvas?.height || 0) / 2 - (group.height || 0) * scale / 2,
           });
           
-          canvas.add(group);
-          canvas.setActiveObject(group);
-          canvas.requestRenderAll();
+          fabricCanvas?.add(group);
+          fabricCanvas?.setActiveObject(group);
+          fabricCanvas?.requestRenderAll();
           toast.success("Icon added to canvas (cached)");
           return;
         }
@@ -886,20 +906,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
         
         // Scale to fit within 60% of canvas area
-        const maxW = (canvas.width || 0) * 0.6;
-        const maxH = (canvas.height || 0) * 0.6;
+        const maxW = (fabricCanvas?.width || 0) * 0.6;
+        const maxH = (fabricCanvas?.height || 0) * 0.6;
         const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
         group.scale(scale);
         
         // Center on canvas
         group.set({
-          left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
-          top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+          left: (fabricCanvas?.width || 0) / 2 - (group.width || 0) * scale / 2,
+          top: (fabricCanvas?.height || 0) / 2 - (group.height || 0) * scale / 2,
         });
         
-        canvas.add(group);
-        canvas.setActiveObject(group);
-        canvas.requestRenderAll();
+        fabricCanvas?.add(group);
+        fabricCanvas?.setActiveObject(group);
+        fabricCanvas?.requestRenderAll();
         toast.success("Icon added to canvas");
       } catch (error) {
         console.error("Error adding icon:", error);
@@ -919,9 +939,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     window.addEventListener("addIconToCanvas", handleAddIcon as EventListener);
 
     // Handle adding asset from library
-    const handleAddAsset = async (event: CustomEvent) => {
+    handleAddAsset = async (event: CustomEvent) => {
       const { content, assetId } = event.detail;
-      if (!canvas || !content) return;
+      if (!fabricCanvas || !content) return;
 
       try {
         toast("Loading asset...");
@@ -933,39 +953,39 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           const { objects, options } = await loadSVGFromString(sanitizedContent);
           const group = util.groupSVGElements(objects, options);
           
-          const maxW = (canvas.width || 0) * 0.6;
-          const maxH = (canvas.height || 0) * 0.6;
+          const maxW = (fabricCanvas.width || 0) * 0.6;
+          const maxH = (fabricCanvas.height || 0) * 0.6;
           const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
           group.scale(scale);
           
           group.set({
-            left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
-            top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+            left: (fabricCanvas.width || 0) / 2 - (group.width || 0) * scale / 2,
+            top: (fabricCanvas.height || 0) / 2 - (group.height || 0) * scale / 2,
           });
           
-          canvas.add(group);
-          canvas.setActiveObject(group);
-          canvas.requestRenderAll();
+          fabricCanvas.add(group);
+          fabricCanvas.setActiveObject(group);
+          fabricCanvas.requestRenderAll();
           toast.success("Asset added to canvas");
         } else {
           // Handle as data URL image with CORS support
           try {
             const img = await loadImageWithCORS(content);
             const fabricImage = new FabricImage(img, {
-              left: (canvas.width || 0) / 2,
-              top: (canvas.height || 0) / 2,
+              left: (fabricCanvas.width || 0) / 2,
+              top: (fabricCanvas.height || 0) / 2,
               originX: "center",
               originY: "center",
             });
             
-            const maxW = (canvas.width || 0) * 0.6;
-            const maxH = (canvas.height || 0) * 0.6;
+            const maxW = (fabricCanvas.width || 0) * 0.6;
+            const maxH = (fabricCanvas.height || 0) * 0.6;
             const scale = Math.min(maxW / fabricImage.width!, maxH / fabricImage.height!, 1);
             fabricImage.scale(scale);
             
-            canvas.add(fabricImage);
-            canvas.setActiveObject(fabricImage);
-            canvas.requestRenderAll();
+            fabricCanvas.add(fabricImage);
+            fabricCanvas.setActiveObject(fabricImage);
+            fabricCanvas.requestRenderAll();
             toast.success("Asset added to canvas");
           } catch (error) {
             console.error("Failed to load image:", error);
@@ -979,16 +999,24 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
 
     window.addEventListener("addAssetToCanvas", handleAddAsset as EventListener);
-
-      return () => {
-        window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
-        window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
-        setCanvas(null);
-        canvas.dispose();
-      };
     };
 
     initCanvas();
+    
+    // Cleanup returned DIRECTLY from useEffect, not from async function
+    return () => {
+      isDisposed = true;
+      if (handleAddIcon) {
+        window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
+      }
+      if (handleAddAsset) {
+        window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
+      }
+      setCanvas(null);
+      if (fabricCanvas) {
+        fabricCanvas.dispose();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
