@@ -45,6 +45,15 @@ interface ToolbarProps {
   onToolChange: (tool: string) => void;
 }
 
+// Section label component for visual grouping
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="w-full px-1 py-1">
+    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+      {children}
+    </span>
+  </div>
+);
+
 export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const { canvas, selectedObject, setCropMode, setSelectedObject } = useCanvas();
   const { recentTools, addRecentTool } = useRecentlyUsedTools();
@@ -80,14 +89,16 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
     onToolChange(toolId);
   };
 
-  const toolButtonBase = "w-9 h-9 rounded-md transition-all duration-150";
-  const toolButtonActive = `${toolButtonBase} bg-primary text-primary-foreground shadow-sm`;
-  const toolButtonInactive = `${toolButtonBase} text-muted-foreground hover:text-foreground hover:bg-blue-200/60`;
+  const toolButtonBase = "w-9 h-9 rounded-md transition-all duration-150 hover:scale-105";
+  const toolButtonActive = `${toolButtonBase} bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30`;
+  const toolButtonInactive = `${toolButtonBase} text-muted-foreground hover:text-foreground hover:bg-blue-200/60 hover:shadow-sm`;
 
   return (
-    <div className="h-full flex flex-col bg-blue-100/60 border-r border-blue-200/80 overflow-y-auto min-h-0 w-12">
-      <div className="flex-1 flex flex-col items-center gap-0.5 py-2 px-1 overflow-y-auto">
-        {/* Core Tools */}
+    <div className="h-full flex flex-col bg-blue-100/60 border-r border-blue-200/80 overflow-y-auto min-h-0 w-14">
+      <div className="flex-1 flex flex-col items-center gap-0.5 py-2 px-1.5 overflow-y-auto">
+        
+        {/* Draw Section */}
+        <SectionLabel>Draw</SectionLabel>
         {tools.map((tool) => (
           <Tooltip key={tool.id}>
             <TooltipTrigger asChild>
@@ -100,29 +111,36 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
                 <tool.icon className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="text-xs">
-              {tool.label}
+            <TooltipContent side="right" className="text-xs font-medium">
+              <div className="flex flex-col">
+                <span>{tool.label.split(' (')[0]}</span>
+                <span className="text-muted-foreground text-[10px]">
+                  {tool.label.includes('(') ? `(${tool.label.split('(')[1]}` : ''}
+                </span>
+              </div>
             </TooltipContent>
           </Tooltip>
         ))}
 
-        <div className="w-6 h-px bg-blue-300/70 my-1" />
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
 
-        {/* Shapes */}
+        {/* Shapes Section */}
+        <SectionLabel>Shapes</SectionLabel>
         <Tooltip>
           <TooltipTrigger asChild>
             <div data-onboarding="shapes-dropdown">
               <ShapesDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
             </div>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">Shapes</TooltipContent>
+          <TooltipContent side="right" className="text-xs font-medium">Basic Shapes</TooltipContent>
         </Tooltip>
         
         <ShapesWithTextDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
 
-        <div className="w-6 h-px bg-blue-200/70 my-1" />
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
 
-        {/* Lines */}
+        {/* Lines Section */}
+        <SectionLabel>Lines</SectionLabel>
         <div data-onboarding="lines-section">
           <StraightLineTool onLineSelect={onToolChange} activeTool={activeTool} />
         </div>
@@ -131,9 +149,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
         <ConnectorTool onConnectorSelect={handleToolChange} activeTool={activeTool} />
         <ZoomCalloutTool onCalloutSelect={handleToolChange} activeTool={activeTool} />
 
-        <div className="w-6 h-px bg-border/50 my-1" />
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
 
-        {/* Content Tools */}
+        {/* Content Section */}
+        <SectionLabel>Content</SectionLabel>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -146,7 +165,12 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <Type className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">Text (T)</TooltipContent>
+          <TooltipContent side="right" className="text-xs font-medium">
+            <div className="flex flex-col">
+              <span>Text</span>
+              <span className="text-muted-foreground text-[10px]">(T)</span>
+            </div>
+          </TooltipContent>
         </Tooltip>
         
         <Tooltip>
@@ -160,7 +184,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <Waves className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">Membrane Brush</TooltipContent>
+          <TooltipContent side="right" className="text-xs font-medium">Membrane Brush</TooltipContent>
         </Tooltip>
         
         <Tooltip>
@@ -174,7 +198,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <Image className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">Image</TooltipContent>
+          <TooltipContent side="right" className="text-xs font-medium">Image</TooltipContent>
         </Tooltip>
         
         <Tooltip>
@@ -191,7 +215,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <ImagePlus className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">Image Placeholder</TooltipContent>
+          <TooltipContent side="right" className="text-xs font-medium">Image Placeholder</TooltipContent>
         </Tooltip>
         
         <Tooltip>
@@ -221,7 +245,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <Crop className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">Crop</TooltipContent>
+          <TooltipContent side="right" className="text-xs font-medium">Crop</TooltipContent>
         </Tooltip>
         
         <Tooltip>
@@ -235,11 +259,13 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <Eraser className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">Eraser</TooltipContent>
+          <TooltipContent side="right" className="text-xs font-medium">Eraser</TooltipContent>
         </Tooltip>
 
-        <div className="w-6 h-px bg-border/50 my-1" />
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
 
+        {/* Export Section */}
+        <SectionLabel>Export</SectionLabel>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -251,7 +277,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
               <FileText className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="text-xs">PowerPoint</TooltipContent>
+          <TooltipContent side="right" className="text-xs font-medium">PowerPoint</TooltipContent>
         </Tooltip>
 
         <PowerPointGenerator 

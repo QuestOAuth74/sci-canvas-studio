@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight, Sparkles, Square, Image, Layers } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
@@ -802,30 +802,46 @@ const CanvasContent = () => {
           >
             <div className={`bg-blue-100/60 border-r border-blue-200/80 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
             {isIconLibraryCollapsed ? (
-              <div className="p-2">
+              <div className="p-2 flex flex-col items-center gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsIconLibraryCollapsed(false)}
-                  className="w-full text-muted-foreground hover:text-foreground"
+                  className="w-full text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
+                {/* Vertical label when collapsed */}
+                <span className="text-[10px] font-medium text-muted-foreground writing-mode-vertical transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
+                  {leftSidebarTab === "icons" ? "Icons" : "Assets"}
+                </span>
               </div>
             ) : (
               <div className="flex flex-col h-full">
                 <div className="p-2 border-b border-blue-300/60 bg-blue-200/40 flex items-center justify-between">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-200/70">
-                      <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Icons</TabsTrigger>
-                      <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Assets</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 h-9 bg-blue-200/70 p-0.5 rounded-lg">
+                      <TabsTrigger 
+                        value="icons" 
+                        className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                      >
+                        <Square className="h-3 w-3" />
+                        Icons
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="assets" 
+                        className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                      >
+                        <Image className="h-3 w-3" />
+                        Assets
+                      </TabsTrigger>
                     </TabsList>
                   </Tabs>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsIconLibraryCollapsed(true)}
-                    className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground"
+                    className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -929,30 +945,46 @@ const CanvasContent = () => {
           >
             <div className={`bg-blue-100/60 border-l border-blue-200/80 flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
-            <div className="p-2">
+            <div className="p-2 flex flex-col items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsPropertiesPanelCollapsed(false)}
-                className="w-full text-muted-foreground hover:text-foreground"
+                className="w-full text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
+              {/* Vertical label when collapsed */}
+              <span className="text-[10px] font-medium text-muted-foreground" style={{ writingMode: 'vertical-rl' }}>
+                {rightSidebarTab === "properties" ? "Properties" : "Layers"}
+              </span>
             </div>
           ) : (
             <div className="flex flex-col h-full">
               <div className="p-2 border-b border-blue-300/60 bg-blue-200/40 flex items-center justify-between">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-8 bg-blue-200/70">
-                    <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Properties</TabsTrigger>
-                    <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Layers</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-9 bg-blue-200/70 p-0.5 rounded-lg">
+                    <TabsTrigger 
+                      value="properties" 
+                      className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                    >
+                      <Square className="h-3 w-3" />
+                      Properties
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="layers" 
+                      className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                    >
+                      <Layers className="h-3 w-3" />
+                      Layers
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsPropertiesPanelCollapsed(true)}
-                  className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
