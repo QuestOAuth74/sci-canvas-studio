@@ -7,19 +7,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Underline,
-  Type,
-  Bold,
-  Italic,
-  List,
-  ListOrdered,
-  Subscript,
-  Superscript,
-  FlaskConical,
-} from "lucide-react";
+  TextAlignLeft,
+  TextAlignCenter,
+  TextAlignRight,
+  TextUnderline,
+  TextT,
+  TextB,
+  TextItalic,
+  ListBullets,
+  ListNumbers,
+  TextSubscript,
+  TextSuperscript,
+  Flask,
+} from "@phosphor-icons/react";
 import {
   Tooltip,
   TooltipContent,
@@ -386,7 +386,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={handleBoldChange}
           >
-            <Bold className="h-4 w-4" />
+            <TextB size={18} weight={textBold ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Bold</TooltipContent>
@@ -400,7 +400,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={handleItalicChange}
           >
-            <Italic className="h-4 w-4" />
+            <TextItalic size={18} weight={textItalic ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Italic</TooltipContent>
@@ -417,7 +417,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={() => handleAlignChange("left")}
           >
-            <AlignLeft className="h-4 w-4" />
+            <TextAlignLeft size={18} weight={textAlign === "left" ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Align Left</TooltipContent>
@@ -431,7 +431,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={() => handleAlignChange("center")}
           >
-            <AlignCenter className="h-4 w-4" />
+            <TextAlignCenter size={18} weight={textAlign === "center" ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Align Center</TooltipContent>
@@ -445,7 +445,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={() => handleAlignChange("right")}
           >
-            <AlignRight className="h-4 w-4" />
+            <TextAlignRight size={18} weight={textAlign === "right" ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Align Right</TooltipContent>
@@ -462,7 +462,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={handleUnderlineChange}
           >
-            <Underline className="h-4 w-4" />
+            <TextUnderline size={18} weight={textUnderline ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Underline</TooltipContent>
@@ -476,7 +476,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8 relative"
             onClick={handleOverlineChange}
           >
-            <Type className="h-4 w-4" />
+            <TextT size={18} weight={textOverline ? "duotone" : "regular"} />
             <div className="absolute top-1.5 left-2 right-2 h-px bg-current" />
           </Button>
         </TooltipTrigger>
@@ -492,7 +492,7 @@ export const TextFormattingPanel = () => {
             onClick={handleSubscriptChange}
             className="h-8 w-8"
           >
-            <Subscript className="h-4 w-4" />
+            <TextSubscript size={18} weight={textSubscript ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
@@ -509,7 +509,7 @@ export const TextFormattingPanel = () => {
             onClick={handleSuperscriptChange}
             className="h-8 w-8"
           >
-            <Superscript className="h-4 w-4" />
+            <TextSuperscript size={18} weight={textSuperscript ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
@@ -531,7 +531,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={handleScientificPreset}
           >
-            <FlaskConical className="h-4 w-4" />
+            <Flask size={18} weight="regular" />
           </Button>
         </TooltipTrigger>
         <TooltipContent>
@@ -551,7 +551,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={() => handleListTypeChange(textListType === 'bullet' ? 'none' : 'bullet')}
           >
-            <List className="h-4 w-4" />
+            <ListBullets size={18} weight={textListType === "bullet" ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Bullet List</TooltipContent>
@@ -565,7 +565,7 @@ export const TextFormattingPanel = () => {
             className="h-8 w-8"
             onClick={() => handleListTypeChange(textListType === 'numbered' ? 'none' : 'numbered')}
           >
-            <ListOrdered className="h-4 w-4" />
+            <ListNumbers size={18} weight={textListType === "numbered" ? "duotone" : "regular"} />
           </Button>
         </TooltipTrigger>
         <TooltipContent>Numbered List</TooltipContent>

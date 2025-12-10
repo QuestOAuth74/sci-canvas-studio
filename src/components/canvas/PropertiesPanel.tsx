@@ -22,7 +22,7 @@ import { useCanvas } from "@/contexts/CanvasContext";
 import { Textbox, FabricImage, filters, Group, FabricObject, Path, Circle as FabricCircle, Polygon, Rect, Line } from "fabric";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { ChevronLeft, ChevronRight, Pin, PinOff, Eraser, Paintbrush } from "lucide-react";
+import { CaretLeft, CaretRight, PushPin, PushPinSlash, Eraser, PaintBrush } from "@phosphor-icons/react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { toast } from "sonner";
 import { ensureFontLoaded, getCanvasFontFamily } from "@/lib/fontLoader";
@@ -776,7 +776,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
           className="h-7 w-7"
           title={isCollapsed ? "Expand properties panel" : "Collapse properties panel"}
         >
-          {isCollapsed ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          {isCollapsed ? <CaretLeft size={18} weight="regular" /> : <CaretRight size={18} weight="regular" />}
         </Button>
       </div>
 
@@ -796,12 +796,12 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                 >
                   {isPinned ? (
                     <>
-                      <Pin className="h-4 w-4" />
+                      <PushPin size={18} weight="regular" />
                       Unpin
                     </>
                   ) : (
                     <>
-                      <PinOff className="h-4 w-4" />
+                      <PushPinSlash size={18} weight="regular" />
                       Pin
                     </>
                   )}
@@ -1193,7 +1193,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                             onClick={() => smoothenPath(smoothingStrength)}
                             className="w-full text-xs h-8"
                           >
-                            <Paintbrush className="h-3.5 w-3.5 mr-1.5" />
+                            <PaintBrush size={16} weight="regular" className="mr-1.5" />
                             Beautify Path
                           </Button>
                           <p className="text-xs text-muted-foreground">
@@ -1426,7 +1426,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                               variant="outline"
                               size="sm"
                             >
-                              <Paintbrush className="mr-2 h-4 w-4" />
+                              <PaintBrush size={18} weight="regular" className="mr-2" />
                               Manual Eraser
                             </Button>
                             <p className="text-xs text-muted-foreground">
