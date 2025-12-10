@@ -1080,6 +1080,56 @@ export type Database = {
           },
         ]
       }
+      project_pages: {
+        Row: {
+          background_color: string | null
+          canvas_data: Json
+          canvas_height: number
+          canvas_width: number
+          created_at: string | null
+          id: string
+          page_name: string
+          page_number: number
+          paper_size: string | null
+          project_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          background_color?: string | null
+          canvas_data?: Json
+          canvas_height?: number
+          canvas_width?: number
+          created_at?: string | null
+          id?: string
+          page_name?: string
+          page_number: number
+          paper_size?: string | null
+          project_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          background_color?: string | null
+          canvas_data?: Json
+          canvas_height?: number
+          canvas_width?: number
+          created_at?: string | null
+          id?: string
+          page_name?: string
+          page_number?: number
+          paper_size?: string | null
+          project_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_pages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_versions: {
         Row: {
           canvas_data: Json

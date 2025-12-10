@@ -286,21 +286,23 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         ctx.restore();
       };
 
-      // Apply custom grip renderers to default controls
+      // Apply custom grip renderers to default controls (with safety check)
       const defaultControls = FabricObject.prototype.controls;
       
-      // Corner controls (tl, tr, bl, br)
-      ['tl', 'tr', 'bl', 'br'].forEach((corner) => {
-        if (defaultControls[corner]) {
-          defaultControls[corner].render = renderGripCorner;
-        }
-      });
-      
-      // Edge controls (horizontal: mt, mb; vertical: ml, mr)
-      if (defaultControls.mt) defaultControls.mt.render = renderGripEdge(true);
-      if (defaultControls.mb) defaultControls.mb.render = renderGripEdge(true);
-      if (defaultControls.ml) defaultControls.ml.render = renderGripEdge(false);
-      if (defaultControls.mr) defaultControls.mr.render = renderGripEdge(false);
+      if (defaultControls) {
+        // Corner controls (tl, tr, bl, br)
+        ['tl', 'tr', 'bl', 'br'].forEach((corner) => {
+          if (defaultControls[corner]) {
+            defaultControls[corner].render = renderGripCorner;
+          }
+        });
+        
+        // Edge controls (horizontal: mt, mb; vertical: ml, mr)
+        if (defaultControls.mt) defaultControls.mt.render = renderGripEdge(true);
+        if (defaultControls.mb) defaultControls.mb.render = renderGripEdge(true);
+        if (defaultControls.ml) defaultControls.ml.render = renderGripEdge(false);
+        if (defaultControls.mr) defaultControls.mr.render = renderGripEdge(false);
+      }
 
       fabricCanvas = new Canvas(canvasRef.current!, {
         width: canvasDimensions.width,
