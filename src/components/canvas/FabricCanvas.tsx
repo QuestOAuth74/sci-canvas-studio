@@ -130,24 +130,181 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   useEffect(() => {
     if (!canvasRef.current) return;
 
+    // Track canvas reference and disposal state for proper cleanup
+    let fabricCanvas: Canvas | null = null;
+    let isDisposed = false;
+    
+    // Event handler references for cleanup
+    let handleAddIcon: ((event: CustomEvent) => Promise<void>) | null = null;
+    let handleAddAsset: ((event: CustomEvent) => Promise<void>) | null = null;
+
     const initCanvas = async () => {
       // Load fonts before initializing canvas
       await loadAllFonts();
       
-      // Set global control styles on FabricObject prototype (applies to all objects)
-      FabricObject.prototype.cornerColor = '#EF4444';        // Red square dots
+      // Check if component unmounted during async font loading
+      if (isDisposed) return;
+      
+      // Set global control styles on FabricObject prototype (BioRender-style blue theme)
+      FabricObject.prototype.cornerColor = '#3B82F6';        // Blue-500 corners
       FabricObject.prototype.cornerStrokeColor = '#ffffff';
-      FabricObject.prototype.cornerStyle = 'rect';           // Square corners
-      FabricObject.prototype.cornerSize = 8;
+      FabricObject.prototype.cornerStyle = 'rect';           // Use rect for grip-style rendering
+      FabricObject.prototype.cornerSize = 12;                // Slightly larger for grip handles
       FabricObject.prototype.transparentCorners = false;
-      FabricObject.prototype.borderColor = '#EF4444';        // Red selection border
-      FabricObject.prototype.borderScaleFactor = 2;
+      FabricObject.prototype.borderColor = '#3B82F6';        // Blue selection border
+      FabricObject.prototype.borderScaleFactor = 1.5;        // Thinner border
+      FabricObject.prototype.borderDashArray = [6, 4];       // Dashed border for better visibility
       FabricObject.prototype.padding = 4;
       (FabricObject.prototype as any).hasRotatingPoint = true;        // Enable rotation handle globally
       (FabricObject.prototype as any).rotatingPointOffset = 45;       // Distance above object
       (FabricObject.prototype as any).hasControls = true;             // Ensure controls are visible
 
-      const canvas = new Canvas(canvasRef.current!, {
+      // Custom grip-style corner control renderer (matches panel resizer aesthetic)
+      const renderGripCorner = (
+        ctx: CanvasRenderingContext2D,
+        left: number,
+        top: number,
+        _styleOverride: any,
+        _fabricObject: any
+      ) => {
+        const size = 12;
+        const dotSize = 2;
+        const dotGap = 3;
+        
+        ctx.save();
+        ctx.translate(left, top);
+        
+        // Draw rounded background
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowOffsetY = 1;
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = 'hsl(215 20% 85%)';
+        ctx.lineWidth = 1;
+        
+        // Rounded rectangle background
+        const radius = 3;
+        ctx.beginPath();
+        ctx.moveTo(-size/2 + radius, -size/2);
+        ctx.lineTo(size/2 - radius, -size/2);
+        ctx.quadraticCurveTo(size/2, -size/2, size/2, -size/2 + radius);
+        ctx.lineTo(size/2, size/2 - radius);
+        ctx.quadraticCurveTo(size/2, size/2, size/2 - radius, size/2);
+        ctx.lineTo(-size/2 + radius, size/2);
+        ctx.quadraticCurveTo(-size/2, size/2, -size/2, size/2 - radius);
+        ctx.lineTo(-size/2, -size/2 + radius);
+        ctx.quadraticCurveTo(-size/2, -size/2, -size/2 + radius, -size/2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Reset shadow for dots
+        ctx.shadowBlur = 0;
+        
+        // Draw grip dots (2x3 grid pattern)
+        ctx.fillStyle = 'hsl(215 15% 55%)';
+        const cols = 2;
+        const rows = 3;
+        const startX = -(cols - 1) * dotGap / 2;
+        const startY = -(rows - 1) * dotGap / 2;
+        
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            const x = startX + col * dotGap;
+            const y = startY + row * dotGap;
+            ctx.beginPath();
+            ctx.arc(x, y, dotSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        
+        ctx.restore();
+      };
+
+      // Custom grip-style edge control renderer (horizontal or vertical)
+      const renderGripEdge = (isHorizontal: boolean) => (
+        ctx: CanvasRenderingContext2D,
+        left: number,
+        top: number,
+        _styleOverride: any,
+        _fabricObject: any
+      ) => {
+        const width = isHorizontal ? 20 : 10;
+        const height = isHorizontal ? 10 : 20;
+        const dotSize = 2;
+        const dotGap = 3;
+        
+        ctx.save();
+        ctx.translate(left, top);
+        
+        // Draw rounded background
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowOffsetY = 1;
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = 'hsl(215 20% 85%)';
+        ctx.lineWidth = 1;
+        
+        // Rounded rectangle background
+        const radius = 3;
+        ctx.beginPath();
+        ctx.moveTo(-width/2 + radius, -height/2);
+        ctx.lineTo(width/2 - radius, -height/2);
+        ctx.quadraticCurveTo(width/2, -height/2, width/2, -height/2 + radius);
+        ctx.lineTo(width/2, height/2 - radius);
+        ctx.quadraticCurveTo(width/2, height/2, width/2 - radius, height/2);
+        ctx.lineTo(-width/2 + radius, height/2);
+        ctx.quadraticCurveTo(-width/2, height/2, -width/2, height/2 - radius);
+        ctx.lineTo(-width/2, -height/2 + radius);
+        ctx.quadraticCurveTo(-width/2, -height/2, -width/2 + radius, -height/2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Reset shadow for dots
+        ctx.shadowBlur = 0;
+        
+        // Draw grip dots
+        ctx.fillStyle = 'hsl(215 15% 55%)';
+        const cols = isHorizontal ? 3 : 2;
+        const rows = isHorizontal ? 2 : 3;
+        const startX = -(cols - 1) * dotGap / 2;
+        const startY = -(rows - 1) * dotGap / 2;
+        
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
+            const x = startX + col * dotGap;
+            const y = startY + row * dotGap;
+            ctx.beginPath();
+            ctx.arc(x, y, dotSize / 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        
+        ctx.restore();
+      };
+
+      // Apply custom grip renderers to default controls (with safety check)
+      const defaultControls = FabricObject.prototype.controls;
+      
+      if (defaultControls) {
+        // Corner controls (tl, tr, bl, br)
+        ['tl', 'tr', 'bl', 'br'].forEach((corner) => {
+          if (defaultControls[corner]) {
+            defaultControls[corner].render = renderGripCorner;
+          }
+        });
+        
+        // Edge controls (horizontal: mt, mb; vertical: ml, mr)
+        if (defaultControls.mt) defaultControls.mt.render = renderGripEdge(true);
+        if (defaultControls.mb) defaultControls.mb.render = renderGripEdge(true);
+        if (defaultControls.ml) defaultControls.ml.render = renderGripEdge(false);
+        if (defaultControls.mr) defaultControls.mr.render = renderGripEdge(false);
+      }
+
+      fabricCanvas = new Canvas(canvasRef.current!, {
         width: canvasDimensions.width,
         height: canvasDimensions.height,
         backgroundColor: backgroundColor,
@@ -155,22 +312,42 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         centeredScaling: false,
         centeredRotation: true,
       });
+      
+      // Check again after canvas creation
+      if (isDisposed) {
+        fabricCanvas.dispose();
+        return;
+      }
 
-    // Apply control styling to all objects added to canvas
-    canvas.on('object:added', (e) => {
+    // Apply control styling to all objects added to canvas (grip-style handles)
+    fabricCanvas.on('object:added', (e) => {
       if (e.target) {
         e.target.set({
-          cornerColor: '#EF4444',
+          cornerColor: '#3B82F6',
           cornerStrokeColor: '#ffffff',
           cornerStyle: 'rect',
-          cornerSize: 8,
+          cornerSize: 12,
           transparentCorners: false,
-          borderColor: '#EF4444',
-          borderScaleFactor: 2,
+          borderColor: '#3B82F6',
+          borderScaleFactor: 1.5,
+          borderDashArray: [6, 4],
           padding: 4,
           hasControls: true,
           hasRotatingPoint: true,
         });
+        
+        // Apply custom grip renderers to this object's controls
+        if (e.target.controls) {
+          ['tl', 'tr', 'bl', 'br'].forEach((corner) => {
+            if (e.target!.controls[corner]) {
+              e.target!.controls[corner].render = renderGripCorner;
+            }
+          });
+          if (e.target.controls.mt) e.target.controls.mt.render = renderGripEdge(true);
+          if (e.target.controls.mb) e.target.controls.mb.render = renderGripEdge(true);
+          if (e.target.controls.ml) e.target.controls.ml.render = renderGripEdge(false);
+          if (e.target.controls.mr) e.target.controls.mr.render = renderGripEdge(false);
+        }
         
         // Normalize fonts for text objects using helper
         if (e.target.type === "textbox" || e.target.type === "text") {
@@ -191,7 +368,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Custom rotation control rendering (semi-circle with arrow like BioRender)
+    // Custom rotation control rendering (BioRender-style hand grab icon with hover glow)
     const renderRotationControl = (
       ctx: CanvasRenderingContext2D,
       left: number,
@@ -199,80 +376,87 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       _styleOverride: any,
       fabricObject: any
     ) => {
-      console.debug(
-        "[ChemixRotation] render",
-        fabricObject.type,
-        {
-          left: Math.round(left),
-          top: Math.round(top),
-          angle: Math.round(fabricObject.angle || 0),
-          hasControls: fabricObject.hasControls,
-          hasRotatingPoint: fabricObject.hasRotatingPoint,
-          lockRotation: fabricObject.lockRotation,
-        }
-      );
+      const size = 28;
+      const isSelected = fabricObject.canvas?.getActiveObject() === fabricObject;
+      const isRotating = (fabricObject as any).isRotating;
       
-      const size = 36; // Temporarily enlarged for visibility
-      const isHovering = fabricObject.canvas?.getActiveObject() === fabricObject;
-      
-      // Fade out when not hovering
-      const opacity = isHovering ? 1.0 : 0.7;
+      // Enhanced glow when rotating or selected
+      const glowIntensity = isRotating ? 16 : (isSelected ? 10 : 0);
+      const opacity = isSelected ? 1.0 : 0.85;
       
       ctx.save();
       ctx.globalAlpha = opacity;
       ctx.translate(left, top);
-      ctx.rotate(util.degreesToRadians(fabricObject.angle || 0));
       
-      // Add subtle drop shadow
-      ctx.shadowBlur = 4;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowOffsetY = 1;
+      // Draw outer glow effect when selected (subtle blue glow)
+      if (glowIntensity > 0) {
+        ctx.shadowBlur = glowIntensity;
+        ctx.shadowColor = 'rgba(59, 130, 246, 0.6)'; // Blue glow
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        
+        // Draw glow circle (slightly larger)
+        ctx.fillStyle = 'rgba(59, 130, 246, 0.3)';
+        ctx.beginPath();
+        ctx.arc(0, 0, size / 2 + 3, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.fill();
+      }
       
-      // Draw circular background - BRIGHT MAGENTA FOR DEBUG VISIBILITY
-      ctx.fillStyle = '#ff00ff';
+      // Reset and add subtle drop shadow for depth
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+      ctx.shadowOffsetY = 2;
+      ctx.shadowOffsetX = 0;
+      
+      // Draw circular background (BioRender blue theme)
+      ctx.fillStyle = isRotating ? '#2563EB' : '#3B82F6'; // Darker when rotating
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3; // Thicker border for visibility
+      ctx.lineWidth = 2;
       
       ctx.beginPath();
-      ctx.arc(0, 0, size / 2, 0, Math.PI * 2); // Full circle
+      ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
       
       // Reset shadow for icon drawing
       ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
       
-      // Draw circular rotation icon (two curved arrows)
+      // Draw hand/grab icon (simplified hand with fingers)
       ctx.strokeStyle = '#ffffff';
       ctx.fillStyle = '#ffffff';
       ctx.lineWidth = 1.5;
       ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
       
-      // Left curved arrow
+      // Palm base (rounded rectangle)
       ctx.beginPath();
-      ctx.arc(-2, 0, 4.5, Math.PI * 0.65, Math.PI * 1.85, false);
+      ctx.moveTo(-4, 1);
+      ctx.lineTo(-4, 5);
+      ctx.quadraticCurveTo(-4, 6, -3, 6);
+      ctx.lineTo(3, 6);
+      ctx.quadraticCurveTo(4, 6, 4, 5);
+      ctx.lineTo(4, 1);
       ctx.stroke();
       
-      // Left arrow head
-      ctx.beginPath();
-      ctx.moveTo(-5.5, -2.5);
-      ctx.lineTo(-6.5, -0.5);
-      ctx.lineTo(-4.5, -1);
-      ctx.closePath();
-      ctx.fill();
+      // Four fingers (vertical lines going up)
+      const fingerX = [-3, -1, 1, 3];
+      const fingerHeight = [-5, -6, -6, -5];
+      fingerX.forEach((x, i) => {
+        ctx.beginPath();
+        ctx.moveTo(x, 1);
+        ctx.lineTo(x, fingerHeight[i]);
+        ctx.stroke();
+      });
       
-      // Right curved arrow
+      // Thumb (angled to the left)
       ctx.beginPath();
-      ctx.arc(2, 0, 4.5, Math.PI * 1.15, Math.PI * 0.35, true);
+      ctx.moveTo(-4, 3);
+      ctx.lineTo(-6, 1);
+      ctx.lineTo(-6, -1);
       ctx.stroke();
-      
-      // Right arrow head
-      ctx.beginPath();
-      ctx.moveTo(5.5, 2.5);
-      ctx.lineTo(6.5, 0.5);
-      ctx.lineTo(4.5, 1);
-      ctx.closePath();
-      ctx.fill();
       
       ctx.restore();
       
@@ -353,11 +537,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
     
     // Track when rotation ends to hide angle label
-    canvas.on('mouse:up', () => {
-      const activeObj = canvas.getActiveObject();
+    fabricCanvas.on('mouse:up', () => {
+      const activeObj = fabricCanvas?.getActiveObject();
       if (activeObj && (activeObj as any).isRotating) {
         (activeObj as any).isRotating = false;
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
@@ -402,39 +586,55 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    canvas.isDrawingMode = false;
+    fabricCanvas.isDrawingMode = false;
     
     // Initialize connector visual feedback
-    connectorFeedbackRef.current = new ConnectorVisualFeedback(canvas);
+    connectorFeedbackRef.current = new ConnectorVisualFeedback(fabricCanvas);
     
     // Initialize object culling manager
-    cullingManagerRef.current.setCanvas(canvas);
+    cullingManagerRef.current.setCanvas(fabricCanvas);
     throttledCullRef.current = createThrottledCuller(cullingManagerRef.current, 100);
     
     // Apply culling on viewport changes (pan/zoom)
-    canvas.on('after:render', () => {
+    fabricCanvas.on('after:render', () => {
       if (throttledCullRef.current) {
         throttledCullRef.current();
       }
     });
     
-    // Apply control styles to any existing objects on canvas
-    canvas.getObjects().forEach((obj) => {
+    // Apply control styles to any existing objects on canvas (grip-style handles)
+    fabricCanvas.getObjects().forEach((obj) => {
       obj.set({
-        cornerColor: '#EF4444',
+        cornerColor: '#3B82F6',
         cornerStrokeColor: '#ffffff',
         cornerStyle: 'rect',
-        cornerSize: 8,
+        cornerSize: 12,
         transparentCorners: false,
-        borderColor: '#EF4444',
+        borderColor: '#3B82F6',
+        borderDashArray: [6, 4],
       });
+      // Apply custom grip renderers to existing objects
+      if (obj.controls) {
+        ['tl', 'tr', 'bl', 'br'].forEach((corner) => {
+          if (obj.controls[corner]) {
+            obj.controls[corner].render = renderGripCorner;
+          }
+        });
+        if (obj.controls.mt) obj.controls.mt.render = renderGripEdge(true);
+        if (obj.controls.mb) obj.controls.mb.render = renderGripEdge(true);
+        if (obj.controls.ml) obj.controls.ml.render = renderGripEdge(false);
+        if (obj.controls.mr) obj.controls.mr.render = renderGripEdge(false);
+      }
     });
-    canvas.requestRenderAll();
+    fabricCanvas.requestRenderAll();
     
-    setCanvas(canvas);
+    // Set canvas to context only if not disposed
+    if (!isDisposed) {
+      setCanvas(fabricCanvas);
+    }
     
     // Normalize all existing text objects with font stacks for special character support
-    normalizeCanvasTextFonts(canvas);
+    normalizeCanvasTextFonts(fabricCanvas);
 
     // Helper function to ensure Chemix rotation control is always present
     const ensureChemixRotationControl = (obj: FabricObject | any) => {
@@ -449,18 +649,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
 
     // Apply rotation control to all existing objects
-    canvas.getObjects().forEach((obj: FabricObject) => {
+    fabricCanvas.getObjects().forEach((obj: FabricObject) => {
       const customObj = obj as any;
       if (!customObj.isControlHandle && !customObj.isHandleLine && !customObj.isGuideLine) {
         ensureChemixRotationControl(obj);
       }
     });
-    canvas.requestRenderAll();
+    fabricCanvas.requestRenderAll();
 
     // Helper function to manage curved line control handle visibility
     const manageCurvedLineHandles = (selectedObj: FabricObject | null) => {
       // First, hide ALL curved line handles on the canvas
-      canvas.getObjects().forEach((obj) => {
+      fabricCanvas?.getObjects().forEach((obj) => {
         if ((obj as any).isCurvedLine) {
           const curveData = obj as any;
           if (curveData.controlHandle) {
@@ -487,17 +687,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
       }
       
-      canvas.requestRenderAll();
+      fabricCanvas?.requestRenderAll();
     };
 
     // Track selected objects with debug and auto-fix for invisible text
-    canvas.on('selection:created', (e) => {
+    fabricCanvas.on('selection:created', (e) => {
       const rawSelected = e.selected?.[0] || null;
       let uiSelected: FabricObject | null = rawSelected;
       
       // If a control handle or guide line is selected, map to parent curved line for the UI
       if (rawSelected && ((rawSelected as any).isControlHandle || (rawSelected as any).isHandleLine)) {
-        const parentCurve = canvas.getObjects().find(obj => {
+        const parentCurve = fabricCanvas?.getObjects().find(obj => {
           const curveData = obj as any;
           return curveData.isCurvedLine && 
                  (curveData.controlHandle === rawSelected || 
@@ -529,18 +729,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       debugTextObject(uiSelected, "Selection Created");
       
       // Auto-fix invisible text
-      if (uiSelected && fixInvisibleText(uiSelected, canvas)) {
+      if (uiSelected && fixInvisibleText(uiSelected, fabricCanvas!)) {
         toast.info("Fixed invisible text (reset opacity/fill)");
       }
     });
     
-    canvas.on('selection:updated', (e) => {
+    fabricCanvas.on('selection:updated', (e) => {
       const rawSelected = e.selected?.[0] || null;
       let uiSelected: FabricObject | null = rawSelected;
       
       // If a control handle or guide line is selected, map to parent curved line for the UI
       if (rawSelected && ((rawSelected as any).isControlHandle || (rawSelected as any).isHandleLine)) {
-        const parentCurve = canvas.getObjects().find(obj => {
+        const parentCurve = fabricCanvas?.getObjects().find(obj => {
           const curveData = obj as any;
           return curveData.isCurvedLine && 
                  (curveData.controlHandle === rawSelected || 
@@ -562,7 +762,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         
         // Ensure rotation control is present
         ensureChemixRotationControl(uiSelected);
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
       
       // UI uses uiSelected (parent curve for handles)
@@ -573,36 +773,36 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       debugTextObject(uiSelected, "Selection Updated");
       
       // Auto-fix invisible text
-      if (uiSelected && fixInvisibleText(uiSelected, canvas)) {
+      if (uiSelected && fixInvisibleText(uiSelected, fabricCanvas!)) {
         toast.info("Fixed invisible text (reset opacity/fill)");
       }
     });
     
-    canvas.on('selection:cleared', () => {
+    fabricCanvas.on('selection:cleared', () => {
       setSelectedObject(null);
       manageCurvedLineHandles(null);
     });
 
     // Normalize fonts when text editing starts
-    canvas.on('text:editing:entered', (e: any) => {
+    fabricCanvas.on('text:editing:entered', (e: any) => {
       if (e.target) {
         normalizeEditingTextFont(e.target);
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
     // Normalize fonts when text content changes (safety net)
-    canvas.on('text:changed', (e: any) => {
+    fabricCanvas.on('text:changed', (e: any) => {
       const target = e.target;
       if (target && (target.type === 'textbox' || target.type === 'text')) {
         normalizeEditingTextFont(target);
         target.dirty = true;
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
     // Finalize fonts and layout when exiting edit mode
-    canvas.on('text:editing:exited', (e: any) => {
+    fabricCanvas.on('text:editing:exited', (e: any) => {
       const target = e.target;
       if (target && (target.type === 'textbox' || target.type === 'text')) {
         normalizeEditingTextFont(target);
@@ -613,13 +813,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           target.setCoords();
         }
         target.dirty = true;
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
     // Alt+Drag duplication handlers
-    canvas.on('mouse:down', async (e) => {
-      const activeObject = canvas.getActiveObject();
+    fabricCanvas.on('mouse:down', async (e) => {
+      const activeObject = fabricCanvas?.getActiveObject();
       
       if (e.e.altKey && activeObject && activeTool === 'select') {
         e.e.preventDefault();
@@ -632,18 +832,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             evented: true,
           });
           
-          canvas.add(cloned);
-          canvas.setActiveObject(cloned);
+          fabricCanvas?.add(cloned);
+          fabricCanvas?.setActiveObject(cloned);
           clonedObjectRef.current = cloned;
           setIsDuplicating(true);
-          canvas.requestRenderAll();
+          fabricCanvas?.requestRenderAll();
         } catch (error) {
           console.error('Failed to clone object:', error);
         }
       }
     });
 
-    canvas.on('mouse:up', () => {
+    fabricCanvas.on('mouse:up', () => {
       if (isDuplicating) {
         setIsDuplicating(false);
         clonedObjectRef.current = null;
@@ -654,25 +854,25 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Handle text box resize - track scaling state to avoid feedback loops
     let isScalingTextBox = false;
 
-    canvas.on('object:scaling', (e) => {
+    fabricCanvas.on('object:scaling', (e) => {
       if (e.target && isTextBox(e.target)) {
         isScalingTextBox = true;
       }
     });
 
-    canvas.on('mouse:up', () => {
+    fabricCanvas.on('mouse:up', () => {
       if (isScalingTextBox) {
-        const obj = canvas.getActiveObject();
+        const obj = fabricCanvas?.getActiveObject();
         if (obj && isTextBox(obj)) {
           handleTextBoxResize(obj);
-          canvas.requestRenderAll();
+          fabricCanvas?.requestRenderAll();
         }
         isScalingTextBox = false;
       }
     });
 
     // Handle double-click for image placeholders and text box editing
-    canvas.on('mouse:dblclick', (e) => {
+    fabricCanvas.on('mouse:dblclick', (e) => {
       const obj = e.target;
       
       // Handle image placeholder click - open file picker
@@ -708,10 +908,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               });
               
               // Remove placeholder and add image
-              canvas.remove(obj);
-              canvas.add(fabricImage);
-              canvas.setActiveObject(fabricImage);
-              canvas.renderAll();
+              fabricCanvas?.remove(obj);
+              fabricCanvas?.add(fabricImage);
+              fabricCanvas?.setActiveObject(fabricImage);
+              fabricCanvas?.renderAll();
               
               toast.success("Image added successfully!");
             };
@@ -729,10 +929,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (obj && isTextBox(obj)) {
         const textElement = getTextBoxTextElement(obj);
         if (textElement) {
-          canvas.setActiveObject(textElement);
+          fabricCanvas?.setActiveObject(textElement);
           textElement.enterEditing();
           textElement.selectAll();
-          canvas.requestRenderAll();
+          fabricCanvas?.requestRenderAll();
         }
       }
     });
@@ -741,28 +941,28 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // (previous object:modified snapping handler deleted)
 
     // Add drag feedback for better micro-interactions
-    canvas.on('object:moving', (e) => {
+    fabricCanvas.on('object:moving', (e) => {
       if (e.target) {
         e.target.set({ opacity: 0.85 }); // Slightly transparent while dragging
       }
     });
 
-    canvas.on('object:modified', (e) => {
+    fabricCanvas.on('object:modified', (e) => {
       if (e.target) {
         e.target.set({ opacity: 1 }); // Restore full opacity after drag
-        canvas.requestRenderAll();
+        fabricCanvas?.requestRenderAll();
       }
     });
 
-    canvas.on('mouse:move', (e) => {
-      if (e.e.altKey && canvas.getActiveObject() && activeTool === 'select') {
-        canvas.setCursor('copy');
+    fabricCanvas.on('mouse:move', (e) => {
+      if (e.e.altKey && fabricCanvas?.getActiveObject() && activeTool === 'select') {
+        fabricCanvas?.setCursor('copy');
       }
     });
 
 
     // Listen for custom event to add icons to canvas
-    const handleAddIcon = async (event: CustomEvent) => {
+    handleAddIcon = async (event: CustomEvent) => {
       const { svgData, iconId } = event.detail;
 
       try {
@@ -786,18 +986,18 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           }
           
           // Scale and position
-          const maxW = (canvas.width || 0) * 0.6;
-          const maxH = (canvas.height || 0) * 0.6;
+          const maxW = (fabricCanvas?.width || 0) * 0.6;
+          const maxH = (fabricCanvas?.height || 0) * 0.6;
           const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
           group.scale(scale);
           group.set({
-            left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
-            top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+            left: (fabricCanvas?.width || 0) / 2 - (group.width || 0) * scale / 2,
+            top: (fabricCanvas?.height || 0) / 2 - (group.height || 0) * scale / 2,
           });
           
-          canvas.add(group);
-          canvas.setActiveObject(group);
-          canvas.requestRenderAll();
+          fabricCanvas?.add(group);
+          fabricCanvas?.setActiveObject(group);
+          fabricCanvas?.requestRenderAll();
           toast.success("Icon added to canvas (cached)");
           return;
         }
@@ -898,20 +1098,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         }
         
         // Scale to fit within 60% of canvas area
-        const maxW = (canvas.width || 0) * 0.6;
-        const maxH = (canvas.height || 0) * 0.6;
+        const maxW = (fabricCanvas?.width || 0) * 0.6;
+        const maxH = (fabricCanvas?.height || 0) * 0.6;
         const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
         group.scale(scale);
         
         // Center on canvas
         group.set({
-          left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
-          top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+          left: (fabricCanvas?.width || 0) / 2 - (group.width || 0) * scale / 2,
+          top: (fabricCanvas?.height || 0) / 2 - (group.height || 0) * scale / 2,
         });
         
-        canvas.add(group);
-        canvas.setActiveObject(group);
-        canvas.requestRenderAll();
+        fabricCanvas?.add(group);
+        fabricCanvas?.setActiveObject(group);
+        fabricCanvas?.requestRenderAll();
         toast.success("Icon added to canvas");
       } catch (error) {
         console.error("Error adding icon:", error);
@@ -931,9 +1131,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     window.addEventListener("addIconToCanvas", handleAddIcon as EventListener);
 
     // Handle adding asset from library
-    const handleAddAsset = async (event: CustomEvent) => {
+    handleAddAsset = async (event: CustomEvent) => {
       const { content, assetId } = event.detail;
-      if (!canvas || !content) return;
+      if (!fabricCanvas || !content) return;
 
       try {
         toast("Loading asset...");
@@ -945,39 +1145,39 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           const { objects, options } = await loadSVGFromString(sanitizedContent);
           const group = util.groupSVGElements(objects, options);
           
-          const maxW = (canvas.width || 0) * 0.6;
-          const maxH = (canvas.height || 0) * 0.6;
+          const maxW = (fabricCanvas.width || 0) * 0.6;
+          const maxH = (fabricCanvas.height || 0) * 0.6;
           const scale = Math.min(maxW / (group.width || 1), maxH / (group.height || 1), 1);
           group.scale(scale);
           
           group.set({
-            left: (canvas.width || 0) / 2 - (group.width || 0) * scale / 2,
-            top: (canvas.height || 0) / 2 - (group.height || 0) * scale / 2,
+            left: (fabricCanvas.width || 0) / 2 - (group.width || 0) * scale / 2,
+            top: (fabricCanvas.height || 0) / 2 - (group.height || 0) * scale / 2,
           });
           
-          canvas.add(group);
-          canvas.setActiveObject(group);
-          canvas.requestRenderAll();
+          fabricCanvas.add(group);
+          fabricCanvas.setActiveObject(group);
+          fabricCanvas.requestRenderAll();
           toast.success("Asset added to canvas");
         } else {
           // Handle as data URL image with CORS support
           try {
             const img = await loadImageWithCORS(content);
             const fabricImage = new FabricImage(img, {
-              left: (canvas.width || 0) / 2,
-              top: (canvas.height || 0) / 2,
+              left: (fabricCanvas.width || 0) / 2,
+              top: (fabricCanvas.height || 0) / 2,
               originX: "center",
               originY: "center",
             });
             
-            const maxW = (canvas.width || 0) * 0.6;
-            const maxH = (canvas.height || 0) * 0.6;
+            const maxW = (fabricCanvas.width || 0) * 0.6;
+            const maxH = (fabricCanvas.height || 0) * 0.6;
             const scale = Math.min(maxW / fabricImage.width!, maxH / fabricImage.height!, 1);
             fabricImage.scale(scale);
             
-            canvas.add(fabricImage);
-            canvas.setActiveObject(fabricImage);
-            canvas.requestRenderAll();
+            fabricCanvas.add(fabricImage);
+            fabricCanvas.setActiveObject(fabricImage);
+            fabricCanvas.requestRenderAll();
             toast.success("Asset added to canvas");
           } catch (error) {
             console.error("Failed to load image:", error);
@@ -991,16 +1191,24 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     };
 
     window.addEventListener("addAssetToCanvas", handleAddAsset as EventListener);
-
-      return () => {
-        window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
-        window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
-        setCanvas(null);
-        canvas.dispose();
-      };
     };
 
     initCanvas();
+    
+    // Cleanup returned DIRECTLY from useEffect, not from async function
+    return () => {
+      isDisposed = true;
+      if (handleAddIcon) {
+        window.removeEventListener("addIconToCanvas", handleAddIcon as EventListener);
+      }
+      if (handleAddAsset) {
+        window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
+      }
+      setCanvas(null);
+      if (fabricCanvas) {
+        fabricCanvas.dispose();
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

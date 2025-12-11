@@ -6,7 +6,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Spline } from "lucide-react";
+import { BezierCurve, ArrowRight, ArrowsLeftRight, Circle, Diamond } from "@phosphor-icons/react";
 
 interface CurvedLineToolProps {
   onLineSelect: (lineType: string) => void;
@@ -39,7 +39,7 @@ export const CurvedLineTool = ({ onLineSelect, activeTool }: CurvedLineToolProps
           size="icon"
           className="w-10 h-10"
         >
-          <Spline className="h-5 w-5" style={{ transform: "rotate(15deg)" }} />
+          <BezierCurve size={20} weight={isActive ? "duotone" : "regular"} style={{ transform: "rotate(15deg)" }} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" className="w-64 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">

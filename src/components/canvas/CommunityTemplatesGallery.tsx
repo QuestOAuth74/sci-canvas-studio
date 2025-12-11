@@ -191,37 +191,39 @@ export const CommunityTemplatesGallery = ({
           </div>
         </div>
 
-        <ScrollArea className="flex-1 px-6">
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="h-48 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : filteredProjects.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
-              {filteredProjects.map((project) => (
-                <CommunityTemplateCard
-                  key={project.id}
-                  project={project}
-                  onClick={() => handleTemplateSelect(project.id)}
-                  disabled={isCloning}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-[400px] text-center">
-              <FileText className="h-12 w-12 text-muted-foreground/50 mb-3" />
-              <p className="text-muted-foreground">No templates found</p>
-              <p className="text-sm text-muted-foreground/70 mt-1">
-                Try adjusting your search or sorting
-              </p>
-            </div>
-          )}
+        <ScrollArea className="flex-1 min-h-0 px-6">
+          <div className="py-4">
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            ) : filteredProjects.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProjects.map((project) => (
+                  <CommunityTemplateCard
+                    key={project.id}
+                    project={project}
+                    onClick={() => handleTemplateSelect(project.id)}
+                    disabled={isCloning}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-[400px] text-center">
+                <FileText className="h-12 w-12 text-muted-foreground/50 mb-3" />
+                <p className="text-muted-foreground">No templates found</p>
+                <p className="text-sm text-muted-foreground/70 mt-1">
+                  Try adjusting your search or sorting
+                </p>
+              </div>
+            )}
+          </div>
         </ScrollArea>
 
         <DialogFooter className="px-6 py-4 border-t bg-muted/30">

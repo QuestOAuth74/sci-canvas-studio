@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight, Sparkles, Square, Image, Layers } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
@@ -41,7 +41,6 @@ import { ScaleBarTool } from "@/components/canvas/ScaleBarTool";
 import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
-import { EmptyCanvasState } from "@/components/canvas/EmptyCanvasState";
 import { TipBanner } from "@/components/canvas/TipBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
@@ -76,7 +75,6 @@ const CanvasContent = () => {
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
-  const [showEmptyState, setShowEmptyState] = useState(false);
   const { isAdmin } = useAuth();
   const { startOnboarding } = useOnboarding();
   
@@ -199,27 +197,6 @@ const CanvasContent = () => {
       }
     }
   }, [canvas, searchParams]);
-
-  // Check if canvas is empty to show empty state
-  useEffect(() => {
-    if (!canvas) return;
-    
-    const checkEmpty = () => {
-      const objects = canvas.getObjects();
-      const hasContent = objects.length > 0;
-      setShowEmptyState(!hasContent && !showWelcomeDialog);
-    };
-    
-    checkEmpty();
-    
-    canvas.on('object:added', checkEmpty);
-    canvas.on('object:removed', checkEmpty);
-    
-    return () => {
-      canvas.off('object:added', checkEmpty);
-      canvas.off('object:removed', checkEmpty);
-    };
-  }, [canvas, showWelcomeDialog]);
 
   // Check for recovery on load
   useEffect(() => {
@@ -588,7 +565,7 @@ const CanvasContent = () => {
   return (
       <>
       <OnboardingTutorial />
-      <div className="h-screen notebook-page graph-paper flex flex-col">
+      <div className="h-screen bg-gradient-to-br from-slate-100 via-blue-50/50 to-slate-100 flex flex-col">
       {/* Mobile Warning Dialog */}
       <MobileWarningDialog />
       
@@ -712,23 +689,21 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-[hsl(var(--cream))]/95 border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow-static">
-        <div className="px-4 py-2 flex items-center justify-between backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <div className="bg-[hsl(var(--highlighter-yellow))]/20 rounded-lg p-1.5 border-2 border-[hsl(var(--pencil-gray))] sketch-border">
-              <img 
-                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
-                alt="BioSketch" 
-                className="h-8 object-contain"
-              />
-            </div>
+      <header className="bg-blue-100/60 border-b border-blue-200/80 shadow-sm">
+        <div className="px-3 py-1.5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img 
+              src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
+              alt="BioSketch" 
+              className="h-7 object-contain"
+            />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigate("/")} 
-                  className="h-9 w-9 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -736,33 +711,31 @@ const CanvasContent = () => {
               <TooltipContent>Back to Projects</TooltipContent>
             </Tooltip>
             {isEditingName ? (
-              <div className="flex items-center gap-2">
-                <Input
-                  type="text"
-                  value={tempName}
-                  onChange={(e) => setTempName(e.target.value)}
-                  onKeyDown={handleNameKeyDown}
-                  onBlur={saveName}
-                  autoFocus
-                  className="h-8 text-base font-semibold tracking-tight max-w-[300px] bg-white border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]"
-                  maxLength={100}
-                />
-              </div>
+              <Input
+                type="text"
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                onKeyDown={handleNameKeyDown}
+                onBlur={saveName}
+                autoFocus
+                className="h-7 text-sm font-medium max-w-[200px]"
+                maxLength={100}
+              />
             ) : (
               <button
                 onClick={startEditingName}
-                className="text-lg font-semibold tracking-tight text-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--highlighter-yellow))]/20 px-2.5 py-1 rounded border-2 border-transparent hover:border-[hsl(var(--pencil-gray))] transition-all font-source-serif"
+                className="text-sm font-medium text-foreground hover:bg-muted px-2 py-1 rounded transition-colors"
                 title="Click to rename"
               >
                 {projectName}
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 bg-white rounded-lg p-1.5 border-2 border-[hsl(var(--pencil-gray))] paper-shadow-static">
+          <div className="flex items-center gap-1.5">
             {isSaving && (
-              <span className="text-sm flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 rounded-md border border-yellow-500/20">
-                <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />
-                <span className="text-yellow-700 dark:text-yellow-400 font-medium">Saving...</span>
+              <span className="text-xs flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Saving...
               </span>
             )}
             <MenuBar 
@@ -778,46 +751,34 @@ const CanvasContent = () => {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => setShowShortcuts(true)}
-                  className="h-9 w-9 canvas-tool-button"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 >
                   <HelpCircle className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Keyboard Shortcuts (?)</TooltipContent>
+              <TooltipContent>Shortcuts (?)</TooltipContent>
             </Tooltip>
             {isAdmin && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setAiGeneratorOpen(true)}
-                    className="h-9 canvas-tool-button"
-                  >
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    AI Generate
-                    <Badge variant="secondary" className="ml-2">Admin</Badge>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>AI Figure Generator</TooltipContent>
-              </Tooltip>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAiGeneratorOpen(true)}
+                className="h-8 text-muted-foreground hover:text-foreground"
+              >
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                AI
+              </Button>
             )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  onClick={() => saveProject(true)} 
-                  disabled={isSaving} 
-                  variant="default" 
-                  size="sm" 
-                  className="h-9 bg-gradient-to-r from-[hsl(var(--canvas-accent-primary))] to-[hsl(var(--canvas-accent-secondary))] hover:from-[hsl(var(--canvas-accent-primary))]/90 hover:to-[hsl(var(--canvas-accent-secondary))]/90 shadow-md transition-all duration-200 text-white"
-                  data-action="save"
-                >
-                  <Save className="h-3.5 w-3.5 mr-1.5" />
-                  Save
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Save Project (Ctrl+S)</TooltipContent>
-            </Tooltip>
+            <Button 
+              onClick={() => saveProject(true)} 
+              disabled={isSaving} 
+              size="sm" 
+              className="h-8 bg-primary hover:bg-primary/90"
+              data-action="save"
+            >
+              <Save className="h-3.5 w-3.5 mr-1.5" />
+              Save
+            </Button>
             <UserMenu />
           </div>
         </div>
@@ -839,32 +800,48 @@ const CanvasContent = () => {
             maxSize={20}
             className="min-h-0"
           >
-            <div className={`bg-[hsl(var(--canvas-sidebar-bg))] border-r-2 border-[hsl(var(--canvas-panel-border))] shadow-xl flex flex-col overflow-hidden min-h-0 h-full transition-all duration-300`}>
+            <div className={`bg-blue-100/60 border-r border-blue-200/80 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
             {isIconLibraryCollapsed ? (
-              <div className="p-2">
+              <div className="p-2 flex flex-col items-center gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsIconLibraryCollapsed(false)}
-                  className="w-full canvas-tool-button"
+                  className="w-full text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
+                {/* Vertical label when collapsed */}
+                <span className="text-[10px] font-medium text-muted-foreground writing-mode-vertical transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
+                  {leftSidebarTab === "icons" ? "Icons" : "Assets"}
+                </span>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b border-[hsl(var(--canvas-panel-border))] flex items-center justify-between bg-gradient-to-r from-[hsl(var(--canvas-bg-tertiary))] to-transparent">
+                <div className="p-2 border-b border-blue-300/60 bg-blue-200/40 flex items-center justify-between">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-8 bg-[hsl(var(--canvas-bg-secondary))] shadow-md border border-[hsl(var(--canvas-panel-border))]">
-                      <TabsTrigger value="icons" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--canvas-accent-primary))] data-[state=active]:to-[hsl(var(--canvas-accent-secondary))] data-[state=active]:text-white data-[state=active]:shadow-lg">Icons</TabsTrigger>
-                      <TabsTrigger value="assets" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--canvas-accent-primary))] data-[state=active]:to-[hsl(var(--canvas-accent-secondary))] data-[state=active]:text-white data-[state=active]:shadow-lg">My Assets</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 h-9 bg-blue-200/70 p-0.5 rounded-lg">
+                      <TabsTrigger 
+                        value="icons" 
+                        className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                      >
+                        <Square className="h-3 w-3" />
+                        Icons
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="assets" 
+                        className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                      >
+                        <Image className="h-3 w-3" />
+                        Assets
+                      </TabsTrigger>
                     </TabsList>
                   </Tabs>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsIconLibraryCollapsed(true)}
-                    className="ml-1 h-8 w-8 canvas-tool-button"
+                    className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
@@ -881,7 +858,6 @@ const CanvasContent = () => {
                   ) : (
                     <UserAssetsLibrary 
                       onAssetSelect={async (assetId, content) => {
-                        // Dispatch event to add asset to canvas
                         window.dispatchEvent(new CustomEvent('addAssetToCanvas', {
                           detail: { content, assetId }
                         }));
@@ -894,7 +870,7 @@ const CanvasContent = () => {
           </div>
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-[hsl(var(--canvas-panel-border))] hover:bg-[hsl(var(--canvas-accent-primary))] transition-colors w-1" />
+          <ResizableHandle withHandle className="bg-border/30 hover:bg-primary/50 transition-colors w-0.5" />
 
           {/* Middle Section - Toolbar + Canvas */}
           <ResizablePanel defaultSize={65} minSize={40}>
@@ -903,8 +879,8 @@ const CanvasContent = () => {
               <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
               {/* Canvas */}
-              <ScrollArea className="flex-1 relative min-h-0">
-          <div className="p-8">
+              <ScrollArea className="flex-1 relative min-h-0 bg-slate-200/30">
+          <div className="p-6">
             <CanvasContextMenu
               selectedObject={selectedObject}
               hasClipboard={hasClipboard}
@@ -949,7 +925,7 @@ const CanvasContent = () => {
             </div>
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-[hsl(var(--canvas-panel-border))] hover:bg-[hsl(var(--canvas-accent-primary))] transition-colors w-1" />
+          <ResizableHandle withHandle className="bg-border/30 hover:bg-primary/50 transition-colors w-0.5" />
 
           {/* Right Sidebar - Properties & Layers */}
           <ResizablePanel 
@@ -967,32 +943,48 @@ const CanvasContent = () => {
             }}
             className="min-h-0"
           >
-            <div className={`bg-[hsl(var(--canvas-sidebar-bg))] border-l-2 border-[hsl(var(--canvas-panel-border))] shadow-xl flex flex-col overflow-hidden min-h-0 h-full`}>
+            <div className={`bg-blue-100/60 border-l border-blue-200/80 flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
-            <div className="p-2">
+            <div className="p-2 flex flex-col items-center gap-2">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsPropertiesPanelCollapsed(false)}
-                className="w-full canvas-tool-button"
+                className="w-full text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
+              {/* Vertical label when collapsed */}
+              <span className="text-[10px] font-medium text-muted-foreground" style={{ writingMode: 'vertical-rl' }}>
+                {rightSidebarTab === "properties" ? "Properties" : "Layers"}
+              </span>
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b border-[hsl(var(--canvas-panel-border))] flex items-center justify-between bg-gradient-to-r from-[hsl(var(--canvas-bg-tertiary))] to-transparent">
+              <div className="p-2 border-b border-blue-300/60 bg-blue-200/40 flex items-center justify-between">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-8 bg-[hsl(var(--canvas-bg-secondary))] shadow-md border border-[hsl(var(--canvas-panel-border))]">
-                    <TabsTrigger value="properties" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--canvas-accent-primary))] data-[state=active]:to-[hsl(var(--canvas-accent-secondary))] data-[state=active]:text-white data-[state=active]:shadow-lg">Properties</TabsTrigger>
-                    <TabsTrigger value="layers" className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-[hsl(var(--canvas-accent-primary))] data-[state=active]:to-[hsl(var(--canvas-accent-secondary))] data-[state=active]:text-white data-[state=active]:shadow-lg">Layers</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 h-9 bg-blue-200/70 p-0.5 rounded-lg">
+                    <TabsTrigger 
+                      value="properties" 
+                      className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                    >
+                      <Square className="h-3 w-3" />
+                      Properties
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="layers" 
+                      className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                    >
+                      <Layers className="h-3 w-3" />
+                      Layers
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsPropertiesPanelCollapsed(true)}
-                  className="ml-1 h-8 w-8 canvas-tool-button"
+                  className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -1057,20 +1049,6 @@ const CanvasContent = () => {
           localStorage.setItem('canvas_welcome_completed', 'true');
         }}
       />
-
-      {/* Empty Canvas State */}
-      {showEmptyState && (
-        <EmptyCanvasState
-          onOpenTemplates={() => setTemplatesDialogOpen(true)}
-          onStartTutorial={() => startOnboarding()}
-          onQuickStart={(type) => {
-            // Quick start templates based on type
-            setTemplatesDialogOpen(true);
-            // Could filter templates by type in the future
-          }}
-          onStartBlank={() => setShowEmptyState(false)}
-        />
-      )}
 
       {/* Tip Banner - Shows on first canvas load */}
       <TipBanner />

@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings } from "lucide-react";
+import { Gear } from "@phosphor-icons/react";
 import { useCanvas } from "@/contexts/CanvasContext";
 
 export const QuickSettings = () => {
@@ -27,7 +27,7 @@ export const QuickSettings = () => {
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="h-9 w-9">
-          <Settings className="h-4 w-4" />
+          <Gear size={18} weight="regular" />
         </Button>
       </PopoverTrigger>
       

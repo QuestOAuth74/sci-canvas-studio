@@ -1,27 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  Undo,
-  Redo,
-  ZoomIn,
-  ZoomOut,
-  Maximize,
-  Copy,
+  ArrowCounterClockwise,
+  ArrowClockwise,
   Scissors,
-  Clipboard,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Grid3x3,
+  Copy,
+  ClipboardText,
+  TextAlignLeft,
+  TextAlignCenter,
+  TextAlignRight,
+  CaretDoubleUp,
+  CaretUp,
+  CaretDown,
+  CaretDoubleDown,
+  SelectionAll,
+  SplitVertical,
+  GridFour,
   Ruler,
-  Type,
-  ChevronsUp,
-  ChevronUp,
-  ChevronDown,
-  ChevronsDown,
-  Group,
-  Ungroup,
-} from "lucide-react";
+  MagnifyingGlassPlus,
+  MagnifyingGlassMinus,
+  CornersOut,
+  TextT,
+} from "@phosphor-icons/react";
 import {
   Tooltip,
   TooltipContent,
@@ -34,7 +34,6 @@ import { QuickSettings } from "./QuickSettings";
 import { FeatureAccessBadge } from "./FeatureAccessBadge";
 import { TextOnPathTool } from "./TextOnPathTool";
 import { TextBoxTool } from "./TextBoxTool";
-import { useState } from "react";
 
 interface TopToolbarProps {
   onExport: () => void;
@@ -74,66 +73,72 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
     onToolChange?.(newTool);
   };
 
+  const toolButtonClass = "h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-blue-200/60 transition-colors";
+  const activeToolButtonClass = "h-8 w-8 bg-primary text-primary-foreground hover:bg-primary/90";
+
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-[hsl(var(--cream))]/95 backdrop-blur-xl border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow-static transition-all duration-200" data-onboarding="toolbar">
-      {/* Edit Section */}
-      <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif">Edit</span>
+    <div className="flex items-center gap-0.5 px-3 py-1.5 bg-blue-100/60 border-b border-blue-200/80 shadow-sm" data-onboarding="toolbar">
+      {/* Edit Tools */}
+      <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={undo}>
-              <Undo className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={undo}>
+              <ArrowCounterClockwise size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Undo</TooltipContent>
+          <TooltipContent>Undo (⌘Z)</TooltipContent>
         </Tooltip>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={redo}>
-              <Redo className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={redo}>
+              <ArrowClockwise size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Redo</TooltipContent>
-        </Tooltip>
-        
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={cut}>
-              <Scissors className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Cut</TooltipContent>
-        </Tooltip>
-        
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={copy}>
-              <Copy className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Copy</TooltipContent>
-        </Tooltip>
-        
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={paste}>
-              <Clipboard className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Paste</TooltipContent>
+          <TooltipContent>Redo (⌘⇧Z)</TooltipContent>
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--pencil-gray))]/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
-      {/* Align Section */}
-      <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif">Align</span>
+      {/* Clipboard */}
+      <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={alignLeft}>
-              <AlignLeft className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={cut}>
+              <Scissors size={18} weight="regular" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Cut (⌘X)</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={copy}>
+              <Copy size={18} weight="regular" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Copy (⌘C)</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={paste}>
+              <ClipboardText size={18} weight="regular" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Paste (⌘V)</TooltipContent>
+        </Tooltip>
+      </div>
+
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
+
+      {/* Alignment */}
+      <div className="flex items-center gap-0.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={alignLeft}>
+              <TextAlignLeft size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Align Left</TooltipContent>
@@ -141,8 +146,8 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={alignCenter}>
-              <AlignCenter className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={alignCenter}>
+              <TextAlignCenter size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Align Center</TooltipContent>
@@ -150,110 +155,100 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={alignRight}>
-              <AlignRight className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={alignRight}>
+              <TextAlignRight size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Align Right</TooltipContent>
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--pencil-gray))]/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
-      {/* Layer Section */}
-      <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif">Layer</span>
+      {/* Layer Controls */}
+      <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={bringToFront}>
-              <ChevronsUp className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={bringToFront}>
+              <CaretDoubleUp size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Bring to Front (Ctrl+Shift+])</TooltipContent>
+          <TooltipContent>Bring to Front</TooltipContent>
         </Tooltip>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={bringForward}>
-              <ChevronUp className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={bringForward}>
+              <CaretUp size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Bring Forward (Ctrl+])</TooltipContent>
+          <TooltipContent>Bring Forward</TooltipContent>
         </Tooltip>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={sendBackward}>
-              <ChevronDown className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={sendBackward}>
+              <CaretDown size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Send Backward (Ctrl+[)</TooltipContent>
+          <TooltipContent>Send Backward</TooltipContent>
         </Tooltip>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={sendToBack}>
-              <ChevronsDown className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={sendToBack}>
+              <CaretDoubleDown size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Send to Back (Ctrl+Shift+[)</TooltipContent>
+          <TooltipContent>Send to Back</TooltipContent>
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--pencil-gray))]/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
-      {/* Group Section */}
-      <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif">Group</span>
+      {/* Grouping */}
+      <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={groupSelected}>
-              <Group className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={groupSelected}>
+              <SelectionAll size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Group Objects (Ctrl+G)</TooltipContent>
+          <TooltipContent>Group (⌘G)</TooltipContent>
         </Tooltip>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={ungroupSelected}>
-              <Ungroup className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className={toolButtonClass} onClick={ungroupSelected}>
+              <SplitVertical size={18} weight="regular" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Ungroup (Ctrl+Shift+G)</TooltipContent>
+          <TooltipContent>Ungroup (⌘⇧G)</TooltipContent>
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--pencil-gray))]/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
-      {/* View Section */}
-      <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif">View</span>
+      {/* View Tools */}
+      <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
-              variant={activeTool === "text" ? "sticky" : "ghost"} 
+              variant="ghost"
               size="icon" 
-              className={`h-8 w-8 ${activeTool === "text" ? '' : 'hover:bg-[hsl(var(--highlighter-yellow))]/20'} text-[hsl(var(--ink-blue))]`}
+              className={activeTool === "text" ? activeToolButtonClass : toolButtonClass}
               onClick={handleTextToolClick}
             >
-              <Type className="h-4 w-4" />
+              <TextT size={18} weight={activeTool === "text" ? "duotone" : "regular"} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Text Tool</TooltipContent>
         </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>
-              <ShapesDropdown 
-                onShapeSelect={onToolChange || (() => {})} 
-                activeTool={activeTool}
-              />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent>Shapes & Arrows</TooltipContent>
-        </Tooltip>
+        <ShapesDropdown 
+          onShapeSelect={onToolChange || (() => {})} 
+          activeTool={activeTool}
+        />
 
         <TextOnPathTool />
         <TextBoxTool />
@@ -261,27 +256,26 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
       
       {activeTool === "text" && (
         <>
-          <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--pencil-gray))]/40" />
+          <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
           <TextFormattingPanel />
         </>
       )}
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--pencil-gray))]/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
-      {/* Zoom Section */}
-      <div className="flex items-center gap-0.5 px-1">
-        <span className="text-[10px] font-bold text-[hsl(var(--ink-blue))] uppercase tracking-widest px-2 bg-[hsl(var(--highlighter-yellow))]/20 rounded px-2 py-0.5 border border-[hsl(var(--pencil-gray))] font-source-serif">Zoom</span>
+      {/* View Options */}
+      <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-              <Button 
-                variant={gridEnabled ? "sticky" : "ghost"} 
-                size="icon" 
-                className={`h-8 w-8 ${gridEnabled ? '' : 'hover:bg-[hsl(var(--highlighter-yellow))]/20'} text-[hsl(var(--ink-blue))]`}
-                onClick={() => setGridEnabled(!gridEnabled)}
-                data-grid-toggle
-              >
-                <Grid3x3 className="h-4 w-4" />
-              </Button>
+            <Button 
+              variant="ghost"
+              size="icon" 
+              className={gridEnabled ? activeToolButtonClass : toolButtonClass}
+              onClick={() => setGridEnabled(!gridEnabled)}
+              data-grid-toggle
+            >
+              <GridFour size={18} weight={gridEnabled ? "duotone" : "regular"} />
+            </Button>
           </TooltipTrigger>
           <TooltipContent>Toggle Grid</TooltipContent>
         </Tooltip>
@@ -289,61 +283,61 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         <Tooltip>
           <TooltipTrigger asChild>
             <Button 
-              variant={rulersEnabled ? "sticky" : "ghost"} 
+              variant="ghost"
               size="icon" 
-              className={`h-8 w-8 ${rulersEnabled ? '' : 'hover:bg-[hsl(var(--highlighter-yellow))]/20'} text-[hsl(var(--ink-blue))]`}
+              className={rulersEnabled ? activeToolButtonClass : toolButtonClass}
               onClick={() => setRulersEnabled(!rulersEnabled)}
             >
-              <Ruler className="h-4 w-4" />
+              <Ruler size={18} weight={rulersEnabled ? "duotone" : "regular"} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Toggle Rulers</TooltipContent>
         </Tooltip>
       </div>
 
-      <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--pencil-gray))]/40" />
+      <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
-      <div className="px-2">
-        <FeatureAccessBadge />
-      </div>
+      <FeatureAccessBadge />
 
+      {/* Save Status - Centered */}
       <div className="flex-1 flex items-center justify-center">
         {saveStatus === 'saved' && (
-          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-green-500/10 rounded-md border border-green-500/20">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>
-            <span className="text-green-700 dark:text-green-400 font-medium">All changes saved</span>
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 rounded-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Saved</span>
           </span>
         )}
         {saveStatus === 'saving' && (
-          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-yellow-500/10 rounded-md border border-yellow-500/20">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
-            <span className="text-yellow-700 dark:text-yellow-400 font-medium">Saving...</span>
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 rounded-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span className="text-amber-600 dark:text-amber-400 font-medium">Saving...</span>
           </span>
         )}
         {saveStatus === 'unsaved' && (
-          <span className="text-xs flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-md border border-border/40">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>
-            <span className="text-muted-foreground font-medium">Not saved</span>
+          <span className="text-xs flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
+            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50"></span>
+            <span>Unsaved</span>
           </span>
         )}
       </div>
 
+      {/* Zoom Controls */}
       <div className="flex items-center gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={zoomOut}>
-              <ZoomOut className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomOut}>
+              <MagnifyingGlassMinus size={16} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Zoom Out</TooltipContent>
         </Tooltip>
         
-        <span className="text-xs font-semibold px-3 py-1 bg-white rounded-md min-w-[3rem] text-center border border-[hsl(var(--pencil-gray))] font-source-serif">{zoom}%</span>
+        <span className="text-xs font-medium px-2 py-1 bg-muted/50 rounded min-w-[3rem] text-center text-foreground">{zoom}%</span>
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={zoomIn}>
-              <ZoomIn className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomIn}>
+              <MagnifyingGlassPlus size={16} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Zoom In</TooltipContent>
@@ -351,14 +345,14 @@ export const TopToolbar = ({ onExport, activeTool = "select", onToolChange }: To
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]" onClick={zoomToFit}>
-              <Maximize className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={zoomToFit}>
+              <CornersOut size={16} weight="regular" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Fit to Screen</TooltipContent>
         </Tooltip>
 
-        <Separator orientation="vertical" className="h-6 mx-2 bg-[hsl(var(--pencil-gray))]/40" />
+        <Separator orientation="vertical" className="h-5 mx-1.5 bg-blue-200/70" />
 
         <QuickSettings />
       </div>

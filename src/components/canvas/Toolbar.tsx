@@ -1,24 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
-  MousePointer2,
-  Square,
-  Circle,
-  Triangle,
-  Minus,
-  Type,
-  PenTool,
-  Eraser,
+  Cursor,
+  PenNib,
+  Scribble,
+  TextT,
   Image,
-  ImagePlus,
-  Star,
-  Hexagon,
-  Spline,
+  Eraser,
   Crop,
-  Clock,
-  FileText,
   Waves,
-} from "lucide-react";
+  FilePpt,
+  ImageSquare,
+} from "@phosphor-icons/react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
 import {
@@ -45,6 +38,15 @@ interface ToolbarProps {
   onToolChange: (tool: string) => void;
 }
 
+// Section label component for visual grouping
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="w-full px-1 py-1">
+    <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+      {children}
+    </span>
+  </div>
+);
+
 export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const { canvas, selectedObject, setCropMode, setSelectedObject } = useCanvas();
   const { recentTools, addRecentTool } = useRecentlyUsedTools();
@@ -53,19 +55,10 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const [membraneBrushOpen, setMembraneBrushOpen] = useState(false);
   
   const tools = [
-    { id: "select", icon: MousePointer2, label: "Select and Transform (1)" },
-    { id: "pen", icon: PenTool, label: "Draw Bezier Curves (B)" },
-    { id: "freeform-line", icon: Spline, label: "Freeform Curved Line (F)" },
+    { id: "select", Icon: Cursor, label: "Select and Transform", shortcut: "1" },
+    { id: "pen", Icon: PenNib, label: "Draw Bezier Curves", shortcut: "B" },
+    { id: "freeform-line", Icon: Scribble, label: "Freeform Curved Line", shortcut: "F" },
   ];
-
-  // Map tool IDs to their icons and labels for recent tools
-  const toolIconMap: Record<string, { icon: any; label: string }> = {
-    "pen": { icon: PenTool, label: "Bezier Curves" },
-    "freeform-line": { icon: Spline, label: "Freeform Line" },
-    "text": { icon: Type, label: "Text" },
-    "image": { icon: Image, label: "Image" },
-    "eraser": { icon: Eraser, label: "Eraser" },
-  };
   
   const isImageSelected = selectedObject && selectedObject.type === 'image';
 
@@ -80,314 +73,213 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
     onToolChange(toolId);
   };
 
-  return (
-    <div className="h-full flex flex-col bg-[hsl(var(--cream))]/95 border-r-2 border-[hsl(var(--pencil-gray))] shadow-lg backdrop-blur-sm overflow-y-auto min-h-0 notebook-sidebar ruled-lines">
-      {/* Spiral binding decoration */}
-      <div className="spiral-binding">
-        {[...Array(15)].map((_, i) => (
-          <div key={i} className="spiral-hole" />
-        ))}
-      </div>
-      
-      <div className="flex-1 flex flex-col gap-1 p-1.5 pl-8 overflow-y-auto">
-        {/* Recently Used Section */}
-        {recentTools.length > 0 && (
-          <>
-            <div className="notebook-section-header px-2 mb-2 flex items-center gap-1.5">
-              <Clock className="h-4 w-4" />
-              Recent
-            </div>
-          {recentTools.slice(0, 3).map((toolId) => {
-            const toolInfo = toolIconMap[toolId];
-            if (!toolInfo) return null;
-            
-            return (
-              <Tooltip key={`recent-${toolId}`}>
-                <TooltipTrigger asChild>
-              <Button
-                variant={activeTool === toolId ? "default" : "ghost"}
-                size="icon"
-                onClick={() => handleToolChange(toolId)}
-                className={`w-10 h-10 relative rounded-lg border transition-all duration-300 ease-out ${
-                  activeTool === toolId 
-                    ? 'canvas-tool-button-active' 
-                    : 'canvas-tool-button'
-                }`}
-              >
-                    <toolInfo.icon className="h-5 w-5" />
-                    <div className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-gradient-to-br from-[hsl(var(--canvas-accent-primary))] to-[hsl(var(--canvas-accent-secondary))]" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>{toolInfo.label} (Recent)</p>
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-          <Separator className="my-1" />
-        </>
-      )}
+  const toolButtonBase = "w-9 h-9 rounded-md transition-all duration-150 hover:scale-105";
+  const toolButtonActive = `${toolButtonBase} bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30`;
+  const toolButtonInactive = `${toolButtonBase} text-muted-foreground hover:text-foreground hover:bg-blue-200/60 hover:shadow-sm`;
 
-        {/* Selection & Drawing Section */}
-        <div className="notebook-section-header px-2 mb-2">
-          Drawing
+  return (
+    <div className="h-full flex flex-col bg-blue-100/60 border-r border-blue-200/80 overflow-y-auto min-h-0 w-14">
+      <div className="flex-1 flex flex-col items-center gap-0.5 py-2 px-1.5 overflow-y-auto">
+        
+        {/* Draw Section */}
+        <SectionLabel>Draw</SectionLabel>
+        {tools.map((tool) => (
+          <Tooltip key={tool.id}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleToolChange(tool.id)}
+                className={activeTool === tool.id ? toolButtonActive : toolButtonInactive}
+              >
+                <tool.Icon 
+                  size={18} 
+                  weight={activeTool === tool.id ? "duotone" : "regular"} 
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="flex items-center gap-2">
+              <span className="text-xs font-medium">{tool.label}</span>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border border-border shadow-sm">
+                {tool.shortcut}
+              </kbd>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
+
+        {/* Shapes Section */}
+        <SectionLabel>Shapes</SectionLabel>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div data-onboarding="shapes-dropdown">
+              <ShapesDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="text-xs font-medium">Basic Shapes</TooltipContent>
+        </Tooltip>
+        
+        <ShapesWithTextDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
+
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
+
+        {/* Lines Section */}
+        <SectionLabel>Lines</SectionLabel>
+        <div data-onboarding="lines-section">
+          <StraightLineTool onLineSelect={onToolChange} activeTool={activeTool} />
         </div>
-      {tools.map((tool) => (
-        <Tooltip key={tool.id}>
+        <OrthogonalLineTool onLineSelect={handleToolChange} activeTool={activeTool} />
+        <CurvedLineTool onLineSelect={handleToolChange} activeTool={activeTool} />
+        <ConnectorTool onConnectorSelect={handleToolChange} activeTool={activeTool} />
+        <ZoomCalloutTool onCalloutSelect={handleToolChange} activeTool={activeTool} />
+
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
+
+        {/* Content Section */}
+        <SectionLabel>Content</SectionLabel>
+        <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={activeTool === tool.id ? "default" : "ghost"}
+              variant="ghost"
               size="icon"
-              onClick={() => handleToolChange(tool.id)}
-              className={`w-10 h-10 rounded-lg border transition-all duration-300 ease-out ${
-                activeTool === tool.id 
-                  ? 'canvas-tool-button-active' 
-                  : 'canvas-tool-button'
-              }`}
+              onClick={() => handleToolChange("text")}
+              className={activeTool === "text" ? toolButtonActive : toolButtonInactive}
+              data-tool="text"
             >
-              <tool.icon className="h-5 w-5" />
+              <TextT 
+                size={18} 
+                weight={activeTool === "text" ? "duotone" : "regular"} 
+              />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right">
-            <p>{tool.label}</p>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span className="text-xs font-medium">Text</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border border-border shadow-sm">T</kbd>
           </TooltipContent>
         </Tooltip>
-      ))}
-      
-      <Separator className="my-1" />
-      
-        {/* Shapes Section */}
-        <div className="notebook-section-header px-2 mb-2" data-onboarding="shapes-dropdown">
-          Shapes
-        </div>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            <ShapesDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Shapes</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            <ShapesWithTextDropdown onShapeSelect={onToolChange} activeTool={activeTool} />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Labeled Shapes</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Separator className="my-1" />
-      
-        {/* Lines Section */}
-        <div className="notebook-section-header px-2 mb-2" data-onboarding="lines-section">
-          Lines
-        </div>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            <StraightLineTool onLineSelect={onToolChange} activeTool={activeTool} />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Straight Lines (L)</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            <OrthogonalLineTool onLineSelect={handleToolChange} activeTool={activeTool} />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Orthogonal Lines (90° Bends)</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            <CurvedLineTool onLineSelect={handleToolChange} activeTool={activeTool} />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Curved Lines (Adjustable)</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            <ConnectorTool onConnectorSelect={handleToolChange} activeTool={activeTool} />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Smart Connectors</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div>
-            <ZoomCalloutTool onCalloutSelect={handleToolChange} activeTool={activeTool} />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Zoom Callouts (Highlight Tool)</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      
-      <Separator className="my-1" />
-      
-        {/* Tools Section */}
-        <div className="notebook-section-header px-2 mb-2">
-          Tools
-        </div>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={activeTool === "text" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => handleToolChange("text")}
-            className="w-10 h-10"
-            data-tool="text"
-          >
-            <Type className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Create Text (2)</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={activeTool.startsWith("membrane-brush") ? "default" : "ghost"}
-            size="icon"
-            onClick={() => setMembraneBrushOpen(true)}
-            className="w-10 h-10"
-          >
-            <Waves className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Membrane Brush - Draw cell membranes with tiled icons</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={activeTool === "image" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => handleToolChange("image")}
-            className="w-10 h-10"
-          >
-            <Image className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Insert Image (8)</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              addImagePlaceholder();
-              onToolChange("select");
-            }}
-            className="w-10 h-10"
-          >
-            <ImagePlus className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Image Placeholder</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              // Check if selected object is an image or group (SVG icon)
-              const isImageOrIcon = selectedObject && 
-                (selectedObject.type === 'image' || selectedObject.type === 'group');
-              
-              if (!isImageOrIcon) {
-                // Fallback: check canvas directly
-                const activeObject = canvas?.getActiveObject();
-                if (activeObject && (activeObject.type === 'image' || activeObject.type === 'group')) {
-                  setSelectedObject(activeObject);
-                  setCropMode(true);
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMembraneBrushOpen(true)}
+              className={activeTool.startsWith("membrane-brush") ? toolButtonActive : toolButtonInactive}
+            >
+              <Waves 
+                size={18} 
+                weight={activeTool.startsWith("membrane-brush") ? "duotone" : "regular"} 
+              />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="text-xs font-medium">Membrane Brush</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleToolChange("image")}
+              className={activeTool === "image" ? toolButtonActive : toolButtonInactive}
+            >
+              <Image 
+                size={18} 
+                weight={activeTool === "image" ? "duotone" : "regular"} 
+              />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span className="text-xs font-medium">Image</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border border-border shadow-sm">8</kbd>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                addImagePlaceholder();
+                onToolChange("select");
+              }}
+              className={toolButtonInactive}
+            >
+              <ImageSquare size={18} weight="regular" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="text-xs font-medium">Image Placeholder</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                const isImageOrIcon = selectedObject && 
+                  (selectedObject.type === 'image' || selectedObject.type === 'group');
+                
+                if (!isImageOrIcon) {
+                  const activeObject = canvas?.getActiveObject();
+                  if (activeObject && (activeObject.type === 'image' || activeObject.type === 'group')) {
+                    setSelectedObject(activeObject);
+                    setCropMode(true);
+                  } else {
+                    toast.error("Select an image first");
+                  }
                 } else {
-                  toast.error("Please select an image or icon first");
+                  setCropMode(true);
                 }
-              } else {
-                setCropMode(true);
-              }
-            }}
-            className="w-10 h-10"
-            disabled={!(selectedObject && (selectedObject.type === 'image' || selectedObject.type === 'group'))}
-          >
-            <Crop className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Crop Image/Icon (C)</p>
-        </TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={activeTool === "eraser" ? "default" : "ghost"}
-            size="icon"
-            onClick={() => handleToolChange("eraser")}
-            className="w-10 h-10"
-          >
-            <Eraser className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Eraser (9)</p>
-        </TooltipContent>
-      </Tooltip>
+              }}
+              className={toolButtonInactive}
+              disabled={!(selectedObject && (selectedObject.type === 'image' || selectedObject.type === 'group'))}
+            >
+              <Crop size={18} weight="regular" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="text-xs font-medium">Crop</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleToolChange("eraser")}
+              className={activeTool === "eraser" ? toolButtonActive : toolButtonInactive}
+            >
+              <Eraser 
+                size={18} 
+                weight={activeTool === "eraser" ? "duotone" : "regular"} 
+              />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="flex items-center gap-2">
+            <span className="text-xs font-medium">Eraser</span>
+            <kbd className="px-1.5 py-0.5 text-[10px] font-mono bg-muted rounded border border-border shadow-sm">9</kbd>
+          </TooltipContent>
+        </Tooltip>
 
-      <Separator className="my-1" />
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setPowerpointOpen(true)}
-            className="w-10 h-10"
-          >
-            <FileText className="h-5 w-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">
-          <p>Generate PowerPoint</p>
-        </TooltipContent>
-      </Tooltip>
+        {/* Export Section */}
+        <SectionLabel>Export</SectionLabel>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPowerpointOpen(true)}
+              className={toolButtonInactive}
+            >
+              <FilePpt size={18} weight="regular" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="text-xs font-medium">PowerPoint</TooltipContent>
+        </Tooltip>
 
         <PowerPointGenerator 
           open={powerpointOpen} 
@@ -398,7 +290,6 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           open={membraneBrushOpen}
           onOpenChange={setMembraneBrushOpen}
           onStart={(iconSVG, options) => {
-            // Trigger the membrane brush tool with the selected icon and options
             onToolChange(`membrane-brush:${JSON.stringify({ iconSVG, ...options })}`);
           }}
         />
