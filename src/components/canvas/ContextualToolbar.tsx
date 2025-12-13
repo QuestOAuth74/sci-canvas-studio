@@ -160,12 +160,12 @@ export const ContextualToolbar = () => {
       className="fixed z-40 glass-effect-premium rounded-lg shadow-lg hover:shadow-xl p-3 flex items-center gap-4 max-w-5xl"
       style={{ 
         transform: `translate(${position.x}px, ${position.y}px)`,
-        transition: isDragging ? 'none' : 'all 0.3s',
+        transition: isDragging ? 'none' : 'opacity 0.3s, box-shadow 0.3s',
         cursor: isDragging ? 'grabbing' : 'default',
         boxShadow: isDragging 
           ? '0 8px 24px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(59, 130, 246, 0.3)' 
           : undefined,
-        willChange: isDragging ? 'transform' : 'auto',
+        willChange: 'transform, opacity',
       }}
     >
       {/* Drag Handle */}

@@ -142,7 +142,7 @@ export const SmartSuggestions = () => {
   const Icon = currentSuggestion.icon;
 
   return (
-    <div className="fixed bottom-16 right-6 z-50 animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed bottom-16 right-6 z-50 animate-in fade-in duration-300" style={{ willChange: 'opacity', transform: 'translateZ(0)' }}>
       <div className="glass-effect-premium rounded-lg shadow-lg border border-primary/20 p-4 max-w-sm">
         <div className="flex items-start gap-3">
           <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
