@@ -3966,7 +3966,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       } : undefined}
     >
       <div className="w-full h-full flex items-start justify-center p-4">
-        <div className={`shadow-2xl bg-white transition-all duration-200 ${toolModeClass}`} style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
+        <div className={`shadow-2xl bg-white transition-shadow duration-200 ${toolModeClass}`} style={{ boxShadow: '0 0 20px rgba(0,0,0,0.1)', willChange: 'box-shadow' }}>
           <div 
             style={{
               width: `${(canvasDimensions.width || 1200) * (zoom / 100)}px`,
