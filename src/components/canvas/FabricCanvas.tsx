@@ -89,7 +89,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const simplifySVGMainThread = (svgContent: string): string => {
     return svgContent
       .replace(/id="[^"]*"/g, '')
-      .replace(/class="[^"]*"/g, '')
+      // Note: CSS classes are preserved - they often define fill colors
       .replace(/style="[^"]*opacity:\s*0[^"]*"/g, 'style="display:none"')
       .replace(/\s+/g, ' ')
       .trim();
