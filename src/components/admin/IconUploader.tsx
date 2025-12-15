@@ -497,6 +497,12 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
         console.error(error);
       } else {
         toast.success(`Icon "${sanitizedName}" uploaded successfully!`);
+        
+        // Dispatch event to notify IconLibrary to refresh
+        window.dispatchEvent(new CustomEvent('iconsUploaded', { 
+          detail: { categoryId: selectedCategory } 
+        }));
+        
         setIconName("");
         setFile(null);
         setFilePreview(null);
@@ -603,6 +609,11 @@ Has SVG Namespace: ${result.debugInfo.hasSvgNamespace ? 'Yes' : 'No'}${result.de
       } else {
         toast.success(`Successfully uploaded ${uploadedCount} icons!`);
       }
+      
+      // Dispatch event to notify IconLibrary to refresh
+      window.dispatchEvent(new CustomEvent('iconsUploaded', { 
+        detail: { categoryId: selectedCategory } 
+      }));
 
       setZipFile(null);
       setSelectedCategory("");
