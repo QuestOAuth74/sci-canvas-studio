@@ -68,6 +68,25 @@ const sanitizeSvg = (raw: string): string => {
         svg = svg.replace(/\b(width|height)=["'][^"']*["']/gi, "");
       }
     }
+    
+    // Fix invisible SVGs: replace fill="none" on paths/shapes with a visible color
+    // Only do this if the path has no stroke either (otherwise it's intentional outline-only)
+    svg = svg.replace(/<(path|rect|circle|ellipse|polygon|polyline)([^>]*)\bfill="none"([^>]*)>/gi, (match, tag, before, after) => {
+      // Check if there's a stroke defined - if so, keep fill="none"
+      const hasStroke = /\bstroke=/.test(before + after) && !/\bstroke="none"/.test(before + after);
+      if (hasStroke) {
+        return match; // Keep original - it's an outline icon
+      }
+      // Replace fill="none" with a visible dark color for preview
+      return `<${tag}${before}fill="currentColor"${after}>`;
+    });
+    
+    // Also handle the parent <svg> fill="none" attribute by adding a style for currentColor
+    if (svg.includes('fill="currentColor"') || svg.includes("fill='currentColor'")) {
+      // Add style to set currentColor to a visible dark gray
+      svg = svg.replace(/<svg([^>]*)>/i, '<svg$1 style="color: #374151;">');
+    }
+    
     return svg;
   } catch {
     return raw;
