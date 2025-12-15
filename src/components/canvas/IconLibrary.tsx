@@ -69,24 +69,6 @@ const sanitizeSvg = (raw: string): string => {
       }
     }
     
-    // Fix invisible SVGs: replace fill="none" on paths/shapes with a visible color
-    // Only do this if the path has no stroke either (otherwise it's intentional outline-only)
-    svg = svg.replace(/<(path|rect|circle|ellipse|polygon|polyline)([^>]*)\bfill="none"([^>]*)>/gi, (match, tag, before, after) => {
-      // Check if there's a stroke defined - if so, keep fill="none"
-      const hasStroke = /\bstroke=/.test(before + after) && !/\bstroke="none"/.test(before + after);
-      if (hasStroke) {
-        return match; // Keep original - it's an outline icon
-      }
-      // Replace fill="none" with a visible dark color for preview
-      return `<${tag}${before}fill="currentColor"${after}>`;
-    });
-    
-    // Also handle the parent <svg> fill="none" attribute by adding a style for currentColor
-    if (svg.includes('fill="currentColor"') || svg.includes("fill='currentColor'")) {
-      // Add style to set currentColor to a visible dark gray
-      svg = svg.replace(/<svg([^>]*)>/i, '<svg$1 style="color: #374151;">');
-    }
-    
     return svg;
   } catch {
     return raw;
@@ -471,16 +453,23 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
     const hasThumbnail = !!icon.thumbnail;
     const isBroken = !!brokenMap[icon.id];
     
-    // Determine the thumbnail source - handle both URLs and raw SVG content
-    let thumbSrc = '';
-    if (hasThumbnail && !isBroken) {
-      if (isUrl(icon.thumbnail!)) {
-        // It's already a URL (PNG, JPEG, or data URL) - use directly
-        thumbSrc = icon.thumbnail!;
-      } else {
-        // It's raw SVG content - sanitize and convert to data URL
-        const safeSvg = sanitizeSvg(icon.thumbnail!);
+    // Determine the thumbnail source - prefer full SVG content for accurate colors,
+    // fall back to thumbnail (URL or inline SVG) when needed
+    let thumbSrc = "";
+    if (!isBroken) {
+      if (icon.svg_content) {
+        // Use the full icon SVG so previews match the canvas appearance
+        const safeSvg = sanitizeSvg(icon.svg_content);
         thumbSrc = svgToDataUrl(safeSvg);
+      } else if (hasThumbnail) {
+        if (isUrl(icon.thumbnail!)) {
+          // It's already a URL (PNG, JPEG, or data URL) - use directly
+          thumbSrc = icon.thumbnail!;
+        } else {
+          // It's raw SVG thumbnail content - sanitize and convert to data URL
+          const safeSvg = sanitizeSvg(icon.thumbnail!);
+          thumbSrc = svgToDataUrl(safeSvg);
+        }
       }
     }
     
