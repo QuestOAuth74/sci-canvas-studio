@@ -1510,8 +1510,8 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Restore visibility after snapshot
       hidden.forEach((o) => (o.visible = true));
 
-      const projectData = {
-        user_id: user.id,
+      // Base data for updates (don't include user_id to preserve original owner)
+      const updateData = {
         name: projectName,
         canvas_data: canvasData,
         paper_size: paperSize,
@@ -1519,9 +1519,15 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         canvas_height: canvasDimensions.height,
         updated_at: new Date().toISOString()
       };
+      
+      // Full data for inserts (includes user_id for new projects)
+      const insertData = {
+        ...updateData,
+        user_id: user.id
+      };
 
       // Check payload size before saving
-      const payloadSize = new Blob([JSON.stringify(projectData)]).size / (1024 * 1024);
+      const payloadSize = new Blob([JSON.stringify(insertData)]).size / (1024 * 1024);
       console.log(`Save payload size: ${payloadSize.toFixed(2)}MB, Objects: ${canvas.getObjects().length}`);
       
       if (payloadSize > 4) {
@@ -1568,10 +1574,10 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
           }
         }
 
-        // Update existing project
+        // Update existing project (preserves original owner)
         const { error } = await supabase
           .from('canvas_projects')
-          .update(projectData)
+          .update(updateData)
           .eq('id', currentProjectId);
 
         if (error) throw error;
@@ -1590,7 +1596,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         // Create new project
         const { data, error } = await supabase
           .from('canvas_projects')
-          .insert([projectData])
+          .insert([insertData])
           .select()
           .single();
 
