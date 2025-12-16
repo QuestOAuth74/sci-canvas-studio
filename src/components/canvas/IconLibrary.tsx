@@ -131,33 +131,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
       loadData();
     };
     
-    // Listen for icons uploaded (from admin bulk upload)
-    const handleIconsUploaded = (e: CustomEvent<{ categoryId?: string }>) => {
-      console.log('Icons uploaded, clearing cache and reloading...', e.detail);
-      // Clear the specific category cache if provided, otherwise clear all
-      if (e.detail?.categoryId) {
-        setIconsByCategory(prev => {
-          const newState = { ...prev };
-          delete newState[e.detail.categoryId!];
-          return newState;
-        });
-        const category = categories.find(c => c.id === e.detail.categoryId);
-        if (category) {
-          loadIconsForCategory(category.id, category.name, true);
-        }
-      } else {
-        setIconsByCategory({});
-        loadData();
-      }
-    };
-    
     window.addEventListener('thumbnailsGenerated', handleThumbnailsGenerated);
-    window.addEventListener('iconsUploaded', handleIconsUploaded as EventListener);
-    return () => {
-      window.removeEventListener('thumbnailsGenerated', handleThumbnailsGenerated);
-      window.removeEventListener('iconsUploaded', handleIconsUploaded as EventListener);
-    };
-  }, [categories]);
+    return () => window.removeEventListener('thumbnailsGenerated', handleThumbnailsGenerated);
+  }, []);
 
   // Debounced search
   useEffect(() => {
@@ -199,9 +175,9 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
     }
   };
 
-  const loadIconsForCategory = async (categoryId: string, categoryName: string, forceRefresh = false) => {
-    // Prevent duplicate loading (unless force refresh)
-    if (!forceRefresh && (iconsByCategory[categoryId] || loadingCategories[categoryId])) {
+  const loadIconsForCategory = async (categoryId: string, categoryName: string) => {
+    // Prevent duplicate loading
+    if (iconsByCategory[categoryId] || loadingCategories[categoryId]) {
       return;
     }
 
