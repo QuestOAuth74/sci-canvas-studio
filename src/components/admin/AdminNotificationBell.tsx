@@ -45,108 +45,57 @@ export const AdminNotificationBell = () => {
     totalFeedback;
 
   const fetchCounts = async () => {
-    // Fetch pending projects
-    const { count: projectsCount } = await supabase
-      .from('canvas_projects')
-      .select('id', { count: 'exact', head: true })
-      .eq('approval_status', 'pending');
+    try {
+      // Batch all count queries in parallel for efficiency
+      const [
+        { count: projectsCount },
+        { count: testimonialsCount },
+        { count: iconsCount },
+        { count: messagesCount },
+        { count: feedbackCount }
+      ] = await Promise.all([
+        supabase
+          .from('canvas_projects')
+          .select('id', { count: 'exact', head: true })
+          .eq('approval_status', 'pending'),
+        supabase
+          .from('testimonials')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_approved', false),
+        supabase
+          .from('icon_submissions')
+          .select('id', { count: 'exact', head: true })
+          .eq('approval_status', 'pending'),
+        supabase
+          .from('contact_messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_read', false),
+        supabase
+          .from('tool_feedback')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_viewed', false)
+      ]);
 
-    // Fetch pending testimonials
-    const { count: testimonialsCount } = await supabase
-      .from('testimonials')
-      .select('id', { count: 'exact', head: true })
-      .eq('is_approved', false);
-
-    // Fetch pending icon submissions
-    const { count: iconsCount } = await supabase
-      .from('icon_submissions')
-      .select('id', { count: 'exact', head: true })
-      .eq('approval_status', 'pending');
-
-    // Fetch unread contact messages
-    const { count: messagesCount } = await supabase
-      .from('contact_messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('is_read', false);
-
-    // Fetch unviewed tool feedback
-    const { count: feedbackCount } = await supabase
-      .from('tool_feedback')
-      .select('id', { count: 'exact', head: true })
-      .eq('is_viewed', false);
-
-    setPendingProjects(projectsCount || 0);
-    setPendingTestimonials(testimonialsCount || 0);
-    setPendingIconSubmissions(iconsCount || 0);
-    setUnreadMessages(messagesCount || 0);
-    setTotalFeedback(feedbackCount || 0);
+      setPendingProjects(projectsCount || 0);
+      setPendingTestimonials(testimonialsCount || 0);
+      setPendingIconSubmissions(iconsCount || 0);
+      setUnreadMessages(messagesCount || 0);
+      setTotalFeedback(feedbackCount || 0);
+    } catch (error) {
+      console.error('Error fetching notification counts:', error);
+    }
   };
 
   useEffect(() => {
+    // Initial fetch
     fetchCounts();
 
-    // Set up real-time subscriptions
-    const projectsChannel = supabase
-      .channel('admin-projects-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'canvas_projects'
-      }, () => {
-        fetchCounts();
-      })
-      .subscribe();
-
-    const testimonialsChannel = supabase
-      .channel('admin-testimonials-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'testimonials'
-      }, () => {
-        fetchCounts();
-      })
-      .subscribe();
-
-    const iconsChannel = supabase
-      .channel('admin-icon-submissions-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'icon_submissions'
-      }, () => {
-        fetchCounts();
-      })
-      .subscribe();
-
-    const messagesChannel = supabase
-      .channel('admin-contact-messages-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'contact_messages'
-      }, () => {
-        fetchCounts();
-      })
-      .subscribe();
-
-    const feedbackChannel = supabase
-      .channel('admin-tool-feedback-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'tool_feedback'
-      }, () => {
-        fetchCounts();
-      })
-      .subscribe();
+    // Poll for updates every 60 seconds instead of using realtime subscriptions
+    // This reduces connection overhead from 5 channels to 0 channels
+    const pollInterval = setInterval(fetchCounts, 60000); // 60 seconds
 
     return () => {
-      supabase.removeChannel(projectsChannel);
-      supabase.removeChannel(testimonialsChannel);
-      supabase.removeChannel(iconsChannel);
-      supabase.removeChannel(messagesChannel);
-      supabase.removeChannel(feedbackChannel);
+      clearInterval(pollInterval);
     };
   }, []);
 

@@ -14,6 +14,7 @@ import Community from "./pages/Community";
 import AuthorProfile from "./pages/AuthorProfile";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
+import VerifyEmail from "./pages/VerifyEmail";
 import Projects from "./pages/Projects";
 import Profile from "./pages/Profile";
 import Testimonials from "./pages/Testimonials";
@@ -34,6 +35,7 @@ import BlogTags from "./pages/admin/BlogTags";
 import PowerPointGenerator from "./pages/admin/PowerPointGenerator";
 import AISettings from "./pages/admin/AISettings";
 import RateLimits from "./pages/admin/RateLimits";
+import EmailPreview from "./pages/admin/EmailPreview";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +50,7 @@ const App = () => (
             <Routes>
             <Route path="/" element={<MainLayout><Index /></MainLayout>} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/verify-email" element={<VerifyEmail />} />
             <Route path="/projects" element={<MainLayout><ProtectedRoute><Projects /></ProtectedRoute></MainLayout>} />
             <Route path="/profile" element={<MainLayout><ProtectedRoute><Profile /></ProtectedRoute></MainLayout>} />
             <Route path="/community" element={<MainLayout><ProtectedRoute><Community /></ProtectedRoute></MainLayout>} />
@@ -72,6 +75,7 @@ const App = () => (
             <Route path="/admin/blog/edit/:id" element={<MainLayout><AdminRoute><BlogEditor /></AdminRoute></MainLayout>} />
             <Route path="/admin/blog/categories" element={<MainLayout><AdminRoute><BlogCategories /></AdminRoute></MainLayout>} />
             <Route path="/admin/blog/tags" element={<MainLayout><AdminRoute><BlogTags /></AdminRoute></MainLayout>} />
+            <Route path="/admin/email-preview" element={<MainLayout><AdminRoute><EmailPreview /></AdminRoute></MainLayout>} />
             <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </BrowserRouter>

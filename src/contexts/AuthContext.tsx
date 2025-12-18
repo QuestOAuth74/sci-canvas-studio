@@ -121,6 +121,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (!data.success) {
+      // Check for unverified email
+      const isUnverified = data.error?.toLowerCase().includes('not confirmed');
+
+      if (isUnverified) {
+        // Auto-resend verification email
+        const { error: resendError } = await supabase.auth.resend({
+          type: 'signup',
+          email: email
+        });
+
+        if (!resendError) {
+          toast.error("Email not verified. We've sent you a new verification link.");
+          sessionStorage.setItem('verifyEmail', email);
+          return {
+            error: {
+              message: 'Email not verified',
+              redirect: '/auth/verify-email?resent=true'
+            }
+          };
+        } else {
+          toast.error("Email not verified. Please check your inbox for the verification link.");
+          sessionStorage.setItem('verifyEmail', email);
+          return {
+            error: {
+              message: 'Email not verified',
+              redirect: '/auth/verify-email'
+            }
+          };
+        }
+      }
+
       const errorMessage = data.rateLimited
         ? data.error
         : data.remainingAttempts !== undefined

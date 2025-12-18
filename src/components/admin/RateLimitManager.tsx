@@ -37,13 +37,14 @@ export default function RateLimitManager() {
 
   const fetchLoginAttempts = async () => {
     setLoading(true);
-    
-    // Get all login attempts from the last 24 hours
+
+    // Get login attempts from the last 24 hours with a limit to reduce load
     const { data, error } = await supabase
       .from('login_attempts')
       .select('*')
       .gte('attempt_time', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-      .order('attempt_time', { ascending: false });
+      .order('attempt_time', { ascending: false })
+      .limit(500); // Limit to most recent 500 attempts
 
     if (error) {
       toast.error('Failed to fetch login attempts');
@@ -52,7 +53,7 @@ export default function RateLimitManager() {
       setAttempts(data || []);
       calculateRateLimits(data || []);
     }
-    
+
     setLoading(false);
   };
 
@@ -147,9 +148,9 @@ export default function RateLimitManager() {
 
   useEffect(() => {
     fetchLoginAttempts();
-    
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchLoginAttempts, 30000);
+
+    // Refresh every 60 seconds to reduce database load
+    const interval = setInterval(fetchLoginAttempts, 60000);
     return () => clearInterval(interval);
   }, []);
 

@@ -16,5 +16,24 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  },
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: {
+      'x-client-info': 'science-canvas-creator@1.0.0'
+    }
   }
 });
+
+// Connection monitoring for debugging (development only)
+if (import.meta.env.DEV) {
+  // Monitor active realtime channels
+  setInterval(() => {
+    const channels = supabase.getChannels();
+    if (channels.length > 0) {
+      console.log(`[Supabase] Active channels: ${channels.length}`, channels.map(c => c.topic));
+    }
+  }, 30000); // Log every 30 seconds if there are active channels
+}

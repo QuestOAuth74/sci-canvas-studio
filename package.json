@@ -15,7 +15,8 @@
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:milestone1": "vitest run tests/database",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:stress": "npx tsx tests/stress/io-stress-test.ts"
   },
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^1.13.0",

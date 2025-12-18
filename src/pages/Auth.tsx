@@ -117,7 +117,13 @@ export default function Auth() {
     const { error } = await signIn(signInEmail, signInPassword);
     setIsLoading(false);
 
-    if (!error) {
+    if (error) {
+      // Check if error includes redirect instruction
+      if (error.redirect) {
+        navigate(error.redirect);
+      }
+      // Error toast already shown in AuthContext
+    } else {
       navigate('/');
     }
   };
@@ -148,7 +154,8 @@ export default function Auth() {
     setIsLoading(false);
 
     if (!error) {
-      setActiveTab('signin');
+      sessionStorage.setItem('verifyEmail', signUpEmail);
+      navigate('/auth/verify-email');
     }
   };
 
