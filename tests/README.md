@@ -9,24 +9,50 @@ This directory contains automated tests to verify that Milestone 1 (Database & A
 ```
 tests/
 ├── utils/
-│   └── supabase-test-client.ts    # Test utilities for Supabase connections
+│   ├── supabase-test-client.ts      # Test utilities for Supabase connections
+│   └── mock-resend.ts               # Mock Resend API for edge function tests
 ├── database/
-│   ├── seed-verification.test.ts   # Database seeding verification tests
-│   └── rls-policies.test.ts        # RLS policy verification tests
-└── README.md                        # This file
+│   ├── seed-verification.test.ts    # Database seeding verification tests
+│   └── rls-policies.test.ts         # RLS policy verification tests
+├── e2e/
+│   ├── auth/
+│   │   ├── signup.spec.ts           # Signup E2E tests (5 tests)
+│   │   ├── login.spec.ts            # Login E2E tests (5 tests)
+│   │   ├── unverified-email.spec.ts # Unverified email E2E tests (5 tests)
+│   │   └── password-reset.spec.ts   # Password reset E2E tests (7 tests)
+│   ├── fixtures/
+│   │   ├── auth.ts                  # Authentication fixtures
+│   │   └── test-data.ts             # Test data generators
+│   └── utils/
+│       ├── page-objects/
+│       │   ├── AuthPage.ts          # Auth page object model
+│       │   └── VerifyEmailPage.ts   # Verify email page object model
+│       └── session-helpers.ts       # Browser session utilities
+├── edge-functions/
+│   └── send-email/
+│       ├── send-email.test.ts       # Send email edge function tests (5 tests)
+│       ├── fixtures.ts              # Email payload generators
+│       └── helpers.ts               # Email validation utilities
+└── README.md                         # This file
 ```
 
 ## Prerequisites
 
 ### Environment Variables
 
-Tests require the following environment variables in `.env.local`:
+Tests load environment variables with the following priority:
+1. `.env.local` (preferred - checked first)
+2. `.env` (fallback)
+
+Required variables:
 
 ```env
 VITE_SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 ```
+
+**Recommendation:** Use `.env.local` for local development to avoid accidentally committing secrets.
 
 ### Database State
 
@@ -36,29 +62,72 @@ Tests assume:
 
 ## Running Tests
 
-### Run all tests
+### Database & Unit Tests (Vitest)
+
+**Run all unit/database tests:**
 ```bash
 npm test
 ```
 
-### Run tests once (CI mode)
+**Run tests once (CI mode):**
 ```bash
 npm run test:run
 ```
 
-### Run with UI
+**Run with UI:**
 ```bash
 npm run test:ui
 ```
 
-### Run only Milestone 1 tests
+**Run only Milestone 1 database tests:**
 ```bash
 npm run test:milestone1
 ```
 
-### Run with coverage
+**Run with coverage:**
 ```bash
 npm run test:coverage
+```
+
+**Run edge function tests:**
+```bash
+npm run test:edge-functions
+```
+
+**Run specific edge function tests:**
+```bash
+npm run test:edge-functions:send-email
+```
+
+### E2E Tests (Playwright)
+
+**Prerequisites:**
+1. Start development server: `npm run dev` (must be running at `http://localhost:8080`)
+2. Tests will connect to the already-running server
+
+**Run all E2E tests:**
+```bash
+npm run test:e2e
+```
+
+**Run E2E tests with UI mode:**
+```bash
+npm run test:e2e:ui
+```
+
+**Run E2E tests in headed mode (see browser):**
+```bash
+npm run test:e2e:headed
+```
+
+**Debug E2E tests:**
+```bash
+npm run test:e2e:debug
+```
+
+**Run only auth E2E tests:**
+```bash
+npm run test:e2e:auth
 ```
 
 ## Test Suites
@@ -104,25 +173,101 @@ Verifies Row Level Security policies work correctly:
 - ✅ Service role can insert login attempts
 - ✅ Regular users cannot access login_attempts table
 
-## Manual Testing Checklist
+### E2E Tests (`tests/e2e/auth/`)
 
-Some aspects require manual verification:
+End-to-end browser tests for authentication flows using Playwright.
 
-### Seed Script Idempotency
+#### Signup Tests (`signup.spec.ts`) - 5 tests
+- ✅ User can sign up with email and password
+- ✅ Sign-up redirects to `/auth/verify-email`
+- ✅ Verify email page displays "Check your email" heading
+- ✅ Page shows "Return to Sign In" link
+- ✅ Link navigates back to auth page
+
+#### Login Tests (`login.spec.ts`) - 5 tests
+- ✅ User can sign in with valid credentials
+- ✅ Invalid credentials display error
+- ✅ Session persists across page refresh
+- ✅ User can sign out successfully
+- ✅ After sign out, session is cleared
+
+#### Unverified Email Tests (`unverified-email.spec.ts`) - 5 tests
+- ✅ Sign-in with unverified email detects error
+- ✅ Triggers automatic verification email resend
+- ✅ Redirects to `/auth/verify-email?resent=true`
+- ✅ Page displays resent confirmation
+- ✅ "Return to Sign In" link works
+
+#### Password Reset Tests (`password-reset.spec.ts`) - 7 tests
+- ✅ Forgot password form is accessible
+- ✅ Form validates email format
+- ✅ Submitting valid email shows confirmation
+- ✅ "Back to Sign In" link exists
+- ✅ Password reset page validates requirements
+- ✅ User can set new password via reset link
+- ✅ After reset, can sign in with new password
+
+**Total E2E Tests: 22**
+
+### Edge Function Tests (`tests/edge-functions/send-email/`)
+
+Unit tests for the `send-email` edge function with mocked Resend API.
+
+#### Send Email Tests (`send-email.test.ts`) - 5 tests
+- ✅ Handles signup event with valid payload
+- ✅ Handles recovery event with valid payload
+- ✅ Returns success response for valid requests
+- ✅ Returns error for missing required fields
+- ✅ Correctly formats email templates with user data
+
+**Additional Coverage:**
+- All 5 email types (signup, recovery, invite, magiclink, email_change)
+- CORS header validation
+- HTML template structure validation
+- Confirmation URL format verification
+- Email branding (logo, styling, content)
+
+**Total Edge Function Tests: 5**
+
+## Manual Testing Procedures
+
+Comprehensive manual testing procedures are documented in [`docs/manual-testing-milestone1.md`](../docs/manual-testing-milestone1.md).
+
+### Manual Test Coverage (7 tests)
+
+**Database Tests (2):**
+- Database seed verification
+- Idempotency verification
+
+**Email Delivery Tests (5):**
+- Signup verification email
+- Verification link functionality
+- Password reset email
+- Password reset link functionality
+- Unverified email sign-in flow
+
+### Quick Manual Testing Checklist
+
+#### Seed Script Idempotency
 - [ ] Run `npm run seed` multiple times
 - [ ] Verify no errors occur
 - [ ] Verify data is not duplicated (uses upsert/count checks)
 
-### Seed Script Error Handling
-- [ ] Test with invalid Supabase URL
-- [ ] Test with invalid service role key
-- [ ] Verify clear error messages are shown
+#### Email Delivery
+- [ ] Signup sends verification email with branding
+- [ ] Verification link confirms account
+- [ ] Password reset sends branded email
+- [ ] Reset link allows password change
+- [ ] Unverified email triggers auto-resend
+
+For detailed step-by-step manual testing procedures, see [Manual Testing Documentation](../docs/manual-testing-milestone1.md).
 
 ## Test Utilities
 
-### `supabase-test-client.ts`
+### Database Test Utilities (`tests/utils/`)
 
-Provides helper functions for tests:
+#### `supabase-test-client.ts`
+Provides helper functions for database and auth tests:
 
 - **`createServiceRoleClient()`** - Creates client with service role (bypasses RLS)
 - **`createAnonClient()`** - Creates anonymous client (subject to RLS)
@@ -130,6 +275,77 @@ Provides helper functions for tests:
 - **`createTestUser(prefix)`** - Creates a test user account
 - **`deleteTestUser(userId)`** - Deletes a test user account
 - **`cleanupTestData(table, condition)`** - Helper to clean up test data
+
+#### `mock-resend.ts`
+Mock Resend API for edge function tests:
+
+- **`MockResend`** - Mock class mimicking Resend API
+- **`emails.send(params)`** - Mock email sending (records calls, doesn't send)
+- **`setFailure(error)`** - Simulate API failures
+- **`getAllCalls()`** - Get all recorded email send calls
+- **`getLastCall()`** - Get most recent email send call
+- **`wasSentTo(email)`** - Check if email was sent to address
+- **`wasSentWithSubject(subject)`** - Check if email with subject was sent
+
+### E2E Test Utilities (`tests/e2e/`)
+
+#### Fixtures (`tests/e2e/fixtures/`)
+
+**`auth.ts`** - Authentication fixtures for Playwright:
+- **`testUser`** - Verified user fixture with auto-cleanup
+- **`unverifiedUser`** - Unverified user fixture
+- **`authenticatedPage`** - Pre-authenticated browser page
+
+**`test-data.ts`** - Test data generators:
+- **`generateTestEmail()`** - Unique test email addresses
+- **`generateTestPassword()`** - Valid test passwords
+- **`generateTestCredentials()`** - Complete user credentials
+- **`INVALID_CREDENTIALS`** - Invalid credential constants
+- **`INVALID_EMAILS`** - Invalid email formats
+
+#### Page Object Models (`tests/e2e/utils/page-objects/`)
+
+**`AuthPage.ts`** - Auth page interactions:
+- **`signUp(email, password)`** - Perform signup
+- **`signIn(email, password)`** - Perform signin
+- **`clickForgotPassword()`** - Navigate to password reset
+- **`submitPasswordReset(email)`** - Submit reset request
+
+**`VerifyEmailPage.ts`** - Verify email page interactions:
+- **`hasHeading()`** - Check heading visibility
+- **`clickReturnToSignIn()`** - Navigate back to auth
+- **`clickResend()`** - Resend verification email
+- **`hasResentConfirmation()`** - Check resent message
+
+#### Session Helpers (`tests/e2e/utils/session-helpers.ts`)
+
+Browser storage and session utilities:
+- **`getSessionStorage(page, key)`** - Get session storage item
+- **`getLocalStorage(page, key)`** - Get local storage item
+- **`isAuthenticated(page)`** - Check if user is authenticated
+- **`clearAllStorage(page)`** - Clear all browser storage
+- **`waitForAuthentication(page)`** - Wait for auth completion
+- **`waitForSessionClear(page)`** - Wait for session clearance
+
+### Edge Function Test Utilities (`tests/edge-functions/send-email/`)
+
+#### `fixtures.ts`
+Email payload generators:
+- **`createSignupPayload(email)`** - Signup email payload
+- **`createRecoveryPayload(email)`** - Password reset payload
+- **`createInvitePayload(email)`** - Invite email payload
+- **`createMagicLinkPayload(email)`** - Magic link payload
+- **`createEmailChangePayload(email)`** - Email change payload
+- **`createInvalidPayload()`** - Invalid payload for error testing
+
+#### `helpers.ts`
+Email validation utilities:
+- **`extractConfirmationUrl(html)`** - Extract URL from email HTML
+- **`parseConfirmationUrl(url)`** - Parse token and parameters
+- **`validateEmailHtml(html, expected)`** - Verify email content
+- **`hasValidEmailStructure(html)`** - Check HTML structure
+- **`hasProperBranding(html, brand)`** - Verify branding elements
+- **`isValidConfirmationUrl(url)`** - Validate confirmation URL format
 
 ## Troubleshooting
 
@@ -163,19 +379,46 @@ Tests can be integrated into CI/CD pipelines:
     VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PUBLISHABLE_KEY }}
 ```
 
-## Test Coverage
+## Test Coverage Summary
 
-Current test coverage focuses on:
-- ✅ Database seeding verification
-- ✅ RLS policy correctness
-- ✅ Authentication and authorization flows
+### Milestone 1: Database & Authentication (COMPLETE)
 
-Future test areas (not in Milestone 1):
+**Automated Tests:**
+- ✅ Database seeding verification (7 tests)
+- ✅ RLS policy verification (15 tests)
+- ✅ E2E authentication flows (22 tests)
+- ✅ Edge function unit tests (5 tests)
+- **Total Automated: 49 tests**
+
+**Manual Tests:**
+- ✅ Database seed tests (2 tests)
+- ✅ Email delivery tests (5 tests)
+- **Total Manual: 7 tests**
+
+**Grand Total: 56 tests covering Milestone 1**
+
+### Test Type Breakdown
+
+| Test Type | Tool | Tests | Status |
+|-----------|------|-------|--------|
+| Database RLS | Vitest | 15 | ✅ |
+| Database Seed | Vitest | 7 | ✅ |
+| E2E Signup | Playwright | 5 | ✅ |
+| E2E Login | Playwright | 5 | ✅ |
+| E2E Unverified Email | Playwright | 5 | ✅ |
+| E2E Password Reset | Playwright | 7 | ✅ |
+| Edge Function | Vitest | 5 | ✅ |
+| Manual Database | Manual | 2 | ✅ |
+| Manual Email | Manual | 5 | ✅ |
+| **TOTAL** | | **56** | ✅ |
+
+### Future Test Areas (Milestone 2+)
 - [ ] Canvas editor functionality
 - [ ] Blog post CRUD operations
 - [ ] Community features
 - [ ] Icon library operations
 - [ ] Export functionality
+- [ ] AI-powered features
 
 ## Contributing
 
@@ -188,6 +431,13 @@ When adding new tests:
 
 ## Related Documentation
 
+### Project Documentation
 - [Milestone 1 Requirements](../docs/milestones_12-Dec-25.md#1-database)
+- [Manual Testing Procedures](../docs/manual-testing-milestone1.md)
+- [Playwright Configuration](../playwright.config.ts)
+
+### External Documentation
 - [Vitest Documentation](https://vitest.dev/)
+- [Playwright Documentation](https://playwright.dev/)
 - [Supabase Testing Guide](https://supabase.com/docs/guides/testing)
+- [Resend API Documentation](https://resend.com/docs)
