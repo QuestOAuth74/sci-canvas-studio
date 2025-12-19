@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Bell, FolderOpen, MessageSquare, Image, Mail, MessageCircle, CheckCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import { AdminTestIds } from '@/lib/test-ids';
+import { useAdminNotificationCounts } from '@/hooks/useAdminNotificationCounts';
 
 interface NotificationItemProps {
   icon: React.ReactNode;
@@ -31,73 +34,20 @@ const NotificationItem = ({ icon, label, count, onClick }: NotificationItemProps
 
 export const AdminNotificationBell = () => {
   const [open, setOpen] = useState(false);
-  const [pendingProjects, setPendingProjects] = useState(0);
-  const [pendingTestimonials, setPendingTestimonials] = useState(0);
-  const [pendingIconSubmissions, setPendingIconSubmissions] = useState(0);
-  const [unreadMessages, setUnreadMessages] = useState(0);
-  const [totalFeedback, setTotalFeedback] = useState(0);
+  const queryClient = useQueryClient();
 
-  const totalCount = 
-    pendingProjects + 
-    pendingTestimonials + 
-    pendingIconSubmissions + 
-    unreadMessages + 
-    totalFeedback;
+  // Replace manual polling with React Query hook
+  // This uses RPC function to batch 5 queries into 1 call
+  // and caches results for 5 minutes with automatic background refresh
+  const { data: counts, isLoading } = useAdminNotificationCounts();
 
-  const fetchCounts = async () => {
-    try {
-      // Batch all count queries in parallel for efficiency
-      const [
-        { count: projectsCount },
-        { count: testimonialsCount },
-        { count: iconsCount },
-        { count: messagesCount },
-        { count: feedbackCount }
-      ] = await Promise.all([
-        supabase
-          .from('canvas_projects')
-          .select('id', { count: 'exact', head: true })
-          .eq('approval_status', 'pending'),
-        supabase
-          .from('testimonials')
-          .select('id', { count: 'exact', head: true })
-          .eq('is_approved', false),
-        supabase
-          .from('icon_submissions')
-          .select('id', { count: 'exact', head: true })
-          .eq('approval_status', 'pending'),
-        supabase
-          .from('contact_messages')
-          .select('id', { count: 'exact', head: true })
-          .eq('is_read', false),
-        supabase
-          .from('tool_feedback')
-          .select('id', { count: 'exact', head: true })
-          .eq('is_viewed', false)
-      ]);
-
-      setPendingProjects(projectsCount || 0);
-      setPendingTestimonials(testimonialsCount || 0);
-      setPendingIconSubmissions(iconsCount || 0);
-      setUnreadMessages(messagesCount || 0);
-      setTotalFeedback(feedbackCount || 0);
-    } catch (error) {
-      console.error('Error fetching notification counts:', error);
-    }
-  };
-
-  useEffect(() => {
-    // Initial fetch
-    fetchCounts();
-
-    // Poll for updates every 60 seconds instead of using realtime subscriptions
-    // This reduces connection overhead from 5 channels to 0 channels
-    const pollInterval = setInterval(fetchCounts, 60000); // 60 seconds
-
-    return () => {
-      clearInterval(pollInterval);
-    };
-  }, []);
+  const totalCount = counts
+    ? counts.pendingProjects +
+      counts.pendingTestimonials +
+      counts.pendingIconSubmissions +
+      counts.unreadMessages +
+      counts.totalFeedback
+    : 0;
 
   const scrollToSection = (sectionId: string) => {
     document.getElementById(sectionId)?.scrollIntoView({ 
@@ -108,11 +58,13 @@ export const AdminNotificationBell = () => {
   };
 
   const clearAllNotifications = async () => {
+    if (!counts) return;
+
     try {
       const promises = [];
-      
+
       // Mark all unread contact messages as read
-      if (unreadMessages > 0) {
+      if (counts.unreadMessages > 0) {
         promises.push(
           supabase
             .from('contact_messages')
@@ -120,9 +72,9 @@ export const AdminNotificationBell = () => {
             .eq('is_read', false)
         );
       }
-      
+
       // Mark all unviewed tool feedback as viewed
-      if (totalFeedback > 0) {
+      if (counts.totalFeedback > 0) {
         promises.push(
           supabase
             .from('tool_feedback')
@@ -130,17 +82,17 @@ export const AdminNotificationBell = () => {
             .eq('is_viewed', false)
         );
       }
-      
+
       // Execute all updates
       if (promises.length > 0) {
         await Promise.all(promises);
-        
+
         toast.success('Notifications cleared', {
-          description: `Marked ${unreadMessages} messages and ${totalFeedback} feedback as viewed`
+          description: `Marked ${counts.unreadMessages} messages and ${counts.totalFeedback} feedback as viewed`
         });
-        
-        // Refresh counts
-        fetchCounts();
+
+        // Invalidate cache to trigger refresh
+        queryClient.invalidateQueries({ queryKey: ['admin-notification-counts'] });
       }
     } catch (error) {
       console.error('Error clearing notifications:', error);
@@ -153,17 +105,19 @@ export const AdminNotificationBell = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="relative"
           title="Admin Notifications"
+          data-testid={AdminTestIds.NOTIFICATION_BELL}
         >
           <Bell className="h-5 w-5" />
           {totalCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px]"
+              data-testid={AdminTestIds.NOTIFICATION_COUNT}
             >
               {totalCount > 99 ? '99+' : totalCount}
             </Badge>
@@ -183,53 +137,53 @@ export const AdminNotificationBell = () => {
           {totalCount > 0 ? (
             <>
               <div className="space-y-2">
-                {pendingProjects > 0 && (
+                {counts && counts.pendingProjects > 0 && (
                   <NotificationItem
                     icon={<FolderOpen className="h-4 w-4" />}
                     label="Submitted Projects"
-                    count={pendingProjects}
+                    count={counts.pendingProjects}
                     onClick={() => scrollToSection('submitted-projects')}
                   />
                 )}
-                
-                {pendingTestimonials > 0 && (
+
+                {counts && counts.pendingTestimonials > 0 && (
                   <NotificationItem
                     icon={<MessageSquare className="h-4 w-4" />}
                     label="Testimonials"
-                    count={pendingTestimonials}
+                    count={counts.pendingTestimonials}
                     onClick={() => scrollToSection('testimonials')}
                   />
                 )}
-                
-                {pendingIconSubmissions > 0 && (
+
+                {counts && counts.pendingIconSubmissions > 0 && (
                   <NotificationItem
                     icon={<Image className="h-4 w-4" />}
                     label="Icon Submissions"
-                    count={pendingIconSubmissions}
+                    count={counts.pendingIconSubmissions}
                     onClick={() => scrollToSection('icon-submissions')}
                   />
                 )}
-                
-                {unreadMessages > 0 && (
+
+                {counts && counts.unreadMessages > 0 && (
                   <NotificationItem
                     icon={<Mail className="h-4 w-4" />}
                     label="Contact Messages"
-                    count={unreadMessages}
+                    count={counts.unreadMessages}
                     onClick={() => scrollToSection('contact-messages')}
                   />
                 )}
-                
-                {totalFeedback > 0 && (
+
+                {counts && counts.totalFeedback > 0 && (
                   <NotificationItem
                     icon={<MessageCircle className="h-4 w-4" />}
                     label="Tool Feedback"
-                    count={totalFeedback}
+                    count={counts.totalFeedback}
                     onClick={() => scrollToSection('tool-feedback')}
                   />
                 )}
               </div>
-              
-              {(unreadMessages > 0 || totalFeedback > 0) && (
+
+              {counts && (counts.unreadMessages > 0 || counts.totalFeedback > 0) && (
                 <>
                   <Separator />
                   <Button

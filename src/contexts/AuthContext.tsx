@@ -184,8 +184,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Use 'local' scope to clear local session even if server logout fails
     const { error } = await supabase.auth.signOut({ scope: 'local' });
 
-    // Ignore "Session not found" errors since the goal is to be logged out
-    if (error && !error.message.includes('Session not found') && !error.message.includes('session_not_found')) {
+    // Ignore session-related errors since the goal is to be logged out anyway
+    const isSessionError = error && (
+      error.message.includes('Session not found') ||
+      error.message.includes('session_not_found') ||
+      error.message.includes('session missing') ||
+      error.message.includes('AuthSessionMissingError')
+    );
+
+    if (error && !isSessionError) {
       console.error('Error during sign out:', error);
       showErrorToast(error.message, ToastTestIds.AUTH_SIGNOUT_ERROR);
     } else {

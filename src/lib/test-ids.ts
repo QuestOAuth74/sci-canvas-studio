@@ -103,3 +103,150 @@ export enum ToastTestIds {
   VERIFY_EMAIL_RESEND_SUCCESS = 'toast-verify-email-resend-success',
   VERIFY_EMAIL_RESEND_ERROR = 'toast-verify-email-resend-error',
 }
+
+/**
+ * Projects page test IDs
+ * Used in: src/pages/Projects.tsx
+ */
+export enum ProjectsTestIds {
+  // Page container
+  PAGE_CONTAINER = 'projects-page-container',
+
+  // Header
+  PAGE_TITLE = 'projects-page-title',
+  NEW_PROJECT_BUTTON = 'projects-new-project-button',
+  SEARCH_INPUT = 'projects-search-input',
+
+  // Filters
+  FILTER_ALL = 'projects-filter-all',
+  FILTER_PUBLIC = 'projects-filter-public',
+  FILTER_PRIVATE = 'projects-filter-private',
+
+  // Project cards
+  PROJECT_CARD = 'projects-project-card',
+  PROJECT_TITLE = 'projects-project-title',
+  PROJECT_OPEN_BUTTON = 'projects-project-open-button',
+  PROJECT_DELETE_BUTTON = 'projects-project-delete-button',
+  PROJECT_SHARE_BUTTON = 'projects-project-share-button',
+
+  // Pagination
+  PAGINATION = 'projects-pagination',
+
+  // Empty state
+  EMPTY_STATE = 'projects-empty-state',
+}
+
+/**
+ * Community page test IDs
+ * Used in: src/pages/Community.tsx
+ */
+export enum CommunityTestIds {
+  // Page container
+  PAGE_CONTAINER = 'community-page-container',
+
+  // Header
+  PAGE_TITLE = 'community-page-title',
+  SEARCH_INPUT = 'community-search-input',
+
+  // Sorting/Filters
+  SORT_RECENT = 'community-sort-recent',
+  SORT_POPULAR = 'community-sort-popular',
+  SORT_CLONED = 'community-sort-cloned',
+  SORT_LIKED = 'community-sort-liked',
+
+  // Project cards
+  PROJECT_CARD = 'community-project-card',
+  PROJECT_TITLE = 'community-project-title',
+  PROJECT_AUTHOR = 'community-project-author',
+  PROJECT_VIEW_BUTTON = 'community-project-view-button',
+  PROJECT_LIKE_BUTTON = 'community-project-like-button',
+  PROJECT_CLONE_BUTTON = 'community-project-clone-button',
+
+  // Stats
+  STATS_TOTAL_PROJECTS = 'community-stats-total-projects',
+  STATS_TOTAL_VIEWS = 'community-stats-total-views',
+  STATS_TOTAL_LIKES = 'community-stats-total-likes',
+
+  // Pagination
+  PAGINATION = 'community-pagination',
+}
+
+/**
+ * Admin page test IDs
+ * Used in: src/pages/Admin.tsx
+ */
+export enum AdminTestIds {
+  // Page container
+  PAGE_CONTAINER = 'admin-page-container',
+
+  // Header
+  PAGE_TITLE = 'admin-page-title',
+  NOTIFICATION_BELL = 'admin-notification-bell',
+  NOTIFICATION_COUNT = 'admin-notification-count',
+
+  // Navigation buttons
+  AI_SETTINGS_BUTTON = 'admin-ai-settings-button',
+  POWERPOINT_BUTTON = 'admin-powerpoint-button',
+  RATE_LIMITS_BUTTON = 'admin-rate-limits-button',
+  ANALYTICS_BUTTON = 'admin-analytics-button',
+  EMAIL_BUTTON = 'admin-email-button',
+
+  // Sections
+  SUBMITTED_PROJECTS_SECTION = 'admin-submitted-projects-section',
+  TESTIMONIALS_SECTION = 'admin-testimonials-section',
+  ICON_SUBMISSIONS_SECTION = 'admin-icon-submissions-section',
+  CONTACT_MESSAGES_SECTION = 'admin-contact-messages-section',
+  TOOL_FEEDBACK_SECTION = 'admin-tool-feedback-section',
+}
+
+/**
+ * Contact page test IDs
+ * Used in: src/pages/Contact.tsx
+ */
+export enum ContactTestIds {
+  // Page container
+  PAGE_CONTAINER = 'contact-page-container',
+
+  // Form
+  FORM = 'contact-form',
+  EMAIL_INPUT = 'contact-email-input',
+  NAME_INPUT = 'contact-name-input',
+  COUNTRY_INPUT = 'contact-country-input',
+  MESSAGE_TEXTAREA = 'contact-message-textarea',
+  SUBMIT_BUTTON = 'contact-submit-button',
+
+  // Validation
+  ERROR_EMAIL = 'contact-error-email',
+  ERROR_NAME = 'contact-error-name',
+  ERROR_COUNTRY = 'contact-error-country',
+  ERROR_MESSAGE = 'contact-error-message',
+
+  // Success
+  SUCCESS_MESSAGE = 'contact-success-message',
+}
+
+/**
+ * Blog page test IDs
+ * Used in: src/pages/Blog.tsx
+ */
+export enum BlogTestIds {
+  // Page container
+  PAGE_CONTAINER = 'blog-page-container',
+
+  // Header
+  PAGE_TITLE = 'blog-page-title',
+  SEARCH_INPUT = 'blog-search-input',
+
+  // Post cards
+  POST_CARD = 'blog-post-card',
+  POST_TITLE = 'blog-post-title',
+  POST_EXCERPT = 'blog-post-excerpt',
+  POST_READ_MORE = 'blog-post-read-more',
+
+  // Categories/Tags
+  CATEGORY_FILTER = 'blog-category-filter',
+  TAG_FILTER = 'blog-tag-filter',
+
+  // Pagination
+  PAGINATION = 'blog-pagination',
+}

@@ -37,7 +37,31 @@ import AISettings from "./pages/admin/AISettings";
 import RateLimits from "./pages/admin/RateLimits";
 import EmailPreview from "./pages/admin/EmailPreview";
 
-const queryClient = new QueryClient();
+// Configure QueryClient with optimized defaults for caching and performance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Global caching settings
+      staleTime: 2 * 60 * 1000, // 2 minutes default
+      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection (formerly cacheTime)
+
+      // Retry settings
+      retry: 3, // Retry failed queries 3 times
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+
+      // Refetch settings
+      refetchOnWindowFocus: false, // Prevent excessive refetching when returning to tab
+      refetchOnReconnect: true, // Refetch when connection restored
+      refetchOnMount: false, // Use cache if data is within staleTime
+
+      // Network settings
+      networkMode: 'online', // Only query when online
+    },
+    mutations: {
+      retry: 1, // Retry mutations once on failure
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

@@ -3,6 +3,7 @@ import { Resend } from "https://esm.sh/resend@4.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const logoUrl = "https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -138,11 +139,15 @@ const handler = async (req: Request): Promise<Response> => {
               padding: 20px;
             }
             .header {
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              color: white;
+              background: #f6f9fc;
+              color: #1a1a1a;
               padding: 30px;
               border-radius: 10px 10px 0 0;
               text-align: center;
+            }
+            .header img {
+              margin: 0 auto 16px;
+              object-fit: contain;
             }
             .header h1 {
               margin: 0;
@@ -179,6 +184,7 @@ const handler = async (req: Request): Promise<Response> => {
         </head>
         <body>
           <div class="header">
+            <img src="${logoUrl}" width="48" height="48" alt="BioSketch" />
             <h1>BioSketch Notification</h1>
           </div>
           <div class="content">

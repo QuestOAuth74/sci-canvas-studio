@@ -13,6 +13,7 @@ import { useState, useMemo } from "react";
 import { UserProjectsDialog } from "@/components/admin/UserProjectsDialog";
 import { UserProfileDialog } from "@/components/admin/UserProfileDialog";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
+import { useUserAnalytics } from "@/hooks/useUserAnalytics";
 
 interface UserAnalytics {
   id: string;
@@ -38,36 +39,11 @@ const Analytics = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 20;
 
-  const { data: analyticsData, isLoading } = useQuery({
-    queryKey: ['user-analytics'],
-    queryFn: async () => {
-      // Fetch all profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, email, full_name, country, field_of_study, avatar_url, quote, created_at, last_login_at');
-      
-      if (profilesError) throw profilesError;
-
-      // Fetch project counts for each user
-      const { data: projectCounts, error: projectsError } = await supabase
-        .from('canvas_projects')
-        .select('user_id');
-      
-      if (projectsError) throw projectsError;
-
-      // Count projects per user
-      const projectCountMap = projectCounts.reduce((acc, project) => {
-        acc[project.user_id] = (acc[project.user_id] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      // Combine data
-      return profiles.map(user => ({
-        ...user,
-        project_count: projectCountMap[user.id] || 0
-      })) as UserAnalytics[];
-    }
-  });
+  // Use optimized hook with server-side aggregation and pagination
+  // Replaces fetching ALL profiles + ALL projects with single RPC call
+  const { data, isLoading } = useUserAnalytics(currentPage, ITEMS_PER_PAGE);
+  const analyticsData = data?.users || [];
+  const totalUsers = data?.totalCount || 0;
 
   const { data: userProjects, isLoading: isLoadingProjects } = useQuery({
     queryKey: ['user-projects', selectedUserId],
@@ -85,23 +61,24 @@ const Analytics = () => {
     enabled: !!selectedUserId && isProjectsDialogOpen
   });
 
+  // Client-side sorting (data is already paginated from server)
   const sortedData = analyticsData ? [...analyticsData].sort((a, b) => {
     const aValue = a[sortColumn];
     const bValue = b[sortColumn];
-    
+
     if (aValue === null) return 1;
     if (bValue === null) return -1;
-    
+
     if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return sortDirection === 'asc' 
+      return sortDirection === 'asc'
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
     }
-    
+
     if (typeof aValue === 'number' && typeof bValue === 'number') {
       return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
     }
-    
+
     return 0;
   }) : [];
 
@@ -131,11 +108,9 @@ const Analytics = () => {
     }
   };
 
-  // Calculate pagination
-  const totalPages = Math.ceil(sortedData.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedData = sortedData.slice(startIndex, endIndex);
+  // Data is already paginated from server, just use sortedData directly
+  const paginatedData = sortedData;
+  const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
 
   // Calculate distribution data
   const countryDistribution = useMemo(() => {
@@ -188,7 +163,6 @@ const Analytics = () => {
     'hsl(39, 96%, 47%)',
   ];
 
-  const totalUsers = analyticsData?.length || 0;
   const totalProjects = analyticsData?.reduce((sum, user) => sum + user.project_count, 0) || 0;
   const avgProjects = totalUsers > 0 ? (totalProjects / totalUsers).toFixed(1) : "0";
   const mostActiveUser = analyticsData?.reduce((max, user) => 

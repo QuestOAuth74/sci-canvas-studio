@@ -46,7 +46,8 @@ CREATE POLICY "Users can delete own assets"
 
 -- Create storage bucket for user assets
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('user-assets', 'user-assets', false);
+VALUES ('user-assets', 'user-assets', false)
+ON CONFLICT (id) DO NOTHING;
 
 -- Storage RLS Policies
 CREATE POLICY "Users can upload own assets"

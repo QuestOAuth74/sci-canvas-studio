@@ -148,8 +148,9 @@ const testimonials = [
   },
 ];
 
-// Admin user email to grant admin role
-const ADMIN_EMAIL = "quarde@yahoo.com";
+// Admin user email and password
+const ADMIN_EMAIL = process.env.CONTACT_ADMIN_EMAIL || "dev@gazzola.dev";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Password123!";
 
 // Blog categories seed data
 const blogCategories = [
@@ -680,8 +681,8 @@ async function seedTestimonials() {
   return true;
 }
 
-async function seedAdminRole() {
-  console.log(`Granting admin role to ${ADMIN_EMAIL}...`);
+async function seedAdminUser() {
+  console.log(`Setting up admin user ${ADMIN_EMAIL}...`);
 
   // Find user by email using auth.users (requires service role)
   const { data: users, error: userError } = await supabase.auth.admin.listUsers();
@@ -691,11 +692,27 @@ async function seedAdminRole() {
     return false;
   }
 
-  const adminUser = users.users.find((u) => u.email === ADMIN_EMAIL);
+  let adminUser = users.users.find((u) => u.email === ADMIN_EMAIL);
 
+  // Create admin user if they don't exist
   if (!adminUser) {
-    console.log(`⚠ User ${ADMIN_EMAIL} not found, skipping admin role assignment`);
-    return true;
+    console.log(`Creating admin user ${ADMIN_EMAIL}...`);
+
+    const { data, error: createError } = await supabase.auth.admin.createUser({
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD,
+      email_confirm: true, // Auto-confirm email
+    });
+
+    if (createError) {
+      console.error("Error creating admin user:", createError.message);
+      return false;
+    }
+
+    adminUser = data.user;
+    console.log(`✓ Created admin user ${ADMIN_EMAIL}`);
+  } else {
+    console.log(`✓ Admin user ${ADMIN_EMAIL} already exists`);
   }
 
   // Insert admin role (upsert to avoid conflicts)
@@ -841,7 +858,7 @@ async function main() {
   success = (await seedIconCategories()) && success;
   success = (await seedSampleIcons()) && success;
   success = (await seedTestimonials()) && success;
-  success = (await seedAdminRole()) && success;
+  success = (await seedAdminUser()) && success;
 
   // Blog data
   success = (await seedBlogCategories()) && success;

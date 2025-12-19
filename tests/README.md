@@ -36,6 +36,32 @@ tests/
 └── README.md                         # This file
 ```
 
+## Test Categories
+
+Tests are organized into three categories:
+
+### Core Tests (Always Run)
+Run with `npm test` - included in all regular test runs and CI/CD pipelines.
+
+- **Database Tests**: RLS policies, seed verification, performance optimizations
+- **Edge Function Tests**: Email sending functionality
+- **E2E Tests**: Authentication flows, admin features
+
+### Optional Tests (On-Demand)
+Run with `npm run test:all` or specific commands.
+
+- **Stress Tests**: Performance and load testing (6+ minute runtime)
+  - Run with: `npm run test:e2e:stress`
+  - Included in: `npm run test:all`
+  - Purpose: Validate system under load, concurrent user scenarios
+
+### Diagnostic Tests (Troubleshooting)
+Run with `npm run test:e2e:diagnostics` - for environment verification only.
+
+- **Environment Verification**: Database connection, environment variable checks
+- Purpose: Troubleshoot configuration issues, not functional validation
+- Not included in regular test runs or reports
+
 ## Prerequisites
 
 ### Environment Variables
@@ -62,21 +88,43 @@ Tests assume:
 
 ## Running Tests
 
-### Run All Tests (Recommended)
+### Quick Start
 
-**Run all tests in series (database → edge functions → E2E):**
 ```bash
+# Run all core tests + generate report (recommended)
 npm test
+
+# Run all tests including stress tests + generate report
+npm run test:all
+
+# Run specific test suites
+npm run test:unit              # Database tests only
+npm run test:edge-functions    # Edge function tests only
+npm run test:e2e              # E2E tests only (no stress/diagnostics)
+npm run test:e2e:stress       # Stress tests only
+npm run test:e2e:diagnostics  # Diagnostic tests only
+
+# Generate report from existing test results
+npm run test:report
 ```
 
-This runs:
-1. Database tests (Vitest, 1 worker)
-2. Edge function tests (Vitest, 1 worker)
-3. E2E tests (Playwright, 1 worker)
+### Test Reports
 
-All tests run sequentially. If any test fails, subsequent tests won't run.
+After running tests, comprehensive reports are automatically generated:
+```
+test-results/test-report.md   # Markdown report
+test-results/test-report.pdf  # PDF report
+```
 
-**Prerequisites for `npm test`:**
+The reports include:
+- Overall pass/fail status
+- Summary metrics (total, passed, failed, pass rate)
+- Per-suite breakdown with individual test results
+- Test execution details and available commands
+
+**Note**: Reports are generated automatically when using `npm test` or `npm run test:all`.
+
+### Prerequisites for Running Tests
 - Development server running at `http://localhost:8080` (for E2E tests)
 
 ### Database & Unit Tests (Vitest)
@@ -146,6 +194,17 @@ npm run test:e2e:debug
 ```bash
 npm run test:e2e:auth
 ```
+
+### Test Output Files
+
+Tests generate JSON output files for report aggregation:
+
+- `test-results/vitest-database.json` - Database test results
+- `test-results/vitest-edge-functions.json` - Edge function test results
+- `test-results/results.json` - E2E test results (chromium project)
+- `test-results/results-stress.json` - Stress test results (optional)
+- `test-results/test-report.md` - Consolidated markdown report
+- `test-results/test-report.pdf` - Consolidated PDF report
 
 ## Test Suites
 
@@ -449,8 +508,8 @@ When adding new tests:
 ## Related Documentation
 
 ### Project Documentation
-- [Milestone 1 Requirements](../docs/milestones_12-Dec-25.md#1-database)
-- [Manual Testing Procedures](../docs/manual-testing-milestone1.md)
+- [Milestone 1 Requirements](../docs/milestones/milestones_12-Dec-25.md#1-database)
+- [Manual Testing Procedures](../docs/milestones/manual-testing-milestone1.md)
 - [Playwright Configuration](../playwright.config.ts)
 
 ### External Documentation

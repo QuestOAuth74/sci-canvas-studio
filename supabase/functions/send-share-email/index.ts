@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const logoUrl = "https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -68,10 +69,11 @@ const handler = async (req: Request): Promise<Response> => {
           <title>Discover BioSketch</title>
         </head>
         <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="color: white; margin: 0; font-size: 32px;">BioSketch</h1>
-            <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 18px;">Free Scientific Illustration Tool</p>
+
+          <div style="background: #f6f9fc; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+            <img src="${logoUrl}" width="48" height="48" alt="BioSketch" style="margin: 0 auto 16px; object-fit: contain;" />
+            <h1 style="color: #1a1a1a; margin: 0; font-size: 32px;">BioSketch</h1>
+            <p style="color: #4b5563; margin: 8px 0 0 0; font-size: 18px;">Free Scientific Illustration Tool</p>
           </div>
 
           <div style="background-color: white; padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">

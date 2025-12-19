@@ -6,7 +6,8 @@ VALUES (
   true,
   5242880, -- 5MB limit
   ARRAY['image/jpeg', 'image/png']
-);
+)
+ON CONFLICT (id) DO NOTHING;
 
 -- Allow authenticated users to upload their own project thumbnails
 CREATE POLICY "Users can upload project thumbnails"

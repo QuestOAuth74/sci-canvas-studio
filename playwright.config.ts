@@ -70,6 +70,28 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      testIgnore: [
+        '**/stress/**',      // Performance/load tests (separate project)
+        '**/diagnostics/**', // Environment verification (separate project)
+      ],
+    },
+    {
+      name: 'stress',
+      testMatch: '**/stress/**/*.spec.ts',
+      timeout: 360000, // 6 minutes total test timeout (4 min test + 2 min setup/cleanup)
+      use: {
+        ...devices['Desktop Chrome'],
+        actionTimeout: 30000, // 30s for stress test actions
+        navigationTimeout: 30000, // 30s for page navigation
+      },
+      retries: 0, // No retries for stress tests
+      workers: 1, // Always run stress tests sequentially
+    },
+    {
+      name: 'diagnostics',
+      testMatch: '**/diagnostics/**/*.spec.ts',
+      use: { ...devices['Desktop Chrome'] },
+      retries: 0,
     },
   ],
 

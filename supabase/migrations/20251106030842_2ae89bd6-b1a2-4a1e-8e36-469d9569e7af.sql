@@ -34,11 +34,13 @@ CREATE POLICY "Admins can delete generations"
   USING (has_role(auth.uid(), 'admin'::app_role));
 
 -- Create storage buckets
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('ppt-word-uploads', 'ppt-word-uploads', false);
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('ppt-word-uploads', 'ppt-word-uploads', false)
+ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('ppt-generated', 'ppt-generated', false);
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('ppt-generated', 'ppt-generated', false)
+ON CONFLICT (id) DO NOTHING;
 
 -- Storage RLS policies for Word uploads bucket
 CREATE POLICY "Admins can upload Word documents"

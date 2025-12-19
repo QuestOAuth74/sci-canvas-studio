@@ -9,8 +9,7 @@ export default function EmailPreview() {
   const navigate = useNavigate();
   const [activeTemplate, setActiveTemplate] = useState<'signup' | 'recovery'>('signup');
 
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const logoUrl = `${supabaseUrl}/storage/v1/object/public/assets/logo-black.png`;
+  const logoUrl = "https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0";
 
   const getConfirmationEmailHtml = (confirmationUrl: string, email: string) => `
 <!DOCTYPE html>
@@ -22,7 +21,7 @@ export default function EmailPreview() {
 <body style="background-color: #f6f9fc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif; margin: 0; padding: 40px 0;">
   <div style="background-color: #ffffff; margin: 0 auto; padding: 40px 20px; max-width: 560px; border-radius: 8px;">
     <div style="text-align: center; margin-bottom: 32px;">
-      <img src="${logoUrl}" width="150" height="40" alt="BioSketch" style="margin: 0 auto;">
+      <img src="${logoUrl}" width="48" height="48" alt="BioSketch" style="margin: 0 auto; object-fit: contain;">
     </div>
     <h1 style="color: #1a1a1a; font-size: 24px; font-weight: 600; text-align: center; margin: 0 0 24px;">Welcome to BioSketch!</h1>
     <p style="color: #525252; font-size: 16px; line-height: 24px; margin: 0 0 24px;">
@@ -56,7 +55,7 @@ export default function EmailPreview() {
 <body style="background-color: #f6f9fc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif; margin: 0; padding: 40px 0;">
   <div style="background-color: #ffffff; margin: 0 auto; padding: 40px 20px; max-width: 560px; border-radius: 8px;">
     <div style="text-align: center; margin-bottom: 32px;">
-      <img src="${logoUrl}" width="150" height="40" alt="BioSketch" style="margin: 0 auto;">
+      <img src="${logoUrl}" width="48" height="48" alt="BioSketch" style="margin: 0 auto; object-fit: contain;">
     </div>
     <h1 style="color: #1a1a1a; font-size: 24px; font-weight: 600; text-align: center; margin: 0 0 24px;">Reset Your Password</h1>
     <p style="color: #525252; font-size: 16px; line-height: 24px; margin: 0 0 24px;">

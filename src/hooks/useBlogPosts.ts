@@ -15,7 +15,10 @@ export const useBlogPosts = (options?: {
 
   return useQuery({
     queryKey: ['blog-posts', options],
-    staleTime: 0, // Force fresh data
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes (was 0 - force fresh)
+    gcTime: 10 * 60 * 1000, // Keep in memory for 10 minutes
+    refetchInterval: 5 * 60 * 1000, // Background refresh every 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch on tab focus
     queryFn: async () => {
       const hasSearch = options?.searchQuery && options.searchQuery.trim().length > 0;
       
@@ -152,6 +155,9 @@ export const useBlogPost = (slug: string) => {
 
   return useQuery({
     queryKey: ['blog-post', slug],
+    staleTime: 5 * 60 * 1000, // Cache individual posts for 5 minutes
+    gcTime: 30 * 60 * 1000, // Keep popular posts in memory for 30 minutes
+    refetchOnWindowFocus: false, // Don't refetch on tab focus
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blog_posts')
