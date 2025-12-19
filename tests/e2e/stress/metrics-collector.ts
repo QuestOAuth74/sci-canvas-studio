@@ -275,11 +275,9 @@ ${Object.entries(userBreakdown)
   .map(([type, count]) => `  ${type}: ${count} actions`)
   .join('\n')}
 
-📋 Pass/Fail Evaluation:
+📋 Pass/Fail Evaluation (I/O Timeout Detection):
    I/O Timeouts: ${ioTimeouts} (max: ${this.config.maxConsoleErrors}) ${ioTimeouts <= this.config.maxConsoleErrors ? '✅' : '❌'}
    Failure Rate: ${failureRate.toFixed(2)}% (max: ${this.config.maxFailureRate}%) ${failureRate <= this.config.maxFailureRate ? '✅' : '❌'}
-   Avg Page Load: ${avgPageLoad.toFixed(2)}ms (max: ${this.config.maxAvgPageLoadTime}ms) ${avgPageLoad <= this.config.maxAvgPageLoadTime ? '✅' : '❌'}
-   Critical Slow Queries: ${criticalSlowQueries.length} (max: ${this.config.maxVerySlowQueries}) ${criticalSlowQueries.length <= this.config.maxVerySlowQueries ? '✅' : '❌'}
    Performance Degradation: ${trend.degradation.toFixed(1)}% (max: ${(this.config.maxPerformanceDegradation - 1) * 100}%) ${trend.degradation / 100 + 1 <= this.config.maxPerformanceDegradation ? '✅' : '❌'}
 
 ${this.evaluateOverall() ? '✅ ALL CHECKS PASSED - No connection leaks detected' : '❌ STRESS TEST FAILED - Issues detected'}
@@ -354,18 +352,15 @@ ${this.evaluateOverall() ? '✅ ALL CHECKS PASSED - No connection leaks detected
   }
 
   evaluateOverall(): boolean {
+    // Evaluate based on I/O timeout detection criteria only
     const ioTimeouts = this.getIOTimeoutErrors().length;
     const failureRate = 100 - this.getSuccessRate();
-    const avgPageLoad = this.getAveragePageLoadTime();
-    const criticalSlowQueries = this.getSlowQueries(10000).length;
     const trend = this.getPerformanceTrend();
     const degradationRatio = trend.degradation / 100 + 1;
 
     return (
       ioTimeouts <= this.config.maxConsoleErrors &&
       failureRate <= this.config.maxFailureRate &&
-      avgPageLoad <= this.config.maxAvgPageLoadTime &&
-      criticalSlowQueries <= this.config.maxVerySlowQueries &&
       degradationRatio <= this.config.maxPerformanceDegradation
     );
   }

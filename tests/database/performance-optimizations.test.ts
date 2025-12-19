@@ -37,9 +37,9 @@ describe('Performance Optimization RPC Functions', () => {
     test('counts match actual database records', async () => {
       // Create 3 pending projects
       const { error: projectError } = await serviceClient.from('canvas_projects').insert([
-        { user_id: testUser.userId, name: `count-test-pending-${Date.now()}-1`, title: 'Test 1', approval_status: 'pending', is_public: false, canvas_data: {}, canvas_width: 800, canvas_height: 600 },
-        { user_id: testUser.userId, name: `count-test-pending-${Date.now()}-2`, title: 'Test 2', approval_status: 'pending', is_public: false, canvas_data: {}, canvas_width: 800, canvas_height: 600 },
-        { user_id: testUser.userId, name: `count-test-pending-${Date.now()}-3`, title: 'Test 3', approval_status: 'pending', is_public: false, canvas_data: {}, canvas_width: 800, canvas_height: 600 }
+        { user_id: testUser.userId, name: `count-test-pending-${Date.now()}-1`, title: 'Test 1', approval_status: 'pending', is_public: true, canvas_data: {}, canvas_width: 800, canvas_height: 600 },
+        { user_id: testUser.userId, name: `count-test-pending-${Date.now()}-2`, title: 'Test 2', approval_status: 'pending', is_public: true, canvas_data: {}, canvas_width: 800, canvas_height: 600 },
+        { user_id: testUser.userId, name: `count-test-pending-${Date.now()}-3`, title: 'Test 3', approval_status: 'pending', is_public: true, canvas_data: {}, canvas_width: 800, canvas_height: 600 }
       ]);
       expect(projectError).toBeNull();
 
@@ -188,7 +188,7 @@ async function createPendingProjects(client: SupabaseClient, userId: string, cou
     name: `test-pending-${Date.now()}-${i}`,
     title: `Test Pending ${i}`,
     approval_status: 'pending',
-    is_public: false,
+    is_public: true,
     canvas_data: {},
     canvas_width: 800,
     canvas_height: 600

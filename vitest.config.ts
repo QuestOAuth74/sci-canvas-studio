@@ -38,10 +38,8 @@ export default defineConfig({
     // Test reporters: console output + JSON for report generation
     reporters: ['default', 'json'],
 
-    // JSON output location (can be overridden per suite via CLI)
-    outputFile: {
-      json: './test-results/vitest-results.json',
-    },
+    // JSON output location specified per suite via CLI
+    // (removed from config to allow CLI override)
 
     // Coverage configuration (optional)
     coverage: {

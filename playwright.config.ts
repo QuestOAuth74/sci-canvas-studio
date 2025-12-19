@@ -47,8 +47,9 @@ export default defineConfig({
     ['json', { outputFile: 'test-results/results.json' }]
   ],
 
-  // Output directory for test results
-  outputDir: 'test-results',
+  // Output directory for test artifacts (screenshots, traces, videos)
+  // Using subdirectory to avoid cleaning up vitest JSON files
+  outputDir: 'test-results/.playwright',
 
   // Shared settings for all projects
   use: {

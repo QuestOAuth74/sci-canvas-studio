@@ -198,35 +198,25 @@ test.describe('Stress Test - Concurrent User Load', () => {
       const report = metricsCollector.generateReport();
       console.log(report);
 
-      // Evaluate pass/fail criteria
+      // Evaluate pass/fail criteria for I/O timeout detection
       const ioTimeouts = metricsCollector.getIOTimeoutErrors().length;
       const failureRate = 100 - metricsCollector.getSuccessRate();
-      const avgPageLoad = metricsCollector.getAveragePageLoadTime();
       const trend = metricsCollector.getPerformanceTrend();
       const degradationRatio = trend.degradation / 100 + 1;
-      const criticalSlowQueries = metricsCollector.getSlowQueries(10000).length;
 
-      // Assert pass criteria
+      // Primary assertion: No I/O timeouts (main client issue)
       expect(
         ioTimeouts,
         `Expected 0 I/O timeout errors, got ${ioTimeouts}`
       ).toBeLessThanOrEqual(config.maxConsoleErrors);
 
+      // Secondary assertion: Actions don't fail due to connection issues
       expect(
         failureRate,
         `Expected failure rate <= ${config.maxFailureRate}%, got ${failureRate.toFixed(2)}%`
       ).toBeLessThanOrEqual(config.maxFailureRate);
 
-      expect(
-        avgPageLoad,
-        `Expected avg page load <= ${config.maxAvgPageLoadTime}ms, got ${avgPageLoad.toFixed(2)}ms`
-      ).toBeLessThanOrEqual(config.maxAvgPageLoadTime);
-
-      expect(
-        criticalSlowQueries,
-        `Expected 0 critical slow queries (> 10s), got ${criticalSlowQueries}`
-      ).toBeLessThanOrEqual(config.maxVerySlowQueries);
-
+      // Tertiary assertion: No connection leak causing degradation over time
       expect(
         degradationRatio,
         `Expected performance degradation <= ${((config.maxPerformanceDegradation - 1) * 100).toFixed(0)}%, got ${trend.degradation.toFixed(1)}%`

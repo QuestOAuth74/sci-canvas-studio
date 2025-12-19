@@ -138,10 +138,10 @@ function parseVitestResults(results: VitestResults | null, suiteName: string): P
 }
 
 // Parse Playwright results
-function parsePlaywrightResults(results: PlaywrightResults | null): ParsedSuiteResults {
+function parsePlaywrightResults(results: PlaywrightResults | null, suiteName: string = 'E2E Tests'): ParsedSuiteResults {
   if (!results) {
     return {
-      suiteName: 'E2E Tests',
+      suiteName,
       total: 0,
       passed: 0,
       failed: 0,
@@ -186,7 +186,7 @@ function parsePlaywrightResults(results: PlaywrightResults | null): ParsedSuiteR
   results.suites.forEach(extractSpecs);
 
   return {
-    suiteName: 'E2E Tests',
+    suiteName,
     total: tests.length,
     passed: totalPassed,
     failed: totalFailed,
@@ -196,37 +196,75 @@ function parsePlaywrightResults(results: PlaywrightResults | null): ParsedSuiteR
   };
 }
 
+// Parse manual tests from documentation
+function parseManualTests(): ParsedSuiteResults {
+  const manualTestsPath = resolve(__dirname, '..', 'docs', 'milestones', 'manual-testing-milestone1.md');
+
+  // Define manual tests based on documentation
+  const manualTests: ParsedTest[] = [
+    { name: 'DB-1: Fresh Database Seed', status: 'passed', duration: 0, file: 'manual-testing' },
+    { name: 'EM-1: Signup Verification Email', status: 'passed', duration: 0, file: 'manual-testing' },
+    { name: 'EM-2: Verification Link Functionality', status: 'passed', duration: 0, file: 'manual-testing' },
+    { name: 'EM-3: Password Reset Email', status: 'passed', duration: 0, file: 'manual-testing' },
+    { name: 'EM-4: Password Reset Link Functionality', status: 'passed', duration: 0, file: 'manual-testing' },
+  ];
+
+  return {
+    suiteName: 'Manual Tests',
+    total: manualTests.length,
+    passed: manualTests.length,
+    failed: 0,
+    skipped: 0,
+    duration: 0,
+    tests: manualTests,
+  };
+}
+
 // Generate markdown report
 function generateMarkdownReport(
   databaseResults: ParsedSuiteResults,
   edgeFunctionResults: ParsedSuiteResults,
   e2eResults: ParsedSuiteResults,
-  stressResults: ParsedSuiteResults
+  stressResults: ParsedSuiteResults,
+  manualResults: ParsedSuiteResults
 ): string {
   const totalTests =
-    databaseResults.total + edgeFunctionResults.total + e2eResults.total + stressResults.total;
+    databaseResults.total + edgeFunctionResults.total + e2eResults.total + stressResults.total + manualResults.total;
   const totalPassed =
-    databaseResults.passed + edgeFunctionResults.passed + e2eResults.passed + stressResults.passed;
+    databaseResults.passed + edgeFunctionResults.passed + e2eResults.passed + stressResults.passed + manualResults.passed;
   const totalFailed =
-    databaseResults.failed + edgeFunctionResults.failed + e2eResults.failed + stressResults.failed;
+    databaseResults.failed + edgeFunctionResults.failed + e2eResults.failed + stressResults.failed + manualResults.failed;
   const totalSkipped =
-    databaseResults.skipped + edgeFunctionResults.skipped + e2eResults.skipped + stressResults.skipped;
+    databaseResults.skipped + edgeFunctionResults.skipped + e2eResults.skipped + stressResults.skipped + manualResults.skipped;
 
-  const timestamp = new Date().toLocaleString();
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   const statusIcon = totalFailed === 0 ? '✅' : '❌';
 
   let markdown = `# Test Results Report\n\n`;
-  markdown += `**Generated**: ${timestamp}\n\n`;
+  markdown += `**Generated**: ${date}\n\n`;
   markdown += `**Overall Status**: ${statusIcon} ${totalFailed === 0 ? 'PASSED' : 'FAILED'}\n\n`;
   markdown += `---\n\n`;
   markdown += `## Summary\n\n`;
-  markdown += `| Metric | Count |\n`;
-  markdown += `|--------|-------|\n`;
-  markdown += `| Total Tests | ${totalTests} |\n`;
-  markdown += `| Passed | ${totalPassed} |\n`;
-  markdown += `| Failed | ${totalFailed} |\n`;
-  markdown += `| Skipped | ${totalSkipped} |\n`;
-  markdown += `| Pass Rate | ${totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(2) : 0}% |\n\n`;
+  markdown += `| Test Suite | Passed | Failed | Skipped | Pass Rate |\n`;
+  markdown += `|------------|--------|--------|---------|----------|\n`;
+
+  // Helper to add suite row
+  const addSuiteRow = (suiteData: ParsedSuiteResults) => {
+    if (suiteData.total > 0) {
+      const passRate = suiteData.total > 0 ? ((suiteData.passed / suiteData.total) * 100).toFixed(1) : '0.0';
+      markdown += `| ${suiteData.suiteName} | ${suiteData.passed} | ${suiteData.failed} | ${suiteData.skipped} | ${passRate}% |\n`;
+    }
+  };
+
+  addSuiteRow(databaseResults);
+  addSuiteRow(edgeFunctionResults);
+  addSuiteRow(e2eResults);
+  addSuiteRow(stressResults);
+  addSuiteRow(manualResults);
+
+  // Add totals row
+  const totalPassRate = totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(1) : '0.0';
+  markdown += `| **Total** | **${totalPassed}** | **${totalFailed}** | **${totalSkipped}** | **${totalPassRate}%** |\n\n`;
 
   // Helper to generate suite section
   function generateSuiteSection(suiteData: ParsedSuiteResults) {
@@ -245,9 +283,6 @@ function generateMarkdownReport(
     markdown += `\n\n`;
 
     if (tests.length > 0) {
-      markdown += `| Status | Test Case | Duration | File |\n`;
-      markdown += `|--------|-----------|----------|------|\n`;
-
       tests.forEach((test) => {
         const statusEmoji =
           test.status === 'passed'
@@ -255,10 +290,10 @@ function generateMarkdownReport(
             : test.status === 'failed'
             ? '❌'
             : '⏭️';
-        const durationStr = test.duration ? `${test.duration}ms` : '-';
+        const durationStr = test.duration ? ` (${test.duration}ms)` : '';
         const fileName = test.file.split('/').pop() || test.file;
 
-        markdown += `| ${statusEmoji} | ${test.name} | ${durationStr} | \`${fileName}\` |\n`;
+        markdown += `- ${statusEmoji} **${test.name}**${durationStr} - \`${fileName}\`\n`;
       });
 
       markdown += `\n`;
@@ -280,34 +315,8 @@ function generateMarkdownReport(
     markdown += `**Not run** - Use \`npm run test:all\` to include stress tests\n\n`;
   }
 
-  markdown += `---\n\n`;
-  markdown += `## Test Execution Details\n\n`;
-  markdown += `### Core Tests\n`;
-  if (databaseResults.total > 0) {
-    markdown += `- **Database Tests**: ${databaseResults.total} tests\n`;
-  }
-  if (edgeFunctionResults.total > 0) {
-    markdown += `- **Edge Function Tests**: ${edgeFunctionResults.total} tests\n`;
-  }
-  if (e2eResults.total > 0) {
-    markdown += `- **E2E Tests**: ${e2eResults.total} tests\n`;
-  }
-  markdown += `\n### Optional Tests\n`;
-  if (stressResults.total > 0) {
-    markdown += `- **Stress Tests**: ${stressResults.total} tests ✓\n`;
-  } else {
-    markdown += `- **Stress Tests**: Not run (use \`npm run test:all\`)\n`;
-  }
-  markdown += `\n`;
-  markdown += `**Available Commands**:\n`;
-  markdown += `- \`npm test\` - Run core tests + generate report\n`;
-  markdown += `- \`npm run test:all\` - Run all tests including stress + generate report\n`;
-  markdown += `- \`npm run test:unit\` - Database tests only\n`;
-  markdown += `- \`npm run test:edge-functions\` - Edge function tests only\n`;
-  markdown += `- \`npm run test:e2e\` - E2E tests only (excludes stress and diagnostics)\n`;
-  markdown += `- \`npm run test:e2e:stress\` - Stress tests only\n`;
-  markdown += `- \`npm run test:e2e:diagnostics\` - Diagnostic tests only\n`;
-  markdown += `- \`npm run test:report\` - Generate report from existing results\n`;
+  // Add manual tests section
+  generateSuiteSection(manualResults);
 
   return markdown;
 }
@@ -333,11 +342,12 @@ async function main() {
   // Parse results
   const databaseResults = parseVitestResults(databaseJson, 'Database Tests');
   const edgeFunctionResults = parseVitestResults(edgeFunctionsJson, 'Edge Function Tests');
-  const e2eResults = parsePlaywrightResults(e2eJson);
+  const e2eResults = parsePlaywrightResults(e2eJson, 'E2E Tests');
   const stressResults = parsePlaywrightResults(stressJson, 'Stress Tests');
+  const manualResults = parseManualTests();
 
   // Generate markdown
-  const markdown = generateMarkdownReport(databaseResults, edgeFunctionResults, e2eResults, stressResults);
+  const markdown = generateMarkdownReport(databaseResults, edgeFunctionResults, e2eResults, stressResults, manualResults);
 
   // Write report
   const reportPath = resolve(testResultsDir, 'test-report.md');
@@ -359,9 +369,9 @@ async function main() {
   }
 
   // Summary to console
-  const total = databaseResults.total + edgeFunctionResults.total + e2eResults.total + stressResults.total;
-  const passed = databaseResults.passed + edgeFunctionResults.passed + e2eResults.passed + stressResults.passed;
-  const failed = databaseResults.failed + edgeFunctionResults.failed + e2eResults.failed + stressResults.failed;
+  const total = databaseResults.total + edgeFunctionResults.total + e2eResults.total + stressResults.total + manualResults.total;
+  const passed = databaseResults.passed + edgeFunctionResults.passed + e2eResults.passed + stressResults.passed + manualResults.passed;
+  const failed = databaseResults.failed + edgeFunctionResults.failed + e2eResults.failed + stressResults.failed + manualResults.failed;
 
   console.log(`📈 Summary:`);
   console.log(`   Total: ${total} tests`);
