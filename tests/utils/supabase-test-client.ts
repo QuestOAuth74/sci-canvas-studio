@@ -77,17 +77,18 @@ export async function createAuthenticatedClient(
  * Returns the user email and password for subsequent authentication
  */
 export async function createTestUser(
-  emailPrefix: string = 'test'
+  emailPrefix: string = 'test',
+  emailConfirmed: boolean = true
 ): Promise<{ email: string; password: string; userId: string }> {
   const serviceClient = createServiceRoleClient();
   const timestamp = Date.now();
   const email = `${emailPrefix}-${timestamp}@${testEmailDomain}`;
   const password = `TestPassword123!${timestamp}`;
 
-  const { data, error } = await serviceClient.auth.admin.createUser({
+  const { data, error} = await serviceClient.auth.admin.createUser({
     email,
     password,
-    email_confirm: true,
+    email_confirm: emailConfirmed,
   });
 
   if (error || !data.user) {

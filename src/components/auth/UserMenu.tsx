@@ -79,7 +79,7 @@ export const UserMenu = ({ showName = false }: UserMenuProps) => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {showName ? (
-          <Button variant="ghost" className="flex items-center gap-2 hover:bg-muted">
+          <Button variant="ghost" className="flex items-center gap-2 hover:bg-muted" data-testid={NavigationTestIds.USER_MENU_TRIGGER}>
             <Avatar className="h-8 w-8">
               <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
@@ -91,7 +91,7 @@ export const UserMenu = ({ showName = false }: UserMenuProps) => {
             </span>
           </Button>
         ) : (
-          <Button variant="outline" size="icon" className="rounded-full">
+          <Button variant="outline" size="icon" className="rounded-full" data-testid={NavigationTestIds.USER_MENU_TRIGGER}>
             <Avatar className="h-8 w-8">
               <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">

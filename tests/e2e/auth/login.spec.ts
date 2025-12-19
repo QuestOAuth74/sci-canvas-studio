@@ -77,6 +77,9 @@ test.describe('Login & Session Management', () => {
     // Wait for navigation
     await page.waitForURL((url) => !url.pathname.includes('/auth'), { timeout: 10000 });
 
+    // Open user menu dropdown
+    await page.getByTestId(NavigationTestIds.USER_MENU_TRIGGER).click();
+
     // Find and click sign out button
     const signOutButton = page.getByTestId(NavigationTestIds.SIGNOUT_BUTTON);
     await signOutButton.click();
@@ -109,6 +112,9 @@ test.describe('Login & Session Management', () => {
     // Verify authenticated
     let authenticated = await isAuthenticated(page);
     expect(authenticated).toBe(true);
+
+    // Open user menu dropdown
+    await page.getByTestId(NavigationTestIds.USER_MENU_TRIGGER).click();
 
     // Sign out
     const signOutButton = page.getByTestId(NavigationTestIds.SIGNOUT_BUTTON);

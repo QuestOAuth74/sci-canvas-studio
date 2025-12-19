@@ -8,6 +8,14 @@ test.describe('Unverified Email Handling', () => {
   test('sign-in with unverified email detects error', async ({ page, unverifiedUser }) => {
     const authPage = new AuthPage(page);
 
+    // DEBUG: Check if user is actually unverified
+    const { createServiceRoleClient } = await import('../../utils/supabase-test-client');
+    const supabase = createServiceRoleClient();
+    const { data: userData } = await supabase.auth.admin.getUserById(unverifiedUser.userId);
+    console.log('User email_confirmed_at:', userData.user?.email_confirmed_at);
+    console.log('User confirmed_at:', userData.user?.confirmed_at);
+    console.log('Database URL:', process.env.VITE_SUPABASE_URL);
+
     await authPage.goto();
     await authPage.signIn(unverifiedUser.email, unverifiedUser.password);
 
@@ -16,6 +24,8 @@ test.describe('Unverified Email Handling', () => {
 
     // Should show unverified email toast or redirect to verify email
     const currentUrl = page.url();
+    console.log('hasErrorToast:', hasErrorToast);
+    console.log('currentUrl:', currentUrl);
     expect(hasErrorToast || currentUrl.includes('/verify-email')).toBe(true);
   });
 

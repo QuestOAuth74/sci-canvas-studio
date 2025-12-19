@@ -43,13 +43,8 @@ export const test = base.extend<{
    * Creates a user with email_confirmed_at = null (not verified)
    */
   unverifiedUser: async ({}, use) => {
-    const user = await createTestUser();
-
-    // Ensure user is NOT verified
-    const supabase = createServiceRoleClient();
-    await supabase.auth.admin.updateUserById(user.userId, {
-      email_confirm: false,
-    });
+    // Create user as unverified from the start
+    const user = await createTestUser('test', false);
 
     await use(user);
 

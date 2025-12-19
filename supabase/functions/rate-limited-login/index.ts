@@ -116,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (authError || !authData.user) {
       console.log(`Login failed for ${email}: ${authError?.message}`);
-      
+
       return new Response(
         JSON.stringify({
           success: false,
@@ -124,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
           remainingAttempts: Math.max(0, MAX_ATTEMPTS - failedAttempts - 1),
         }),
         {
-          status: 401,
+          status: 200,  // Return 200 so client can check data.success instead of getting functionError
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
         }
       );
