@@ -10,7 +10,7 @@ export const createImagePlaceholder = (
   const top = options?.top ?? 100;
   const width = options?.width ?? 200;
   const height = options?.height ?? 150;
-  const label = options?.label ?? "Click to add image";
+  const label = options?.label ?? "Double-click to add image";
 
   // Create background rectangle with dashed border
   const background = new Rect({
