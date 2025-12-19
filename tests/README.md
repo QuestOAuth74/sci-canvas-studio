@@ -62,16 +62,33 @@ Tests assume:
 
 ## Running Tests
 
-### Database & Unit Tests (Vitest)
+### Run All Tests (Recommended)
 
-**Run all unit/database tests:**
+**Run all tests in series (database → edge functions → E2E):**
 ```bash
 npm test
 ```
 
-**Run tests once (CI mode):**
+This runs:
+1. Database tests (Vitest, 1 worker)
+2. Edge function tests (Vitest, 1 worker)
+3. E2E tests (Playwright, 1 worker)
+
+All tests run sequentially. If any test fails, subsequent tests won't run.
+
+**Prerequisites for `npm test`:**
+- Development server running at `http://localhost:8080` (for E2E tests)
+
+### Database & Unit Tests (Vitest)
+
+**Run only database tests:**
 ```bash
-npm run test:run
+npm run test:unit
+```
+
+**Run tests in watch mode:**
+```bash
+npm run test:watch
 ```
 
 **Run with UI:**

@@ -1,4 +1,5 @@
 import { Page, Locator } from '@playwright/test';
+import { VerifyEmailTestIds } from '@/lib/test-ids';
 
 /**
  * Page Object Model for the Verify Email page (/auth/verify-email)
@@ -7,74 +8,48 @@ import { Page, Locator } from '@playwright/test';
 export class VerifyEmailPage {
   readonly page: Page;
 
-  // Locators
+  // Locators using test IDs
   readonly heading: Locator;
   readonly emailDisplay: Locator;
-  readonly returnToSignInLink: Locator;
+  readonly verificationMessage: Locator;
   readonly resendButton: Locator;
-  readonly resentConfirmation: Locator;
+  readonly backToSignInButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
 
-    // Page elements
-    this.heading = page.getByRole('heading', { name: /check your email/i });
-    this.emailDisplay = page.locator('text=/sent.*to/i');
-    this.returnToSignInLink = page.getByRole('link', { name: /return to sign in/i });
-    this.resendButton = page.getByRole('button', { name: /resend/i });
-    this.resentConfirmation = page.getByText(/verification email.*sent/i);
+    // Use test IDs instead of fragile selectors
+    this.heading = page.getByTestId(VerifyEmailTestIds.HEADING);
+    this.emailDisplay = page.getByTestId(VerifyEmailTestIds.EMAIL_DISPLAY);
+    this.verificationMessage = page.getByTestId(VerifyEmailTestIds.VERIFICATION_MESSAGE);
+    this.resendButton = page.getByTestId(VerifyEmailTestIds.RESEND_BUTTON);
+    this.backToSignInButton = page.getByTestId(VerifyEmailTestIds.BACK_TO_SIGNIN_BUTTON);
   }
 
-  /**
-   * Navigate to the verify email page
-   */
   async goto() {
     await this.page.goto('/auth/verify-email');
   }
 
-  /**
-   * Check if heading is visible
-   */
   async hasHeading(): Promise<boolean> {
     return await this.heading.isVisible();
   }
 
-  /**
-   * Get the displayed email address
-   */
   async getDisplayedEmail(): Promise<string | null> {
-    const text = await this.emailDisplay.textContent();
-    if (!text) return null;
-
-    // Extract email from text like "We've sent a verification email to user@example.com"
-    const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w+/);
-    return emailMatch ? emailMatch[0] : null;
+    return await this.emailDisplay.textContent();
   }
 
-  /**
-   * Click return to sign in link
-   */
-  async clickReturnToSignIn() {
-    await this.returnToSignInLink.click();
+  async clickBackToSignIn() {
+    await this.backToSignInButton.click();
   }
 
-  /**
-   * Click resend verification email button
-   */
   async clickResend() {
     await this.resendButton.click();
   }
 
-  /**
-   * Check if resent confirmation is visible
-   */
-  async hasResentConfirmation(): Promise<boolean> {
-    return await this.resentConfirmation.isVisible();
+  async hasVerificationMessage(): Promise<boolean> {
+    return await this.verificationMessage.isVisible();
   }
 
-  /**
-   * Check if page displays resent query parameter message
-   */
   async hasResentQueryMessage(): Promise<boolean> {
     const url = this.page.url();
     return url.includes('resent=true');

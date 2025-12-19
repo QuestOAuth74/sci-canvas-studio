@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Loader2, ArrowLeft, Microscope, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { showSuccessToast, showErrorToast } from '@/lib/toast-helpers';
 import { SEOHead } from '@/components/SEO/SEOHead';
+import { VerifyEmailTestIds, ToastTestIds } from '@/lib/test-ids';
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function VerifyEmail() {
 
   const handleResend = async () => {
     if (!email) {
-      toast.error("Email address not found. Please try signing up again.");
+      showErrorToast("Email address not found. Please try signing up again.", ToastTestIds.VERIFY_EMAIL_RESEND_ERROR);
       return;
     }
 
@@ -43,9 +44,9 @@ export default function VerifyEmail() {
     setIsLoading(false);
 
     if (error) {
-      toast.error(error.message);
+      showErrorToast(error.message, ToastTestIds.VERIFY_EMAIL_RESEND_ERROR);
     } else {
-      toast.success("Verification email sent! Check your inbox.");
+      showSuccessToast("Verification email sent! Check your inbox.", ToastTestIds.VERIFY_EMAIL_RESEND_SUCCESS);
     }
   };
 
@@ -86,7 +87,7 @@ export default function VerifyEmail() {
           <div className="flex justify-center">
             <Mail className="h-16 w-16 text-[hsl(var(--ink-blue))]" />
           </div>
-          <CardTitle className="text-4xl font-bold text-center handwritten text-[hsl(var(--ink-blue))]">
+          <CardTitle className="text-4xl font-bold text-center handwritten text-[hsl(var(--ink-blue))]" data-testid={VerifyEmailTestIds.HEADING}>
             Check Your Email
           </CardTitle>
           <CardDescription className="text-center font-source-serif text-[hsl(var(--pencil-gray))]">
@@ -95,13 +96,13 @@ export default function VerifyEmail() {
               : "We sent a verification link to:"}
           </CardDescription>
           {email && (
-            <p className="text-center font-source-serif font-semibold text-[hsl(var(--ink-blue))]">
+            <p className="text-center font-source-serif font-semibold text-[hsl(var(--ink-blue))]" data-testid={VerifyEmailTestIds.EMAIL_DISPLAY}>
               {email}
             </p>
           )}
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-center font-source-serif text-[hsl(var(--pencil-gray))]">
+          <p className="text-center font-source-serif text-[hsl(var(--pencil-gray))]" data-testid={VerifyEmailTestIds.VERIFICATION_MESSAGE}>
             Click the link in the email to verify your account and start creating amazing scientific illustrations.
           </p>
           <Button
@@ -109,6 +110,7 @@ export default function VerifyEmail() {
             className="w-full"
             onClick={handleResend}
             disabled={isLoading || !email}
+            data-testid={VerifyEmailTestIds.RESEND_BUTTON}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Didn't receive it? Resend verification email
@@ -117,6 +119,7 @@ export default function VerifyEmail() {
             variant="ghost"
             className="w-full hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
             onClick={() => navigate('/auth')}
+            data-testid={VerifyEmailTestIds.BACK_TO_SIGNIN_BUTTON}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Sign In

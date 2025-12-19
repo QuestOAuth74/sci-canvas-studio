@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { NavigationTestIds } from '@/lib/test-ids';
 
 interface UserMenuProps {
   showName?: boolean;
@@ -134,7 +135,7 @@ export const UserMenu = ({ showName = false }: UserMenuProps) => {
         <DropdownMenuSeparator />
         <ThemeSwitcher />
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>
+        <DropdownMenuItem onClick={() => signOut()} data-testid={NavigationTestIds.SIGNOUT_BUTTON}>
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
         </DropdownMenuItem>

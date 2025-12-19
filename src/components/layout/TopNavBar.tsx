@@ -7,6 +7,7 @@ import { AdminNotificationBell } from '@/components/admin/AdminNotificationBell'
 import { UserNotificationBell } from '@/components/UserNotificationBell';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { getBioSketchLogoUrl } from '@/lib/assets';
 
 export const TopNavBar = () => {
   const navigate = useNavigate();

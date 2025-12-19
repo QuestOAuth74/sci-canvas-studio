@@ -15,6 +15,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { FeaturedProjectShowcase } from '@/components/auth/FeaturedProjectShowcase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { COUNTRIES, FIELDS_OF_STUDY } from '@/lib/constants';
+import { AuthTestIds, ToastTestIds } from '@/lib/test-ids';
+import { showSuccessToast, showErrorToast } from '@/lib/toast-helpers';
 
 const signInSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -177,16 +179,9 @@ export default function Auth() {
 
     if (error) {
       console.error('Error resetting password:', error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
+      showErrorToast(error.message, ToastTestIds.PASSWORD_RESET_SENT_ERROR);
     } else {
-      toast({
-        title: "Check your email",
-        description: "We've sent you a password reset link. Please check your inbox.",
-      });
+      showSuccessToast("Check your email. We've sent you a password reset link.", ToastTestIds.PASSWORD_RESET_SENT_SUCCESS);
       setResetEmail('');
       setShowResetPassword(false);
       setActiveTab('signin');
@@ -219,16 +214,9 @@ export default function Auth() {
 
     if (error) {
       console.error('Error updating password:', error);
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
+      showErrorToast(error.message, ToastTestIds.PASSWORD_UPDATE_ERROR);
     } else {
-      toast({
-        title: "Password updated",
-        description: "Your password has been successfully updated. You can now sign in with your new password.",
-      });
+      showSuccessToast("Password updated! You can now sign in with your new password.", ToastTestIds.PASSWORD_UPDATE_SUCCESS);
       setNewPassword('');
       setConfirmPassword('');
       setShowUpdatePassword(false);
@@ -322,10 +310,11 @@ export default function Auth() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={isLoading}
+                    data-testid={AuthTestIds.UPDATE_PASSWORD_INPUT}
                     className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {updatePasswordErrors.password && (
-                    <p className="text-sm text-destructive handwritten">{updatePasswordErrors.password}</p>
+                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.UPDATE_ERROR_PASSWORD}>{updatePasswordErrors.password}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -337,13 +326,14 @@ export default function Auth() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isLoading}
+                    data-testid={AuthTestIds.UPDATE_CONFIRM_INPUT}
                     className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {updatePasswordErrors.confirmPassword && (
-                    <p className="text-sm text-destructive handwritten">{updatePasswordErrors.confirmPassword}</p>
+                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.UPDATE_ERROR_CONFIRM}>{updatePasswordErrors.confirmPassword}</p>
                   )}
                 </div>
-                <Button type="submit" variant="ink" className="w-full" disabled={isLoading}>
+                <Button type="submit" variant="ink" className="w-full" disabled={isLoading} data-testid={AuthTestIds.UPDATE_SUBMIT_BUTTON}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Update Password
                 </Button>
@@ -359,6 +349,7 @@ export default function Auth() {
                   setResetEmail('');
                   setResetEmailError('');
                 }}
+                data-testid={AuthTestIds.RESET_BACK_BUTTON}
                 className="mb-2 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -374,16 +365,17 @@ export default function Auth() {
                     value={resetEmail}
                     onChange={(e) => setResetEmail(e.target.value)}
                     disabled={isLoading}
+                    data-testid={AuthTestIds.RESET_EMAIL_INPUT}
                     className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {resetEmailError && (
-                    <p className="text-sm text-destructive handwritten">{resetEmailError}</p>
+                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.RESET_ERROR_EMAIL}>{resetEmailError}</p>
                   )}
                   <p className="text-sm text-[hsl(var(--pencil-gray))] font-source-serif italic">
                     Enter your email address and we'll send you a link to reset your password.
                   </p>
                 </div>
-                <Button type="submit" variant="ink" className="w-full" disabled={isLoading}>
+                <Button type="submit" variant="ink" className="w-full" disabled={isLoading} data-testid={AuthTestIds.RESET_SEND_BUTTON}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Send Reset Link
                 </Button>
@@ -392,8 +384,8 @@ export default function Auth() {
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2 mb-6 bg-white border-2 border-[hsl(var(--pencil-gray))] p-1">
-                <TabsTrigger value="signin" className="data-[state=active]:bg-[hsl(var(--highlighter-yellow))]/40 data-[state=active]:text-[hsl(var(--ink-blue))] font-source-serif">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" className="data-[state=active]:bg-[hsl(var(--highlighter-yellow))]/40 data-[state=active]:text-[hsl(var(--ink-blue))] font-source-serif">Sign Up</TabsTrigger>
+                <TabsTrigger value="signin" data-testid={AuthTestIds.TAB_SIGNIN} className="data-[state=active]:bg-[hsl(var(--highlighter-yellow))]/40 data-[state=active]:text-[hsl(var(--ink-blue))] font-source-serif">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" data-testid={AuthTestIds.TAB_SIGNUP} className="data-[state=active]:bg-[hsl(var(--highlighter-yellow))]/40 data-[state=active]:text-[hsl(var(--ink-blue))] font-source-serif">Sign Up</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
@@ -407,10 +399,11 @@ export default function Auth() {
                       value={signInEmail}
                       onChange={(e) => setSignInEmail(e.target.value)}
                       disabled={isLoading}
+                      data-testid={AuthTestIds.SIGNIN_EMAIL_INPUT}
                       className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                     />
                     {signInErrors.email && (
-                      <p className="text-sm text-destructive handwritten">{signInErrors.email}</p>
+                      <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNIN_ERROR_EMAIL}>{signInErrors.email}</p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -421,6 +414,7 @@ export default function Auth() {
                         variant="link"
                         size="sm"
                         onClick={() => setShowResetPassword(true)}
+                        data-testid={AuthTestIds.FORGOT_PASSWORD_LINK}
                         className="h-auto p-0 text-xs text-[hsl(var(--ink-blue))] hover:text-[hsl(var(--ink-blue))]/70"
                       >
                         Forgot password?
@@ -432,13 +426,14 @@ export default function Auth() {
                       value={signInPassword}
                       onChange={(e) => setSignInPassword(e.target.value)}
                       disabled={isLoading}
+                      data-testid={AuthTestIds.SIGNIN_PASSWORD_INPUT}
                       className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                     />
                     {signInErrors.password && (
-                      <p className="text-sm text-destructive handwritten">{signInErrors.password}</p>
+                      <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNIN_ERROR_PASSWORD}>{signInErrors.password}</p>
                     )}
                   </div>
-                  <Button type="submit" variant="ink" className="w-full" disabled={isLoading}>
+                  <Button type="submit" variant="ink" className="w-full" disabled={isLoading} data-testid={AuthTestIds.SIGNIN_SUBMIT_BUTTON}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Sign In
                   </Button>
@@ -456,10 +451,11 @@ export default function Auth() {
                     value={signUpFullName}
                     onChange={(e) => setSignUpFullName(e.target.value)}
                     disabled={isLoading}
+                    data-testid={AuthTestIds.SIGNUP_NAME_INPUT}
                     className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {signUpErrors.fullName && (
-                    <p className="text-sm text-destructive handwritten">{signUpErrors.fullName}</p>
+                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_NAME}>{signUpErrors.fullName}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -471,10 +467,11 @@ export default function Auth() {
                     value={signUpEmail}
                     onChange={(e) => setSignUpEmail(e.target.value)}
                     disabled={isLoading}
+                    data-testid={AuthTestIds.SIGNUP_EMAIL_INPUT}
                     className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {signUpErrors.email && (
-                    <p className="text-sm text-destructive handwritten">{signUpErrors.email}</p>
+                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_EMAIL}>{signUpErrors.email}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -485,10 +482,11 @@ export default function Auth() {
                     value={signUpPassword}
                     onChange={(e) => setSignUpPassword(e.target.value)}
                     disabled={isLoading}
+                    data-testid={AuthTestIds.SIGNUP_PASSWORD_INPUT}
                     className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
                   />
                   {signUpErrors.password && (
-                    <p className="text-sm text-destructive handwritten">{signUpErrors.password}</p>
+                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_PASSWORD}>{signUpErrors.password}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -498,7 +496,7 @@ export default function Auth() {
                     onValueChange={setSignUpCountry}
                     disabled={isLoading}
                   >
-                    <SelectTrigger id="signup-country" className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]">
+                    <SelectTrigger id="signup-country" data-testid={AuthTestIds.SIGNUP_COUNTRY_SELECT} className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]">
                       <SelectValue placeholder="Select your country" />
                     </SelectTrigger>
                     <SelectContent className="bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))] max-h-[300px]">
@@ -510,7 +508,7 @@ export default function Auth() {
                     </SelectContent>
                   </Select>
                   {signUpErrors.country && (
-                    <p className="text-sm text-destructive handwritten">{signUpErrors.country}</p>
+                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_COUNTRY}>{signUpErrors.country}</p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -520,7 +518,7 @@ export default function Auth() {
                     onValueChange={setSignUpFieldOfStudy}
                     disabled={isLoading}
                   >
-                    <SelectTrigger id="signup-field" className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]">
+                    <SelectTrigger id="signup-field" data-testid={AuthTestIds.SIGNUP_FIELD_SELECT} className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]">
                       <SelectValue placeholder="Select your field of study" />
                     </SelectTrigger>
                     <SelectContent className="bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))]">
@@ -532,7 +530,7 @@ export default function Auth() {
                     </SelectContent>
                   </Select>
                   {signUpErrors.fieldOfStudy && (
-                    <p className="text-sm text-destructive handwritten">{signUpErrors.fieldOfStudy}</p>
+                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_FIELD}>{signUpErrors.fieldOfStudy}</p>
                   )}
                 </div>
                 <div className="pt-2 pb-1">
@@ -548,7 +546,7 @@ export default function Auth() {
                     </a>.
                   </p>
                 </div>
-                <Button type="submit" variant="sticky" className="w-full" disabled={isLoading}>
+                <Button type="submit" variant="sticky" className="w-full" disabled={isLoading} data-testid={AuthTestIds.SIGNUP_SUBMIT_BUTTON}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
                 </Button>

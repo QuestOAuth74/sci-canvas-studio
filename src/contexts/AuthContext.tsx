@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { showSuccessToast, showErrorToast } from '@/lib/toast-helpers';
+import { ToastTestIds } from '@/lib/test-ids';
 
 interface AuthContextType {
   user: User | null;
@@ -100,9 +101,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     if (error) {
       console.error('Error during sign up:', error);
-      toast.error(error.message);
+      showErrorToast(error.message, ToastTestIds.AUTH_SIGNUP_ERROR);
     } else {
-      toast.success('Account created! Please check your email to verify.');
+      showSuccessToast('Account created! Please check your email to verify.', ToastTestIds.AUTH_SIGNUP_SUCCESS);
     }
     
     return { error };
@@ -116,7 +117,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (functionError) {
       console.error('Error during sign in:', functionError);
-      toast.error(functionError.message);
+      showErrorToast(functionError.message, ToastTestIds.AUTH_SIGNIN_ERROR);
       return { error: functionError };
     }
 
@@ -132,7 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
 
         if (!resendError) {
-          toast.error("Email not verified. We've sent you a new verification link.");
+          showErrorToast("Email not verified. We've sent you a new verification link.", ToastTestIds.AUTH_EMAIL_UNVERIFIED);
           sessionStorage.setItem('verifyEmail', email);
           return {
             error: {
@@ -141,7 +142,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             }
           };
         } else {
-          toast.error("Email not verified. Please check your inbox for the verification link.");
+          showErrorToast("Email not verified. Please check your inbox for the verification link.", ToastTestIds.AUTH_EMAIL_UNVERIFIED);
           sessionStorage.setItem('verifyEmail', email);
           return {
             error: {
@@ -159,7 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           : data.error;
 
       console.error('Sign in failed:', data.error);
-      toast.error(errorMessage);
+      showErrorToast(errorMessage, ToastTestIds.AUTH_SIGNIN_ERROR);
       return { error: { message: data.error } };
     }
 
@@ -173,22 +174,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .update({ last_login_at: new Date().toISOString() })
         .eq('id', data.session.user.id);
       
-      toast.success('Welcome back!');
+      showSuccessToast('Welcome back!', ToastTestIds.AUTH_SIGNIN_SUCCESS);
     }
-    
+
     return { error: null };
   };
 
   const signOut = async () => {
     // Use 'local' scope to clear local session even if server logout fails
     const { error } = await supabase.auth.signOut({ scope: 'local' });
-    
+
     // Ignore "Session not found" errors since the goal is to be logged out
     if (error && !error.message.includes('Session not found') && !error.message.includes('session_not_found')) {
       console.error('Error during sign out:', error);
-      toast.error(error.message);
+      showErrorToast(error.message, ToastTestIds.AUTH_SIGNOUT_ERROR);
     } else {
-      toast.success('Signed out successfully');
+      showSuccessToast('Signed out successfully', ToastTestIds.AUTH_SIGNOUT_SUCCESS);
     }
   };
 

@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures/auth';
 import { AuthPage } from '../utils/page-objects/AuthPage';
 import { INVALID_CREDENTIALS } from '../fixtures/test-data';
 import { isAuthenticated, waitForAuthentication, waitForSessionClear } from '../utils/session-helpers';
+import { NavigationTestIds, ToastTestIds } from '@/lib/test-ids';
 
 test.describe('Login & Session Management', () => {
   test('user can sign in with valid credentials', async ({ page, testUser }) => {
@@ -10,8 +11,11 @@ test.describe('Login & Session Management', () => {
     await authPage.goto();
     await authPage.signIn(testUser.email, testUser.password);
 
+    // Wait for authentication to complete
+    await waitForAuthentication(page);
+
     // Should redirect away from auth page
-    await page.waitForURL((url) => !url.pathname.includes('/auth'));
+    await page.waitForURL((url) => !url.pathname.includes('/auth'), { timeout: 10000 });
 
     // Verify authentication
     const authenticated = await isAuthenticated(page);
@@ -24,12 +28,9 @@ test.describe('Login & Session Management', () => {
     await authPage.goto();
     await authPage.signIn(INVALID_CREDENTIALS.email, INVALID_CREDENTIALS.password);
 
-    // Wait for error to appear
-    await page.waitForTimeout(1000);
-
-    // Check for error message
-    const hasError = await authPage.hasErrorMessage();
-    expect(hasError).toBe(true);
+    // Wait for error toast to appear
+    const hasErrorToast = await authPage.waitForToast(ToastTestIds.AUTH_SIGNIN_ERROR);
+    expect(hasErrorToast).toBe(true);
 
     // Should remain on auth page
     expect(page.url()).toContain('/auth');
@@ -42,8 +43,11 @@ test.describe('Login & Session Management', () => {
     await authPage.goto();
     await authPage.signIn(testUser.email, testUser.password);
 
+    // Wait for authentication to complete
+    await waitForAuthentication(page);
+
     // Wait for navigation
-    await page.waitForURL((url) => !url.pathname.includes('/auth'));
+    await page.waitForURL((url) => !url.pathname.includes('/auth'), { timeout: 10000 });
 
     // Verify authenticated
     let authenticated = await isAuthenticated(page);
@@ -67,15 +71,22 @@ test.describe('Login & Session Management', () => {
     await authPage.goto();
     await authPage.signIn(testUser.email, testUser.password);
 
+    // Wait for authentication to complete
+    await waitForAuthentication(page);
+
     // Wait for navigation
-    await page.waitForURL((url) => !url.pathname.includes('/auth'));
+    await page.waitForURL((url) => !url.pathname.includes('/auth'), { timeout: 10000 });
 
     // Find and click sign out button
-    const signOutButton = page.getByRole('button', { name: /sign out|log out/i });
+    const signOutButton = page.getByTestId(NavigationTestIds.SIGNOUT_BUTTON);
     await signOutButton.click();
 
-    // Wait for navigation back to home or auth
-    await page.waitForTimeout(1000);
+    // Wait for signout success toast
+    const hasSuccessToast = await authPage.waitForToast(ToastTestIds.AUTH_SIGNOUT_SUCCESS);
+    expect(hasSuccessToast).toBe(true);
+
+    // Wait for session to clear
+    await waitForSessionClear(page);
 
     // Session should be cleared
     const authenticated = await isAuthenticated(page);
@@ -89,16 +100,23 @@ test.describe('Login & Session Management', () => {
     await authPage.goto();
     await authPage.signIn(testUser.email, testUser.password);
 
+    // Wait for authentication to complete
+    await waitForAuthentication(page);
+
     // Wait for navigation
-    await page.waitForURL((url) => !url.pathname.includes('/auth'));
+    await page.waitForURL((url) => !url.pathname.includes('/auth'), { timeout: 10000 });
 
     // Verify authenticated
     let authenticated = await isAuthenticated(page);
     expect(authenticated).toBe(true);
 
     // Sign out
-    const signOutButton = page.getByRole('button', { name: /sign out|log out/i });
+    const signOutButton = page.getByTestId(NavigationTestIds.SIGNOUT_BUTTON);
     await signOutButton.click();
+
+    // Wait for signout success toast
+    const hasSuccessToast = await authPage.waitForToast(ToastTestIds.AUTH_SIGNOUT_SUCCESS);
+    expect(hasSuccessToast).toBe(true);
 
     // Wait for session to clear
     const sessionCleared = await waitForSessionClear(page);

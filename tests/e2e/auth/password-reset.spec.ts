@@ -1,6 +1,8 @@
 import { test, expect } from '../fixtures/auth';
 import { AuthPage } from '../utils/page-objects/AuthPage';
 import { INVALID_EMAILS } from '../fixtures/test-data';
+import { waitForAuthentication } from '../utils/session-helpers';
+import { ToastTestIds } from '@/lib/test-ids';
 
 test.describe('Password Reset Flow', () => {
   test('forgot password form is accessible', async ({ page }) => {
@@ -15,8 +17,7 @@ test.describe('Password Reset Flow', () => {
     await page.waitForTimeout(500);
 
     // Check if reset form is visible
-    const resetButton = page.getByRole('button', { name: /send reset link|reset password/i });
-    await expect(resetButton).toBeVisible();
+    await expect(authPage.resetSendButton).toBeVisible();
   });
 
   test('form validates email format', async ({ page }) => {
@@ -29,17 +30,14 @@ test.describe('Password Reset Flow', () => {
     await page.waitForTimeout(500);
 
     // Try to submit with invalid email
-    const emailInput = page.getByPlaceholder('Email');
-    await emailInput.fill(INVALID_EMAILS[0]); // 'not-an-email'
-
-    const resetButton = page.getByRole('button', { name: /send reset link|reset password/i });
-    await resetButton.click();
+    await authPage.resetEmailInput.fill(INVALID_EMAILS[0]); // 'not-an-email'
+    await authPage.resetSendButton.click();
 
     // Wait for validation
     await page.waitForTimeout(500);
 
     // Check for validation error (HTML5 or custom)
-    const isInvalid = await emailInput.evaluate((el: HTMLInputElement) => !el.validity.valid);
+    const isInvalid = await authPage.resetEmailInput.evaluate((el: HTMLInputElement) => !el.validity.valid);
     expect(isInvalid).toBe(true);
   });
 
@@ -55,14 +53,9 @@ test.describe('Password Reset Flow', () => {
     // Submit valid email
     await authPage.submitPasswordReset(testUser.email);
 
-    // Wait for confirmation
-    await page.waitForTimeout(1000);
-
-    // Check for confirmation message
-    const confirmationMessage = page.getByText(/check your email|reset link sent/i);
-    const isVisible = await confirmationMessage.isVisible().catch(() => false);
-
-    expect(isVisible).toBe(true);
+    // Wait for confirmation toast
+    const hasSuccessToast = await authPage.waitForToast(ToastTestIds.PASSWORD_RESET_SENT_SUCCESS);
+    expect(hasSuccessToast).toBe(true);
   });
 
   test('"Back to Sign In" link exists', async ({ page }) => {
@@ -75,8 +68,7 @@ test.describe('Password Reset Flow', () => {
     await page.waitForTimeout(500);
 
     // Check if back to sign in link exists
-    const backButton = page.getByRole('button', { name: /back to sign in/i });
-    await expect(backButton).toBeVisible();
+    await expect(authPage.resetBackButton).toBeVisible();
   });
 
   test('password reset page validates requirements', async ({ page }) => {
@@ -96,8 +88,7 @@ test.describe('Password Reset Flow', () => {
     await authPage.clickForgotPassword();
     await page.waitForTimeout(500);
 
-    const resetButton = page.getByRole('button', { name: /send reset link|reset password/i });
-    await expect(resetButton).toBeVisible();
+    await expect(authPage.resetSendButton).toBeVisible();
   });
 
   test('user can set new password via reset link', async ({ page }) => {
@@ -111,8 +102,7 @@ test.describe('Password Reset Flow', () => {
     await authPage.clickForgotPassword();
     await page.waitForTimeout(500);
 
-    const emailInput = page.getByPlaceholder('Email');
-    await expect(emailInput).toBeVisible();
+    await expect(authPage.resetEmailInput).toBeVisible();
 
     // Note: Full test requires:
     // 1. Submit reset request
@@ -132,8 +122,11 @@ test.describe('Password Reset Flow', () => {
     await authPage.goto();
     await authPage.signIn(testUser.email, testUser.password);
 
+    // Wait for authentication to complete
+    await waitForAuthentication(page);
+
     // Wait for navigation
-    await page.waitForURL((url) => !url.pathname.includes('/auth'));
+    await page.waitForURL((url) => !url.pathname.includes('/auth'), { timeout: 10000 });
 
     // Verify successful sign-in
     expect(page.url()).not.toContain('/auth');

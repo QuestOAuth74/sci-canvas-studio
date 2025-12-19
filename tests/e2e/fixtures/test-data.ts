@@ -4,13 +4,16 @@
 
 let testCounter = 0;
 
+// Get test email domain from environment
+const TEST_EMAIL_DOMAIN = process.env.TEST_USER_EMAIL_DOMAIN || 'gazzola.dev';
+
 /**
  * Generates a unique test email
  */
 export function generateTestEmail(): string {
   const timestamp = Date.now();
   testCounter++;
-  return `e2e-test-${timestamp}-${testCounter}@example.com`;
+  return `e2e-test-${timestamp}-${testCounter}@${TEST_EMAIL_DOMAIN}`;
 }
 
 /**

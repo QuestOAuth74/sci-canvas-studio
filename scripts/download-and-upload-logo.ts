@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
+import fetch from 'node-fetch';
 
 // Load dev env
 const devEnv = dotenv.config({ path: '.env.local' }).parsed;

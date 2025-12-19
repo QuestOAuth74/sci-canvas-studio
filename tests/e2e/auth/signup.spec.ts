@@ -10,7 +10,7 @@ test.describe('Signup & Email Verification', () => {
     const credentials = generateTestCredentials();
 
     await authPage.goto();
-    await authPage.signUp(credentials.email, credentials.password);
+    await authPage.signUp(credentials.email, credentials.password, 'United States', 'Genetics');
 
     // Should redirect to verify email page
     await expect(page).toHaveURL(/\/auth\/verify-email/);
@@ -21,7 +21,7 @@ test.describe('Signup & Email Verification', () => {
     const credentials = generateTestCredentials();
 
     await authPage.goto();
-    await authPage.signUp(credentials.email, credentials.password);
+    await authPage.signUp(credentials.email, credentials.password, 'United States', 'Genetics');
 
     // Wait for navigation
     await page.waitForURL(/\/auth\/verify-email/);
@@ -36,7 +36,7 @@ test.describe('Signup & Email Verification', () => {
     const credentials = generateTestCredentials();
 
     await authPage.goto();
-    await authPage.signUp(credentials.email, credentials.password);
+    await authPage.signUp(credentials.email, credentials.password, 'United States', 'Genetics');
 
     // Wait for navigation
     await page.waitForURL(/\/auth\/verify-email/);
@@ -55,17 +55,17 @@ test.describe('Signup & Email Verification', () => {
     const credentials = generateTestCredentials();
 
     await authPage.goto();
-    await authPage.signUp(credentials.email, credentials.password);
+    await authPage.signUp(credentials.email, credentials.password, 'United States', 'Genetics');
 
     // Wait for navigation
     await page.waitForURL(/\/auth\/verify-email/);
 
     // Check return link is visible
-    await expect(verifyPage.returnToSignInLink).toBeVisible();
+    await expect(verifyPage.backToSignInButton).toBeVisible();
 
     // Verify link text
-    const linkText = await verifyPage.returnToSignInLink.textContent();
-    expect(linkText?.toLowerCase()).toContain('return to sign in');
+    const linkText = await verifyPage.backToSignInButton.textContent();
+    expect(linkText?.toLowerCase()).toContain('back to sign in');
   });
 
   test('link navigates back to auth page', async ({ page }) => {
@@ -74,13 +74,13 @@ test.describe('Signup & Email Verification', () => {
     const credentials = generateTestCredentials();
 
     await authPage.goto();
-    await authPage.signUp(credentials.email, credentials.password);
+    await authPage.signUp(credentials.email, credentials.password, 'United States', 'Genetics');
 
     // Wait for navigation to verify email page
     await page.waitForURL(/\/auth\/verify-email/);
 
     // Click return to sign in
-    await verifyPage.clickReturnToSignIn();
+    await verifyPage.clickBackToSignIn();
 
     // Should navigate back to auth page
     await page.waitForURL(/\/auth/);

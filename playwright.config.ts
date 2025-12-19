@@ -1,7 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
-import { resolve } from 'path';
+import { resolve, dirname } from 'path';
 import { existsSync } from 'fs';
+import { fileURLToPath } from 'url';
+
+// Get __dirname equivalent in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load environment variables for tests
 // Prioritize .env.local over .env
@@ -36,22 +41,28 @@ export default defineConfig({
   // Retry on CI only
   retries: process.env.CI ? 2 : 0,
 
-  // Reporter to use
-  reporter: process.env.CI ? 'github' : 'html',
+  // Reporter to use - list reporter with detailed output
+  reporter: [
+    ['list'],
+    ['json', { outputFile: 'test-results/results.json' }]
+  ],
+
+  // Output directory for test results
+  outputDir: 'test-results',
 
   // Shared settings for all projects
   use: {
     // Base URL for the application
     baseURL: 'http://localhost:8080',
 
+    // Test ID attribute for getByTestId()
+    testIdAttribute: 'data-testid',
+
     // Collect trace on failure
     trace: 'on-first-retry',
 
     // Screenshot on failure
     screenshot: 'only-on-failure',
-
-    // Video on failure
-    video: 'retain-on-failure',
   },
 
   // Configure projects for major browsers

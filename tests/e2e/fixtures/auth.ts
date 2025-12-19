@@ -1,5 +1,6 @@
 import { test as base, Page } from '@playwright/test';
 import { createTestUser, deleteTestUser, createServiceRoleClient } from '../../utils/supabase-test-client';
+import { AuthTestIds } from '@/lib/test-ids';
 
 /**
  * Test user data structure
@@ -64,10 +65,10 @@ export const test = base.extend<{
     // Navigate to auth page
     await page.goto('/auth');
 
-    // Sign in
-    await page.getByPlaceholder('Email').fill(testUser.email);
-    await page.getByPlaceholder('Password').first().fill(testUser.password);
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    // Sign in using test IDs
+    await page.getByTestId(AuthTestIds.SIGNIN_EMAIL_INPUT).fill(testUser.email);
+    await page.getByTestId(AuthTestIds.SIGNIN_PASSWORD_INPUT).fill(testUser.password);
+    await page.getByTestId(AuthTestIds.SIGNIN_SUBMIT_BUTTON).click();
 
     // Wait for navigation to complete
     await page.waitForURL((url) => !url.pathname.includes('/auth'));

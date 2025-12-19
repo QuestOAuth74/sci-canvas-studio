@@ -60,7 +60,7 @@ export async function clearLocalStorage(page: Page): Promise<void> {
 export async function isAuthenticated(page: Page): Promise<boolean> {
   const authToken = await page.evaluate(() => {
     const keys = Object.keys(localStorage);
-    const authKey = keys.find((k) => k.includes('supabase.auth.token'));
+    const authKey = keys.find((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
     return authKey ? localStorage.getItem(authKey) : null;
   });
 
@@ -82,7 +82,7 @@ export async function clearAllStorage(page: Page): Promise<void> {
 export async function getSupabaseSession(page: Page): Promise<any> {
   return await page.evaluate(() => {
     const keys = Object.keys(localStorage);
-    const authKey = keys.find((k) => k.includes('supabase.auth.token'));
+    const authKey = keys.find((k) => k.startsWith('sb-') && k.endsWith('-auth-token'));
     if (!authKey) return null;
 
     const authData = localStorage.getItem(authKey);

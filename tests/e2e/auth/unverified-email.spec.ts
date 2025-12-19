@@ -2,6 +2,7 @@ import { test, expect } from '../fixtures/auth';
 import { AuthPage } from '../utils/page-objects/AuthPage';
 import { VerifyEmailPage } from '../utils/page-objects/VerifyEmailPage';
 import { getSessionStorage } from '../utils/session-helpers';
+import { ToastTestIds } from '@/lib/test-ids';
 
 test.describe('Unverified Email Handling', () => {
   test('sign-in with unverified email detects error', async ({ page, unverifiedUser }) => {
@@ -10,15 +11,12 @@ test.describe('Unverified Email Handling', () => {
     await authPage.goto();
     await authPage.signIn(unverifiedUser.email, unverifiedUser.password);
 
-    // Should redirect to verify email page instead of showing error on auth page
-    await page.waitForTimeout(1000);
+    // Wait for error toast
+    const hasErrorToast = await authPage.waitForToast(ToastTestIds.AUTH_EMAIL_UNVERIFIED);
 
-    // Either shows error or redirects to verify email
+    // Should show unverified email toast or redirect to verify email
     const currentUrl = page.url();
-    const hasError = await authPage.hasErrorMessage();
-
-    // Should handle unverified email (either error or redirect)
-    expect(hasError || currentUrl.includes('/verify-email')).toBe(true);
+    expect(hasErrorToast || currentUrl.includes('/verify-email')).toBe(true);
   });
 
   test('triggers automatic verification email resend', async ({ page, unverifiedUser }) => {
@@ -27,16 +25,16 @@ test.describe('Unverified Email Handling', () => {
     await authPage.goto();
     await authPage.signIn(unverifiedUser.email, unverifiedUser.password);
 
-    // Wait for processing
-    await page.waitForTimeout(1000);
+    // Wait for error toast to appear
+    const hasErrorToast = await authPage.waitForToast(ToastTestIds.AUTH_EMAIL_UNVERIFIED);
 
     // Email should be stored in session storage for resend
     const storedEmail = await getSessionStorage(page, 'verifyEmail');
 
-    // Should either redirect with resent param or store email
+    // Should show toast and store email, and may redirect
     const currentUrl = page.url();
     expect(
-      currentUrl.includes('/verify-email') || storedEmail === unverifiedUser.email
+      hasErrorToast || currentUrl.includes('/verify-email') || storedEmail === unverifiedUser.email
     ).toBe(true);
   });
 
@@ -97,7 +95,7 @@ test.describe('Unverified Email Handling', () => {
 
     if (currentUrl.includes('/verify-email')) {
       // Click return to sign in
-      await verifyPage.clickReturnToSignIn();
+      await verifyPage.clickBackToSignIn();
 
       // Should navigate back to auth page
       await page.waitForURL(/\/auth/);
@@ -106,7 +104,7 @@ test.describe('Unverified Email Handling', () => {
     } else {
       // If didn't redirect, navigate directly to verify email page to test link
       await verifyPage.goto();
-      await verifyPage.clickReturnToSignIn();
+      await verifyPage.clickBackToSignIn();
 
       await page.waitForURL(/\/auth/);
       expect(page.url()).toContain('/auth');

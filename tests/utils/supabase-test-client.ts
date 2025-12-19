@@ -4,6 +4,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const testEmailDomain = process.env.TEST_USER_EMAIL_DOMAIN || 'gazzola.dev';
 
 if (!supabaseUrl) {
   throw new Error('VITE_SUPABASE_URL is required for tests');
@@ -80,7 +81,7 @@ export async function createTestUser(
 ): Promise<{ email: string; password: string; userId: string }> {
   const serviceClient = createServiceRoleClient();
   const timestamp = Date.now();
-  const email = `${emailPrefix}-${timestamp}@test.com`;
+  const email = `${emailPrefix}-${timestamp}@${testEmailDomain}`;
   const password = `TestPassword123!${timestamp}`;
 
   const { data, error } = await serviceClient.auth.admin.createUser({
@@ -101,15 +102,77 @@ export async function createTestUser(
 }
 
 /**
+ * Comprehensive cleanup of all user-related data before deleting the user
+ * Handles tables with ON DELETE SET NULL and tables without proper foreign keys
+ */
+export async function cleanupUserData(userId: string): Promise<void> {
+  const serviceClient = createServiceRoleClient();
+  const errors: string[] = [];
+
+  // Manual cleanup for tables with ON DELETE SET NULL or no cascade
+  const cleanupOperations = [
+    // Tables with ON DELETE SET NULL that should be deleted
+    { table: 'tool_feedback', column: 'user_id' },
+    { table: 'testimonials', column: 'user_id' },
+    { table: 'contact_messages', column: 'user_id' },
+
+    // Tables with orphaned references (approved_by, updated_by, created_by fields)
+    { table: 'icon_submissions', column: 'approved_by' },
+
+    // Tables without proper foreign key constraints
+    { table: 'project_versions', column: 'user_id' },
+  ];
+
+  // Delete records that reference the user
+  for (const { table, column } of cleanupOperations) {
+    const { error } = await serviceClient
+      .from(table)
+      .delete()
+      .eq(column, userId);
+
+    if (error) {
+      errors.push(`Failed to cleanup ${table}.${column}: ${error.message}`);
+    }
+  }
+
+  // Set NULL for audit/tracking fields that should be preserved
+  const nullifyOperations = [
+    { table: 'icons', column: 'uploaded_by' },
+    { table: 'site_settings', column: 'updated_by' },
+    { table: 'ai_provider_settings', column: 'updated_by' },
+    { table: 'powerpoint_custom_templates', column: 'created_by' },
+  ];
+
+  for (const { table, column } of nullifyOperations) {
+    const { error } = await serviceClient
+      .from(table)
+      .update({ [column]: null })
+      .eq(column, userId);
+
+    if (error) {
+      errors.push(`Failed to nullify ${table}.${column}: ${error.message}`);
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`User data cleanup failed:\n${errors.join('\n')}`);
+  }
+}
+
+/**
  * Delete a test user account
+ * Performs comprehensive cleanup of all related data before deletion
  */
 export async function deleteTestUser(userId: string): Promise<void> {
-  const serviceClient = createServiceRoleClient();
+  // First, clean up all user-related data
+  await cleanupUserData(userId);
 
+  // Then delete the user (this will cascade to properly configured tables)
+  const serviceClient = createServiceRoleClient();
   const { error } = await serviceClient.auth.admin.deleteUser(userId);
 
   if (error) {
-    console.warn(`Failed to delete test user ${userId}:`, error.message);
+    throw new Error(`Failed to delete test user ${userId}: ${error.message}`);
   }
 }
 
@@ -117,7 +180,7 @@ export async function deleteTestUser(userId: string): Promise<void> {
  * Helper to clean up test data
  * Use with caution - only for test data!
  */
-export async function cleanupTestData(tableName: string, condition: Record<string, any>) {
+export async function cleanupTestData(tableName: string, condition: Record<string, any>): Promise<void> {
   const serviceClient = createServiceRoleClient();
 
   const { error } = await serviceClient
@@ -126,6 +189,6 @@ export async function cleanupTestData(tableName: string, condition: Record<strin
     .match(condition);
 
   if (error) {
-    console.warn(`Failed to cleanup test data from ${tableName}:`, error.message);
+    throw new Error(`Failed to cleanup test data from ${tableName}: ${error.message}`);
   }
 }
