@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Admin notification counts returned by the RPC function
+ * Admin notification counts
  */
 interface AdminNotificationCounts {
   pendingProjects: number;
@@ -15,19 +15,12 @@ interface AdminNotificationCounts {
 /**
  * Hook to fetch admin notification counts with caching
  *
- * Replaces manual polling in AdminNotificationBell component.
- * Uses RPC function to batch 5 COUNT queries into 1 call.
+ * Uses parallel queries to fetch counts efficiently.
  *
  * Caching Strategy:
  * - staleTime: 5 minutes (data is fresh for 5 min)
  * - refetchInterval: 5 minutes (background refresh)
  * - refetchOnWindowFocus: true (refresh when admin returns)
- * - Query deduplication: Multiple admins share cache
- *
- * Performance Impact:
- * - Reduces 5 queries -> 1 RPC call (80% network reduction)
- * - Reduces query frequency: 60s -> 5min (96% query reduction)
- * - With 5 admins: 25 queries/min -> 1 query/min
  *
  * @returns Query result with admin notification counts
  */
@@ -35,22 +28,42 @@ export const useAdminNotificationCounts = () => {
   return useQuery<AdminNotificationCounts>({
     queryKey: ['admin-notification-counts'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc('get_admin_notification_counts')
-        .single();
+      // Run all count queries in parallel for efficiency
+      const [
+        projectsResult,
+        testimonialsResult,
+        iconsResult,
+        messagesResult,
+        feedbackResult,
+      ] = await Promise.all([
+        supabase
+          .from('canvas_projects')
+          .select('id', { count: 'exact', head: true })
+          .eq('approval_status', 'pending'),
+        supabase
+          .from('testimonials')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_approved', false),
+        supabase
+          .from('icon_submissions')
+          .select('id', { count: 'exact', head: true })
+          .eq('approval_status', 'pending'),
+        supabase
+          .from('contact_messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_read', false),
+        supabase
+          .from('tool_feedback')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_viewed', false),
+      ]);
 
-      if (error) {
-        console.error('Error fetching admin notification counts:', error);
-        throw error;
-      }
-
-      // Transform database response to match component interface
       return {
-        pendingProjects: data.pending_projects || 0,
-        pendingTestimonials: data.pending_testimonials || 0,
-        pendingIconSubmissions: data.pending_icons || 0,
-        unreadMessages: data.unread_messages || 0,
-        totalFeedback: data.unviewed_feedback || 0,
+        pendingProjects: projectsResult.count ?? 0,
+        pendingTestimonials: testimonialsResult.count ?? 0,
+        pendingIconSubmissions: iconsResult.count ?? 0,
+        unreadMessages: messagesResult.count ?? 0,
+        totalFeedback: feedbackResult.count ?? 0,
       };
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
@@ -58,7 +71,7 @@ export const useAdminNotificationCounts = () => {
     refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
     refetchOnWindowFocus: true, // Refresh when admin returns to tab
     refetchOnMount: 'always', // Always fetch on mount for fresh data
-    retry: 3, // Retry failed queries 3 times
+    retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 };
