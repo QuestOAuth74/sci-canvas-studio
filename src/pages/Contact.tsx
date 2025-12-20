@@ -1,14 +1,14 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Mail, User, Globe, MessageSquare } from "lucide-react";
+import { ArrowLeft, Mail, User, Globe, MessageSquare, Clock, Send, MapPin, AtSign } from "lucide-react";
 import { z } from "zod";
-
 import { SEOHead } from "@/components/SEO/SEOHead";
 
 const contactSchema = z.object({
@@ -45,13 +45,11 @@ const Contact = () => {
     e.preventDefault();
     setErrors({});
 
-    // Check word count
     if (wordCount > 500) {
       setErrors({ message: "Message must not exceed 500 words" });
       return;
     }
 
-    // Validate form data
     try {
       contactSchema.parse(formData);
     } catch (error) {
@@ -87,7 +85,6 @@ const Contact = () => {
         description: "Thank you for contacting us. We'll get back to you soon.",
       });
 
-      // Reset form
       setFormData({
         email: "",
         fullName: "",
@@ -108,157 +105,233 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen notebook-page ruled-lines">
+    <div className="min-h-screen bg-background">
       <SEOHead
         title="Contact Us - BioSketch"
         description="Get in touch with the BioSketch team. Send us your questions, feedback, or suggestions for improving our scientific illustration tool."
         canonical="https://biosketch.art/contact"
       />
       
-      {/* Margin line decoration */}
-      <div className="margin-line" />
-      
+      {/* Subtle dot pattern background */}
+      <div 
+        className="fixed inset-0 pointer-events-none opacity-[0.015]"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, hsl(var(--foreground)) 1px, transparent 0)`,
+          backgroundSize: '24px 24px'
+        }}
+      />
+
       {/* Header */}
-      <div className="border-b-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] paper-shadow">
-        <div className="container mx-auto px-4 py-6">
+      <header className="sticky top-0 z-40 border-b border-border/40 bg-background/95 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4">
           <Button
             onClick={() => navigate(-1)}
             variant="ghost"
-            className="pencil-button"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
         </div>
-      </div>
+      </header>
 
-      <div className="container mx-auto px-4 py-12 max-w-3xl">
-        {/* Title Section - Sticky Note Style */}
-        <div className="mb-12 text-center">
-          <div className="sticky-note inline-block max-w-2xl mx-auto rotate-[-0.5deg] shadow-none">
-            <div className="flex items-center justify-center gap-4 mb-4">
-              <div className="p-4 bg-[hsl(var(--ink-blue))]/10 rounded-full border-2 border-[hsl(var(--ink-blue))]/20">
-                <MessageSquare className="h-10 w-10 text-[hsl(var(--ink-blue))]" />
-              </div>
-              <h1 className="text-5xl md:text-6xl font-['Caveat'] text-[hsl(var(--ink-blue))]">Contact Us</h1>
-            </div>
-            <p className="text-xl font-source-serif text-[hsl(var(--pencil-gray))]">
-              ~ Have a question or feedback? We'd love to hear from you! ~
-            </p>
+      <main className="container mx-auto px-4 py-12 max-w-5xl relative">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-6">
+            <MessageSquare className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Get in Touch</span>
           </div>
-        </div>
-
-        {/* Form Card - Notebook Paper */}
-        <div className="bg-[#f9f6f0] border-2 border-[hsl(var(--pencil-gray))] rounded-lg paper-shadow p-6 md:p-10 relative">
-          {/* Decorative washi tape */}
-          <div className="absolute -top-3 left-12 w-20 h-6 bg-[hsl(var(--highlighter-yellow))]/50 rotate-[-2deg] border border-[hsl(var(--pencil-gray))]/30" />
-          <div className="absolute -top-3 right-12 w-20 h-6 bg-[hsl(var(--highlighter-yellow))]/50 rotate-[2deg] border border-[hsl(var(--pencil-gray))]/30" />
           
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-lg font-['Caveat'] text-[hsl(var(--ink-blue))] flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Email Address *
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="your.email@example.com"
-                className="border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/10 font-source-serif pencil-sketch transition-colors"
-                required
-              />
-              {errors.email && (
-                <p className="text-sm font-source-serif text-destructive">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Full Name Field */}
-            <div className="space-y-2">
-              <Label htmlFor="fullName" className="text-lg font-['Caveat'] text-[hsl(var(--ink-blue))] flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Full Name *
-              </Label>
-              <Input
-                id="fullName"
-                type="text"
-                value={formData.fullName}
-                onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                placeholder="John Doe"
-                className="border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/10 font-source-serif pencil-sketch transition-colors"
-                required
-              />
-              {errors.fullName && (
-                <p className="text-sm font-source-serif text-destructive">{errors.fullName}</p>
-              )}
-            </div>
-
-            {/* Country Field */}
-            <div className="space-y-2">
-              <Label htmlFor="country" className="text-lg font-['Caveat'] text-[hsl(var(--ink-blue))] flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Country *
-              </Label>
-              <Input
-                id="country"
-                type="text"
-                value={formData.country}
-                onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                placeholder="United States"
-                className="border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/10 font-source-serif pencil-sketch transition-colors"
-                required
-              />
-              {errors.country && (
-                <p className="text-sm font-source-serif text-destructive">{errors.country}</p>
-              )}
-            </div>
-
-            {/* Message Field */}
-            <div className="space-y-2">
-              <Label htmlFor="message" className="text-lg font-['Caveat'] text-[hsl(var(--ink-blue))] flex items-center gap-2 justify-between">
-                <span className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Message *
-                </span>
-                <span className={`text-sm font-source-serif ${wordCount > 500 ? 'text-destructive' : 'text-[hsl(var(--pencil-gray))]/70'}`}>
-                  {wordCount} / 500 words
-                </span>
-              </Label>
-              <Textarea
-                id="message"
-                value={formData.message}
-                onChange={(e) => handleMessageChange(e.target.value)}
-                placeholder="Tell us what's on your mind..."
-                rows={8}
-                className="resize-none border-2 border-[hsl(var(--pencil-gray))] bg-white/80 focus:bg-[hsl(var(--highlighter-yellow))]/10 font-source-serif pencil-sketch transition-colors"
-                required
-              />
-              {errors.message && (
-                <p className="text-sm font-source-serif text-destructive">{errors.message}</p>
-              )}
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isSubmitting || wordCount > 500}
-              size="lg"
-              className="w-full text-lg py-6 pencil-button font-['Caveat'] text-xl"
-            >
-              {isSubmitting ? "Sending..." : "Send Message"}
-            </Button>
-          </form>
-        </div>
-
-        {/* Info Section - Sticky Note */}
-        <div className="mt-8 sticky-note inline-block w-full max-w-2xl mx-auto rotate-[0.5deg] shadow-none">
-          <p className="text-base md:text-lg font-source-serif text-[hsl(var(--pencil-gray))]">
-            <span className="font-['Caveat'] text-xl text-[hsl(var(--ink-blue))]">Quick tip:</span> We typically respond within 24-48 hours. For urgent matters, please include "URGENT" in your message.
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-semibold text-foreground mb-6 tracking-tight">
+            Contact Us
+          </h1>
+          
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Have a question, feedback, or suggestion? We'd love to hear from you. 
+            Our team is here to help.
           </p>
         </div>
-      </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Contact Info Cards */}
+          <div className="lg:col-span-1 space-y-4">
+            <Card className="border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                    <Clock className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Response Time</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      We typically respond within 24-48 hours during business days.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                    <AtSign className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Email Support</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      For urgent matters, include "URGENT" in your message subject.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-md transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                    <MapPin className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Global Community</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Serving researchers and scientists worldwide from all disciplines.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Contact Form */}
+          <div className="lg:col-span-2">
+            <Card className="border-border/40 bg-card/50 backdrop-blur-sm">
+              <CardContent className="p-6 md:p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-serif font-semibold text-foreground mb-2">
+                    Send us a Message
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Fill out the form below and we'll get back to you as soon as possible.
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Email Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        Email Address
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                        placeholder="your.email@example.com"
+                        className="border-border/60 bg-background/50 focus:bg-background focus:border-primary/50 transition-all"
+                        required
+                      />
+                      {errors.email && (
+                        <p className="text-sm text-destructive">{errors.email}</p>
+                      )}
+                    </div>
+
+                    {/* Full Name Field */}
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName" className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        Full Name
+                      </Label>
+                      <Input
+                        id="fullName"
+                        type="text"
+                        value={formData.fullName}
+                        onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                        placeholder="John Doe"
+                        className="border-border/60 bg-background/50 focus:bg-background focus:border-primary/50 transition-all"
+                        required
+                      />
+                      {errors.fullName && (
+                        <p className="text-sm text-destructive">{errors.fullName}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Country Field */}
+                  <div className="space-y-2">
+                    <Label htmlFor="country" className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      Country / Region
+                    </Label>
+                    <Input
+                      id="country"
+                      type="text"
+                      value={formData.country}
+                      onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
+                      placeholder="United States"
+                      className="border-border/60 bg-background/50 focus:bg-background focus:border-primary/50 transition-all"
+                      required
+                    />
+                    {errors.country && (
+                      <p className="text-sm text-destructive">{errors.country}</p>
+                    )}
+                  </div>
+
+                  {/* Message Field */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="message" className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                        Your Message
+                      </Label>
+                      <span className={`text-xs ${wordCount > 500 ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                        {wordCount} / 500 words
+                      </span>
+                    </div>
+                    <Textarea
+                      id="message"
+                      value={formData.message}
+                      onChange={(e) => handleMessageChange(e.target.value)}
+                      placeholder="Tell us what's on your mind. We're here to help with any questions about BioSketch, feature requests, or general feedback..."
+                      rows={6}
+                      className="resize-none border-border/60 bg-background/50 focus:bg-background focus:border-primary/50 transition-all"
+                      required
+                    />
+                    {errors.message && (
+                      <p className="text-sm text-destructive">{errors.message}</p>
+                    )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || wordCount > 500}
+                    size="lg"
+                    className="w-full md:w-auto px-8 font-medium"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="h-4 w-4 mr-2 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };
