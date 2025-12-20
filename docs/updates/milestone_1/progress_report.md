@@ -31,6 +31,8 @@
 - Expanded and fixed Row Level Security policies across all tables
 - Fixed critical bug preventing authenticated users from accessing icon library
 - Enabled public access to icons for landing page showcase
+- Created `public_profiles` view to prevent email address exposure
+- Removed overly permissive RLS policy and updated app code to use secure view
 - Verified all permission scenarios work correctly
 
 ### Authentication & Email System
@@ -54,11 +56,11 @@
 
 ### Testing & Verification
 
-**Comprehensive Test Coverage (59 tests)**
+**Comprehensive Test Coverage (68 tests)**
 
 - Database seeding verification (8 tests)
-- RLS policy enforcement for all user types (17 tests)
-- Complete authentication workflow (22 E2E tests)
+- RLS policy enforcement including profile security (20 tests)
+- E2E tests for authentication and community features (28 tests)
 - Email delivery function (5 tests)
 - Manual testing procedures (5 documented procedures)
 
@@ -107,7 +109,7 @@ Added comprehensive tests to ensure optimizations maintain original functionalit
 - ✅ Preview deployment live at https://science-canvas-creator.vercel.app
 - ✅ RLS policies expanded and verified
 - ✅ Complete authentication system with email verification
-- ✅ 59 automated tests + 5 manual procedures covering all requirements
+- ✅ 68 automated tests + 5 manual procedures covering all requirements
 - ✅ Custom toast system for reliable testing
 - ✅ Performance optimizations with 15 additional tests (bonus)
 

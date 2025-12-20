@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/pagination';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { MobileWarningDialog } from '@/components/canvas/MobileWarningDialog';
+import { CommunityTestIds } from '@/lib/test-ids';
 
 interface CommunityProject {
   id: string;
@@ -130,7 +131,7 @@ export default function Community() {
     // Fetch profiles only for users of current page projects
     const userIds = [...new Set(projectsData?.map(p => p.user_id) || [])];
     const { data: profilesData, error: profilesError } = await supabase
-      .from('profiles')
+      .from('public_profiles')
       .select('id, full_name, avatar_url')
       .in('id', userIds);
 
@@ -175,7 +176,7 @@ export default function Community() {
 
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative" data-testid={CommunityTestIds.PAGE_CONTAINER}>
       <MobileWarningDialog />
       <SEOHead 
         title="Community Gallery - BioSketch" 

@@ -12,6 +12,7 @@ import { VerifiedBadge } from "@/components/community/VerifiedBadge";
 import { ArrowLeft, Eye, Heart, Copy, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { SEOHead } from "@/components/SEO/SEOHead";
+import { AuthorProfileTestIds } from "@/lib/test-ids";
 
 export default function AuthorProfile() {
   const { userId } = useParams();
@@ -22,7 +23,7 @@ export default function AuthorProfile() {
     queryKey: ['author-profile', userId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('public_profiles')
         .select('id, full_name, avatar_url, bio, country, field_of_study, created_at, updated_at, quote')
         .eq('id', userId)
         .single();
@@ -117,7 +118,7 @@ export default function AuthorProfile() {
         description={profile.bio || `View ${profile.full_name || 'Anonymous'}'s scientific diagrams and projects`}
       />
       
-      <div className="min-h-screen notebook-page">
+      <div className="min-h-screen notebook-page" data-testid={AuthorProfileTestIds.PAGE_CONTAINER}>
         <div className="container mx-auto px-4 py-8 max-w-7xl">
           <Button variant="ghost" onClick={() => navigate('/community')} className="mb-6 pencil-button">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -148,21 +149,21 @@ export default function AuthorProfile() {
                 <div className="flex-1 space-y-4">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-heading-2 font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">
+                      <h1 className="text-heading-2 font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]" data-testid={AuthorProfileTestIds.PROFILE_NAME}>
                         {profile.full_name || 'Anonymous'}
                       </h1>
                       {isVerified && <VerifiedBadge size="md" />}
                     </div>
                     {profile.bio && (
-                      <p className="text-body text-muted-foreground mt-2 whitespace-pre-wrap font-['Source_Serif_4']">
+                      <p className="text-body text-muted-foreground mt-2 whitespace-pre-wrap font-['Source_Serif_4']" data-testid={AuthorProfileTestIds.PROFILE_BIO}>
                         {profile.bio}
                       </p>
                     )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4 text-body-sm text-muted-foreground">
-                    {profile.country && <span>📍 {profile.country}</span>}
-                    {profile.field_of_study && <span>🔬 {profile.field_of_study}</span>}
+                    {profile.country && <span data-testid={AuthorProfileTestIds.PROFILE_COUNTRY}>📍 {profile.country}</span>}
+                    {profile.field_of_study && <span data-testid={AuthorProfileTestIds.PROFILE_FIELD}>🔬 {profile.field_of_study}</span>}
                     {profile.created_at && (
                       <span className="flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
@@ -173,7 +174,7 @@ export default function AuthorProfile() {
 
                   {stats && (
                     <div className="grid grid-cols-3 gap-4 mt-4">
-                      <div className="sticky-note bg-[#fff4b4] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(-1deg)' }}>
+                      <div className="sticky-note bg-[#fff4b4] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(-1deg)' }} data-testid={AuthorProfileTestIds.STAT_PROJECTS}>
                         <div className="text-2xl font-bold text-[hsl(var(--ink-blue))] mb-1 font-['Caveat']">
                           {stats.projectCount}
                         </div>
@@ -181,7 +182,7 @@ export default function AuthorProfile() {
                           {stats.projectCount === 1 ? 'Project' : 'Projects'}
                         </div>
                       </div>
-                      <div className="sticky-note bg-[#ffcce1] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(0.5deg)' }}>
+                      <div className="sticky-note bg-[#ffcce1] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(0.5deg)' }} data-testid={AuthorProfileTestIds.STAT_VIEWS}>
                         <div className="text-2xl font-bold text-[hsl(var(--ink-blue))] mb-1 font-['Caveat']">
                           {stats.totalViews.toLocaleString()}
                         </div>
@@ -189,7 +190,7 @@ export default function AuthorProfile() {
                           Views
                         </div>
                       </div>
-                      <div className="sticky-note bg-[#b4e4ff] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(-0.5deg)' }}>
+                      <div className="sticky-note bg-[#b4e4ff] p-4 text-center hover:shadow-md transition-all" style={{ transform: 'rotate(-0.5deg)' }} data-testid={AuthorProfileTestIds.STAT_LIKES}>
                         <div className="text-2xl font-bold text-[hsl(var(--ink-blue))] mb-1 font-['Caveat']">
                           {stats.totalLikes}
                         </div>
@@ -205,7 +206,7 @@ export default function AuthorProfile() {
           </Card>
 
           {/* Projects Section */}
-          <div className="space-y-4">
+          <div className="space-y-4" data-testid={AuthorProfileTestIds.PROJECTS_SECTION}>
             <h2 className="notebook-section-header text-heading-3">Public Projects</h2>
             
             {projectsLoading ? (
@@ -226,9 +227,10 @@ export default function AuthorProfile() {
                   const rotation = (index % 2 === 0 ? 1 : -1) * (Math.random() * 1.5 + 0.5);
                   return (
                     <Link key={project.id} to={`/community`}>
-                      <Card 
+                      <Card
                         className="overflow-hidden paper-shadow hover:shadow-lg transition-all bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] relative"
                         style={{ transform: `rotate(${rotation}deg)` }}
+                        data-testid={AuthorProfileTestIds.PROJECT_CARD}
                       >
                         {/* Washi tape decoration */}
                         <div className="washi-tape top-4 left-1/2 -translate-x-1/2" />

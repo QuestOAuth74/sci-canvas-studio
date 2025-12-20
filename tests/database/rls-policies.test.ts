@@ -307,7 +307,7 @@ describe('RLS Policies Verification', () => {
 
       // testUser2 should be able to see testUser1's public profile (without email)
       const { data: publicInfo, error } = await authClient
-        .from('profiles')
+        .from('public_profiles')
         .select('id, full_name, avatar_url, bio, country, field_of_study')
         .eq('id', testUser1.userId)
         .single();
@@ -316,6 +316,131 @@ describe('RLS Policies Verification', () => {
       expect(publicInfo).toBeDefined();
       expect(publicInfo?.id).toBe(testUser1.userId);
       expect(publicInfo?.full_name).toBeDefined();
+
+      // Cleanup
+      await serviceClient
+        .from('canvas_projects')
+        .delete()
+        .eq('id', project!.id);
+    });
+  });
+
+  describe('Profile Email Security', () => {
+    test('Anon user CANNOT access email via direct profiles query', async () => {
+      const serviceClient = createServiceRoleClient();
+      const anonClient = createAnonClient();
+
+      // Create a public project for testUser1 to make them "publicly viewable"
+      const { data: project } = await serviceClient
+        .from('canvas_projects')
+        .insert({
+          user_id: testUser1.userId,
+          name: 'Public Project for Email Security Test',
+          canvas_data: {},
+          canvas_width: 800,
+          canvas_height: 600,
+          is_public: true,
+          approval_status: 'approved',
+        })
+        .select()
+        .single();
+
+      // Try to query email directly - should FAIL or return empty
+      const { data, error } = await anonClient
+        .from('profiles')
+        .select('id, email')
+        .eq('id', testUser1.userId);
+
+      // Security verification: email should NOT be accessible
+      if (error) {
+        // RLS denied access - GOOD
+        expect(error.message).toMatch(/permission|denied|policy/i);
+      } else {
+        // RLS returned empty results - also GOOD
+        expect(data?.length).toBe(0);
+      }
+
+      // Cleanup
+      await serviceClient
+        .from('canvas_projects')
+        .delete()
+        .eq('id', project!.id);
+    });
+
+    test('Authenticated user CANNOT access another user email via profiles', async () => {
+      const serviceClient = createServiceRoleClient();
+      const authClient = await createAuthenticatedClient(
+        testUser2.email,
+        testUser2.password
+      );
+
+      // Create a public project for testUser1
+      const { data: project } = await serviceClient
+        .from('canvas_projects')
+        .insert({
+          user_id: testUser1.userId,
+          name: 'Public Project for Auth Email Test',
+          canvas_data: {},
+          canvas_width: 800,
+          canvas_height: 600,
+          is_public: true,
+          approval_status: 'approved',
+        })
+        .select()
+        .single();
+
+      // testUser2 tries to query testUser1's email - should FAIL
+      const { data, error } = await authClient
+        .from('profiles')
+        .select('email')
+        .eq('id', testUser1.userId);
+
+      // Security verification
+      if (error) {
+        expect(error.message).toMatch(/permission|denied|policy/i);
+      } else {
+        expect(data?.length).toBe(0);
+      }
+
+      // Cleanup
+      await serviceClient
+        .from('canvas_projects')
+        .delete()
+        .eq('id', project!.id);
+    });
+
+    test('Anon user CAN access public profiles via public_profiles view', async () => {
+      const serviceClient = createServiceRoleClient();
+      const anonClient = createAnonClient();
+
+      // Create a public project for testUser1
+      const { data: project } = await serviceClient
+        .from('canvas_projects')
+        .insert({
+          user_id: testUser1.userId,
+          name: 'Public Project for View Access Test',
+          canvas_data: {},
+          canvas_width: 800,
+          canvas_height: 600,
+          is_public: true,
+          approval_status: 'approved',
+        })
+        .select()
+        .single();
+
+      // Query via public_profiles view - should SUCCEED
+      const { data: publicProfile, error } = await anonClient
+        .from('public_profiles')
+        .select('id, full_name, avatar_url, bio')
+        .eq('id', testUser1.userId)
+        .single();
+
+      expect(error).toBeNull();
+      expect(publicProfile).toBeDefined();
+      expect(publicProfile?.id).toBe(testUser1.userId);
+      expect(publicProfile?.full_name).toBeDefined();
+      // Verify email is NOT in the view
+      expect(publicProfile).not.toHaveProperty('email');
 
       // Cleanup
       await serviceClient

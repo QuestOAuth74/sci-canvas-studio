@@ -57,7 +57,7 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
           
           // Fetch creator profile separately with error handling
           const { data: profile, error: profileError } = await supabase
-            .from('profiles')
+            .from('public_profiles')
             .select('full_name, avatar_url')
             .eq('id', randomProjectData.user_id)
             .single();

@@ -41,7 +41,7 @@ export function FeaturedProjectShowcase() {
           const randomProjectData = projects[Math.floor(Math.random() * projects.length)];
           
           const { data: profile } = await supabase
-            .from('profiles')
+            .from('public_profiles')
             .select('full_name')
             .eq('id', randomProjectData.user_id)
             .single();

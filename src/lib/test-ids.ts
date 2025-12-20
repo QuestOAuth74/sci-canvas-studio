@@ -250,3 +250,28 @@ export enum BlogTestIds {
   // Pagination
   PAGINATION = 'blog-pagination',
 }
+
+/**
+ * Author Profile page test IDs
+ * Used in: src/pages/AuthorProfile.tsx
+ */
+export enum AuthorProfileTestIds {
+  // Page container
+  PAGE_CONTAINER = 'author-profile-page-container',
+
+  // Profile info
+  PROFILE_NAME = 'author-profile-name',
+  PROFILE_BIO = 'author-profile-bio',
+  PROFILE_AVATAR = 'author-profile-avatar',
+  PROFILE_COUNTRY = 'author-profile-country',
+  PROFILE_FIELD = 'author-profile-field',
+
+  // Stats
+  STAT_PROJECTS = 'author-profile-stat-projects',
+  STAT_VIEWS = 'author-profile-stat-views',
+  STAT_LIKES = 'author-profile-stat-likes',
+
+  // Projects section
+  PROJECTS_SECTION = 'author-profile-projects-section',
+  PROJECT_CARD = 'author-profile-project-card',
+}

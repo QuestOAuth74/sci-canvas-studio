@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import noPreviewImage from '@/assets/no_preview.png';
 import { VerifiedBadge } from './VerifiedBadge';
+import { CommunityTestIds } from '@/lib/test-ids';
 
 interface ProjectCardProps {
   project: {
@@ -131,10 +132,11 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
   };
 
   return (
-    <Card 
+    <Card
       className="group overflow-hidden bg-card border border-border/50 hover:border-primary/30 hover:shadow-xl transition-all duration-300 cursor-pointer animate-fade-in"
       style={{ animationDelay: `${index * 50}ms` }}
       onClick={onPreview}
+      data-testid={CommunityTestIds.PROJECT_CARD}
     >
       {/* Thumbnail */}
       <div className="relative overflow-hidden bg-muted/30 min-h-[160px] max-h-[280px] flex items-center justify-center">
@@ -184,7 +186,7 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
             <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">{initials}</AvatarFallback>
           </Avatar>
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">{creatorName}</span>
+            <span className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors" data-testid={CommunityTestIds.PROJECT_AUTHOR}>{creatorName}</span>
             {isVerified && <VerifiedBadge size="sm" />}
           </div>
         </Link>

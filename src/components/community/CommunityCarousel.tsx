@@ -72,7 +72,7 @@ export const CommunityCarousel = () => {
         // Fetch profiles
         const userIds = [...new Set(projectsData.map((p) => p.user_id))];
         const { data: profilesData } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id, full_name, avatar_url")
           .in("id", userIds);
 
