@@ -100,11 +100,13 @@ export const StylePanel = () => {
   };
 
   const handleOpacityChange = (value: number[]) => {
-    if (!selectedObject) return;
+    if (!selectedObject || !canvas) return;
     const newOpacity = value[0];
     setOpacity(newOpacity);
     selectedObject.set({ opacity: newOpacity / 100 });
-    selectedObject.canvas?.renderAll();
+    selectedObject.setCoords();
+    canvas.fire('object:modified', { target: selectedObject });
+    canvas.renderAll();
   };
 
   return (
