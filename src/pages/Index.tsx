@@ -55,10 +55,13 @@ const Index = () => {
       <MaintenanceBanner />
       
       {/* Subtle dot pattern background */}
-      <div className="absolute inset-0 opacity-[0.015]" style={{
-        backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
-        backgroundSize: '24px 24px'
-      }} />
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.015] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
+          backgroundSize: '24px 24px'
+        }}
+      />
 
       <SEOHead
         title="BioSketch - Free Scientific Illustration Tool for Researchers"
