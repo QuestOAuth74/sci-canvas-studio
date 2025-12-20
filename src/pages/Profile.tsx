@@ -442,140 +442,159 @@ export default function Profile() {
         {/* Three Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[280px,1fr,300px] gap-6 mt-6">
           {/* LEFT SIDEBAR - Stats & Activity */}
-          <div className="space-y-6">
-            {/* Stats Cards */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-1">
-                Your Statistics
-              </h3>
+          <div className="space-y-5">
+            {/* Refined Stats Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 px-1">
+                <div className="w-1 h-4 bg-primary rounded-full" />
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                  Statistics
+                </h3>
+              </div>
               
-              <Card className="border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                      <FolderOpen className="h-5 w-5 text-blue-600" />
+              {/* Compact Stats Grid */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-primary/40 hover:shadow-md transition-all duration-200">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-2xl font-serif font-semibold text-foreground">{stats?.totalProjects || 0}</div>
-                      <div className="text-xs text-muted-foreground">Total Projects</div>
+                    <div>
+                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalProjects || 0}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Projects</div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card className="border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                      <Eye className="h-5 w-5 text-emerald-600" />
+                <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-emerald-500/40 hover:shadow-md transition-all duration-200">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <Eye className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-2xl font-serif font-semibold text-foreground">{stats?.totalViews || 0}</div>
-                      <div className="text-xs text-muted-foreground">Total Views</div>
+                    <div>
+                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalViews || 0}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Views</div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card className="border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center">
-                      <Heart className="h-5 w-5 text-rose-600" />
+                <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-rose-500/40 hover:shadow-md transition-all duration-200">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                      <Heart className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-2xl font-serif font-semibold text-foreground">{stats?.totalLikes || 0}</div>
-                      <div className="text-xs text-muted-foreground">Total Likes</div>
+                    <div>
+                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalLikes || 0}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Likes</div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              <Card className="border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-violet-600" />
+                <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-violet-500/40 hover:shadow-md transition-all duration-200">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                      <Users className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                     </div>
-                    <div className="flex-1">
-                      <div className="text-2xl font-serif font-semibold text-foreground">{stats?.totalCollaborations || 0}</div>
-                      <div className="text-xs text-muted-foreground">Collaborations</div>
+                    <div>
+                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalCollaborations || 0}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Collabs</div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card className="border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                      <Copy className="h-5 w-5 text-amber-600" />
+              {/* Clone Stats - Full Width */}
+              <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-amber-500/40 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                    <Copy className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="flex-1 flex items-center justify-between">
+                    <div>
+                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalClones || 0}</div>
+                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Times Cloned</div>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-2xl font-serif font-semibold text-foreground">{stats?.totalClones || 0}</div>
-                      <div className="text-xs text-muted-foreground">Total Clones</div>
+                    <div className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+                      Impact Score
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
 
-            {/* Activity Timeline */}
-            <Card className="border border-border/50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[280px] pr-3">
-                  <div className="space-y-4">
+            {/* Activity Timeline - Refined */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <div className="w-1 h-4 bg-muted-foreground/30 rounded-full" />
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                  Activity
+                </h3>
+              </div>
+              
+              <div className="rounded-xl border border-border/40 bg-gradient-to-br from-card to-muted/10 overflow-hidden">
+                <ScrollArea className="h-[240px]">
+                  <div className="p-4 space-y-4">
                     {stats && stats.totalProjects > 0 ? (
-                      <div className="space-y-3">
-                        <div className="flex gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <FolderOpen className="h-4 w-4 text-primary" />
+                      <>
+                        <div className="flex gap-3 items-start">
+                          <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <FolderOpen className="h-3.5 w-3.5 text-primary" />
                           </div>
-                          <div className="flex-1 space-y-1">
-                            <p className="text-sm font-medium text-foreground">Created {stats.totalProjects} projects</p>
-                            <p className="text-xs text-muted-foreground">Building your portfolio</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground leading-tight">Created {stats.totalProjects} projects</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">Building your portfolio</p>
                           </div>
                         </div>
+                        
                         {stats.totalViews > 0 && (
-                          <div className="flex gap-3">
-                            <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                              <TrendingUp className="h-4 w-4 text-emerald-600" />
+                          <div className="flex gap-3 items-start">
+                            <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <TrendingUp className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                             </div>
-                            <div className="flex-1 space-y-1">
-                              <p className="text-sm font-medium text-foreground">Gained {stats.totalViews} views</p>
-                              <p className="text-xs text-muted-foreground">Your work is getting noticed</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground leading-tight">Gained {stats.totalViews} views</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">Your work is getting noticed</p>
                             </div>
                           </div>
                         )}
+                        
                         {stats.publicProjects > 0 && (
-                          <div className="flex gap-3">
-                            <div className="h-8 w-8 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                              <Award className="h-4 w-4 text-blue-600" />
+                          <div className="flex gap-3 items-start">
+                            <div className="w-7 h-7 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Award className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                             </div>
-                            <div className="flex-1 space-y-1">
-                              <p className="text-sm font-medium text-foreground">Shared {stats.publicProjects} public projects</p>
-                              <p className="text-xs text-muted-foreground">Contributing to the community</p>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground leading-tight">Shared {stats.publicProjects} public projects</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">Contributing to the community</p>
                             </div>
                           </div>
                         )}
-                      </div>
+                        
+                        {stats.totalLikes > 0 && (
+                          <div className="flex gap-3 items-start">
+                            <div className="w-7 h-7 rounded-full bg-rose-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <Heart className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground leading-tight">Received {stats.totalLikes} likes</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">Community appreciation</p>
+                            </div>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="text-center py-8">
-                        <Clock className="h-8 w-8 mx-auto text-muted-foreground/50 mb-2" />
-                        <p className="text-sm text-muted-foreground">No activity yet</p>
-                        <p className="text-xs text-muted-foreground">Start creating projects!</p>
+                        <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
+                          <Clock className="h-5 w-5 text-muted-foreground/50" />
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">No activity yet</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">Start creating projects!</p>
                       </div>
                     )}
                   </div>
                 </ScrollArea>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* CENTER COLUMN - Main Content */}
@@ -926,89 +945,81 @@ export default function Profile() {
           </div>
 
           {/* RIGHT COLUMN - Download Quota & Premium Features */}
-          <div className="lg:sticky lg:top-6 lg:self-start space-y-6">
+          <div className="lg:sticky lg:top-6 lg:self-start space-y-5">
             <DownloadQuotaCard />
             <AIGenerationQuotaCard />
             
-            {/* Premium Features */}
+            {/* Premium Features - Refined */}
             {hasAccess && !featureAccessLoading && (
-              <Card className="border border-border/50">
-                <CardHeader className="border-b border-border/30">
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Sparkles className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base font-serif">Premium Features</CardTitle>
-                      <CardDescription className="text-xs">Your unlocked tools</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  {/* AI Figure Generator */}
-                  <div className="group p-4 rounded-xl border border-border/50 bg-muted/30 hover:border-primary/30 hover:shadow-lg transition-all">
-                    <div className="flex flex-col gap-3">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 px-1">
+                  <div className="w-1 h-4 bg-primary rounded-full" />
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+                    Premium Tools
+                  </h3>
+                </div>
+                
+                <div className="rounded-xl border border-border/40 bg-gradient-to-br from-card to-muted/10 overflow-hidden">
+                  <div className="p-4 space-y-3">
+                    {/* AI Figure Generator */}
+                    <div 
+                      className="group p-3 rounded-lg border border-border/30 bg-card/50 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all duration-200"
+                      onClick={() => navigate('/canvas')}
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                          <Wand2 className="h-5 w-5 text-primary" />
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/10 transition-colors">
+                          <Wand2 className="h-4 w-4 text-primary" />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground">AI Figure Generator</h3>
-                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-semibold text-foreground">AI Figure Generator</h4>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">Pro</Badge>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Generate figures from references</p>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Generate scientific figures from reference images using AI
-                      </p>
-                      <Button size="sm" className="w-full" onClick={() => navigate('/canvas')}>
-                        Open in Canvas
-                      </Button>
                     </div>
-                  </div>
 
-                  {/* AI Icon Generator */}
-                  <div className="group p-4 rounded-xl border border-border/50 bg-muted/30 hover:border-primary/30 hover:shadow-lg transition-all">
-                    <div className="flex flex-col gap-3">
+                    {/* AI Icon Generator */}
+                    <div 
+                      className="group p-3 rounded-lg border border-border/30 bg-card/50 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all duration-200"
+                      onClick={() => navigate('/canvas')}
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                          <Sparkles className="h-5 w-5 text-primary" />
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-500/5 flex items-center justify-center group-hover:from-violet-500/30 group-hover:to-violet-500/10 transition-colors">
+                          <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground">AI Icon Generator</h3>
-                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-semibold text-foreground">AI Icon Generator</h4>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">Pro</Badge>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Create custom scientific icons</p>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Create custom scientific icons and symbols with AI
-                      </p>
-                      <Button size="sm" className="w-full" onClick={() => navigate('/canvas')}>
-                        Open in Canvas
-                      </Button>
                     </div>
-                  </div>
 
-                  {/* PowerPoint Generator */}
-                  <div className="group p-4 rounded-xl border border-border/50 bg-muted/30 hover:border-primary/30 hover:shadow-lg transition-all">
-                    <div className="flex flex-col gap-3">
+                    {/* PowerPoint Generator */}
+                    <div 
+                      className="group p-3 rounded-lg border border-border/30 bg-card/50 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all duration-200"
+                      onClick={() => navigate('/admin/powerpoint-generator')}
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-                          <FileText className="h-5 w-5 text-primary" />
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center group-hover:from-amber-500/30 group-hover:to-amber-500/10 transition-colors">
+                          <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-foreground">PowerPoint Maker</h3>
-                          <Badge variant="secondary" className="text-xs mt-1">Premium</Badge>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-semibold text-foreground">PowerPoint Maker</h4>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">Pro</Badge>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Convert designs to presentations</p>
                         </div>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-relaxed">
-                        Convert your canvas designs into PowerPoint presentations
-                      </p>
-                      <Button size="sm" className="w-full" onClick={() => navigate('/admin/powerpoint-generator')}>
-                        Open Generator
-                      </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         </div>
