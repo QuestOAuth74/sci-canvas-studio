@@ -565,7 +565,15 @@ const CanvasContent = () => {
   return (
       <>
       <OnboardingTutorial />
-      <div className="h-screen bg-gradient-to-br from-slate-100 via-blue-50/50 to-slate-100 flex flex-col">
+      <div className="h-screen bg-gradient-to-br from-background via-muted/30 to-background flex flex-col relative">
+      {/* Subtle dot pattern background */}
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        }}
+      />
       {/* Mobile Warning Dialog */}
       <MobileWarningDialog />
       
@@ -689,7 +697,7 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-blue-100/60 border-b border-blue-200/80 shadow-sm">
+      <header className="bg-card/80 backdrop-blur-sm border-b border-border/50 shadow-sm">
         <div className="px-3 py-1.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <img 
@@ -800,7 +808,7 @@ const CanvasContent = () => {
             maxSize={20}
             className="min-h-0"
           >
-            <div className={`bg-blue-100/60 border-r border-blue-200/80 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
+            <div className={`bg-card/60 backdrop-blur-sm border-r border-border/40 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
             {isIconLibraryCollapsed ? (
               <div className="p-2 flex flex-col items-center gap-2">
                 <Button
@@ -818,19 +826,19 @@ const CanvasContent = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b border-blue-300/60 bg-blue-200/40 flex items-center justify-between">
+                <div className="p-2 border-b border-border/40 bg-muted/30 flex items-center justify-between">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-9 bg-blue-200/70 p-0.5 rounded-lg">
+                    <TabsList className="grid w-full grid-cols-2 h-9 bg-muted/50 p-0.5 rounded-lg">
                       <TabsTrigger 
                         value="icons" 
-                        className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                        className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
                       >
                         <Square className="h-3 w-3" />
                         Icons
                       </TabsTrigger>
                       <TabsTrigger 
                         value="assets" 
-                        className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                        className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
                       >
                         <Image className="h-3 w-3" />
                         Assets
@@ -870,7 +878,7 @@ const CanvasContent = () => {
           </div>
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-border/30 hover:bg-primary/50 transition-colors w-0.5" />
+          <ResizableHandle withHandle className="bg-border/20 hover:bg-primary/30 transition-colors w-0.5" />
 
           {/* Middle Section - Toolbar + Canvas */}
           <ResizablePanel defaultSize={65} minSize={40}>
@@ -879,7 +887,7 @@ const CanvasContent = () => {
               <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
               {/* Canvas */}
-              <ScrollArea className="flex-1 relative min-h-0 bg-slate-200/30">
+              <ScrollArea className="flex-1 relative min-h-0 bg-muted/20">
           <div className="p-6">
             <CanvasContextMenu
               selectedObject={selectedObject}
@@ -925,7 +933,7 @@ const CanvasContent = () => {
             </div>
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-border/30 hover:bg-primary/50 transition-colors w-0.5" />
+          <ResizableHandle withHandle className="bg-border/20 hover:bg-primary/30 transition-colors w-0.5" />
 
           {/* Right Sidebar - Properties & Layers */}
           <ResizablePanel 
@@ -943,7 +951,7 @@ const CanvasContent = () => {
             }}
             className="min-h-0"
           >
-            <div className={`bg-blue-100/60 border-l border-blue-200/80 flex flex-col overflow-hidden min-h-0 h-full`}>
+            <div className={`bg-card/60 backdrop-blur-sm border-l border-border/40 flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-2 flex flex-col items-center gap-2">
               <Button
@@ -961,19 +969,19 @@ const CanvasContent = () => {
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b border-blue-300/60 bg-blue-200/40 flex items-center justify-between">
+              <div className="p-2 border-b border-border/40 bg-muted/30 flex items-center justify-between">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-9 bg-blue-200/70 p-0.5 rounded-lg">
+                  <TabsList className="grid w-full grid-cols-2 h-9 bg-muted/50 p-0.5 rounded-lg">
                     <TabsTrigger 
                       value="properties" 
-                      className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                      className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
                     >
                       <Square className="h-3 w-3" />
                       Properties
                     </TabsTrigger>
                     <TabsTrigger 
                       value="layers" 
-                      className="text-xs font-medium data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                      className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
                     >
                       <Layers className="h-3 w-3" />
                       Layers
