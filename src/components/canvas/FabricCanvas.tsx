@@ -159,96 +159,96 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       (FabricObject.prototype as any).rotatingPointOffset = 45;       // Distance above object
       (FabricObject.prototype as any).hasControls = true;             // Ensure controls are visible
 
-      // Custom grip-style corner control renderer (matches panel resizer aesthetic)
-      const renderGripCorner = (
+      // Custom arrow corner control renderer (diagonal resize arrows)
+      const renderArrowCorner = (direction: 'nwse' | 'nesw') => (
         ctx: CanvasRenderingContext2D,
         left: number,
         top: number,
         _styleOverride: any,
         _fabricObject: any
       ) => {
-        const size = 12;
-        const dotSize = 2;
-        const dotGap = 3;
+        const size = 16;
         
         ctx.save();
         ctx.translate(left, top);
         
-        // Draw rounded background
+        // Draw circular background with shadow
         ctx.shadowBlur = 4;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
         ctx.shadowOffsetY = 1;
         
         ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = 'hsl(215 20% 85%)';
+        ctx.strokeStyle = 'hsl(215 20% 75%)';
         ctx.lineWidth = 1;
-        
-        // Rounded rectangle background
-        const radius = 3;
         ctx.beginPath();
-        ctx.moveTo(-size/2 + radius, -size/2);
-        ctx.lineTo(size/2 - radius, -size/2);
-        ctx.quadraticCurveTo(size/2, -size/2, size/2, -size/2 + radius);
-        ctx.lineTo(size/2, size/2 - radius);
-        ctx.quadraticCurveTo(size/2, size/2, size/2 - radius, size/2);
-        ctx.lineTo(-size/2 + radius, size/2);
-        ctx.quadraticCurveTo(-size/2, size/2, -size/2, size/2 - radius);
-        ctx.lineTo(-size/2, -size/2 + radius);
-        ctx.quadraticCurveTo(-size/2, -size/2, -size/2 + radius, -size/2);
-        ctx.closePath();
+        ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
         
-        // Reset shadow for dots
+        // Reset shadow for arrow
         ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
         
-        // Draw grip dots (2x3 grid pattern)
-        ctx.fillStyle = 'hsl(215 15% 55%)';
-        const cols = 2;
-        const rows = 3;
-        const startX = -(cols - 1) * dotGap / 2;
-        const startY = -(rows - 1) * dotGap / 2;
+        // Rotate based on direction (nwse = ↖↘, nesw = ↗↙)
+        ctx.rotate(direction === 'nwse' ? -Math.PI / 4 : Math.PI / 4);
         
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            const x = startX + col * dotGap;
-            const y = startY + row * dotGap;
-            ctx.beginPath();
-            ctx.arc(x, y, dotSize / 2, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
+        // Draw double-headed arrow
+        ctx.strokeStyle = 'hsl(215 15% 40%)';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        const arrowLength = 5;
+        const headSize = 2.5;
+        
+        // Arrow line
+        ctx.beginPath();
+        ctx.moveTo(-arrowLength, 0);
+        ctx.lineTo(arrowLength, 0);
+        ctx.stroke();
+        
+        // Left arrow head
+        ctx.beginPath();
+        ctx.moveTo(-arrowLength + headSize, -headSize);
+        ctx.lineTo(-arrowLength, 0);
+        ctx.lineTo(-arrowLength + headSize, headSize);
+        ctx.stroke();
+        
+        // Right arrow head
+        ctx.beginPath();
+        ctx.moveTo(arrowLength - headSize, -headSize);
+        ctx.lineTo(arrowLength, 0);
+        ctx.lineTo(arrowLength - headSize, headSize);
+        ctx.stroke();
         
         ctx.restore();
       };
 
-      // Custom grip-style edge control renderer (horizontal or vertical)
-      const renderGripEdge = (isHorizontal: boolean) => (
+      // Custom arrow edge control renderer (horizontal or vertical resize arrows)
+      const renderArrowEdge = (isHorizontal: boolean) => (
         ctx: CanvasRenderingContext2D,
         left: number,
         top: number,
         _styleOverride: any,
         _fabricObject: any
       ) => {
-        const width = isHorizontal ? 20 : 10;
-        const height = isHorizontal ? 10 : 20;
-        const dotSize = 2;
-        const dotGap = 3;
+        const width = isHorizontal ? 22 : 14;
+        const height = isHorizontal ? 14 : 22;
         
         ctx.save();
         ctx.translate(left, top);
         
-        // Draw rounded background
+        // Draw pill-shaped background with shadow
         ctx.shadowBlur = 4;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
         ctx.shadowOffsetY = 1;
         
         ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = 'hsl(215 20% 85%)';
+        ctx.strokeStyle = 'hsl(215 20% 75%)';
         ctx.lineWidth = 1;
         
-        // Rounded rectangle background
-        const radius = 3;
+        // Pill shape (rounded rectangle with large radius)
+        const radius = Math.min(width, height) / 2;
         ctx.beginPath();
         ctx.moveTo(-width/2 + radius, -height/2);
         ctx.lineTo(width/2 - radius, -height/2);
@@ -263,25 +263,43 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         ctx.fill();
         ctx.stroke();
         
-        // Reset shadow for dots
+        // Reset shadow for arrow
         ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
         
-        // Draw grip dots
-        ctx.fillStyle = 'hsl(215 15% 55%)';
-        const cols = isHorizontal ? 3 : 2;
-        const rows = isHorizontal ? 2 : 3;
-        const startX = -(cols - 1) * dotGap / 2;
-        const startY = -(rows - 1) * dotGap / 2;
-        
-        for (let row = 0; row < rows; row++) {
-          for (let col = 0; col < cols; col++) {
-            const x = startX + col * dotGap;
-            const y = startY + row * dotGap;
-            ctx.beginPath();
-            ctx.arc(x, y, dotSize / 2, 0, Math.PI * 2);
-            ctx.fill();
-          }
+        // Rotate 90° for vertical edges
+        if (!isHorizontal) {
+          ctx.rotate(Math.PI / 2);
         }
+        
+        // Draw double-headed arrow (↔ or ↕)
+        ctx.strokeStyle = 'hsl(215 15% 40%)';
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        const arrowLength = 6;
+        const headSize = 2.5;
+        
+        // Arrow line
+        ctx.beginPath();
+        ctx.moveTo(-arrowLength, 0);
+        ctx.lineTo(arrowLength, 0);
+        ctx.stroke();
+        
+        // Left arrow head
+        ctx.beginPath();
+        ctx.moveTo(-arrowLength + headSize, -headSize);
+        ctx.lineTo(-arrowLength, 0);
+        ctx.lineTo(-arrowLength + headSize, headSize);
+        ctx.stroke();
+        
+        // Right arrow head
+        ctx.beginPath();
+        ctx.moveTo(arrowLength - headSize, -headSize);
+        ctx.lineTo(arrowLength, 0);
+        ctx.lineTo(arrowLength - headSize, headSize);
+        ctx.stroke();
         
         ctx.restore();
       };
@@ -290,18 +308,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       const defaultControls = FabricObject.prototype.controls;
       
       if (defaultControls) {
-        // Corner controls (tl, tr, bl, br)
-        ['tl', 'tr', 'bl', 'br'].forEach((corner) => {
-          if (defaultControls[corner]) {
-            defaultControls[corner].render = renderGripCorner;
-          }
-        });
+        // Corner controls with diagonal arrows (tl/br = nwse, tr/bl = nesw)
+        if (defaultControls.tl) defaultControls.tl.render = renderArrowCorner('nwse');
+        if (defaultControls.br) defaultControls.br.render = renderArrowCorner('nwse');
+        if (defaultControls.tr) defaultControls.tr.render = renderArrowCorner('nesw');
+        if (defaultControls.bl) defaultControls.bl.render = renderArrowCorner('nesw');
         
-        // Edge controls (horizontal: mt, mb; vertical: ml, mr)
-        if (defaultControls.mt) defaultControls.mt.render = renderGripEdge(true);
-        if (defaultControls.mb) defaultControls.mb.render = renderGripEdge(true);
-        if (defaultControls.ml) defaultControls.ml.render = renderGripEdge(false);
-        if (defaultControls.mr) defaultControls.mr.render = renderGripEdge(false);
+        // Edge controls with directional arrows (horizontal: mt, mb; vertical: ml, mr)
+        if (defaultControls.mt) defaultControls.mt.render = renderArrowEdge(true);
+        if (defaultControls.mb) defaultControls.mb.render = renderArrowEdge(true);
+        if (defaultControls.ml) defaultControls.ml.render = renderArrowEdge(false);
+        if (defaultControls.mr) defaultControls.mr.render = renderArrowEdge(false);
       }
 
       fabricCanvas = new Canvas(canvasRef.current!, {
@@ -336,17 +353,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           hasRotatingPoint: true,
         });
         
-        // Apply custom grip renderers to this object's controls
+        // Apply custom arrow renderers to this object's controls
         if (e.target.controls) {
-          ['tl', 'tr', 'bl', 'br'].forEach((corner) => {
-            if (e.target!.controls[corner]) {
-              e.target!.controls[corner].render = renderGripCorner;
-            }
-          });
-          if (e.target.controls.mt) e.target.controls.mt.render = renderGripEdge(true);
-          if (e.target.controls.mb) e.target.controls.mb.render = renderGripEdge(true);
-          if (e.target.controls.ml) e.target.controls.ml.render = renderGripEdge(false);
-          if (e.target.controls.mr) e.target.controls.mr.render = renderGripEdge(false);
+          if (e.target.controls.tl) e.target.controls.tl.render = renderArrowCorner('nwse');
+          if (e.target.controls.br) e.target.controls.br.render = renderArrowCorner('nwse');
+          if (e.target.controls.tr) e.target.controls.tr.render = renderArrowCorner('nesw');
+          if (e.target.controls.bl) e.target.controls.bl.render = renderArrowCorner('nesw');
+          if (e.target.controls.mt) e.target.controls.mt.render = renderArrowEdge(true);
+          if (e.target.controls.mb) e.target.controls.mb.render = renderArrowEdge(true);
+          if (e.target.controls.ml) e.target.controls.ml.render = renderArrowEdge(false);
+          if (e.target.controls.mr) e.target.controls.mr.render = renderArrowEdge(false);
         }
         
         // Normalize fonts for text objects using helper
@@ -613,17 +629,16 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         borderColor: '#3B82F6',
         borderDashArray: [6, 4],
       });
-      // Apply custom grip renderers to existing objects
+      // Apply custom arrow renderers to existing objects
       if (obj.controls) {
-        ['tl', 'tr', 'bl', 'br'].forEach((corner) => {
-          if (obj.controls[corner]) {
-            obj.controls[corner].render = renderGripCorner;
-          }
-        });
-        if (obj.controls.mt) obj.controls.mt.render = renderGripEdge(true);
-        if (obj.controls.mb) obj.controls.mb.render = renderGripEdge(true);
-        if (obj.controls.ml) obj.controls.ml.render = renderGripEdge(false);
-        if (obj.controls.mr) obj.controls.mr.render = renderGripEdge(false);
+        if (obj.controls.tl) obj.controls.tl.render = renderArrowCorner('nwse');
+        if (obj.controls.br) obj.controls.br.render = renderArrowCorner('nwse');
+        if (obj.controls.tr) obj.controls.tr.render = renderArrowCorner('nesw');
+        if (obj.controls.bl) obj.controls.bl.render = renderArrowCorner('nesw');
+        if (obj.controls.mt) obj.controls.mt.render = renderArrowEdge(true);
+        if (obj.controls.mb) obj.controls.mb.render = renderArrowEdge(true);
+        if (obj.controls.ml) obj.controls.ml.render = renderArrowEdge(false);
+        if (obj.controls.mr) obj.controls.mr.render = renderArrowEdge(false);
       }
     });
     fabricCanvas.requestRenderAll();

@@ -77,10 +77,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [shapeStrokeColor, setShapeStrokeColor] = useState("#000000");
   const [imageToneColor, setImageToneColor] = useState("#3b82f6");
   const [imageToneOpacity, setImageToneOpacity] = useState(0.3);
-  const [iconColor, setIconColor] = useState("#000000");
   const [iconToneColor, setIconToneColor] = useState("#3b82f6");
-  const [iconToneIntensity, setIconToneIntensity] = useState(0.5);
-  const [iconToneMode, setIconToneMode] = useState<"direct" | "tone">("direct");
+  const [iconToneIntensity, setIconToneIntensity] = useState(0.2);
   const [freeformLineColor, setFreeformLineColor] = useState("#000000");
   const [freeformLineThickness, setFreeformLineThickness] = useState(2);
   const [freeformStartMarker, setFreeformStartMarker] = useState<"none" | "dot" | "arrow">("none");
@@ -187,15 +185,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       const targetShape = getShapeFromGroup(selectedObject);
       setShapeFillColor((targetShape.fill as string) || "#3b82f6");
       setShapeStrokeColor((targetShape.stroke as string) || "#000000");
-    }
-    // Update icon color for group objects (icons)
-    if (selectedObject && selectedObject.type === 'group') {
-      const group = selectedObject as Group;
-      // Get the color from the first object in the group that has a fill
-      const firstObjWithColor = group.getObjects().find(obj => obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none');
-      if (firstObjWithColor && typeof firstObjWithColor.fill === 'string') {
-        setIconColor(firstObjWithColor.fill);
-      }
     }
     // Update freeform line properties
     if (selectedObject && (selectedObject as any).isFreeformLine) {
@@ -334,40 +323,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     }
   };
 
-  const handleIconColorChange = (color: string) => {
-    setIconColor(color);
-    addToRecentColors(color);
-    if (canvas && selectedObject && selectedObject.type === 'group') {
-      const group = selectedObject as Group;
-      
-      // Recursively change colors of all objects in the group
-      const changeObjectColor = (obj: FabricObject) => {
-        if (obj.type === 'group') {
-          const subGroup = obj as Group;
-          subGroup.getObjects().forEach(changeObjectColor);
-        } else {
-          const hasFill = obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none';
-          const hasStroke = obj.stroke && obj.stroke !== 'transparent' && obj.stroke !== 'none';
-          
-          // If object uses stroke (line-based icons)
-          if (hasStroke && !hasFill) {
-            obj.set({ stroke: color });
-          }
-          // If object uses fill (shape-based icons)
-          else if (hasFill && !hasStroke) {
-            obj.set({ fill: color });
-          }
-          // If object uses both (mixed icons)
-          else if (hasFill && hasStroke) {
-            obj.set({ fill: color, stroke: color });
-          }
-        }
-      };
-      
-      group.getObjects().forEach(changeObjectColor);
-      canvas.renderAll();
-    }
-  };
 
   // Helper to convert hex to HSL
   const hexToHSL = (hex: string): { h: number; s: number; l: number } => {
@@ -395,6 +350,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleIconToneChange = (color: string, intensity: number = iconToneIntensity) => {
     setIconToneColor(color);
+    setIconToneIntensity(intensity);
+    
     if (canvas && selectedObject && selectedObject.type === 'group') {
       const group = selectedObject as Group;
       const { h } = hexToHSL(color);
@@ -404,7 +361,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       (group as any).iconToneIntensity = intensity;
       (group as any).iconToneHue = h;
       
-      // Apply blend color filter to simulate tone
+      // Apply blend color filter to simulate tone for images
       const blendFilter = new filters.BlendColor({
         color: color,
         mode: 'tint',
@@ -425,51 +382,65 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
         (group as any).originalColors = originalColors;
       }
       
-      // Apply tint to all objects in group
-      const applyTintToObject = (obj: FabricObject) => {
+      const originalColors = (group as any).originalColors as Map<string, { fill: any; stroke: any }>;
+      
+      // Blend color helper - always blend from ORIGINAL color
+      const blendColor = (originalColor: string, tintColor: string, intensity: number): string => {
+        if (!originalColor || originalColor === 'transparent' || originalColor === 'none') return originalColor;
+        
+        // Handle hex colors
+        let origHex = originalColor;
+        if (origHex.startsWith('#')) {
+          const orig = parseInt(origHex.slice(1), 16);
+          const tint = parseInt(tintColor.slice(1), 16);
+          
+          const origR = (orig >> 16) & 0xFF;
+          const origG = (orig >> 8) & 0xFF;
+          const origB = orig & 0xFF;
+          
+          const tintR = (tint >> 16) & 0xFF;
+          const tintG = (tint >> 8) & 0xFF;
+          const tintB = tint & 0xFF;
+          
+          const newR = Math.round(origR * (1 - intensity) + tintR * intensity);
+          const newG = Math.round(origG * (1 - intensity) + tintG * intensity);
+          const newB = Math.round(origB * (1 - intensity) + tintB * intensity);
+          
+          return `#${((1 << 24) + (newR << 16) + (newG << 8) + newB).toString(16).slice(1)}`;
+        }
+        return originalColor;
+      };
+      
+      // Apply tint to all objects using ORIGINAL colors
+      const applyTintToObject = (obj: FabricObject, path: string = '') => {
         if (obj.type === 'group') {
-          (obj as Group).getObjects().forEach(applyTintToObject);
+          (obj as Group).getObjects().forEach((child, idx) => applyTintToObject(child, `${path}/${idx}`));
         } else if (obj.type === 'image' || obj instanceof FabricImage) {
           // For raster images in the group, apply filter
           const imgObj = obj as FabricImage;
           imgObj.filters = [blendFilter];
           imgObj.applyFilters();
         } else {
-          // For vector paths, blend colors manually
-          const blendColor = (originalColor: string, tintColor: string, intensity: number): string => {
-            if (!originalColor || originalColor === 'transparent' || originalColor === 'none') return originalColor;
+          // Get ORIGINAL colors from stored map
+          const stored = originalColors.get(path);
+          if (stored) {
+            const originalFill = stored.fill;
+            const originalStroke = stored.stroke;
             
-            const orig = parseInt(originalColor.slice(1), 16);
-            const tint = parseInt(tintColor.slice(1), 16);
-            
-            const origR = (orig >> 16) & 0xFF;
-            const origG = (orig >> 8) & 0xFF;
-            const origB = orig & 0xFF;
-            
-            const tintR = (tint >> 16) & 0xFF;
-            const tintG = (tint >> 8) & 0xFF;
-            const tintB = tint & 0xFF;
-            
-            const newR = Math.round(origR * (1 - intensity) + tintR * intensity);
-            const newG = Math.round(origG * (1 - intensity) + tintG * intensity);
-            const newB = Math.round(origB * (1 - intensity) + tintB * intensity);
-            
-            return `#${((1 << 24) + (newR << 16) + (newG << 8) + newB).toString(16).slice(1)}`;
-          };
-          
-          const hasFill = obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none';
-          const hasStroke = obj.stroke && obj.stroke !== 'transparent' && obj.stroke !== 'none';
-          
-          if (hasFill && typeof obj.fill === 'string') {
-            obj.set({ fill: blendColor(obj.fill, color, intensity) });
-          }
-          if (hasStroke && typeof obj.stroke === 'string') {
-            obj.set({ stroke: blendColor(obj.stroke, color, intensity) });
+            // Blend from ORIGINAL, not current
+            if (originalFill && typeof originalFill === 'string' && 
+                originalFill !== 'transparent' && originalFill !== 'none') {
+              obj.set({ fill: blendColor(originalFill, color, intensity) });
+            }
+            if (originalStroke && typeof originalStroke === 'string' && 
+                originalStroke !== 'transparent' && originalStroke !== 'none') {
+              obj.set({ stroke: blendColor(originalStroke, color, intensity) });
+            }
           }
         }
       };
       
-      group.getObjects().forEach(applyTintToObject);
+      group.getObjects().forEach((child, idx) => applyTintToObject(child, `/${idx}`));
       canvas.renderAll();
     }
   };
@@ -511,7 +482,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       }
       
       canvas.renderAll();
-      setIconToneIntensity(0.5);
+      setIconToneIntensity(0.2);
     }
   };
 
@@ -1296,73 +1267,55 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                     <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
                       <span className="text-xs font-semibold uppercase tracking-wider">Icon Styling</span>
                     </AccordionTrigger>
-                    <AccordionContent className="px-3 pb-3 pt-1">
-                      <Tabs value={iconToneMode} onValueChange={(v) => setIconToneMode(v as "direct" | "tone")}>
-                        <TabsList className="grid w-full grid-cols-2 mb-3 bg-accent/20">
-                          <TabsTrigger value="direct" className="text-xs">Direct Color</TabsTrigger>
-                          <TabsTrigger value="tone" className="text-xs">Color Tone</TabsTrigger>
-                        </TabsList>
-                        
-                        <TabsContent value="direct" className="space-y-3 mt-0">
-                          <ColorPickerSection
-                            label="Icon Color"
-                            value={iconColor}
-                            onChange={handleIconColorChange}
-                            recentColors={recentColors}
-                          />
-                        </TabsContent>
-                        
-                        <TabsContent value="tone" className="space-y-3 mt-0">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-medium">Tone Presets</Label>
-                            <div className="grid grid-cols-3 gap-2">
-                              {TONE_PRESETS.map((preset) => (
-                                <Button
-                                  key={preset.name}
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleIconToneChange(preset.color)}
-                                  className="h-9 text-xs gap-1"
-                                >
-                                  <span>{preset.emoji}</span>
-                                  <span>{preset.name}</span>
-                                </Button>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <ColorPickerSection
-                            label="Custom Tone Color"
-                            value={iconToneColor}
-                            onChange={handleIconToneChange}
-                            recentColors={[]}
-                          />
+                    <AccordionContent className="px-3 pb-3 pt-1 space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-medium">Tone Presets</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {TONE_PRESETS.map((preset) => (
+                            <Button
+                              key={preset.name}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleIconToneChange(preset.color, 0.25)}
+                              className="h-9 text-xs gap-1"
+                            >
+                              <span>{preset.emoji}</span>
+                              <span>{preset.name}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <ColorPickerSection
+                        label="Custom Tone Color"
+                        value={iconToneColor}
+                        onChange={handleIconToneChange}
+                        recentColors={[]}
+                      />
 
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-xs">Tone Intensity</Label>
-                              <span className="text-xs font-mono text-muted-foreground">{Math.round(iconToneIntensity * 100)}%</span>
-                            </div>
-                            <Slider
-                              value={[iconToneIntensity * 100]}
-                              onValueChange={([value]) => handleIconToneIntensityChange(value / 100)}
-                              min={0}
-                              max={100}
-                              step={5}
-                              className="w-full"
-                            />
-                          </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Tone Intensity</Label>
+                          <span className="text-xs font-mono text-muted-foreground">{Math.round(iconToneIntensity * 100)}%</span>
+                        </div>
+                        <Slider
+                          value={[iconToneIntensity * 100]}
+                          onValueChange={([value]) => handleIconToneIntensityChange(value / 100)}
+                          min={0}
+                          max={100}
+                          step={5}
+                          className="w-full"
+                        />
+                      </div>
 
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={handleRemoveIconTone}
-                            className="w-full text-xs h-9"
-                          >
-                            Remove Tone
-                          </Button>
-                        </TabsContent>
-                      </Tabs>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleRemoveIconTone}
+                        className="w-full text-xs h-9"
+                      >
+                        Remove Tone
+                      </Button>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>

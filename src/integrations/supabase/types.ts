@@ -1456,6 +1456,16 @@ export type Database = {
       }
       extract_tiptap_text: { Args: { content: Json }; Returns: string }
       generate_blog_slug: { Args: { title_param: string }; Returns: string }
+      get_admin_notification_counts: {
+        Args: never
+        Returns: {
+          pending_icons: number
+          pending_projects: number
+          pending_testimonials: number
+          unread_messages: number
+          unviewed_feedback: number
+        }[]
+      }
       get_related_blog_posts: {
         Args: { limit_param?: number; post_id_param: string }
         Returns: {
@@ -1467,6 +1477,22 @@ export type Database = {
           relevance_score: number
           slug: string
           title: string
+        }[]
+      }
+      get_user_analytics: {
+        Args: { limit_count?: number; offset_count?: number }
+        Returns: {
+          avatar_url: string
+          country: string
+          created_at: string
+          email: string
+          field_of_study: string
+          full_name: string
+          id: string
+          last_login_at: string
+          project_count: number
+          quote: string
+          total_count: number
         }[]
       }
       get_user_download_quota: {
