@@ -1,9 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 import * as dotenv from 'dotenv';
 import fetch from 'node-fetch';
+import { existsSync } from 'fs';
 
-// Load dev env
-const devEnv = dotenv.config({ path: '.env.local' }).parsed;
+// Load environment variables
+// Load .env first (base configuration), then .env.local (overrides)
+// This allows .env.local to override specific keys while falling back to .env for others
+const envPath = '.env';
+const envLocalPath = '.env.local';
+
+if (existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+}
+
+if (existsSync(envLocalPath)) {
+  dotenv.config({ path: envLocalPath, override: true });
+}
+
+const devEnv = process.env;
 
 // The signed URL from the code
 const SIGNED_URL = 'https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0';
@@ -12,8 +26,8 @@ const BUCKET_NAME = 'icon site';
 const FILE_NAME = 'biosketch art-min.png';
 
 async function downloadAndUploadLogo() {
-  if (!devEnv) {
-    console.error('Missing .env.local file');
+  if (!devEnv.VITE_SUPABASE_URL || !devEnv.SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('Missing required environment variables (VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY)');
     return;
   }
 

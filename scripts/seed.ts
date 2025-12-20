@@ -7,17 +7,27 @@ import { existsSync } from "fs";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load environment variables with fallback: .env.local -> .env
+// Load environment variables with fallback
+// Load .env first (base configuration), then .env.local (overrides)
+// This allows .env.local to override specific keys while falling back to .env for others
 const envLocalPath = resolve(__dirname, "../.env.local");
 const envPath = resolve(__dirname, "../.env");
 
-if (existsSync(envLocalPath)) {
-  console.log("Loading environment from .env.local");
-  dotenv.config({ path: envLocalPath });
-} else if (existsSync(envPath)) {
-  console.log("Loading environment from .env");
+let envLoaded = false;
+
+if (existsSync(envPath)) {
+  console.log("Loading base environment from .env");
   dotenv.config({ path: envPath });
-} else {
+  envLoaded = true;
+}
+
+if (existsSync(envLocalPath)) {
+  console.log("Loading environment overrides from .env.local");
+  dotenv.config({ path: envLocalPath, override: true });
+  envLoaded = true;
+}
+
+if (!envLoaded) {
   console.warn("⚠ No .env.local or .env file found");
 }
 

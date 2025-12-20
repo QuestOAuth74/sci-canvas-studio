@@ -4,13 +4,17 @@ import * as dotenv from 'dotenv';
 import { existsSync } from 'fs';
 
 // Load environment variables for tests
+// Load .env first (base configuration), then .env.local (overrides)
+// This allows .env.local to override specific keys while falling back to .env for others
 const envLocalPath = resolve(__dirname, '.env.local');
 const envPath = resolve(__dirname, '.env');
 
-if (existsSync(envLocalPath)) {
-  dotenv.config({ path: envLocalPath });
-} else if (existsSync(envPath)) {
+if (existsSync(envPath)) {
   dotenv.config({ path: envPath });
+}
+
+if (existsSync(envLocalPath)) {
+  dotenv.config({ path: envLocalPath, override: true });
 }
 
 export default defineConfig({
