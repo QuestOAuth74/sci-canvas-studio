@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { List, Image, ExternalLink } from "lucide-react";
+import { List, Image, ChevronRight, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TableOfContentsItem {
@@ -113,107 +113,93 @@ export const BlogPostSidebar = ({ content }: BlogPostSidebarProps) => {
   };
 
   return (
-    <div className="space-y-6 sticky top-8">
-      {/* Table of Contents - Notebook Style */}
+    <div className="space-y-6">
+      {/* Table of Contents - Modern Academic */}
       {headings.length > 0 && (
-        <Card className="notebook-sidebar ruled-lines bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] overflow-hidden pl-8 relative">
-          {/* Spiral binding */}
-          <div className="spiral-binding">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="spiral-hole" />
-            ))}
-          </div>
-          
-          <CardHeader className="bg-[#f9f6f0]/80">
-            <CardTitle className="notebook-section-header text-xl">
-              <List className="w-4 h-4 inline mr-2" />
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
+          <CardHeader className="pb-3 border-b border-border/30">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+              <List className="w-4 h-4" />
               Contents
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6 space-y-1">
-            {headings.map((heading) => (
-              <button
-                key={heading.id}
-                onClick={() => scrollToHeading(heading.id)}
-                className={`
-                  w-full text-left px-3 py-2 rounded-lg text-sm paper-tab
-                  transition-all duration-200
-                  ${activeId === heading.id 
-                    ? 'paper-tab-active' 
-                    : ''
-                  }
-                  ${heading.level === 2 ? 'ml-0' : heading.level === 3 ? 'ml-4' : 'ml-8'}
-                `}
-              >
-                {heading.text}
-              </button>
-            ))}
+          <CardContent className="pt-4">
+            <nav className="space-y-0.5">
+              {headings.map((heading, index) => (
+                <button
+                  key={heading.id}
+                  onClick={() => scrollToHeading(heading.id)}
+                  className={`
+                    group w-full text-left py-2 px-3 rounded-md text-sm transition-all duration-200
+                    ${activeId === heading.id 
+                      ? 'bg-primary/10 text-primary font-medium border-l-2 border-primary' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }
+                    ${heading.level === 2 ? 'pl-3' : heading.level === 3 ? 'pl-6' : 'pl-9'}
+                  `}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className={`text-xs font-mono ${activeId === heading.id ? 'text-primary' : 'text-muted-foreground/50'}`}>
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    <span className="line-clamp-2">{heading.text}</span>
+                  </span>
+                </button>
+              ))}
+            </nav>
           </CardContent>
         </Card>
       )}
 
-      {/* Featured Templates - Polaroid Style */}
+      {/* Featured Templates - Modern Grid */}
       {featuredProjects.length > 0 && (
-        <Card className="notebook-sidebar ruled-lines bg-[#f9f6f0] border-[hsl(var(--pencil-gray))] overflow-hidden pl-8 relative">
-          {/* Spiral binding */}
-          <div className="spiral-binding">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="spiral-hole" />
-            ))}
-          </div>
-          
-          <CardHeader className="bg-[#f9f6f0]/80">
-            <CardTitle className="notebook-section-header text-xl">
-              <Image className="w-4 h-4 inline mr-2" />
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm overflow-hidden">
+          <CardHeader className="pb-3 border-b border-border/30">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-wide uppercase text-muted-foreground">
+              <Sparkles className="w-4 h-4" />
               Featured Templates
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6 space-y-4">
-            {featuredProjects.map((project, index) => {
-              const rotation = (index % 2 === 0 ? 1 : -1) * (Math.random() * 2 + 1);
-              return (
-                <Link
-                  key={project.id}
-                  to={`/community?preview=${project.id}`}
-                  className="block group"
-                >
-                  <div 
-                    className="relative bg-white p-2 paper-shadow hover:shadow-lg transition-all duration-200"
-                    style={{ transform: `rotate(${rotation}deg)` }}
-                  >
-                    {/* Tape decoration */}
-                    <div className="washi-tape top-0 left-1/2 -translate-x-1/2" />
-                    
+          <CardContent className="pt-4 space-y-3">
+            {featuredProjects.map((project) => (
+              <Link
+                key={project.id}
+                to={`/community?preview=${project.id}`}
+                className="group block"
+              >
+                <div className="flex gap-3 p-2 -mx-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted">
                     {project.thumbnail_url ? (
                       <img
                         src={project.thumbnail_url}
                         alt={project.name}
-                        className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-32 bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                        <Image className="w-12 h-12 text-muted-foreground" />
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
+                        <Image className="w-6 h-6 text-muted-foreground" />
                       </div>
                     )}
-                    
-                    <div className="p-3 bg-white">
-                      <h4 className="font-semibold text-sm line-clamp-2 group-hover:text-[hsl(var(--ink-blue))] transition-colors font-['Caveat'] text-[hsl(var(--ink-blue))]">
-                        {project.name}
-                      </h4>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {project.view_count} views
-                      </p>
-                    </div>
                   </div>
-                </Link>
-              );
-            })}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                      {project.name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {project.view_count.toLocaleString()} views
+                    </p>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity self-center" />
+                </div>
+              </Link>
+            ))}
             
             <Link
               to="/community"
-              className="block w-full py-3 px-4 text-center font-semibold text-sm sticky-note bg-[hsl(var(--highlighter-yellow))] hover:shadow-lg transition-all duration-200"
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 mt-2 text-sm font-medium text-primary bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors"
             >
-              Browse All Templates →
+              Browse All Templates
+              <ChevronRight className="w-4 h-4" />
             </Link>
           </CardContent>
         </Card>
