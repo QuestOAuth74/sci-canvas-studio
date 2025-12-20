@@ -102,20 +102,17 @@ const BlogPost = () => {
       </script>
 
       <div className="min-h-screen bg-background relative">
-        {/* Subtle dot pattern background */}
-        <div className="absolute inset-0 opacity-[0.015]" style={{
-          backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
-          backgroundSize: '24px 24px'
-        }} />
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-transparent to-transparent pointer-events-none" />
 
         {/* Navigation Bar */}
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/40">
+          <div className="container mx-auto px-4 py-3 flex items-center justify-between max-w-6xl">
             <Button
               asChild
               variant="ghost"
               size="sm"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground -ml-2"
             >
               <Link to="/blog">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -133,19 +130,18 @@ const BlogPost = () => {
           </div>
         </div>
 
-        {/* Article Header */}
-        <header className="container mx-auto px-4 pt-12 pb-8 max-w-4xl relative z-10">
+        {/* Article Header - Academic Style */}
+        <header className="container mx-auto px-4 pt-16 pb-10 max-w-4xl relative z-10">
           {/* Categories */}
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-8">
             {post.categories?.map((cat: any) => (
               <Link 
                 key={cat.category.id}
                 to={`/blog?category=${cat.category.slug}`}
-                className="group"
               >
                 <Badge 
-                  variant="secondary"
-                  className="bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                  variant="outline"
+                  className="border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 transition-colors text-xs font-medium tracking-wide uppercase"
                 >
                   {cat.category.name}
                 </Badge>
@@ -153,20 +149,20 @@ const BlogPost = () => {
             ))}
           </div>
 
-          {/* Title */}
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-semibold text-foreground leading-tight mb-6">
+          {/* Title - Academic Typography */}
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground leading-[1.2] tracking-tight mb-6">
             {post.title}
           </h1>
           
-          {/* Excerpt */}
+          {/* Excerpt - Subtitle Style */}
           {post.excerpt && (
-            <p className="text-xl text-muted-foreground leading-relaxed mb-8">
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed font-light max-w-3xl">
               {post.excerpt}
             </p>
           )}
 
-          {/* Meta Bar */}
-          <div className="flex flex-wrap items-center gap-6 py-6 border-y border-border/50">
+          {/* Meta Bar - Clean Academic */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-10 pt-6 border-t border-border/50">
             {/* Author */}
             {post.author && (
               <div className="flex items-center gap-3">
@@ -174,17 +170,17 @@ const BlogPost = () => {
                   <img 
                     src={post.author.avatar_url} 
                     alt={post.author.full_name || 'Author'} 
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-background shadow-sm"
+                    className="w-10 h-10 rounded-full object-cover ring-2 ring-background shadow-sm"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-6 w-6 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
                   </div>
                 )}
                 <div>
-                  <p className="font-medium text-foreground">{post.author.full_name || 'BioSketch Team'}</p>
+                  <p className="text-sm font-semibold text-foreground">{post.author.full_name || 'BioSketch Team'}</p>
                   {post.published_at && (
-                    <time dateTime={post.published_at} className="text-sm text-muted-foreground">
+                    <time dateTime={post.published_at} className="text-xs text-muted-foreground">
                       {format(new Date(post.published_at), 'MMMM d, yyyy')}
                     </time>
                   )}
@@ -192,66 +188,61 @@ const BlogPost = () => {
               </div>
             )}
             
-            <div className="h-8 w-px bg-border/50 hidden md:block" />
-            
             {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
               {post.reading_time && (
-                <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4" />
+                <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-full">
+                  <Clock className="h-3.5 w-3.5" />
                   {post.reading_time} min read
                 </span>
               )}
-              <span className="flex items-center gap-1.5">
-                <Eye className="h-4 w-4" />
+              <span className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-full">
+                <Eye className="h-3.5 w-3.5" />
                 {post.view_count.toLocaleString()} views
               </span>
             </div>
           </div>
         </header>
 
-        {/* Featured Image */}
+        {/* Featured Image - Full Width */}
         {post.featured_image_url && (
-          <div className="container mx-auto px-4 mb-12 max-w-5xl relative z-10">
-            <div className="relative rounded-2xl overflow-hidden shadow-xl">
+          <div className="container mx-auto px-4 mb-16 max-w-5xl relative z-10">
+            <div className="relative rounded-xl overflow-hidden shadow-2xl ring-1 ring-border/10">
               <img
                 src={post.featured_image_url}
                 alt={post.featured_image_alt || post.title}
                 className="w-full h-auto object-cover"
               />
-              <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-2xl" />
             </div>
           </div>
         )}
 
         {/* Main Content Area */}
-        <div className="container mx-auto px-4 pb-16 relative z-10">
+        <div className="container mx-auto px-4 pb-20 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-6xl mx-auto">
-            {/* Article Content */}
+            {/* Article Content - Clean Academic */}
             <article className="lg:col-span-8">
-              {/* Content */}
-              <div className="bg-card rounded-2xl shadow-sm border border-border/50 p-8 md:p-12 mb-12">
-                <div className="prose prose-lg max-w-none
-                  prose-headings:font-serif prose-headings:text-foreground prose-headings:font-semibold
-                  prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h2:pb-3 prose-h2:border-b prose-h2:border-border/50
-                  prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4
-                  prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-5
-                  prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-                  prose-strong:text-foreground prose-strong:font-semibold
-                  prose-code:text-primary prose-code:bg-muted prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm
-                  prose-pre:bg-foreground prose-pre:text-background prose-pre:rounded-xl
-                  prose-img:rounded-xl prose-img:shadow-md
-                  prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-muted/50 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
-                  prose-ul:my-5 prose-ol:my-5
-                  prose-li:my-2 prose-li:marker:text-primary">
-                  <BlogContentRenderer content={post.content} />
-                </div>
+              {/* Content Card */}
+              <div className="prose prose-lg max-w-none
+                prose-headings:font-serif prose-headings:text-foreground prose-headings:font-bold prose-headings:tracking-tight
+                prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h2:scroll-mt-20
+                prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-3
+                prose-p:text-foreground/80 prose-p:leading-[1.8] prose-p:mb-6 prose-p:font-normal
+                prose-a:text-primary prose-a:font-medium prose-a:no-underline prose-a:border-b prose-a:border-primary/30 hover:prose-a:border-primary
+                prose-strong:text-foreground prose-strong:font-semibold
+                prose-code:text-primary prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-normal
+                prose-pre:bg-foreground prose-pre:text-background prose-pre:rounded-lg prose-pre:shadow-lg
+                prose-img:rounded-lg prose-img:shadow-lg prose-img:ring-1 prose-img:ring-border/10
+                prose-blockquote:border-l-2 prose-blockquote:border-primary prose-blockquote:bg-muted/30 prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-foreground/70
+                prose-ul:my-6 prose-ol:my-6
+                prose-li:my-1.5 prose-li:marker:text-primary/60">
+                <BlogContentRenderer content={post.content} />
               </div>
 
-              {/* Tags */}
+              {/* Tags - Minimal Style */}
               {post.tags && post.tags.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2 mb-12">
-                  <span className="text-sm font-medium text-muted-foreground mr-2">Tags:</span>
+                <div className="flex flex-wrap items-center gap-2 mt-12 pt-8 border-t border-border/30">
+                  <span className="text-xs font-semibold tracking-wide uppercase text-muted-foreground mr-1">Tags:</span>
                   {post.tags.map((tag: any) => (
                     <Link 
                       key={tag.tag.id}
@@ -259,21 +250,21 @@ const BlogPost = () => {
                     >
                       <Badge 
                         variant="outline"
-                        className="border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                        className="border-border/40 text-muted-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-colors text-xs"
                       >
-                        #{tag.tag.name}
+                        {tag.tag.name}
                       </Badge>
                     </Link>
                   ))}
                 </div>
               )}
 
-              {/* Share Section */}
-              <Card className="p-6 mb-12 bg-muted/30 border-border/30">
+              {/* Share Section - Modern Card */}
+              <Card className="p-6 mt-12 bg-gradient-to-r from-primary/5 to-transparent border-primary/10">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-serif font-semibold text-foreground">Enjoyed this article?</h3>
-                    <p className="text-sm text-muted-foreground">Share it with your colleagues and friends</p>
+                    <h3 className="text-base font-semibold text-foreground">Enjoyed this article?</h3>
+                    <p className="text-sm text-muted-foreground">Share it with your colleagues</p>
                   </div>
                   <ShareButtons
                     url={window.location.href}
@@ -284,14 +275,14 @@ const BlogPost = () => {
 
               {/* Author Card */}
               {post.author && (
-                <div className="mb-12">
+                <div className="mt-12">
                   <AuthorCard author={post.author} />
                 </div>
               )}
 
               {/* Related Posts */}
               {relatedPosts && relatedPosts.length > 0 && (
-                <div className="pt-12 border-t border-border/50">
+                <div className="mt-16 pt-12 border-t border-border/30">
                   <RelatedPosts posts={relatedPosts} />
                 </div>
               )}
