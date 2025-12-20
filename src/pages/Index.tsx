@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
@@ -347,19 +347,19 @@ const Index = () => {
               <h3 className="font-semibold text-sm uppercase tracking-wider text-foreground">Product</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <button onClick={() => navigate("/canvas")} className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/canvas" className="text-muted-foreground hover:text-primary transition-colors">
                     Canvas Editor
-                  </button>
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => navigate("/community")} className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/community" className="text-muted-foreground hover:text-primary transition-colors">
                     Community
-                  </button>
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => navigate("/projects")} className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/projects" className="text-muted-foreground hover:text-primary transition-colors">
                     My Projects
-                  </button>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -369,19 +369,19 @@ const Index = () => {
               <h3 className="font-semibold text-sm uppercase tracking-wider text-foreground">Resources</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <button onClick={() => navigate("/blog")} className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/blog" className="text-muted-foreground hover:text-primary transition-colors">
                     Blog
-                  </button>
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => navigate("/testimonials")} className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/testimonials" className="text-muted-foreground hover:text-primary transition-colors">
                     Testimonials
-                  </button>
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => navigate("/release-notes")} className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/release-notes" className="text-muted-foreground hover:text-primary transition-colors">
                     Release Notes
-                  </button>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -391,14 +391,14 @@ const Index = () => {
               <h3 className="font-semibold text-sm uppercase tracking-wider text-foreground">Company</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <button onClick={() => navigate("/contact")} className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">
                     Contact Us
-                  </button>
+                  </Link>
                 </li>
                 <li>
-                  <button onClick={() => navigate("/terms")} className="text-muted-foreground hover:text-primary transition-colors">
+                  <Link to="/terms" className="text-muted-foreground hover:text-primary transition-colors">
                     Terms of Service
-                  </button>
+                  </Link>
                 </li>
               </ul>
             </div>
