@@ -138,16 +138,16 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
         </DialogHeader>
 
         <div className="space-y-6 py-2">
-          {/* Thumbnail */}
-          <div className="relative aspect-video w-full rounded-md overflow-hidden shadow-lg border border-border/30 bg-muted/30">
+          {/* Thumbnail - Full Canvas View */}
+          <div className="relative w-full rounded-lg overflow-hidden shadow-xl ring-1 ring-border/20 bg-muted/30 flex items-center justify-center max-h-[50vh]">
             {project.thumbnail_url ? (
               <img
                 src={project.thumbnail_url}
                 alt={project.title || 'Project thumbnail'}
-                className="w-full h-full object-contain"
+                className="max-w-full max-h-[50vh] w-auto h-auto object-contain"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground/60">
+              <div className="w-full py-16 flex items-center justify-center text-muted-foreground/60">
                 No preview available
               </div>
             )}
