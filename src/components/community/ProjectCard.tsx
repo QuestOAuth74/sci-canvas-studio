@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
-import { Eye, Copy, Star, Heart } from 'lucide-react';
+import { Eye, Copy, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -132,102 +132,87 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
 
   return (
     <Card 
-      className="group overflow-hidden bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))] paper-shadow sketch-border hover:scale-[1.02] transition-all duration-300 animate-fade-in cursor-pointer relative"
-      style={{ 
-        animationDelay: `${index * 50}ms`,
-        transform: `rotate(${index % 2 === 0 ? -0.5 : 0.5}deg)`
-      }}
+      className="group overflow-hidden bg-card border border-border/50 hover:border-primary/30 hover:shadow-xl transition-all duration-300 cursor-pointer animate-fade-in"
+      style={{ animationDelay: `${index * 50}ms` }}
       onClick={onPreview}
     >
-      {/* Decorative tape at top corner */}
-      <div className="absolute -top-2 right-8 w-16 h-5 bg-[hsl(var(--highlighter-yellow))]/40 rotate-[8deg] border border-[hsl(var(--pencil-gray))]/30 z-10" />
-      
-      {/* Thumbnail - Polaroid Style */}
-      <div className="relative overflow-hidden bg-white p-3 m-3 paper-shadow border border-[hsl(var(--pencil-gray))]">
+      {/* Thumbnail */}
+      <div className="relative overflow-hidden">
         <AspectRatio ratio={16 / 9}>
           <img
             src={project.thumbnail_url || noPreviewImage}
             alt={project.title || 'Project thumbnail'}
             loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           {/* Like Button Overlay */}
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-3 right-3">
             <Button
-              variant={isLiked ? "sticky" : "secondary"}
+              variant={isLiked ? "default" : "secondary"}
               size="sm"
               onClick={handleLike}
               disabled={isLiking}
-              className="shadow-lg gap-1 font-source-serif"
+              className={`shadow-lg gap-1.5 transition-all ${isLiked ? 'bg-rose-500 hover:bg-rose-600 text-white' : 'bg-white/90 hover:bg-white text-foreground'}`}
             >
-              <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-              {likeCount}
+              <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-current' : ''}`} />
+              <span className="text-xs font-medium">{likeCount}</span>
             </Button>
           </div>
         </AspectRatio>
-        <p className="text-center mt-2 text-sm font-['Caveat'] text-[hsl(var(--ink-blue))]">
-          {project.title || 'Untitled'}
-        </p>
       </div>
 
       {/* Card Content */}
       <CardContent className="p-5 space-y-4">
+        {/* Title */}
+        <h3 className="font-serif font-semibold text-lg text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+          {project.title || 'Untitled'}
+        </h3>
+        
         {/* Description */}
-        <p className="text-sm font-source-serif text-[hsl(var(--pencil-gray))] line-clamp-2">
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
           {project.description || 'No description provided'}
         </p>
 
-        {/* Creator Info - Index Card Style */}
+        {/* Creator Info */}
         <Link
           to={`/author/${(project as any).user_id}`}
-          className="flex items-center gap-2 p-2 bg-white/60 border border-[hsl(var(--pencil-gray))]/50 rounded paper-shadow hover:bg-[hsl(var(--highlighter-yellow))]/10 transition-colors"
+          className="flex items-center gap-3 p-2.5 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
           onClick={(e) => e.stopPropagation()}
         >
-          <Avatar className="h-7 w-7 ring-1 ring-[hsl(var(--ink-blue))]">
+          <Avatar className="h-8 w-8 ring-2 ring-background">
             <AvatarImage src={project.profiles?.avatar_url || undefined} />
-            <AvatarFallback className="text-xs bg-[hsl(var(--highlighter-yellow))]/60 font-['Caveat'] text-[hsl(var(--ink-blue))]">{initials}</AvatarFallback>
+            <AvatarFallback className="text-xs bg-primary/10 text-primary font-medium">{initials}</AvatarFallback>
           </Avatar>
-          <div className="flex items-center gap-1.5">
-            <span className="text-sm font-source-serif text-[hsl(var(--ink-blue))] hover:underline">{creatorName}</span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-sm font-medium text-foreground truncate hover:text-primary transition-colors">{creatorName}</span>
             {isVerified && <VerifiedBadge size="sm" />}
           </div>
         </Link>
 
-        {/* Stats - Sticky Notes Style */}
-        <div className="flex items-center gap-3 justify-center">
-          <div className="relative">
-            <div className="bg-[hsl(var(--highlighter-yellow))]/60 px-3 py-2 paper-shadow border border-[hsl(var(--pencil-gray))]/40 rotate-[-1deg] text-center min-w-[80px]">
-              <Eye className="h-3 w-3 mx-auto mb-0.5 text-[hsl(var(--ink-blue))]" />
-              <span className="block text-lg font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">{project.view_count}</span>
-              <span className="block text-[10px] font-source-serif text-[hsl(var(--pencil-gray))]">views</span>
-            </div>
-            {/* Mini tape */}
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-3 bg-white/50 border border-[hsl(var(--pencil-gray))]/20" />
+        {/* Stats */}
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Eye className="h-4 w-4" />
+            <span>{project.view_count.toLocaleString()}</span>
           </div>
-          
-          <div className="relative">
-            <div className="bg-[hsl(var(--highlighter-yellow))]/60 px-3 py-2 paper-shadow border border-[hsl(var(--pencil-gray))]/40 rotate-[1deg] text-center min-w-[80px]">
-              <Copy className="h-3 w-3 mx-auto mb-0.5 text-[hsl(var(--ink-blue))]" />
-              <span className="block text-lg font-bold font-['Caveat'] text-[hsl(var(--ink-blue))]">{project.cloned_count}</span>
-              <span className="block text-[10px] font-source-serif text-[hsl(var(--pencil-gray))]">uses</span>
-            </div>
-            {/* Mini tape */}
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-3 bg-white/50 border border-[hsl(var(--pencil-gray))]/20" />
+          <div className="flex items-center gap-1.5">
+            <Copy className="h-4 w-4" />
+            <span>{project.cloned_count.toLocaleString()}</span>
           </div>
         </div>
 
-        {/* Keywords - Paper Tags */}
+        {/* Keywords */}
         {project.keywords && project.keywords.length > 0 && (
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="flex flex-wrap gap-1.5">
             {project.keywords.slice(0, 3).map((keyword, i) => (
-              <Badge key={i} className="text-xs bg-white border border-[hsl(var(--pencil-gray))] text-[hsl(var(--ink-blue))] font-source-serif hover:bg-[hsl(var(--highlighter-yellow))]/20 paper-shadow">
+              <Badge key={i} variant="secondary" className="text-xs font-normal bg-muted/50 hover:bg-muted text-muted-foreground">
                 {keyword}
               </Badge>
             ))}
             {project.keywords.length > 3 && (
-              <Badge className="text-xs border border-[hsl(var(--pencil-gray))] bg-white text-[hsl(var(--pencil-gray))] font-source-serif">
+              <Badge variant="secondary" className="text-xs font-normal bg-muted/50 text-muted-foreground">
                 +{project.keywords.length - 3}
               </Badge>
             )}
@@ -235,7 +220,7 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
         )}
       </CardContent>
 
-      <CardFooter className="text-xs font-source-serif text-[hsl(var(--pencil-gray))] px-5 py-3 border-t border-[hsl(var(--pencil-gray))]/20 bg-white/40">
+      <CardFooter className="text-xs text-muted-foreground px-5 py-3 border-t border-border/30 bg-muted/20">
         Updated {format(new Date(project.updated_at), 'MMM d, yyyy')}
       </CardFooter>
     </Card>
