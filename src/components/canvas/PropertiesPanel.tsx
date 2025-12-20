@@ -79,7 +79,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [imageToneOpacity, setImageToneOpacity] = useState(0.3);
   const [iconColor, setIconColor] = useState("#000000");
   const [iconToneColor, setIconToneColor] = useState("#3b82f6");
-  const [iconToneIntensity, setIconToneIntensity] = useState(0.5);
+  const [iconToneIntensity, setIconToneIntensity] = useState(0.2);
   const [iconToneMode, setIconToneMode] = useState<"direct" | "tone">("direct");
   const [freeformLineColor, setFreeformLineColor] = useState("#000000");
   const [freeformLineThickness, setFreeformLineThickness] = useState(2);
@@ -395,6 +395,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
   const handleIconToneChange = (color: string, intensity: number = iconToneIntensity) => {
     setIconToneColor(color);
+    setIconToneIntensity(intensity);
+    
     if (canvas && selectedObject && selectedObject.type === 'group') {
       const group = selectedObject as Group;
       const { h } = hexToHSL(color);
@@ -404,7 +406,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       (group as any).iconToneIntensity = intensity;
       (group as any).iconToneHue = h;
       
-      // Apply blend color filter to simulate tone
+      // Apply blend color filter to simulate tone for images
       const blendFilter = new filters.BlendColor({
         color: color,
         mode: 'tint',
@@ -425,51 +427,65 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
         (group as any).originalColors = originalColors;
       }
       
-      // Apply tint to all objects in group
-      const applyTintToObject = (obj: FabricObject) => {
+      const originalColors = (group as any).originalColors as Map<string, { fill: any; stroke: any }>;
+      
+      // Blend color helper - always blend from ORIGINAL color
+      const blendColor = (originalColor: string, tintColor: string, intensity: number): string => {
+        if (!originalColor || originalColor === 'transparent' || originalColor === 'none') return originalColor;
+        
+        // Handle hex colors
+        let origHex = originalColor;
+        if (origHex.startsWith('#')) {
+          const orig = parseInt(origHex.slice(1), 16);
+          const tint = parseInt(tintColor.slice(1), 16);
+          
+          const origR = (orig >> 16) & 0xFF;
+          const origG = (orig >> 8) & 0xFF;
+          const origB = orig & 0xFF;
+          
+          const tintR = (tint >> 16) & 0xFF;
+          const tintG = (tint >> 8) & 0xFF;
+          const tintB = tint & 0xFF;
+          
+          const newR = Math.round(origR * (1 - intensity) + tintR * intensity);
+          const newG = Math.round(origG * (1 - intensity) + tintG * intensity);
+          const newB = Math.round(origB * (1 - intensity) + tintB * intensity);
+          
+          return `#${((1 << 24) + (newR << 16) + (newG << 8) + newB).toString(16).slice(1)}`;
+        }
+        return originalColor;
+      };
+      
+      // Apply tint to all objects using ORIGINAL colors
+      const applyTintToObject = (obj: FabricObject, path: string = '') => {
         if (obj.type === 'group') {
-          (obj as Group).getObjects().forEach(applyTintToObject);
+          (obj as Group).getObjects().forEach((child, idx) => applyTintToObject(child, `${path}/${idx}`));
         } else if (obj.type === 'image' || obj instanceof FabricImage) {
           // For raster images in the group, apply filter
           const imgObj = obj as FabricImage;
           imgObj.filters = [blendFilter];
           imgObj.applyFilters();
         } else {
-          // For vector paths, blend colors manually
-          const blendColor = (originalColor: string, tintColor: string, intensity: number): string => {
-            if (!originalColor || originalColor === 'transparent' || originalColor === 'none') return originalColor;
+          // Get ORIGINAL colors from stored map
+          const stored = originalColors.get(path);
+          if (stored) {
+            const originalFill = stored.fill;
+            const originalStroke = stored.stroke;
             
-            const orig = parseInt(originalColor.slice(1), 16);
-            const tint = parseInt(tintColor.slice(1), 16);
-            
-            const origR = (orig >> 16) & 0xFF;
-            const origG = (orig >> 8) & 0xFF;
-            const origB = orig & 0xFF;
-            
-            const tintR = (tint >> 16) & 0xFF;
-            const tintG = (tint >> 8) & 0xFF;
-            const tintB = tint & 0xFF;
-            
-            const newR = Math.round(origR * (1 - intensity) + tintR * intensity);
-            const newG = Math.round(origG * (1 - intensity) + tintG * intensity);
-            const newB = Math.round(origB * (1 - intensity) + tintB * intensity);
-            
-            return `#${((1 << 24) + (newR << 16) + (newG << 8) + newB).toString(16).slice(1)}`;
-          };
-          
-          const hasFill = obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none';
-          const hasStroke = obj.stroke && obj.stroke !== 'transparent' && obj.stroke !== 'none';
-          
-          if (hasFill && typeof obj.fill === 'string') {
-            obj.set({ fill: blendColor(obj.fill, color, intensity) });
-          }
-          if (hasStroke && typeof obj.stroke === 'string') {
-            obj.set({ stroke: blendColor(obj.stroke, color, intensity) });
+            // Blend from ORIGINAL, not current
+            if (originalFill && typeof originalFill === 'string' && 
+                originalFill !== 'transparent' && originalFill !== 'none') {
+              obj.set({ fill: blendColor(originalFill, color, intensity) });
+            }
+            if (originalStroke && typeof originalStroke === 'string' && 
+                originalStroke !== 'transparent' && originalStroke !== 'none') {
+              obj.set({ stroke: blendColor(originalStroke, color, intensity) });
+            }
           }
         }
       };
       
-      group.getObjects().forEach(applyTintToObject);
+      group.getObjects().forEach((child, idx) => applyTintToObject(child, `/${idx}`));
       canvas.renderAll();
     }
   };
@@ -511,7 +527,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       }
       
       canvas.renderAll();
-      setIconToneIntensity(0.5);
+      setIconToneIntensity(0.2);
     }
   };
 
@@ -1321,7 +1337,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                                   key={preset.name}
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleIconToneChange(preset.color)}
+                                  onClick={() => handleIconToneChange(preset.color, 0.25)}
                                   className="h-9 text-xs gap-1"
                                 >
                                   <span>{preset.emoji}</span>
