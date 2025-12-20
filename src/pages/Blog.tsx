@@ -7,7 +7,7 @@ import { BlogCard } from "@/components/blog/BlogCard";
 import { BlogSidebar } from "@/components/blog/BlogSidebar";
 import { BlogFilters } from "@/components/blog/BlogFilters";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, BookOpen, PenTool, FileText, Lightbulb, Bookmark, Pencil } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, Bookmark } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -50,76 +50,63 @@ const Blog = () => {
         keywords="scientific figures, biomedical illustration, research visualization, BioSketch blog, figure creation tips"
       />
       
-      <div className="min-h-screen notebook-page">
-        {/* Hero Section - Enhanced Notebook Theme */}
-        <div className="border-b-2 border-[hsl(var(--pencil-gray))]/50 bg-[hsl(var(--cream))] ruled-lines relative overflow-hidden">
-          {/* Decorative paper clip */}
-          <div className="absolute top-8 right-12 w-8 h-16 border-4 border-[hsl(var(--pencil-gray))] rounded-full opacity-30 transform rotate-12 hidden md:block" />
-          
-          {/* Decorative pencil */}
-          <Pencil className="absolute bottom-8 left-8 w-20 h-20 text-[hsl(var(--highlighter-yellow))] opacity-20 transform -rotate-45 hidden md:block" />
-          
+      <div className="min-h-screen bg-background relative">
+        {/* Subtle dot pattern background */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{
+          backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
+          backgroundSize: '24px 24px'
+        }} />
+
+        {/* Hero Section */}
+        <div className="border-b border-border/50 bg-card/50 relative overflow-hidden">
           <div className="container mx-auto px-4 py-12 md:py-16 relative">
-            {/* Top navigation - styled as tab */}
-            <div className="flex items-center mb-12">
+            {/* Top navigation */}
+            <div className="flex items-center mb-10">
               <Button
                 asChild
                 variant="ghost"
-                className="pencil-button bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))] hover:bg-[hsl(var(--highlighter-yellow))]/20"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted/50"
               >
                 <Link to="/">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  <span className="font-source-serif">Back to Home</span>
+                  Back to Home
                 </Link>
               </Button>
             </div>
 
             {/* Main header content */}
             <div className="max-w-4xl mx-auto text-center space-y-6">
-              {/* Washi tape decoration */}
-              <div className="flex justify-center mb-4">
-                <div className="washi-tape w-32 transform -rotate-2" />
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-1 h-8 bg-primary rounded-full" />
+                <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                  Knowledge Base
+                </span>
               </div>
               
-              <div className="space-y-4">
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight handwritten text-[hsl(var(--ink-blue))] drop-shadow-sm">
-                  BioSketch Blog
-                </h1>
-                <p className="text-lg md:text-xl text-[hsl(var(--pencil-gray))] max-w-2xl mx-auto font-source-serif italic">
-                  Insights, tutorials, and best practices for creating professional scientific figures
-                </p>
-              </div>
-              
-              {/* Decorative notebook doodles */}
-              <div className="flex justify-center gap-8 pt-4">
-                <PenTool className="w-8 h-8 text-[hsl(var(--ink-blue))]/20 doodle-sketch" />
-                <BookOpen className="w-10 h-10 text-[hsl(var(--ink-blue))]/30 doodle-sketch" />
-                <Lightbulb className="w-8 h-8 text-[hsl(var(--highlighter-yellow))]/50 doodle-sketch" />
-              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-semibold text-foreground tracking-tight">
+                BioSketch Blog
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+                Insights, tutorials, and best practices for creating professional scientific figures
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Main Content - Notebook Layout */}
-        <div className="container mx-auto px-4 py-12">
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-12 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Blog Posts - Main notebook area */}
+            {/* Blog Posts - Main area */}
             <div className="lg:col-span-8 space-y-8">
-              {/* Search - styled as notebook header */}
-              <div className="bg-[hsl(var(--cream))] p-4 border-2 border-[hsl(var(--pencil-gray))] paper-shadow rounded-lg relative">
-                <div className="absolute -top-3 left-4 bg-[hsl(var(--highlighter-yellow))] px-3 py-1 text-xs font-source-serif text-[hsl(var(--ink-blue))] border border-[hsl(var(--pencil-gray))] rounded transform -rotate-1">
-                  <Bookmark className="w-3 h-3 inline mr-1" />
-                  Search Articles
-                </div>
-                <div className="pt-2">
-                  <BlogFilters />
-                </div>
+              {/* Search */}
+              <div className="bg-card p-5 border border-border/50 rounded-xl shadow-sm">
+                <BlogFilters />
               </div>
 
-              {/* Active filters display - sticky note style */}
+              {/* Active filters display */}
               {(categorySlug || tagSlug) && (
-                <div className="flex flex-wrap gap-2 items-center p-4 sticky-note bg-[hsl(var(--highlighter-yellow))] transform rotate-1">
-                  <span className="font-semibold text-sm text-[hsl(var(--ink-blue))] font-source-serif">Filters:</span>
+                <div className="flex flex-wrap gap-2 items-center p-4 bg-muted/30 rounded-lg border border-border/30">
+                  <span className="text-sm font-medium text-muted-foreground">Active filters:</span>
                   {categorySlug && (
                     <Button
                       variant="secondary"
@@ -129,7 +116,7 @@ const Blog = () => {
                         setSearchParams(searchParams);
                         setCurrentPage(1);
                       }}
-                      className="h-7 text-xs bg-white/80 border border-[hsl(var(--pencil-gray))] hover:bg-white"
+                      className="h-7 text-xs"
                     >
                       {categorySlug} ✕
                     </Button>
@@ -143,7 +130,7 @@ const Blog = () => {
                         setSearchParams(searchParams);
                         setCurrentPage(1);
                       }}
-                      className="h-7 text-xs bg-white/80 border border-[hsl(var(--pencil-gray))] hover:bg-white"
+                      className="h-7 text-xs"
                     >
                       {tagSlug} ✕
                     </Button>
@@ -151,19 +138,19 @@ const Blog = () => {
                 </div>
               )}
 
-              {/* Search Results Info - notebook annotation style */}
+              {/* Search Results Info */}
               {searchQuery && !isLoading && (
-                <div className="p-4 bg-[hsl(var(--cream))] border-l-4 border-[hsl(var(--ink-blue))] rounded-r-lg paper-shadow">
-                  <p className="text-sm font-source-serif">
+                <div className="p-4 bg-card border-l-4 border-primary rounded-r-lg shadow-sm">
+                  <p className="text-sm">
                     {totalCount > 0 ? (
                       <>
-                        Found <span className="font-bold text-[hsl(var(--ink-blue))] underline decoration-wavy decoration-[hsl(var(--highlighter-yellow))]">{totalCount}</span> post{totalCount !== 1 ? 's' : ''} for{' '}
-                        <span className="font-bold italic">"{searchQuery}"</span>
+                        Found <span className="font-semibold text-foreground">{totalCount}</span> post{totalCount !== 1 ? 's' : ''} for{' '}
+                        <span className="font-semibold">"{searchQuery}"</span>
                       </>
                     ) : (
                       <>
-                        No results for <span className="font-bold italic">"{searchQuery}"</span>
-                        <span className="block mt-2 text-[hsl(var(--pencil-gray))]">
+                        No results for <span className="font-semibold">"{searchQuery}"</span>
+                        <span className="block mt-1 text-muted-foreground">
                           Try different keywords or browse by category
                         </span>
                       </>
@@ -175,25 +162,25 @@ const Blog = () => {
               {/* Posts count indicator */}
               {!isLoading && totalCount > 0 && (
                 <div className="flex items-center gap-3">
-                  <div className="h-px flex-1 bg-[hsl(var(--pencil-gray))]/30" />
-                  <span className="text-sm font-source-serif text-[hsl(var(--pencil-gray))] flex items-center gap-2">
+                  <div className="h-px flex-1 bg-border/50" />
+                  <span className="text-sm text-muted-foreground flex items-center gap-2">
                     <FileText className="w-4 h-4" />
                     {totalCount} article{totalCount !== 1 ? 's' : ''} available
                   </span>
-                  <div className="h-px flex-1 bg-[hsl(var(--pencil-gray))]/30" />
+                  <div className="h-px flex-1 bg-border/50" />
                 </div>
               )}
               
-              {/* Posts Grid - Pinned notes on corkboard */}
+              {/* Posts Grid */}
               {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))] rounded-lg overflow-hidden">
-                      <Skeleton className="h-48 bg-[hsl(var(--pencil-gray))]/10" />
-                      <div className="p-4 space-y-3">
-                        <Skeleton className="h-4 w-20 bg-[hsl(var(--highlighter-yellow))]/30" />
-                        <Skeleton className="h-6 w-full bg-[hsl(var(--pencil-gray))]/10" />
-                        <Skeleton className="h-4 w-3/4 bg-[hsl(var(--pencil-gray))]/10" />
+                    <div key={i} className="bg-card border border-border/50 rounded-xl overflow-hidden">
+                      <Skeleton className="h-48" />
+                      <div className="p-5 space-y-3">
+                        <Skeleton className="h-4 w-20" />
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
                       </div>
                     </div>
                   ))}
@@ -201,10 +188,8 @@ const Blog = () => {
               ) : posts && posts.length > 0 ? (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {posts.map((post) => (
-                      <div key={post.id} className="transform hover:-translate-y-1 transition-transform duration-200">
-                        <BlogCard post={post} />
-                      </div>
+                    {posts.map((post, index) => (
+                      <BlogCard key={post.id} post={post} index={index} />
                     ))}
                   </div>
                   
@@ -218,28 +203,22 @@ const Blog = () => {
                       }
                       
                       const pages: (number | 'ellipsis')[] = [];
-                      
-                      // Always show first 3
                       pages.push(1, 2, 3);
                       
-                      // Add ellipsis if current is far from start
                       if (currentPage > 5) {
                         pages.push('ellipsis');
                       }
                       
-                      // Pages around current (if not already included)
                       for (let i = currentPage - 1; i <= currentPage + 1; i++) {
                         if (i > 3 && i < totalPages - 2 && !pages.includes(i)) {
                           pages.push(i);
                         }
                       }
                       
-                      // Add ellipsis if current is far from end
                       if (currentPage < totalPages - 4) {
                         pages.push('ellipsis');
                       }
                       
-                      // Always show last 3
                       for (let i = totalPages - 2; i <= totalPages; i++) {
                         if (!pages.includes(i)) {
                           pages.push(i);
@@ -250,16 +229,16 @@ const Blog = () => {
                     };
                     
                     return (
-                      <div className="flex justify-center mt-12">
+                      <div className="flex justify-center mt-10">
                         <Pagination>
-                          <PaginationContent className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow rounded-lg p-2">
+                          <PaginationContent className="bg-card border border-border/50 rounded-lg p-1.5 shadow-sm">
                             <PaginationItem>
                               <PaginationPrevious 
                                 onClick={() => {
                                   setCurrentPage(p => Math.max(1, p - 1));
                                   window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
-                                className={`font-source-serif ${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[hsl(var(--highlighter-yellow))]/30'}`}
+                                className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'} transition-colors`}
                               />
                             </PaginationItem>
                             
@@ -274,11 +253,11 @@ const Blog = () => {
                                       window.scrollTo({ top: 0, behavior: 'smooth' });
                                     }}
                                     isActive={currentPage === page}
-                                    className={`cursor-pointer font-source-serif ${
+                                    className={`cursor-pointer ${
                                       currentPage === page 
-                                        ? 'bg-[hsl(var(--ink-blue))] text-white border-2 border-[hsl(var(--ink-blue))]' 
-                                        : 'hover:bg-[hsl(var(--highlighter-yellow))]/30'
-                                    }`}
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                        : 'hover:bg-muted'
+                                    } transition-colors`}
                                   >
                                     {page}
                                   </PaginationLink>
@@ -292,7 +271,7 @@ const Blog = () => {
                                   setCurrentPage(p => Math.min(totalPages, p + 1));
                                   window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}
-                                className={`font-source-serif ${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[hsl(var(--highlighter-yellow))]/30'}`}
+                                className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'} transition-colors`}
                               />
                             </PaginationItem>
                           </PaginationContent>
@@ -302,23 +281,17 @@ const Blog = () => {
                   })()}
                 </>
               ) : !searchQuery ? (
-                <div className="text-center py-16 bg-[hsl(var(--cream))] border-2 border-dashed border-[hsl(var(--pencil-gray))] rounded-lg paper-shadow relative">
-                  {/* Decorative tape */}
-                  <div className="washi-tape absolute top-4 left-1/2 -translate-x-1/2 w-20 transform rotate-2" />
-                  
-                  <div className="space-y-4">
-                    <div className="w-20 h-20 mx-auto mb-4 bg-[hsl(var(--highlighter-yellow))]/20 rounded-full flex items-center justify-center border-2 border-[hsl(var(--pencil-gray))]/30">
-                      <BookOpen className="w-10 h-10 text-[hsl(var(--ink-blue))]/50 doodle-sketch" />
+                <div className="text-center py-20">
+                  <div className="max-w-md mx-auto">
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/50 flex items-center justify-center">
+                      <BookOpen className="w-10 h-10 text-muted-foreground" />
                     </div>
-                    <p className="text-xl font-medium text-[hsl(var(--ink-blue))] handwritten">No blog posts yet...</p>
-                    <p className="text-sm text-[hsl(var(--pencil-gray))] font-source-serif italic">
-                      Check back soon for new articles!
+                    <h2 className="text-2xl font-serif font-semibold text-foreground mb-3">
+                      No blog posts yet
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Check back soon for new articles and tutorials
                     </p>
-                    <div className="flex justify-center gap-4 pt-4 opacity-30">
-                      <PenTool className="w-6 h-6 text-[hsl(var(--pencil-gray))]" />
-                      <Lightbulb className="w-6 h-6 text-[hsl(var(--highlighter-yellow))]" />
-                      <FileText className="w-6 h-6 text-[hsl(var(--pencil-gray))]" />
-                    </div>
                   </div>
                 </div>
               ) : null}

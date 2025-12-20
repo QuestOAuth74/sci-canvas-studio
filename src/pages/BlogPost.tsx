@@ -10,8 +10,7 @@ import { RelatedPosts } from "@/components/blog/RelatedPosts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Clock, Eye, Calendar, User, Share2, BookmarkPlus } from "lucide-react";
+import { ArrowLeft, Clock, Eye, User, BookmarkPlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 
@@ -29,7 +28,7 @@ const BlogPost = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[hsl(var(--cream))] to-background">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8 max-w-5xl">
           <Skeleton className="h-8 w-32 mb-8" />
           <div className="space-y-4 mb-8">
@@ -50,14 +49,14 @@ const BlogPost = () => {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[hsl(var(--cream))] to-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-6">
-          <div className="w-24 h-24 mx-auto bg-[hsl(var(--cream))] rounded-full flex items-center justify-center border-2 border-[hsl(var(--pencil-gray))]/30">
-            <BookmarkPlus className="w-12 h-12 text-[hsl(var(--ink-blue))]/30" />
+          <div className="w-20 h-20 mx-auto bg-muted/50 rounded-2xl flex items-center justify-center">
+            <BookmarkPlus className="w-10 h-10 text-muted-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-[hsl(var(--ink-blue))]">Post not found</h1>
-          <p className="text-[hsl(var(--pencil-gray))]">The article you're looking for doesn't exist.</p>
-          <Button asChild variant="ink">
+          <h1 className="text-3xl font-serif font-semibold text-foreground">Post not found</h1>
+          <p className="text-muted-foreground">The article you're looking for doesn't exist.</p>
+          <Button asChild>
             <Link to="/blog">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Blog
@@ -102,19 +101,25 @@ const BlogPost = () => {
         {JSON.stringify(structuredData)}
       </script>
 
-      <div className="min-h-screen bg-gradient-to-b from-[hsl(var(--cream))]/50 to-background">
+      <div className="min-h-screen bg-background relative">
+        {/* Subtle dot pattern background */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{
+          backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
+          backgroundSize: '24px 24px'
+        }} />
+
         {/* Navigation Bar */}
-        <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-[hsl(var(--pencil-gray))]/20">
+        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <Button
               asChild
               variant="ghost"
               size="sm"
-              className="text-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--cream))]"
+              className="text-muted-foreground hover:text-foreground"
             >
               <Link to="/blog">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                <span className="font-source-serif">All Articles</span>
+                All Articles
               </Link>
             </Button>
             
@@ -129,7 +134,7 @@ const BlogPost = () => {
         </div>
 
         {/* Article Header */}
-        <header className="container mx-auto px-4 pt-12 pb-8 max-w-4xl">
+        <header className="container mx-auto px-4 pt-12 pb-8 max-w-4xl relative z-10">
           {/* Categories */}
           <div className="flex flex-wrap gap-2 mb-6">
             {post.categories?.map((cat: any) => (
@@ -139,7 +144,8 @@ const BlogPost = () => {
                 className="group"
               >
                 <Badge 
-                  className="bg-[hsl(var(--ink-blue))]/10 text-[hsl(var(--ink-blue))] border-[hsl(var(--ink-blue))]/20 hover:bg-[hsl(var(--ink-blue))] hover:text-white transition-colors font-source-serif"
+                  variant="secondary"
+                  className="bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
                 >
                   {cat.category.name}
                 </Badge>
@@ -148,19 +154,19 @@ const BlogPost = () => {
           </div>
 
           {/* Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[hsl(var(--ink-blue))] leading-tight mb-6 font-source-serif">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif font-semibold text-foreground leading-tight mb-6">
             {post.title}
           </h1>
           
           {/* Excerpt */}
           {post.excerpt && (
-            <p className="text-xl text-[hsl(var(--pencil-gray))] leading-relaxed mb-8 font-source-serif">
+            <p className="text-xl text-muted-foreground leading-relaxed mb-8">
               {post.excerpt}
             </p>
           )}
 
           {/* Meta Bar */}
-          <div className="flex flex-wrap items-center gap-6 py-6 border-y border-[hsl(var(--pencil-gray))]/20">
+          <div className="flex flex-wrap items-center gap-6 py-6 border-y border-border/50">
             {/* Author */}
             {post.author && (
               <div className="flex items-center gap-3">
@@ -168,17 +174,17 @@ const BlogPost = () => {
                   <img 
                     src={post.author.avatar_url} 
                     alt={post.author.full_name || 'Author'} 
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-[hsl(var(--ink-blue))]/10"
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-background shadow-sm"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-[hsl(var(--ink-blue))]/10 flex items-center justify-center">
-                    <User className="h-6 w-6 text-[hsl(var(--ink-blue))]" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-6 w-6 text-primary" />
                   </div>
                 )}
                 <div>
-                  <p className="font-semibold text-[hsl(var(--ink-blue))]">{post.author.full_name || 'BioSketch Team'}</p>
+                  <p className="font-medium text-foreground">{post.author.full_name || 'BioSketch Team'}</p>
                   {post.published_at && (
-                    <time dateTime={post.published_at} className="text-sm text-[hsl(var(--pencil-gray))]">
+                    <time dateTime={post.published_at} className="text-sm text-muted-foreground">
                       {format(new Date(post.published_at), 'MMMM d, yyyy')}
                     </time>
                   )}
@@ -186,10 +192,10 @@ const BlogPost = () => {
               </div>
             )}
             
-            <div className="h-8 w-px bg-[hsl(var(--pencil-gray))]/20 hidden md:block" />
+            <div className="h-8 w-px bg-border/50 hidden md:block" />
             
             {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-[hsl(var(--pencil-gray))]">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
               {post.reading_time && (
                 <span className="flex items-center gap-1.5">
                   <Clock className="h-4 w-4" />
@@ -206,38 +212,38 @@ const BlogPost = () => {
 
         {/* Featured Image */}
         {post.featured_image_url && (
-          <div className="container mx-auto px-4 mb-12 max-w-5xl">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-[hsl(var(--ink-blue))]/10">
+          <div className="container mx-auto px-4 mb-12 max-w-5xl relative z-10">
+            <div className="relative rounded-2xl overflow-hidden shadow-xl">
               <img
                 src={post.featured_image_url}
                 alt={post.featured_image_alt || post.title}
                 className="w-full h-auto object-cover"
               />
-              <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-2xl" />
+              <div className="absolute inset-0 ring-1 ring-inset ring-black/5 rounded-2xl" />
             </div>
           </div>
         )}
 
         {/* Main Content Area */}
-        <div className="container mx-auto px-4 pb-16">
+        <div className="container mx-auto px-4 pb-16 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 max-w-6xl mx-auto">
             {/* Article Content */}
             <article className="lg:col-span-8">
               {/* Content */}
-              <div className="bg-white rounded-2xl shadow-lg shadow-[hsl(var(--ink-blue))]/5 border border-[hsl(var(--pencil-gray))]/10 p-8 md:p-12 mb-12">
+              <div className="bg-card rounded-2xl shadow-sm border border-border/50 p-8 md:p-12 mb-12">
                 <div className="prose prose-lg max-w-none
-                  prose-headings:font-source-serif prose-headings:text-[hsl(var(--ink-blue))] prose-headings:font-bold
-                  prose-h2:text-3xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:pb-3 prose-h2:border-b prose-h2:border-[hsl(var(--pencil-gray))]/20
-                  prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-4
-                  prose-p:text-foreground/80 prose-p:leading-relaxed prose-p:mb-6 prose-p:font-source-serif
-                  prose-a:text-[hsl(var(--ink-blue))] prose-a:font-medium prose-a:no-underline prose-a:border-b prose-a:border-[hsl(var(--ink-blue))]/30 hover:prose-a:border-[hsl(var(--ink-blue))]
-                  prose-strong:text-[hsl(var(--ink-blue))] prose-strong:font-semibold
-                  prose-code:text-[hsl(var(--ink-blue))] prose-code:bg-[hsl(var(--cream))] prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm
-                  prose-pre:bg-[hsl(var(--ink-blue))] prose-pre:text-white prose-pre:rounded-xl
-                  prose-img:rounded-xl prose-img:shadow-lg
-                  prose-blockquote:border-l-4 prose-blockquote:border-[hsl(var(--ink-blue))] prose-blockquote:bg-[hsl(var(--cream))]/50 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
-                  prose-ul:my-6 prose-ol:my-6
-                  prose-li:my-2 prose-li:marker:text-[hsl(var(--ink-blue))]">
+                  prose-headings:font-serif prose-headings:text-foreground prose-headings:font-semibold
+                  prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-5 prose-h2:pb-3 prose-h2:border-b prose-h2:border-border/50
+                  prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-4
+                  prose-p:text-muted-foreground prose-p:leading-relaxed prose-p:mb-5
+                  prose-a:text-primary prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+                  prose-strong:text-foreground prose-strong:font-semibold
+                  prose-code:text-primary prose-code:bg-muted prose-code:px-2 prose-code:py-1 prose-code:rounded prose-code:text-sm
+                  prose-pre:bg-foreground prose-pre:text-background prose-pre:rounded-xl
+                  prose-img:rounded-xl prose-img:shadow-md
+                  prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:bg-muted/50 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
+                  prose-ul:my-5 prose-ol:my-5
+                  prose-li:my-2 prose-li:marker:text-primary">
                   <BlogContentRenderer content={post.content} />
                 </div>
               </div>
@@ -245,7 +251,7 @@ const BlogPost = () => {
               {/* Tags */}
               {post.tags && post.tags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2 mb-12">
-                  <span className="text-sm font-medium text-[hsl(var(--pencil-gray))] mr-2">Tags:</span>
+                  <span className="text-sm font-medium text-muted-foreground mr-2">Tags:</span>
                   {post.tags.map((tag: any) => (
                     <Link 
                       key={tag.tag.id}
@@ -253,7 +259,7 @@ const BlogPost = () => {
                     >
                       <Badge 
                         variant="outline"
-                        className="border-[hsl(var(--pencil-gray))]/30 text-[hsl(var(--pencil-gray))] hover:bg-[hsl(var(--cream))] hover:text-[hsl(var(--ink-blue))] transition-colors"
+                        className="border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
                       >
                         #{tag.tag.name}
                       </Badge>
@@ -263,11 +269,11 @@ const BlogPost = () => {
               )}
 
               {/* Share Section */}
-              <Card className="p-6 mb-12 bg-[hsl(var(--cream))]/50 border-[hsl(var(--pencil-gray))]/20">
+              <Card className="p-6 mb-12 bg-muted/30 border-border/30">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-[hsl(var(--ink-blue))] font-source-serif">Enjoyed this article?</h3>
-                    <p className="text-sm text-[hsl(var(--pencil-gray))]">Share it with your colleagues and friends</p>
+                    <h3 className="text-lg font-serif font-semibold text-foreground">Enjoyed this article?</h3>
+                    <p className="text-sm text-muted-foreground">Share it with your colleagues and friends</p>
                   </div>
                   <ShareButtons
                     url={window.location.href}
@@ -285,7 +291,7 @@ const BlogPost = () => {
 
               {/* Related Posts */}
               {relatedPosts && relatedPosts.length > 0 && (
-                <div className="pt-12 border-t border-[hsl(var(--pencil-gray))]/20">
+                <div className="pt-12 border-t border-border/50">
                   <RelatedPosts posts={relatedPosts} />
                 </div>
               )}
