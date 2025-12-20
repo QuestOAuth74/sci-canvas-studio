@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle, XCircle, Eye, ExternalLink } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Eye, ExternalLink, Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,6 +38,7 @@ interface Project {
 }
 
 export function SubmittedProjects() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -291,6 +293,16 @@ export function SubmittedProjects() {
                             {/* Actions */}
                             {activeTab === 'pending' && (
                               <div className="flex gap-2 pt-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => navigate(`/canvas?project=${project.id}`)}
+                                  disabled={actionLoading}
+                                  className="gap-2"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                  Edit
+                                </Button>
                                 <Button
                                   size="sm"
                                   onClick={() => handleApprove(project.id)}

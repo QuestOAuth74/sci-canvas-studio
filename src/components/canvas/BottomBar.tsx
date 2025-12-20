@@ -212,7 +212,7 @@ export const BottomBar = ({ activeTool, hasSelection }: BottomBarProps) => {
       <div className="flex items-center gap-3">
         {/* Selection indicator */}
         {selectionInfo && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 rounded-md border border-blue-500/20 animate-fade-in">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 rounded-md border border-blue-500/20">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
             <span className="text-xs font-medium text-blue-600">{selectionInfo}</span>
           </div>

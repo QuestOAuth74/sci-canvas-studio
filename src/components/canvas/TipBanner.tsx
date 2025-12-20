@@ -77,7 +77,7 @@ export const TipBanner = () => {
         "bg-gradient-to-r from-[hsl(var(--canvas-accent-primary))] to-[hsl(var(--canvas-accent-secondary))]",
         "text-white rounded-lg shadow-2xl",
         "max-w-2xl w-full mx-4",
-        "animate-in slide-in-from-top-5 duration-500"
+        "animate-in fade-in duration-500"
       )}
     >
       <div className="relative p-4 pr-12">

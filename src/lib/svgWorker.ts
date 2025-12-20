@@ -41,7 +41,7 @@ function calculateComplexity(svgContent: string): number {
 function simplifySVG(svgContent: string): string {
   return svgContent
     .replace(/id="[^"]*"/g, '') // Remove IDs
-    .replace(/class="[^"]*"/g, '') // Remove classes
+    // Note: CSS classes are preserved - they often define fill colors
     .replace(/style="[^"]*opacity:\s*0[^"]*"/g, 'style="display:none"') // Hide invisible elements
     .replace(/\s+/g, ' ') // Collapse whitespace
     .trim();

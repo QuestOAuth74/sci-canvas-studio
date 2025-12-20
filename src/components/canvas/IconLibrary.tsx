@@ -68,6 +68,7 @@ const sanitizeSvg = (raw: string): string => {
         svg = svg.replace(/\b(width|height)=["'][^"']*["']/gi, "");
       }
     }
+    
     return svg;
   } catch {
     return raw;
@@ -452,16 +453,23 @@ export const IconLibrary = ({ selectedCategory, onCategoryChange, isCollapsed, o
     const hasThumbnail = !!icon.thumbnail;
     const isBroken = !!brokenMap[icon.id];
     
-    // Determine the thumbnail source - handle both URLs and raw SVG content
-    let thumbSrc = '';
-    if (hasThumbnail && !isBroken) {
-      if (isUrl(icon.thumbnail!)) {
-        // It's already a URL (PNG, JPEG, or data URL) - use directly
-        thumbSrc = icon.thumbnail!;
-      } else {
-        // It's raw SVG content - sanitize and convert to data URL
-        const safeSvg = sanitizeSvg(icon.thumbnail!);
+    // Determine the thumbnail source - prefer full SVG content for accurate colors,
+    // fall back to thumbnail (URL or inline SVG) when needed
+    let thumbSrc = "";
+    if (!isBroken) {
+      if (icon.svg_content) {
+        // Use the full icon SVG so previews match the canvas appearance
+        const safeSvg = sanitizeSvg(icon.svg_content);
         thumbSrc = svgToDataUrl(safeSvg);
+      } else if (hasThumbnail) {
+        if (isUrl(icon.thumbnail!)) {
+          // It's already a URL (PNG, JPEG, or data URL) - use directly
+          thumbSrc = icon.thumbnail!;
+        } else {
+          // It's raw SVG thumbnail content - sanitize and convert to data URL
+          const safeSvg = sanitizeSvg(icon.thumbnail!);
+          thumbSrc = svgToDataUrl(safeSvg);
+        }
       }
     }
     
