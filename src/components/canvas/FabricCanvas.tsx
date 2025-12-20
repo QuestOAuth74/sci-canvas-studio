@@ -18,6 +18,10 @@ import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling
 import { calculateObjectComplexity, applyComplexityOptimizations, shouldSimplifyControls } from "@/lib/objectComplexity";
 import { isTextBox, handleTextBoxResize, getTextBoxTextElement } from "@/lib/textBoxTool";
 
+// Default shape styling constants
+const DEFAULT_SHAPE_FILL = 'rgba(134, 239, 172, 0.5)';  // Light green at 50% opacity
+const DEFAULT_SHAPE_STROKE = '#9ca3af';                   // Light grey (gray-400)
+
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
   let sanitized = svgContent
@@ -2291,8 +2295,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           case "circle-with-text": {
             bgShape = new Circle({
               radius: 60,
-              fill: "#3b82f6",
-              stroke: "#000000",
+              fill: DEFAULT_SHAPE_FILL,
+              stroke: DEFAULT_SHAPE_STROKE,
               strokeWidth: 2,
               strokeUniform: true,
               originX: 'center',
@@ -2306,8 +2310,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             bgShape = new Rect({
               width: 120,
               height: 80,
-              fill: "#3b82f6",
-              stroke: "#000000",
+              fill: DEFAULT_SHAPE_FILL,
+              stroke: DEFAULT_SHAPE_STROKE,
               strokeWidth: 2,
               strokeUniform: true,
               originX: 'center',
@@ -2323,8 +2327,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
               height: 80,
               rx: 10,
               ry: 10,
-              fill: "#3b82f6",
-              stroke: "#000000",
+              fill: DEFAULT_SHAPE_FILL,
+              stroke: DEFAULT_SHAPE_STROKE,
               strokeWidth: 2,
               strokeUniform: true,
               originX: 'center',
@@ -2338,8 +2342,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             bgShape = new Rect({
               width: 100,
               height: 100,
-              fill: "#3b82f6",
-              stroke: "#000000",
+              fill: DEFAULT_SHAPE_FILL,
+              stroke: DEFAULT_SHAPE_STROKE,
               strokeWidth: 2,
               strokeUniform: true,
               originX: 'center',
@@ -2479,8 +2483,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             top: pointer.y - 50,
             width: activeTool === "square" ? 100 : 120,
             height: 100,
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2496,8 +2500,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             height: 80,
             rx: 10,
             ry: 10,
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2513,8 +2517,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             radius: 50,
             scaleX: activeTool === "ellipse" ? 1.4 : 1,
             scaleY: 1,
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2529,8 +2533,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x, y: pointer.y + 50 },
             { x: pointer.x - 50, y: pointer.y },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2545,8 +2549,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x + 40, y: pointer.y + 40 },
             { x: pointer.x - 60, y: pointer.y + 40 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2561,8 +2565,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x + 50, y: pointer.y + 40 },
             { x: pointer.x - 50, y: pointer.y + 40 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2580,8 +2584,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             });
           }
           const pentagon = new Polygon(pentagonPoints, {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2599,8 +2603,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             });
           }
           const hexagon = new Polygon(hexagonPoints, {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2618,8 +2622,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             });
           }
           const octagon = new Polygon(octagonPoints, {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2825,8 +2829,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             });
           }
           const star = new Polygon(starPoints, {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2848,8 +2852,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
                 { x: pointer.x - 50, y: pointer.y + 50 },
               ];
           const triangle = new Polygon(trianglePoints, {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2867,8 +2871,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x + 30, y: pointer.y + 15 },
             { x: pointer.x - 50, y: pointer.y + 15 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2886,8 +2890,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x - 30, y: pointer.y + 15 },
             { x: pointer.x + 50, y: pointer.y + 15 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2905,8 +2909,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x + 15, y: pointer.y - 30 },
             { x: pointer.x + 15, y: pointer.y + 50 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2924,8 +2928,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x + 15, y: pointer.y + 30 },
             { x: pointer.x + 15, y: pointer.y - 50 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2946,8 +2950,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x - 30, y: pointer.y + 10 },
             { x: pointer.x - 30, y: pointer.y + 20 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2965,8 +2969,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x + 20, y: pointer.y + 20 },
             { x: pointer.x - 50, y: pointer.y + 20 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2980,8 +2984,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             top: pointer.y - 40,
             width: 120,
             height: 80,
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -2996,8 +3000,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x, y: pointer.y + 50 },
             { x: pointer.x - 50, y: pointer.y },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -3012,8 +3016,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x + 40, y: pointer.y + 40 },
             { x: pointer.x - 50, y: pointer.y + 40 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -3029,8 +3033,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             height: 60,
             rx: 30,
             ry: 30,
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -3046,8 +3050,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             { x: pointer.x + 50, y: pointer.y + 50 },
             { x: pointer.x - 50, y: pointer.y + 50 },
           ], {
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -3062,8 +3066,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             top: pointer.y - 40,
             rx: 40,
             ry: 10,
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -3072,8 +3076,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             top: pointer.y - 30,
             width: 80,
             height: 70,
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
@@ -3091,8 +3095,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
             top: pointer.y - 50,
             width: 100,
             height: 100,
-            fill: "#3b82f6",
-            stroke: "#000000",
+            fill: DEFAULT_SHAPE_FILL,
+            stroke: DEFAULT_SHAPE_STROKE,
             strokeWidth: 2,
             strokeUniform: true,
           });
