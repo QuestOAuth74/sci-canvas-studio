@@ -77,10 +77,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
   const [shapeStrokeColor, setShapeStrokeColor] = useState("#000000");
   const [imageToneColor, setImageToneColor] = useState("#3b82f6");
   const [imageToneOpacity, setImageToneOpacity] = useState(0.3);
-  const [iconColor, setIconColor] = useState("#000000");
   const [iconToneColor, setIconToneColor] = useState("#3b82f6");
   const [iconToneIntensity, setIconToneIntensity] = useState(0.2);
-  const [iconToneMode, setIconToneMode] = useState<"direct" | "tone">("direct");
   const [freeformLineColor, setFreeformLineColor] = useState("#000000");
   const [freeformLineThickness, setFreeformLineThickness] = useState(2);
   const [freeformStartMarker, setFreeformStartMarker] = useState<"none" | "dot" | "arrow">("none");
@@ -187,15 +185,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       const targetShape = getShapeFromGroup(selectedObject);
       setShapeFillColor((targetShape.fill as string) || "#3b82f6");
       setShapeStrokeColor((targetShape.stroke as string) || "#000000");
-    }
-    // Update icon color for group objects (icons)
-    if (selectedObject && selectedObject.type === 'group') {
-      const group = selectedObject as Group;
-      // Get the color from the first object in the group that has a fill
-      const firstObjWithColor = group.getObjects().find(obj => obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none');
-      if (firstObjWithColor && typeof firstObjWithColor.fill === 'string') {
-        setIconColor(firstObjWithColor.fill);
-      }
     }
     // Update freeform line properties
     if (selectedObject && (selectedObject as any).isFreeformLine) {
@@ -334,40 +323,6 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     }
   };
 
-  const handleIconColorChange = (color: string) => {
-    setIconColor(color);
-    addToRecentColors(color);
-    if (canvas && selectedObject && selectedObject.type === 'group') {
-      const group = selectedObject as Group;
-      
-      // Recursively change colors of all objects in the group
-      const changeObjectColor = (obj: FabricObject) => {
-        if (obj.type === 'group') {
-          const subGroup = obj as Group;
-          subGroup.getObjects().forEach(changeObjectColor);
-        } else {
-          const hasFill = obj.fill && obj.fill !== 'transparent' && obj.fill !== 'none';
-          const hasStroke = obj.stroke && obj.stroke !== 'transparent' && obj.stroke !== 'none';
-          
-          // If object uses stroke (line-based icons)
-          if (hasStroke && !hasFill) {
-            obj.set({ stroke: color });
-          }
-          // If object uses fill (shape-based icons)
-          else if (hasFill && !hasStroke) {
-            obj.set({ fill: color });
-          }
-          // If object uses both (mixed icons)
-          else if (hasFill && hasStroke) {
-            obj.set({ fill: color, stroke: color });
-          }
-        }
-      };
-      
-      group.getObjects().forEach(changeObjectColor);
-      canvas.renderAll();
-    }
-  };
 
   // Helper to convert hex to HSL
   const hexToHSL = (hex: string): { h: number; s: number; l: number } => {
@@ -1312,73 +1267,55 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                     <AccordionTrigger className="py-3 px-3 hover:bg-accent/50 rounded-lg hover:no-underline">
                       <span className="text-xs font-semibold uppercase tracking-wider">Icon Styling</span>
                     </AccordionTrigger>
-                    <AccordionContent className="px-3 pb-3 pt-1">
-                      <Tabs value={iconToneMode} onValueChange={(v) => setIconToneMode(v as "direct" | "tone")}>
-                        <TabsList className="grid w-full grid-cols-2 mb-3 bg-accent/20">
-                          <TabsTrigger value="direct" className="text-xs">Direct Color</TabsTrigger>
-                          <TabsTrigger value="tone" className="text-xs">Color Tone</TabsTrigger>
-                        </TabsList>
-                        
-                        <TabsContent value="direct" className="space-y-3 mt-0">
-                          <ColorPickerSection
-                            label="Icon Color"
-                            value={iconColor}
-                            onChange={handleIconColorChange}
-                            recentColors={recentColors}
-                          />
-                        </TabsContent>
-                        
-                        <TabsContent value="tone" className="space-y-3 mt-0">
-                          <div className="space-y-2">
-                            <Label className="text-xs font-medium">Tone Presets</Label>
-                            <div className="grid grid-cols-3 gap-2">
-                              {TONE_PRESETS.map((preset) => (
-                                <Button
-                                  key={preset.name}
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleIconToneChange(preset.color, 0.25)}
-                                  className="h-9 text-xs gap-1"
-                                >
-                                  <span>{preset.emoji}</span>
-                                  <span>{preset.name}</span>
-                                </Button>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <ColorPickerSection
-                            label="Custom Tone Color"
-                            value={iconToneColor}
-                            onChange={handleIconToneChange}
-                            recentColors={[]}
-                          />
+                    <AccordionContent className="px-3 pb-3 pt-1 space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs font-medium">Tone Presets</Label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {TONE_PRESETS.map((preset) => (
+                            <Button
+                              key={preset.name}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleIconToneChange(preset.color, 0.25)}
+                              className="h-9 text-xs gap-1"
+                            >
+                              <span>{preset.emoji}</span>
+                              <span>{preset.name}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <ColorPickerSection
+                        label="Custom Tone Color"
+                        value={iconToneColor}
+                        onChange={handleIconToneChange}
+                        recentColors={[]}
+                      />
 
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-xs">Tone Intensity</Label>
-                              <span className="text-xs font-mono text-muted-foreground">{Math.round(iconToneIntensity * 100)}%</span>
-                            </div>
-                            <Slider
-                              value={[iconToneIntensity * 100]}
-                              onValueChange={([value]) => handleIconToneIntensityChange(value / 100)}
-                              min={0}
-                              max={100}
-                              step={5}
-                              className="w-full"
-                            />
-                          </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-xs">Tone Intensity</Label>
+                          <span className="text-xs font-mono text-muted-foreground">{Math.round(iconToneIntensity * 100)}%</span>
+                        </div>
+                        <Slider
+                          value={[iconToneIntensity * 100]}
+                          onValueChange={([value]) => handleIconToneIntensityChange(value / 100)}
+                          min={0}
+                          max={100}
+                          step={5}
+                          className="w-full"
+                        />
+                      </div>
 
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={handleRemoveIconTone}
-                            className="w-full text-xs h-9"
-                          >
-                            Remove Tone
-                          </Button>
-                        </TabsContent>
-                      </Tabs>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleRemoveIconTone}
+                        className="w-full text-xs h-9"
+                      >
+                        Remove Tone
+                      </Button>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
