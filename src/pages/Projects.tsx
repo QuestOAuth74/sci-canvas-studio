@@ -21,7 +21,7 @@ import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2, Calendar,
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
+
 import noPreviewImage from '@/assets/no_preview.png';
 
 interface Project {
@@ -366,46 +366,46 @@ export default function Projects() {
                   className="group relative bg-card rounded-xl border border-border/50 overflow-hidden hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 animate-fade-in"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {/* Thumbnail */}
-                  <div className="relative overflow-hidden">
-                    <AspectRatio ratio={16 / 9}>
-                      <img
-                        src={project.thumbnail_url || noPreviewImage}
-                        alt={project.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      
-                      {/* Status Badge */}
-                      {project.approval_status && project.approval_status !== 'pending' && (
-                        <div className="absolute top-4 right-4">
-                          <Badge 
-                            variant={
-                              project.approval_status === 'approved' ? 'default' : 
-                              project.approval_status === 'rejected' ? 'destructive' : 
-                              'secondary'
-                            }
-                            className="shadow-lg backdrop-blur-sm"
-                          >
-                            {project.approval_status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
-                            {project.approval_status === 'rejected' && <XCircle className="w-3 h-3 mr-1" />}
-                            {project.approval_status}
-                          </Badge>
-                        </div>
-                      )}
-
-                      {/* Quick Action Overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <Button
-                          onClick={() => openProject(project.id)}
-                          size="lg"
-                          className="shadow-xl bg-white/95 hover:bg-white text-foreground font-medium"
+                  {/* Thumbnail - Full Canvas Snapshot */}
+                  <div className="relative w-full min-h-[160px] max-h-[280px] flex items-center justify-center bg-muted/30 overflow-hidden">
+                    <img
+                      src={project.thumbnail_url || noPreviewImage}
+                      alt={project.name}
+                      className="max-w-full max-h-[280px] object-contain transition-transform duration-500 group-hover:scale-105"
+                    />
+                    
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    
+                    {/* Status Badge */}
+                    {project.approval_status && project.approval_status !== 'pending' && (
+                      <div className="absolute top-4 right-4">
+                        <Badge 
+                          variant={
+                            project.approval_status === 'approved' ? 'default' : 
+                            project.approval_status === 'rejected' ? 'destructive' : 
+                            'secondary'
+                          }
+                          className="shadow-lg backdrop-blur-sm"
                         >
-                          <FolderOpen className="w-5 h-5 mr-2" />
-                          Open Project
-                        </Button>
+                          {project.approval_status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
+                          {project.approval_status === 'rejected' && <XCircle className="w-3 h-3 mr-1" />}
+                          {project.approval_status}
+                        </Badge>
                       </div>
-                    </AspectRatio>
+                    )}
+
+                    {/* Quick Action Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <Button
+                        onClick={() => openProject(project.id)}
+                        size="lg"
+                        className="shadow-xl bg-white/95 hover:bg-white text-foreground font-medium"
+                      >
+                        <FolderOpen className="w-5 h-5 mr-2" />
+                        Open Project
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Card Content */}
