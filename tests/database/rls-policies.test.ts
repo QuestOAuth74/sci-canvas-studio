@@ -102,7 +102,7 @@ describe('RLS Policies Verification', () => {
   });
 
   describe('Profiles RLS Policies', () => {
-    test('User can SELECT their own profile', async () => {
+    test('User can SELECT their own profile including email', async () => {
       const authClient = await createAuthenticatedClient(
         testUser1.email,
         testUser1.password
@@ -117,6 +117,7 @@ describe('RLS Policies Verification', () => {
       expect(error).toBeNull();
       expect(data).toBeDefined();
       expect(data?.id).toBe(testUser1.userId);
+      expect(data?.email).toBe(testUser1.email);
     });
 
     test('User can UPDATE their own profile', async () => {
@@ -133,7 +134,7 @@ describe('RLS Policies Verification', () => {
       expect(error).toBeNull();
     });
 
-    test('User cannot SELECT another user profile', async () => {
+    test('User cannot SELECT another user profile without public projects', async () => {
       const authClient = await createAuthenticatedClient(
         testUser1.email,
         testUser1.password
@@ -202,6 +203,125 @@ describe('RLS Policies Verification', () => {
       expect(profile2).toBeDefined();
       expect(profile1?.email).toBe(testUser1.email);
       expect(profile2?.email).toBe(testUser2.email);
+    });
+
+    test('Public profiles view excludes email addresses', async () => {
+      const serviceClient = createServiceRoleClient();
+
+      // Create a public project for testUser1 to make their profile public
+      const { data: project } = await serviceClient
+        .from('canvas_projects')
+        .insert({
+          user_id: testUser1.userId,
+          name: 'Public Project for Profile Test',
+          canvas_data: {},
+          canvas_width: 800,
+          canvas_height: 600,
+          is_public: true,
+          approval_status: 'approved',
+        })
+        .select()
+        .single();
+
+      // Query the public_profiles view
+      const { data: publicProfile, error } = await serviceClient
+        .from('public_profiles')
+        .select('*')
+        .eq('id', testUser1.userId)
+        .single();
+
+      expect(error).toBeNull();
+      expect(publicProfile).toBeDefined();
+      expect(publicProfile?.full_name).toBeDefined();
+      expect(publicProfile?.avatar_url).toBeDefined();
+      // Email should NOT be in the view
+      expect(publicProfile).not.toHaveProperty('email');
+
+      // Cleanup
+      await serviceClient
+        .from('canvas_projects')
+        .delete()
+        .eq('id', project!.id);
+    });
+
+    test('get_public_profile function returns safe profile data only', async () => {
+      const serviceClient = createServiceRoleClient();
+
+      // Create a public project for testUser1
+      const { data: project } = await serviceClient
+        .from('canvas_projects')
+        .insert({
+          user_id: testUser1.userId,
+          name: 'Public Project for Function Test',
+          canvas_data: {},
+          canvas_width: 800,
+          canvas_height: 600,
+          is_public: true,
+          approval_status: 'approved',
+        })
+        .select()
+        .single();
+
+      // Call the get_public_profile function
+      const { data: publicProfile, error } = await serviceClient
+        .rpc('get_public_profile', { user_id_param: testUser1.userId });
+
+      expect(error).toBeNull();
+      expect(publicProfile).toBeDefined();
+      if (Array.isArray(publicProfile) && publicProfile.length > 0) {
+        const profile = publicProfile[0];
+        expect(profile.full_name).toBeDefined();
+        expect(profile.avatar_url).toBeDefined();
+        // Email should NOT be returned by this function
+        expect(profile).not.toHaveProperty('email');
+      }
+
+      // Cleanup
+      await serviceClient
+        .from('canvas_projects')
+        .delete()
+        .eq('id', project!.id);
+    });
+
+    test('Users with public projects can be queried for public info', async () => {
+      const serviceClient = createServiceRoleClient();
+      const authClient = await createAuthenticatedClient(
+        testUser2.email,
+        testUser2.password
+      );
+
+      // Create a public project for testUser1
+      const { data: project } = await serviceClient
+        .from('canvas_projects')
+        .insert({
+          user_id: testUser1.userId,
+          name: 'Public Project for Query Test',
+          canvas_data: {},
+          canvas_width: 800,
+          canvas_height: 600,
+          is_public: true,
+          approval_status: 'approved',
+        })
+        .select()
+        .single();
+
+      // testUser2 should be able to see testUser1's public profile (without email)
+      const { data: publicInfo, error } = await authClient
+        .from('profiles')
+        .select('id, full_name, avatar_url, bio, country, field_of_study')
+        .eq('id', testUser1.userId)
+        .single();
+
+      expect(error).toBeNull();
+      expect(publicInfo).toBeDefined();
+      expect(publicInfo?.id).toBe(testUser1.userId);
+      expect(publicInfo?.full_name).toBeDefined();
+
+      // Cleanup
+      await serviceClient
+        .from('canvas_projects')
+        .delete()
+        .eq('id', project!.id);
     });
   });
 

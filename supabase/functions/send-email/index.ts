@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@4.0.0";
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const authHookSecret = Deno.env.get("AUTH_HOOK_SECRET");
 const supabaseUrl =
   Deno.env.get("SUPABASE_URL") || "https://tljsbmpglwmzyaoxsqyj.supabase.co";
 const fromEmail = Deno.env.get("CONTACT_ADMIN_EMAIL") || "noreply@biosketch.art";
@@ -106,7 +108,41 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const payload: AuthEmailRequest = await req.json();
+    // Verify webhook signature
+    const payloadText = await req.text();
+    const headers = Object.fromEntries(req.headers);
+
+    if (!authHookSecret) {
+      console.error("AUTH_HOOK_SECRET is not configured");
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Server configuration error"
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    let payload: AuthEmailRequest;
+    try {
+      const wh = new Webhook(authHookSecret);
+      payload = wh.verify(payloadText, headers) as AuthEmailRequest;
+    } catch (error) {
+      console.error("Webhook verification failed:", error);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Invalid webhook signature"
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     const email = payload.user?.email;
     const emailData = payload.email_data;

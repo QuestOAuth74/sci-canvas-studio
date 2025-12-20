@@ -23,10 +23,10 @@ export default function AuthorProfile() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, full_name, avatar_url, bio, country, field_of_study, created_at, updated_at, quote')
         .eq('id', userId)
         .single();
-      
+
       if (error) throw error;
       return data;
     },
