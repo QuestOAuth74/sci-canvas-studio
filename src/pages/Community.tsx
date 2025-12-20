@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { UserMenu } from '@/components/auth/UserMenu';
-import { Loader2, Search, ArrowLeft, Users, Eye, Heart, TrendingUp, Sparkles } from 'lucide-react';
+import { Loader2, Search, ArrowLeft, Users, Eye, Heart, TrendingUp, Sparkles, Library, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProjectCard } from '@/components/community/ProjectCard';
 import { ProjectPreviewModal } from '@/components/community/ProjectPreviewModal';
@@ -175,7 +175,7 @@ export default function Community() {
 
 
   return (
-    <div className="min-h-screen relative notebook-page graph-paper">
+    <div className="min-h-screen bg-background relative">
       <MobileWarningDialog />
       <SEOHead 
         title="Community Gallery - BioSketch" 
@@ -183,77 +183,85 @@ export default function Community() {
       />
       <FeatureUnlockBanner />
       
-      {/* Paper aging effects */}
-      <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-[hsl(var(--pencil-gray)_/_0.03)] to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-[hsl(var(--pencil-gray)_/_0.02)] to-transparent pointer-events-none" />
+      {/* Subtle dot pattern background */}
+      <div className="absolute inset-0 opacity-[0.015]" style={{
+        backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
+        backgroundSize: '24px 24px'
+      }} />
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl relative z-10">
-        {/* Enhanced Header with Stats */}
+      <main className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
+        {/* Modern Academic Header */}
         <div className="mb-12">
-          <div className="mb-6">
-            <h1 className="text-4xl font-bold mb-2 font-['Caveat'] text-[hsl(var(--ink-blue))]">
-              <span className="highlighter-bg px-2">Community Gallery</span>
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-1 h-8 bg-primary rounded-full" />
+              <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                Shared Resources
+              </span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-serif font-semibold text-foreground tracking-tight mb-3">
+              Community Gallery
             </h1>
-            <p className="text-[hsl(var(--pencil-gray))] font-['Caveat'] text-lg">
-              ~ Discover and share scientific diagrams created by the community ~
+            <p className="text-lg text-muted-foreground max-w-2xl">
+              Discover and share scientific diagrams created by researchers and educators worldwide
             </p>
           </div>
 
-          {/* Stats Dashboard - Sticky Notes */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <Card className="sticky-note hover:scale-[1.02] transition-all rotate-[-0.5deg] border-none shadow-none">
-              <CardContent className="p-4">
+          {/* Stats Dashboard - Clean Academic Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <Card className="group bg-card border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Shared Projects</p>
-                    <p className="text-3xl font-bold mt-1 font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats.totalProjects}</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Shared Projects</p>
+                    <p className="text-3xl font-serif font-semibold text-foreground">{stats.totalProjects.toLocaleString()}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-[hsl(var(--ink-blue))]/10 border-2 border-[hsl(var(--ink-blue))]/20 flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                    <Library className="w-5 h-5 text-primary" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="sticky-note hover:scale-[1.02] transition-all rotate-[0.3deg] border-none shadow-none">
-              <CardContent className="p-4">
+            <Card className="group bg-card border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Views</p>
-                    <p className="text-3xl font-bold mt-1 font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats.totalViews.toLocaleString()}</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Total Views</p>
+                    <p className="text-3xl font-serif font-semibold text-foreground">{stats.totalViews.toLocaleString()}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-[hsl(var(--ink-blue))]/10 border-2 border-[hsl(var(--ink-blue))]/20 flex items-center justify-center">
-                    <Eye className="w-6 h-6 text-[hsl(var(--ink-blue))]" />
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/15 transition-colors">
+                    <Eye className="w-5 h-5 text-blue-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="sticky-note hover:scale-[1.02] transition-all rotate-[-0.3deg] border-none shadow-none">
-              <CardContent className="p-4">
+            <Card className="group bg-card border border-border/50 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-[hsl(var(--pencil-gray))] uppercase tracking-wide font-source-serif">Total Likes</p>
-                    <p className="text-3xl font-bold mt-1 font-['Caveat'] text-[hsl(var(--ink-blue))]">{stats.totalLikes.toLocaleString()}</p>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Total Likes</p>
+                    <p className="text-3xl font-serif font-semibold text-foreground">{stats.totalLikes.toLocaleString()}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-full bg-red-500/10 border-2 border-red-500/20 flex items-center justify-center">
-                    <Heart className="w-6 h-6 text-red-600" />
+                  <div className="w-12 h-12 rounded-xl bg-rose-500/10 flex items-center justify-center group-hover:bg-rose-500/15 transition-colors">
+                    <Heart className="w-5 h-5 text-rose-600" />
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Enhanced Search and Filters */}
+          {/* Clean Search and Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[hsl(var(--pencil-gray))]" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search by title, description, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-12 text-base border-2 border-[hsl(var(--pencil-gray))] bg-[#f9f6f0] focus:bg-[hsl(var(--highlighter-yellow))]/20 font-source-serif pencil-sketch transition-colors"
+                className="pl-11 h-12 text-base bg-card border-border/50 focus:border-primary/50 transition-colors"
               />
             </div>
             <CommunityFilters sortBy={sortBy} onSortChange={setSortBy} />
@@ -264,9 +272,9 @@ export default function Community() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <Card key={i} className="overflow-hidden">
+              <Card key={i} className="overflow-hidden border-border/50">
                 <Skeleton className="w-full aspect-[16/9]" />
-                <CardContent className="p-4 space-y-3">
+                <CardContent className="p-5 space-y-3">
                   <Skeleton className="h-6 w-3/4" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-2/3" />
@@ -278,16 +286,16 @@ export default function Community() {
             ))}
           </div>
         ) : displayProjects.length === 0 ? (
-          /* Enhanced Empty State */
+          /* Clean Empty State */
           <div className="text-center py-20">
-            <div className="max-w-md mx-auto border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow p-8 rotate-[-0.5deg]">
-              <div className="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--highlighter-yellow))]/30 flex items-center justify-center">
-                <Users className="w-12 h-12 text-[hsl(var(--ink-blue))]" />
+            <div className="max-w-md mx-auto">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/50 flex items-center justify-center">
+                <Users className="w-10 h-10 text-muted-foreground" />
               </div>
-              <h2 className="text-2xl font-bold mb-2 font-['Caveat'] text-[hsl(var(--ink-blue))]">
+              <h2 className="text-2xl font-serif font-semibold text-foreground mb-3">
                 {searchQuery ? 'No projects found' : 'No community projects yet'}
               </h2>
-              <p className="text-[hsl(var(--pencil-gray))] mb-8 font-['Caveat'] text-lg">
+              <p className="text-muted-foreground mb-6">
                 {searchQuery
                   ? 'Try adjusting your search terms or filters'
                   : 'Be the first to share your scientific illustration with the community'}
@@ -296,8 +304,8 @@ export default function Community() {
           </div>
         ) : (
           <>
-            {/* Modern Project Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Project Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
               {displayProjects.map((project, index) => (
                 <ProjectCard
                   key={project.id}
@@ -309,15 +317,15 @@ export default function Community() {
               ))}
             </div>
 
-            {/* Enhanced Pagination */}
+            {/* Clean Pagination */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-4 mt-8">
+              <div className="flex items-center justify-center gap-4 mt-10">
                 <Pagination>
-                  <PaginationContent className="border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] paper-shadow rounded-lg p-2">
+                  <PaginationContent className="bg-card border border-border/50 rounded-lg p-1.5 shadow-sm">
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[hsl(var(--highlighter-yellow))]/30'} font-source-serif`}
+                        className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'} transition-colors`}
                       />
                     </PaginationItem>
                     
@@ -329,27 +337,22 @@ export default function Community() {
                         
                         const pages: (number | 'ellipsis')[] = [];
                         
-                        // Always show first 3
                         pages.push(1, 2, 3);
                         
-                        // Add ellipsis if current is far from start
                         if (currentPage > 5) {
                           pages.push('ellipsis');
                         }
                         
-                        // Pages around current (if not already included)
                         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
                           if (i > 3 && i < totalPages - 2 && !pages.includes(i)) {
                             pages.push(i);
                           }
                         }
                         
-                        // Add ellipsis if current is far from end
                         if (currentPage < totalPages - 4) {
                           pages.push('ellipsis');
                         }
                         
-                        // Always show last 3
                         for (let i = totalPages - 2; i <= totalPages; i++) {
                           if (!pages.includes(i)) {
                             pages.push(i);
@@ -367,11 +370,11 @@ export default function Community() {
                             <PaginationLink
                               onClick={() => setCurrentPage(page)}
                               isActive={currentPage === page}
-                              className={`cursor-pointer font-source-serif ${
+                              className={`cursor-pointer ${
                                 currentPage === page 
-                                  ? 'bg-[hsl(var(--ink-blue))] text-white border-2 border-[hsl(var(--ink-blue))]' 
-                                  : 'hover:bg-[hsl(var(--highlighter-yellow))]/30'
-                              }`}
+                                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                                  : 'hover:bg-muted'
+                              } transition-colors`}
                             >
                               {page}
                             </PaginationLink>
@@ -383,7 +386,7 @@ export default function Community() {
                     <PaginationItem>
                       <PaginationNext 
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-[hsl(var(--highlighter-yellow))]/30'} font-source-serif`}
+                        className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer hover:bg-muted'} transition-colors`}
                       />
                     </PaginationItem>
                   </PaginationContent>
