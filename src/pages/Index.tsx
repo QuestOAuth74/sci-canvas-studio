@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, Hand } from "lucide-react";
+import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
@@ -17,6 +17,7 @@ import { InstitutionCarousel } from "@/components/InstitutionCarousel";
 import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 import { CommunityCarousel } from "@/components/community/CommunityCarousel";
 import { MaintenanceBanner } from "@/components/MaintenanceBanner";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -40,14 +41,24 @@ const Index = () => {
     "@graph": [getWebApplicationSchema(), getOrganizationSchema()],
   };
 
+  const features = [
+    { icon: Zap, title: "Intuitive Canvas Editor", desc: "Drag-and-drop interface optimized for scientific workflows. Create complex diagrams efficiently." },
+    { icon: Microscope, title: "6,000+ Scientific Icons", desc: "Comprehensive biomedical icon library covering molecular biology, medicine, and laboratory equipment." },
+    { icon: Shield, title: "Publication-Quality Export", desc: "High-resolution PNG, JPG, and vector SVG formats suitable for journals and presentations." },
+    { icon: Share2, title: "Collaboration & Sharing", desc: "Share figures with colleagues and explore community-created scientific illustrations." },
+    { icon: Sparkles, title: "AI-Assisted Generation", desc: "Generate custom scientific figures and icons using AI to accelerate your research workflow." },
+    { icon: MessageCircleHeart, title: "Free for Researchers", desc: "No subscription required. Built by scientists to support the global research community." },
+  ];
+
   return (
-    <div className="min-h-screen notebook-page relative overflow-hidden">
-      {/* Maintenance Banner */}
+    <div className="min-h-screen bg-background relative overflow-hidden">
       <MaintenanceBanner />
       
-      {/* Subtle paper aging effect in corners */}
-      <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-[hsl(var(--pencil-gray)_/_0.03)] to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-[hsl(var(--pencil-gray)_/_0.02)] to-transparent pointer-events-none" />
+      {/* Subtle dot pattern background */}
+      <div className="absolute inset-0 opacity-[0.015]" style={{
+        backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
+        backgroundSize: '24px 24px'
+      }} />
 
       <SEOHead
         title="BioSketch - Free Scientific Illustration Tool for Researchers"
@@ -57,38 +68,38 @@ const Index = () => {
         structuredData={structuredData}
       />
 
-      <div className="container mx-auto px-4 py-12 md:py-16 relative z-10">
-        <div className="max-w-6xl mx-auto space-y-20">
-          {/* Hero Section - Notebook Style */}
+      <div className="container mx-auto px-4 py-16 md:py-20 relative z-10">
+        <div className="max-w-6xl mx-auto space-y-24">
+          {/* Hero Section */}
           <div className="space-y-10 text-center animate-fade-in">
-            {/* Top Badge - Stamped Style */}
-            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-sm bg-card border-2 border-[hsl(var(--pencil-gray))] shadow-sm rotate-[-0.5deg]">
+            {/* Top Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
               <Microscope className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium text-muted-foreground">Trusted by Researchers Worldwide</span>
             </div>
 
             {/* Logo and Branding */}
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="flex items-center justify-center gap-5 flex-wrap">
-                <div className="p-5 rounded-md bg-card border-2 border-[hsl(var(--pencil-gray))] shadow-sm rotate-[1deg]">
+                <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-lg">
                   <img
                     src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
                     alt="BioSketch Logo"
                     className="h-14 w-14 md:h-16 md:w-16 object-contain"
                   />
                 </div>
-                <h1 className="text-5xl md:text-7xl font-bold tracking-tight font-source-serif text-foreground">
+                <h1 className="text-5xl md:text-7xl font-serif font-semibold tracking-tight text-foreground">
                   BioSketch
                 </h1>
               </div>
 
               <div className="max-w-4xl mx-auto space-y-5">
-                <h2 className="text-xl md:text-3xl font-semibold leading-tight font-source-serif text-foreground">
+                <h2 className="text-xl md:text-3xl font-serif font-medium leading-tight text-foreground">
                   Professional Scientific Illustration Software
                 </h2>
-                <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed font-inter">
-                  Design publication-quality figures for research papers, presentations, and grants.{" "}
-                  <span className="highlighter-bg inline-block px-1">Trusted by scientists</span> at leading institutions worldwide.
+                <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                  Design publication-quality figures for research papers, presentations, and grants.
+                  Trusted by scientists at leading institutions worldwide.
                 </p>
               </div>
             </div>
@@ -96,27 +107,41 @@ const Index = () => {
             {/* Welcome Message for Logged-in Users */}
             {user && (
               <div className="flex items-center justify-center gap-3 animate-fade-in">
-                <Hand className="h-7 w-7 text-primary" />
-                <p className="text-xl font-semibold handwritten text-2xl">
-                  Welcome back, {user.user_metadata?.full_name?.split(" ")[0] || "there"}!
+                <p className="text-xl font-serif text-foreground">
+                  Welcome back, <span className="font-semibold text-primary">{user.user_metadata?.full_name?.split(" ")[0] || "there"}</span>
                 </p>
               </div>
             )}
 
-            {/* CTA Buttons - Sticky Note Style */}
-            <div className="flex flex-wrap gap-3 justify-center items-center pt-2">
-              <Button size="lg" variant="sticky" onClick={() => navigate(user ? "/projects" : "/auth")} className="min-w-[180px] h-12 text-lg">
+            {/* CTA Buttons */}
+            <div className="flex flex-wrap gap-4 justify-center items-center pt-4">
+              <Button 
+                size="lg" 
+                onClick={() => navigate(user ? "/projects" : "/auth")} 
+                className="min-w-[180px] h-12 text-base font-medium shadow-lg hover:shadow-xl transition-all"
+              >
                 <Palette className="h-5 w-5 mr-2" />
                 {user ? "Start Creating" : "Start Free"}
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
 
               {user && (
                 <>
-                  <Button size="lg" variant="pencil" onClick={() => navigate("/projects")} className="min-w-[180px] h-12 text-base">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    onClick={() => navigate("/projects")} 
+                    className="min-w-[160px] h-12 text-base"
+                  >
                     <FolderOpen className="h-4 w-4 mr-2" />
                     My Projects
                   </Button>
-                  <Button size="lg" variant="pencil" onClick={() => navigate("/community")} className="min-w-[180px] h-12 text-base">
+                  <Button 
+                    size="lg" 
+                    variant="outline" 
+                    onClick={() => navigate("/community")} 
+                    className="min-w-[160px] h-12 text-base"
+                  >
                     <Users className="h-4 w-4 mr-2" />
                     Community
                   </Button>
@@ -125,50 +150,62 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Institution Logos - Stamped Approval Style */}
-          <div className="space-y-4">
-            <p className="text-center text-sm font-medium text-muted-foreground uppercase tracking-wider handwritten text-lg">
-              ~ Approved by researchers at ~
-            </p>
+          {/* Institution Logos */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-center gap-3">
+              <div className="h-px flex-1 max-w-[100px] bg-border/50" />
+              <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
+                Trusted by researchers at
+              </p>
+              <div className="h-px flex-1 max-w-[100px] bg-border/50" />
+            </div>
             <InstitutionCarousel />
           </div>
 
-          {/* Showcase Carousel - Polaroid Style */}
+          {/* Showcase Carousel */}
           <div className="animate-fade-in [animation-delay:200ms]">
             <div className="max-w-5xl mx-auto">
               <Carousel opts={{ loop: true }}>
                 <CarouselContent>
                   <CarouselItem>
-                    <div className="p-4 bg-white border-2 border-[hsl(var(--pencil-gray))] shadow-lg hover:shadow-xl transition-shadow rotate-[-1deg] hover:rotate-0">
+                    <div className="rounded-2xl overflow-hidden border border-border/50 shadow-2xl bg-card">
                       <img src={carousel1} alt="BioSketch Interface Showcase" className="w-full h-auto" />
-                      <p className="text-center mt-3 handwritten text-lg text-muted-foreground">Canvas workspace in action</p>
+                      <div className="p-4 bg-muted/30 border-t border-border/30">
+                        <p className="text-center text-sm text-muted-foreground">Canvas workspace in action</p>
+                      </div>
                     </div>
                   </CarouselItem>
                   <CarouselItem>
-                    <div className="p-4 bg-white border-2 border-[hsl(var(--pencil-gray))] shadow-lg hover:shadow-xl transition-shadow rotate-[1deg] hover:rotate-0">
+                    <div className="rounded-2xl overflow-hidden border border-border/50 shadow-2xl bg-card">
                       <img src={carousel2} alt="BioSketch Features Showcase" className="w-full h-auto" />
-                      <p className="text-center mt-3 handwritten text-lg text-muted-foreground">Full feature showcase</p>
+                      <div className="p-4 bg-muted/30 border-t border-border/30">
+                        <p className="text-center text-sm text-muted-foreground">Full feature showcase</p>
+                      </div>
                     </div>
                   </CarouselItem>
                 </CarouselContent>
-                <CarouselPrevious className="-left-6 md:-left-12 shadow-lg" />
-                <CarouselNext className="-right-6 md:-right-12 shadow-lg" />
+                <CarouselPrevious className="-left-6 md:-left-12 shadow-lg border-border/50" />
+                <CarouselNext className="-right-6 md:-right-12 shadow-lg border-border/50" />
               </Carousel>
             </div>
           </div>
 
-          {/* Demo Video Section - Polaroid Taped Style */}
+          {/* Demo Video Section */}
           <div className="space-y-8 animate-fade-in [animation-delay:300ms]">
             <div className="text-center space-y-3">
-              <h2 className="text-2xl md:text-3xl font-semibold font-source-serif">See BioSketch in Action</h2>
-              <p className="text-base text-muted-foreground max-w-2xl mx-auto handwritten text-lg">
-                Watch how easy it is to create professional figures →
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-1 h-8 bg-primary rounded-full" />
+                <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                  Quick Demo
+                </span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground">See BioSketch in Action</h2>
+              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                Watch how easy it is to create professional figures
               </p>
             </div>
-            <div className="max-w-4xl mx-auto relative">
-              {/* Tape decoration */}
-              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-32 h-12 bg-[hsl(var(--highlighter-yellow)_/_0.5)] border border-[hsl(var(--highlighter-yellow))] rotate-[-2deg] z-10" />
-              <div className="p-4 bg-white border-2 border-[hsl(var(--pencil-gray))] shadow-2xl rotate-[0.5deg]">
+            <div className="max-w-4xl mx-auto">
+              <div className="rounded-2xl overflow-hidden border border-border/50 shadow-2xl">
                 <video
                   src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
                   className="w-full h-auto"
@@ -182,61 +219,66 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Feature Cards - Torn Notebook Pages */}
+          {/* Feature Cards */}
           <div className="space-y-10">
             <div className="text-center space-y-3">
-              <h2 className="text-2xl md:text-3xl font-semibold font-source-serif">
-                <span className="highlighter-bg">Professional-Grade Features</span>
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-1 h-8 bg-primary rounded-full" />
+                <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
+                  Features
+                </span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground">
+                Professional-Grade Features
               </h2>
-              <p className="text-base text-muted-foreground max-w-2xl mx-auto">Comprehensive toolset for creating publication-ready scientific figures</p>
+              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                Comprehensive toolset for creating publication-ready scientific figures
+              </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-5">
-              {[
-                { icon: Zap, title: "Intuitive Canvas Editor", desc: "Drag-and-drop interface optimized for scientific workflows. Create complex diagrams efficiently." },
-                { icon: Microscope, title: "6,000+ Scientific Icons", desc: "Comprehensive biomedical icon library covering molecular biology, medicine, and laboratory equipment." },
-                { icon: Shield, title: "Publication-Quality Export", desc: "High-resolution PNG, JPG, and vector SVG formats suitable for journals and presentations." },
-                { icon: Share2, title: "Collaboration & Sharing", desc: "Share figures with colleagues and explore community-created scientific illustrations." },
-                { icon: Sparkles, title: "AI-Assisted Generation", desc: "Generate custom scientific figures and icons using AI to accelerate your research workflow." },
-                { icon: MessageCircleHeart, title: "Free for Researchers", desc: "No subscription required. Built by scientists to support the global research community." },
-              ].map((feature, index) => (
-                <div
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {features.map((feature, index) => (
+                <Card
                   key={index}
-                  className="group p-6 rounded-sm border-2 border-[hsl(var(--pencil-gray))] bg-card paper-shadow hover:scale-[1.02] transition-all"
-                  style={{ transform: `rotate(${(index % 2 === 0 ? -0.5 : 0.5)}deg)` }}
+                  className="group bg-card border border-border/50 hover:border-primary/30 hover:shadow-xl transition-all duration-300"
                 >
-                  <div className="w-12 h-12 rounded-md bg-primary/5 flex items-center justify-center mb-4 border border-primary/20">
-                    <feature.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 ink-text font-source-serif">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
-                </div>
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
+                      <feature.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-serif font-semibold text-foreground mb-2">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
 
-          {/* Community Carousel - Pinned Notes Style */}
+          {/* Community Carousel */}
           {user ? (
             <div className="space-y-8 animate-fade-in [animation-delay:400ms]">
               <CommunityCarousel />
             </div>
           ) : (
             <div className="space-y-6 animate-fade-in [animation-delay:400ms]">
-              <div className="text-center space-y-4 p-12 rounded-md border-2 border-dashed border-primary bg-card paper-shadow">
-                <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mx-auto">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-semibold font-source-serif">Discover Community Creations</h3>
-                  <p className="text-muted-foreground max-w-lg mx-auto">
-                    Explore thousands of scientific illustrations created by researchers worldwide. Get inspired and learn from the community.
-                  </p>
-                </div>
-                <Button size="lg" variant="sticky" onClick={() => navigate("/auth")} className="mt-4 text-lg">
-                  <Palette className="h-5 w-5 mr-2" />
-                  Sign Up to Explore
-                </Button>
-              </div>
+              <Card className="border border-border/50 bg-card/50">
+                <CardContent className="text-center p-12 space-y-6">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                    <Users className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-serif font-semibold text-foreground">Discover Community Creations</h3>
+                    <p className="text-muted-foreground max-w-lg mx-auto">
+                      Explore thousands of scientific illustrations created by researchers worldwide. Get inspired and learn from the community.
+                    </p>
+                  </div>
+                  <Button size="lg" onClick={() => navigate("/auth")} className="mt-4">
+                    <Palette className="h-5 w-5 mr-2" />
+                    Sign Up to Explore
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           )}
 
@@ -247,58 +289,62 @@ const Index = () => {
             </div>
           ) : (
             <div className="space-y-6 animate-fade-in [animation-delay:500ms]">
-              <div className="text-center space-y-4 p-12 rounded-md border-2 border-dashed border-primary bg-card paper-shadow">
-                <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center mx-auto">
-                  <Sparkles className="h-8 w-8 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-semibold font-source-serif">Learn from Expert Articles</h3>
-                  <p className="text-muted-foreground max-w-lg mx-auto">
-                    Access tutorials, tips, and scientific illustration best practices. Stay updated with the latest features and techniques.
-                  </p>
-                </div>
-                <Button size="lg" variant="sticky" onClick={() => navigate("/auth")} className="mt-4 text-lg">
-                  <Palette className="h-5 w-5 mr-2" />
-                  Sign Up to Learn
-                </Button>
-              </div>
+              <Card className="border border-border/50 bg-card/50">
+                <CardContent className="text-center p-12 space-y-6">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+                    <Sparkles className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-serif font-semibold text-foreground">Learn from Expert Articles</h3>
+                    <p className="text-muted-foreground max-w-lg mx-auto">
+                      Access tutorials, tips, and scientific illustration best practices. Stay updated with the latest features and techniques.
+                    </p>
+                  </div>
+                  <Button size="lg" onClick={() => navigate("/auth")} className="mt-4">
+                    <Palette className="h-5 w-5 mr-2" />
+                    Sign Up to Learn
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {/* Final CTA - Sticky Note */}
+          {/* Final CTA */}
           {!user && (
-            <div className="text-center py-16 space-y-5 animate-fade-in">
+            <div className="text-center py-16 space-y-6 animate-fade-in">
               <div className="space-y-3">
-                <h2 className="text-2xl md:text-3xl font-semibold handwritten text-4xl">Start Creating Today</h2>
-                <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                <h2 className="text-3xl md:text-4xl font-serif font-semibold text-foreground">Start Creating Today</h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                   Join researchers worldwide who trust BioSketch for their scientific illustrations
                 </p>
               </div>
-              <Button size="lg" variant="sticky" onClick={() => navigate("/auth")} className="min-w-[200px] h-14 text-xl">
+              <Button size="lg" onClick={() => navigate("/auth")} className="min-w-[220px] h-14 text-lg shadow-lg hover:shadow-xl transition-all">
                 <Palette className="h-5 w-5 mr-2" />
                 Create Free Account
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Footer - Clean Notebook Style */}
-      <footer className="border-t-2 border-[hsl(var(--pencil-gray))] bg-card/50 backdrop-blur-sm mt-20">
+      {/* Footer */}
+      <footer className="border-t border-border/50 bg-card/50 mt-20">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand Column */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Microscope className="h-6 w-6 text-primary" />
-                <span className="text-lg font-semibold font-source-serif">BioSketch</span>
+                <span className="text-lg font-serif font-semibold text-foreground">BioSketch</span>
               </div>
               <p className="text-sm text-muted-foreground">Professional scientific illustration software for researchers worldwide.</p>
             </div>
 
             {/* Product Links */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-sm uppercase tracking-wider">Product</h3>
+              <h3 className="font-semibold text-sm uppercase tracking-wider text-foreground">Product</h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <button onClick={() => navigate("/canvas")} className="text-muted-foreground hover:text-primary transition-colors">
@@ -320,7 +366,7 @@ const Index = () => {
 
             {/* Resources Links */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-sm uppercase tracking-wider">Resources</h3>
+              <h3 className="font-semibold text-sm uppercase tracking-wider text-foreground">Resources</h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <button onClick={() => navigate("/blog")} className="text-muted-foreground hover:text-primary transition-colors">
@@ -342,7 +388,7 @@ const Index = () => {
 
             {/* Legal Links */}
             <div className="space-y-4">
-              <h3 className="font-semibold text-sm uppercase tracking-wider">Company</h3>
+              <h3 className="font-semibold text-sm uppercase tracking-wider text-foreground">Company</h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <button onClick={() => navigate("/contact")} className="text-muted-foreground hover:text-primary transition-colors">
@@ -359,7 +405,7 @@ const Index = () => {
           </div>
 
           {/* Copyright */}
-          <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
+          <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} BioSketch. All rights reserved.</p>
           </div>
         </div>
