@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
+
 import { Eye, Copy, Heart } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -137,30 +137,28 @@ export function ProjectCard({ project, onPreview, onLikeChange, index = 0 }: Pro
       onClick={onPreview}
     >
       {/* Thumbnail */}
-      <div className="relative overflow-hidden">
-        <AspectRatio ratio={16 / 9}>
-          <img
-            src={project.thumbnail_url || noPreviewImage}
-            alt={project.title || 'Project thumbnail'}
-            loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Like Button Overlay */}
-          <div className="absolute top-3 right-3">
-            <Button
-              variant={isLiked ? "default" : "secondary"}
-              size="sm"
-              onClick={handleLike}
-              disabled={isLiking}
-              className={`shadow-lg gap-1.5 transition-all ${isLiked ? 'bg-rose-500 hover:bg-rose-600 text-white' : 'bg-white/90 hover:bg-white text-foreground'}`}
-            >
-              <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-current' : ''}`} />
-              <span className="text-xs font-medium">{likeCount}</span>
-            </Button>
-          </div>
-        </AspectRatio>
+      <div className="relative overflow-hidden bg-muted/30 min-h-[160px] max-h-[280px] flex items-center justify-center">
+        <img
+          src={project.thumbnail_url || noPreviewImage}
+          alt={project.title || 'Project thumbnail'}
+          loading="lazy"
+          className="max-w-full max-h-[280px] w-auto h-auto object-contain transition-transform duration-500 group-hover:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        {/* Like Button Overlay */}
+        <div className="absolute top-3 right-3">
+          <Button
+            variant={isLiked ? "default" : "secondary"}
+            size="sm"
+            onClick={handleLike}
+            disabled={isLiking}
+            className={`shadow-lg gap-1.5 transition-all ${isLiked ? 'bg-rose-500 hover:bg-rose-600 text-white' : 'bg-white/90 hover:bg-white text-foreground'}`}
+          >
+            <Heart className={`h-3.5 w-3.5 ${isLiked ? 'fill-current' : ''}`} />
+            <span className="text-xs font-medium">{likeCount}</span>
+          </Button>
+        </div>
       </div>
 
       {/* Card Content */}
