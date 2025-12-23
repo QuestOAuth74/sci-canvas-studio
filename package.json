@@ -38,6 +38,7 @@
     "test:report": "npx tsx scripts/generate-test-report.ts"
   },
   "dependencies": {
+    "@erase2d/fabric": "^1.1.8",
     "@hcaptcha/react-hcaptcha": "^1.13.0",
     "@hookform/resolvers": "^3.10.0",
     "@huggingface/transformers": "^3.7.6",

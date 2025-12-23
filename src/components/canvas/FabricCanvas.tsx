@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Canvas, FabricImage, Rect, Circle, Line, Textbox, Polygon, Ellipse, loadSVGFromString, util, Group, Path, PencilBrush, Control, FabricObject, Gradient } from "fabric";
+import { EraserBrush } from "@erase2d/fabric";
 import { toast } from "sonner";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { loadAllFonts, getCanvasFontFamily, getBaseFontName, debugTextObject, fixInvisibleText, normalizeCanvasTextFonts, normalizeEditingTextFont } from "@/lib/fontLoader";
@@ -1625,44 +1626,68 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     }
   }, [canvas, activeTool]);
 
-  // Handle eraser tool
+  // Make all objects erasable by default
+  useEffect(() => {
+    if (!canvas) return;
+
+    const handleObjectAdded = (e: any) => {
+      const obj = e.target;
+      if (obj && !(obj as any).isGridLine && !(obj as any).isRuler) {
+        (obj as any).erasable = true;
+      }
+    };
+
+    // Set existing objects as erasable
+    canvas.getObjects().forEach((obj) => {
+      if (!(obj as any).isGridLine && !(obj as any).isRuler) {
+        (obj as any).erasable = true;
+      }
+    });
+
+    canvas.on("object:added", handleObjectAdded);
+
+    return () => {
+      canvas.off("object:added", handleObjectAdded);
+    };
+  }, [canvas]);
+
+  // Handle eraser tool - using @erase2d/fabric EraserBrush
   useEffect(() => {
     if (!canvas) return;
 
     if (activeTool === "eraser") {
       canvas.isDrawingMode = true;
       canvas.selection = false;
-      
-      const eraserBrush = new PencilBrush(canvas);
+
+      // Use EraserBrush from @erase2d/fabric package
+      const eraserBrush = new EraserBrush(canvas);
       eraserBrush.width = 20;
-      eraserBrush.color = "rgba(255,255,255,1)"; // Use white to blend with background
       canvas.freeDrawingBrush = eraserBrush;
-      
+
       canvas.defaultCursor = "crosshair";
       canvas.hoverCursor = "crosshair";
 
-      const handleEraserPath = (e: any) => {
-        const path = e.path as Path;
-        if (path) {
-          path.globalCompositeOperation = "destination-out";
-          (path as any).isEraserPath = true;
-          path.selectable = false;
-          path.evented = false;
-          canvas.requestRenderAll();
-        }
+      // Listen to eraser events for save state
+      const handleEraserEnd = () => {
+        saveState();
       };
 
-      canvas.on("path:created", handleEraserPath);
+      if (typeof eraserBrush.on === 'function') {
+        eraserBrush.on("end", handleEraserEnd);
+      }
 
       return () => {
-        canvas.off("path:created", handleEraserPath);
+        // Safely remove event listener if method exists
+        if (typeof eraserBrush.off === 'function') {
+          eraserBrush.off("end", handleEraserEnd);
+        }
         canvas.isDrawingMode = false;
         canvas.selection = true;
         canvas.defaultCursor = "default";
         canvas.hoverCursor = "move";
       };
     }
-  }, [canvas, activeTool]);
+  }, [canvas, activeTool, saveState]);
 
   // Handle image insertion tool
   useEffect(() => {

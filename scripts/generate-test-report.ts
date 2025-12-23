@@ -198,23 +198,89 @@ function parsePlaywrightResults(results: PlaywrightResults | null, suiteName: st
 
 // Parse manual tests from documentation
 function parseManualTests(): ParsedSuiteResults {
-  const manualTestsPath = resolve(__dirname, '..', 'docs', 'milestones', 'manual-testing-milestone1.md');
-
-  // Define manual tests based on documentation
+  // Manual tests from Milestone 1 and Milestone 2 documentation
   const manualTests: ParsedTest[] = [
-    { name: 'DB-1: Fresh Database Seed', status: 'passed', duration: 0, file: 'manual-testing' },
-    { name: 'EM-1: Signup Verification Email', status: 'passed', duration: 0, file: 'manual-testing' },
-    { name: 'EM-2: Verification Link Functionality', status: 'passed', duration: 0, file: 'manual-testing' },
-    { name: 'EM-3: Password Reset Email', status: 'passed', duration: 0, file: 'manual-testing' },
-    { name: 'EM-4: Password Reset Link Functionality', status: 'passed', duration: 0, file: 'manual-testing' },
+    // Milestone 1 - Database & Authentication
+    { name: 'M1-DB-1: Fresh Database Seed', status: 'passed', duration: 0, file: 'milestone-1' },
+    { name: 'M1-EM-1: Signup Verification Email', status: 'passed', duration: 0, file: 'milestone-1' },
+    { name: 'M1-EM-2: Verification Link Functionality', status: 'passed', duration: 0, file: 'milestone-1' },
+    { name: 'M1-EM-3: Password Reset Email', status: 'passed', duration: 0, file: 'milestone-1' },
+    { name: 'M1-EM-4: Password Reset Link Functionality', status: 'passed', duration: 0, file: 'milestone-1' },
+
+    // Milestone 2 - Tool Fixes: Eraser
+    { name: 'M2-TF-1: User can erase part of an object on canvas', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-TF-2: Moving erased object maintains the erased mask in correct position', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-TF-3: Erased state persists after save and reload', status: 'pending', duration: 0, file: 'milestone-2' },
+
+    // Milestone 2 - Tool Fixes: Curved Lines
+    { name: 'M2-TF-4: Exported PNG does not contain green control points or guide lines', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-TF-5: Exported SVG does not contain green control points or guide lines', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-TF-6: Curved line control points remain attached during manipulation', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-TF-7: Curved line control points move smoothly during manipulation', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-TF-8: Guide lines update in real-time during curve editing', status: 'pending', duration: 0, file: 'milestone-2' },
+
+    // Milestone 2 - Tool Fixes: Shape Opacity
+    { name: 'M2-TF-9: Set shape opacity to 50%, deselect, reselect - opacity slider shows 50%', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-TF-10: Set shape opacity, save project, reload - opacity value preserved', status: 'pending', duration: 0, file: 'milestone-2' },
+
+    // Milestone 2 - Tool Fixes: Rotation Handle
+    { name: 'M2-TF-11: Rotation handle cursor changes appropriately (grab → grabbing during drag)', status: 'pending', duration: 0, file: 'milestone-2' },
+
+    // Milestone 2 - Advanced Path Editing
+    { name: 'M2-APE-1: User can modify path by adding and deleting anchor points', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-APE-2: User can toggle anchor point between smooth and corner types', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-APE-3: Crossing lines display visual jump indicator (arc/gap/bridge)', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-APE-4: Path simplification reduces anchor point count', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-APE-5: Freehand drawn lines are converted to smooth curves', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-APE-6: Freehand strokes visually smooth to professional curves', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-APE-7: Smoothing intensity control affects smoothness result', status: 'pending', duration: 0, file: 'milestone-2' },
+
+    // Milestone 2 - Smart Distribution & Spacing
+    { name: 'M2-SDS-1: Distribute horizontally creates equal spacing between 3+ objects', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-SDS-2: Distribute vertically creates equal spacing between 3+ objects', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-SDS-3: Match width makes selected objects same width', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-SDS-4: Match height makes selected objects same height', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-SDS-5: Spacing input field accepts value and applies exact spacing', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-SDS-6: Real-time dimension labels appear between objects during drag', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-SDS-7: Visual spacing guides display correct gap measurements', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-SDS-8: Smart spacing suggestions appear when nearby gaps are similar', status: 'pending', duration: 0, file: 'milestone-2' },
+
+    // Milestone 2 - Image Masking & Filters
+    { name: 'M2-IMF-1: User can apply shape mask (circle or rounded rectangle) to image', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IMF-2: Mask can be edited after application', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IMF-3: Original image is preserved when mask is removed (non-destructive)', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IMF-4: Brightness, contrast, and saturation adjustments are applied to images', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IMF-5: Image adjustments persist after save and reload', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IMF-6: Grayscale and sepia filters are applied to images', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IMF-7: Scientific color map filter is applied to images', status: 'pending', duration: 0, file: 'milestone-2' },
+
+    // Milestone 2 - Icon Library
+    { name: 'M2-IL-1: User can browse and search icons', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IL-2: User can drag icon onto canvas', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IL-3: Icons display with correct colors (not black) in library and on canvas', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IL-4: Icon library visual appearance - all icons show with correct colors', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IL-5: Icon library performance - search returns results quickly (<500ms)', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IL-6: Icon library performance - scrolling is smooth without janking', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-IL-7: Progressive loading displays placeholders while icons load', status: 'pending', duration: 0, file: 'milestone-2' },
+
+    // Milestone 2 - Export
+    { name: 'M2-EXP-1: User can export with transparent background', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-EXP-2: Selection-only export includes only selected objects', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-EXP-3: PDF export contains vector graphics (text remains selectable in PDF)', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-EXP-4: Export quality visual verification (PDF, PNG at different DPIs)', status: 'pending', duration: 0, file: 'milestone-2' },
+    { name: 'M2-EXP-5: CMYK export color accuracy compared to RGB', status: 'pending', duration: 0, file: 'milestone-2' },
   ];
+
+  // Count statuses
+  const passed = manualTests.filter(t => t.status === 'passed').length;
+  const pending = manualTests.filter(t => t.status === 'pending').length;
 
   return {
     suiteName: 'Manual Tests',
     total: manualTests.length,
-    passed: manualTests.length,
+    passed: passed,
     failed: 0,
-    skipped: 0,
+    skipped: pending,
     duration: 0,
     tests: manualTests,
   };
