@@ -133,21 +133,52 @@ export function processSVG(rawContent: string): { success: boolean; svg?: string
   if (!extracted) {
     return { success: false, error: 'No SVG content found in response' };
   }
-  
+
   // Clean up the SVG
   const cleaned = cleanupSVG(extracted);
-  
+
   // Validate
   const validation = validateSVG(cleaned);
   if (!validation.valid) {
-    return { 
-      success: false, 
-      error: `SVG validation failed: ${validation.errors.join(', ')}` 
+    return {
+      success: false,
+      error: `SVG validation failed: ${validation.errors.join(', ')}`
     };
   }
-  
+
   // Optimize for icon usage
   const optimized = optimizeSVGForIcon(cleaned);
-  
+
   return { success: true, svg: optimized };
+}
+
+/**
+ * Sanitize SVG to ensure proper rendering
+ * Adds default fill attribute when missing, replaces currentColor references
+ * @param svgString Raw SVG string
+ * @returns Sanitized SVG string
+ */
+export function sanitizeSVG(svgString: string): string {
+  // TODO: Implement SVG sanitization for unit tests
+  throw new Error('sanitizeSVG not yet implemented');
+}
+
+/**
+ * Calculate SVG complexity score based on element count, path complexity, etc.
+ * @param svgString SVG string
+ * @returns Complexity score (0-100, higher = more complex)
+ */
+export function calculateSVGComplexity(svgString: string): number {
+  // TODO: Implement complexity calculation
+  throw new Error('calculateSVGComplexity not yet implemented');
+}
+
+/**
+ * Minify SVG by removing unnecessary whitespace, comments, etc.
+ * @param svgString SVG string
+ * @returns Minified SVG string
+ */
+export function minifySVG(svgString: string): string {
+  // TODO: Implement SVG minification
+  throw new Error('minifySVG not yet implemented');
 }

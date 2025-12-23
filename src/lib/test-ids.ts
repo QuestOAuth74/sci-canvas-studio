@@ -275,3 +275,154 @@ export enum AuthorProfileTestIds {
   PROJECTS_SECTION = 'author-profile-projects-section',
   PROJECT_CARD = 'author-profile-project-card',
 }
+
+/**
+ * Canvas Editor test IDs
+ * Used in: src/pages/Canvas.tsx, src/components/canvas/*
+ */
+export enum CanvasEditorTestIds {
+  // Page & Canvas
+  PAGE_CONTAINER = 'canvas-editor-page-container',
+  CANVAS_ELEMENT = 'canvas-editor-canvas-element',
+  CANVAS_WRAPPER = 'canvas-editor-canvas-wrapper',
+
+  // Toolbar
+  TOOLBAR = 'canvas-editor-toolbar',
+  UNDO_BUTTON = 'canvas-editor-undo-button',
+  REDO_BUTTON = 'canvas-editor-redo-button',
+
+  // Tools
+  SELECT_TOOL = 'canvas-editor-select-tool',
+  RECTANGLE_TOOL = 'canvas-editor-rectangle-tool',
+  CIRCLE_TOOL = 'canvas-editor-circle-tool',
+  TEXT_TOOL = 'canvas-editor-text-tool',
+  LINE_TOOL = 'canvas-editor-line-tool',
+
+  // Grid & Snapping
+  GRID_TOGGLE = 'canvas-editor-grid-toggle',
+  SNAP_TO_GRID_TOGGLE = 'canvas-editor-snap-to-grid-toggle',
+
+  // Layers Panel
+  LAYERS_PANEL = 'canvas-editor-layers-panel',
+  LAYER_ITEM = 'canvas-editor-layer-item',
+  LAYER_VISIBILITY_TOGGLE = 'canvas-editor-layer-visibility-toggle',
+  LAYER_LOCK_TOGGLE = 'canvas-editor-layer-lock-toggle',
+
+  // Properties Panel
+  PROPERTIES_PANEL = 'canvas-editor-properties-panel',
+  OBJECT_WIDTH_INPUT = 'canvas-editor-object-width-input',
+  OBJECT_HEIGHT_INPUT = 'canvas-editor-object-height-input',
+  OBJECT_X_INPUT = 'canvas-editor-object-x-input',
+  OBJECT_Y_INPUT = 'canvas-editor-object-y-input',
+
+  // Selection & Grouping
+  SELECTED_OBJECT = 'canvas-editor-selected-object',
+  MULTI_SELECTION = 'canvas-editor-multi-selection',
+  GROUP_BUTTON = 'canvas-editor-group-button',
+  UNGROUP_BUTTON = 'canvas-editor-ungroup-button',
+}
+
+/**
+ * Icon Library test IDs
+ * Used in: src/components/canvas/IconLibrary.tsx
+ */
+export enum IconLibraryTestIds {
+  LIBRARY_PANEL = 'icon-library-panel',
+  LIBRARY_TOGGLE = 'icon-library-toggle',
+  SEARCH_INPUT = 'icon-library-search-input',
+  CATEGORY_FILTER = 'icon-library-category-filter',
+  ICON_ITEM = 'icon-library-icon-item',
+  UPLOAD_BUTTON = 'icon-library-upload-button',
+  UPLOAD_DIALOG = 'icon-library-upload-dialog',
+  UPLOAD_FILE_INPUT = 'icon-library-upload-file-input',
+  DELETE_ICON_BUTTON = 'icon-library-delete-icon-button',
+  LOADING_INDICATOR = 'icon-library-loading-indicator',
+}
+
+/**
+ * Export Dialog test IDs
+ * Used in: src/components/canvas/ExportDialog.tsx
+ */
+export enum ExportDialogTestIds {
+  DIALOG = 'export-dialog',
+  DIALOG_TRIGGER = 'export-dialog-trigger',
+
+  // Format selection
+  FORMAT_PNG = 'export-format-png',
+  FORMAT_JPEG = 'export-format-jpeg',
+  FORMAT_SVG = 'export-format-svg',
+  FORMAT_PDF = 'export-format-pdf',
+
+  // DPI options
+  DPI_150 = 'export-dpi-150',
+  DPI_300 = 'export-dpi-300',
+  DPI_600 = 'export-dpi-600',
+
+  // JPEG quality
+  QUALITY_SLIDER = 'export-quality-slider',
+  QUALITY_VALUE = 'export-quality-value',
+
+  // PDF options
+  CMYK_MODE_TOGGLE = 'export-cmyk-mode-toggle',
+
+  // Export button
+  EXPORT_BUTTON = 'export-export-button',
+  CANCEL_BUTTON = 'export-cancel-button',
+}
+
+/**
+ * Canvas Size Dialog test IDs
+ * Used in: src/components/canvas/CustomCanvasDialog.tsx
+ */
+export enum CanvasSizeTestIds {
+  SIZE_DIALOG = 'canvas-size-dialog',
+  SIZE_DIALOG_TRIGGER = 'canvas-size-dialog-trigger',
+
+  // Dimensions
+  WIDTH_INPUT = 'canvas-size-width-input',
+  HEIGHT_INPUT = 'canvas-size-height-input',
+
+  // Units
+  UNIT_SELECT = 'canvas-size-unit-select',
+  UNIT_INCHES = 'canvas-size-unit-inches',
+  UNIT_CM = 'canvas-size-unit-cm',
+  UNIT_PX = 'canvas-size-unit-px',
+
+  // Actions
+  APPLY_BUTTON = 'canvas-size-apply-button',
+  CANCEL_BUTTON = 'canvas-size-cancel-button',
+}
+
+/**
+ * Annotation Tools test IDs
+ * Used in: src/components/canvas/AnnotationTools.tsx
+ */
+export enum AnnotationTestIds {
+  // Numbered callouts
+  CALLOUT_TOOL = 'annotation-callout-tool',
+  CALLOUT_NUMBER = 'annotation-callout-number',
+
+  // Leader lines
+  LEADER_LINE_TOOL = 'annotation-leader-line-tool',
+  LEADER_LINE_TEXT = 'annotation-leader-line-text',
+
+  // Presets
+  PRESET_ARROW_TEXT = 'annotation-preset-arrow-text',
+  PRESET_BRACKET_LABEL = 'annotation-preset-bracket-label',
+
+  // Legend generator
+  LEGEND_GENERATOR_BUTTON = 'annotation-legend-generator-button',
+  LEGEND_OUTPUT = 'annotation-legend-output',
+}
+
+/**
+ * Share Dialog test IDs
+ * Used in: src/components/projects/ShareDialog.tsx
+ */
+export enum ShareDialogTestIds {
+  DIALOG = 'share-dialog',
+  DIALOG_TRIGGER = 'share-dialog-trigger',
+  SHARE_URL = 'share-share-url',
+  COPY_LINK_BUTTON = 'share-copy-link-button',
+  PUBLIC_TOGGLE = 'share-public-toggle',
+}
