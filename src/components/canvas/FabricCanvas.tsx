@@ -550,13 +550,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       const ex = x - target.getCenterPoint().x;
       const ey = y - target.getCenterPoint().y;
       const angle = Math.atan2(ey, ex) * (180 / Math.PI) - 90;
-      
+
       target.angle = angle;
       (target as any).isRotating = true;
       target.canvas?.requestRenderAll();
       return true;
     };
-    
+
     // Track when rotation ends to hide angle label
     fabricCanvas.on('mouse:up', () => {
       const activeObj = fabricCanvas?.getActiveObject();
@@ -576,6 +576,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       actionName: 'rotate',
       render: renderRotationControl,
       withConnection: true,
+      mouseDownHandler: () => {
+        fabricCanvas?.setCursor('grabbing');
+        return true;
+      },
+      mouseUpHandler: () => {
+        fabricCanvas?.setCursor('grab');
+        return true;
+      },
     });
 
     // Apply custom rotation control to FabricObject prototype safely
@@ -1021,8 +1029,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     });
 
     fabricCanvas.on('mouse:move', (e) => {
-      if (e.e.altKey && fabricCanvas?.getActiveObject() && activeTool === 'select') {
-        fabricCanvas?.setCursor('copy');
+      if (activeTool === 'select') {
+        const activeObj = fabricCanvas?.getActiveObject();
+
+        // Check if hovering over rotation control
+        if (activeObj && (activeObj as any).__corner === 'mtr') {
+          const isRotating = (activeObj as any).isRotating;
+          fabricCanvas?.setCursor(isRotating ? 'grabbing' : 'grab');
+          return;
+        }
+
+        // Alt key for copy cursor
+        if (e.e.altKey && activeObj) {
+          fabricCanvas?.setCursor('copy');
+        }
       }
     });
 
@@ -2294,16 +2314,22 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Update cursor based on tool
     if (activeTool === "text") {
       canvas.defaultCursor = "text";
+      canvas.hoverCursor = "text";
     } else if (activeTool === "freeform-line") {
       canvas.defaultCursor = "crosshair";
+      canvas.hoverCursor = "crosshair";
     } else if (activeTool === "pen") {
       canvas.defaultCursor = "crosshair";
+      canvas.hoverCursor = "crosshair";
     } else if (activeTool === "eraser") {
       canvas.defaultCursor = "crosshair";
+      canvas.hoverCursor = "crosshair";
     } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-') || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line') || activeTool.startsWith('curved-line') || activeTool.startsWith('membrane-brush')) {
       canvas.defaultCursor = "crosshair";
+      canvas.hoverCursor = "crosshair";
     } else {
       canvas.defaultCursor = "default";
+      canvas.hoverCursor = "move";
     }
 
     const handleCanvasClick = (e: any) => {
