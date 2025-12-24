@@ -218,7 +218,7 @@ export class CurvedLineTool {
     (group as any).curvedLocalControl = util.transformPoint(new FabricPoint(this.controlPoint.x, this.controlPoint.y), inv);
 
     // Attach transform sync to main group
-    this.attachTransformSync(group);
+    attachCurvedLineTransformSync(this.canvas, group);
 
     // Add control handle and lines to canvas (initialize as hidden)
     controlHandle.visible = false;
@@ -540,111 +540,6 @@ export class CurvedLineTool {
 
       this.canvas.renderAll();
     });
-
-    // When group is selected, show handle and lines
-    group.on('selected', () => {
-      handle.visible = true;
-      line1.visible = true;
-      line2.visible = true;
-      this.canvas.renderAll();
-    });
-
-    // When group is deselected, hide handle and lines
-    group.on('deselected', () => {
-      handle.visible = false;
-      line1.visible = false;
-      line2.visible = false;
-      this.canvas.renderAll();
-    });
-  }
-
-  private attachTransformSync(group: Group): void {
-    const startMarker = (group as any).startMarker as Group | null;
-    const endMarker = (group as any).endMarker as Group | null;
-    const startMarkerType = (group as any).startMarkerType as MarkerType;
-    const endMarkerType = (group as any).endMarkerType as MarkerType;
-    
-    if (!startMarker && !endMarker) return;
-
-    const getMarkerOffset = (markerType: MarkerType): number => {
-      switch (markerType) {
-        case 'arrow': return -12;      // Tip touches endpoint
-        case 'back-arrow': return 12;   // Tip touches endpoint  
-        case 'dot': return 4;           // Radius
-        case 'circle': return 6;        // Radius
-        case 'diamond': return 6;       // Half diagonal
-        case 'block': return 6;         // Half width
-        case 'bar': return 0;           // Perpendicular, no offset
-        default: return 0;
-      }
-    };
-
-    const syncMarkers = () => {
-      const localStart = (group as any).curvedLocalStart;
-      const localEnd = (group as any).curvedLocalEnd;
-      const localControl = (group as any).curvedLocalControl;
-      
-      if (!localStart || !localEnd || !localControl) return;
-
-      const scaleX = group.scaleX || 1;
-      const scaleY = group.scaleY || 1;
-
-      if (startMarker) {
-        const startAngle = this.calculateStartAngle(localStart, localControl, localEnd);
-        
-        // Calculate direction vector from control to start
-        const dx = localStart.x - localControl.x;
-        const dy = localStart.y - localControl.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Apply offset along the tangent direction
-        const offset = getMarkerOffset(startMarkerType);
-        const offsetX = distance > 0 ? (dx / distance) * offset : 0;
-        const offsetY = distance > 0 ? (dy / distance) * offset : 0;
-        
-        startMarker.set({
-          left: localStart.x + offsetX,
-          top: localStart.y + offsetY,
-          angle: startAngle,
-          scaleX: 1 / scaleX,
-          scaleY: 1 / scaleY,
-        });
-      }
-
-      if (endMarker) {
-        const endAngle = this.calculateEndAngle(localStart, localControl, localEnd);
-        
-        // Calculate direction vector from control to end
-        const dx = localEnd.x - localControl.x;
-        const dy = localEnd.y - localControl.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        // Apply offset along the tangent direction
-        const offset = getMarkerOffset(endMarkerType);
-        const offsetX = distance > 0 ? (dx / distance) * offset : 0;
-        const offsetY = distance > 0 ? (dy / distance) * offset : 0;
-        
-        endMarker.set({
-          left: localEnd.x + offsetX,
-          top: localEnd.y + offsetY,
-          angle: endAngle,
-          scaleX: 1 / scaleX,
-          scaleY: 1 / scaleY,
-        });
-      }
-
-      group.setCoords();
-      this.canvas.requestRenderAll();
-    };
-
-    // Sync on all transform events
-    group.on('scaling', syncMarkers);
-    group.on('rotating', syncMarkers);
-    group.on('moving', syncMarkers);
-    group.on('modified', syncMarkers);
-
-    // Initialize
-    syncMarkers();
   }
 
   private getStrokeDashArray(): number[] | undefined {
@@ -929,7 +824,162 @@ export function reconnectCurvedLines(canvas: Canvas): void {
       
       canvas.requestRenderAll();
     });
+
+    // Re-attach transform sync
+    attachCurvedLineTransformSync(canvas, group);
   });
-  
+
   canvas.requestRenderAll();
+}
+
+/**
+ * Calculate start angle for curved line marker
+ */
+function calculateCurveStartAngle(start: Point, control: Point, end: Point): number {
+  // Tangent at start (t=0): derivative = 2(control - start)
+  const tangentX = 2 * (control.x - start.x);
+  const tangentY = 2 * (control.y - start.y);
+  return Math.atan2(tangentY, tangentX) * (180 / Math.PI);
+}
+
+/**
+ * Calculate end angle for curved line marker
+ */
+function calculateCurveEndAngle(start: Point, control: Point, end: Point): number {
+  // Tangent at end (t=1): derivative = 2(end - control)
+  const tangentX = 2 * (end.x - control.x);
+  const tangentY = 2 * (end.y - control.y);
+  return Math.atan2(tangentY, tangentX) * (180 / Math.PI);
+}
+
+/**
+ * Attach transform sync to keep markers, control handles, and guide lines synchronized
+ */
+export function attachCurvedLineTransformSync(canvas: Canvas, group: Group): void {
+  const startMarker = (group as any).startMarker as Group | null;
+  const endMarker = (group as any).endMarker as Group | null;
+  const startMarkerType = (group as any).startMarkerType as string;
+  const endMarkerType = (group as any).endMarkerType as string;
+  const controlHandle = (group as any).controlHandle as Circle | null;
+  const handleLines = (group as any).handleLines as [Line, Line] | null;
+
+  const getMarkerOffset = (markerType: string): number => {
+    switch (markerType) {
+      case 'arrow': return -12;
+      case 'back-arrow': return 12;
+      case 'dot': return 4;
+      case 'circle': return 6;
+      case 'diamond': return 6;
+      case 'block': return 6;
+      case 'bar': return 0;
+      default: return 0;
+    }
+  };
+
+  const syncMarkers = () => {
+    const localStart = (group as any).curvedLocalStart;
+    const localEnd = (group as any).curvedLocalEnd;
+    const localControl = (group as any).curvedLocalControl;
+
+    if (!localStart || !localEnd || !localControl) return;
+
+    const scaleX = group.scaleX || 1;
+    const scaleY = group.scaleY || 1;
+    const matrix = group.calcTransformMatrix();
+
+    // Calculate world coordinates from local coordinates
+    const worldStart = util.transformPoint(new FabricPoint(localStart.x, localStart.y), matrix);
+    const worldEnd = util.transformPoint(new FabricPoint(localEnd.x, localEnd.y), matrix);
+    const worldControl = util.transformPoint(new FabricPoint(localControl.x, localControl.y), matrix);
+
+    if (startMarker) {
+      const startAngle = calculateCurveStartAngle(localStart, localControl, localEnd);
+
+      // Calculate direction vector from control to start
+      const dx = localStart.x - localControl.x;
+      const dy = localStart.y - localControl.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Apply offset along the tangent direction
+      const offset = getMarkerOffset(startMarkerType);
+      const offsetX = distance > 0 ? (dx / distance) * offset : 0;
+      const offsetY = distance > 0 ? (dy / distance) * offset : 0;
+
+      startMarker.set({
+        left: localStart.x + offsetX,
+        top: localStart.y + offsetY,
+        angle: startAngle,
+        scaleX: 1 / scaleX,
+        scaleY: 1 / scaleY,
+      });
+    }
+
+    if (endMarker) {
+      const endAngle = calculateCurveEndAngle(localStart, localControl, localEnd);
+
+      // Calculate direction vector from control to end
+      const dx = localEnd.x - localControl.x;
+      const dy = localEnd.y - localControl.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      // Apply offset along the tangent direction
+      const offset = getMarkerOffset(endMarkerType);
+      const offsetX = distance > 0 ? (dx / distance) * offset : 0;
+      const offsetY = distance > 0 ? (dy / distance) * offset : 0;
+
+      endMarker.set({
+        left: localEnd.x + offsetX,
+        top: localEnd.y + offsetY,
+        angle: endAngle,
+        scaleX: 1 / scaleX,
+        scaleY: 1 / scaleY,
+      });
+    }
+
+    // Synchronize control handle position
+    if (controlHandle) {
+      controlHandle.set({
+        left: worldControl.x,
+        top: worldControl.y,
+      });
+      controlHandle.setCoords();
+    }
+
+    // Synchronize guide lines
+    if (handleLines && handleLines.length === 2) {
+      handleLines[0].set({
+        x1: worldStart.x,
+        y1: worldStart.y,
+        x2: worldControl.x,
+        y2: worldControl.y,
+      });
+
+      handleLines[1].set({
+        x1: worldControl.x,
+        y1: worldControl.y,
+        x2: worldEnd.x,
+        y2: worldEnd.y,
+      });
+
+      handleLines[0].setCoords();
+      handleLines[1].setCoords();
+    }
+
+    // Update world coordinates stored on group (critical for handle dragging)
+    (group as any).curvedLineStart = { x: worldStart.x, y: worldStart.y };
+    (group as any).curvedLineEnd = { x: worldEnd.x, y: worldEnd.y };
+    (group as any).curvedLineControlPoint = { x: worldControl.x, y: worldControl.y };
+
+    group.setCoords();
+    canvas.requestRenderAll();
+  };
+
+  // Sync on all transform events
+  group.on('scaling', syncMarkers);
+  group.on('rotating', syncMarkers);
+  group.on('moving', syncMarkers);
+  group.on('modified', syncMarkers);
+
+  // Initialize
+  syncMarkers();
 }

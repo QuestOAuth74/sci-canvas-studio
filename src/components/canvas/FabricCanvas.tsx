@@ -687,12 +687,35 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     // Helper function to manage curved line control handle visibility
     const manageCurvedLineHandles = (selectedObj: FabricObject | null) => {
+      console.log('[manageCurvedLineHandles] Called with:', selectedObj ? 'selected object' : 'null');
+
+      // Count total control handles on canvas
+      let totalHandlesOnCanvas = 0;
+      fabricCanvas?.getObjects().forEach((obj) => {
+        if ((obj as any).isControlHandle) {
+          totalHandlesOnCanvas++;
+        }
+      });
+      console.log('[manageCurvedLineHandles] Total control handles on canvas:', totalHandlesOnCanvas);
+
+      // Force hide ALL control handle objects by setting opacity to 0
+      fabricCanvas?.getObjects().forEach((obj) => {
+        if ((obj as any).isControlHandle) {
+          obj.set({ opacity: 0 });
+        }
+        if ((obj as any).isHandleLine) {
+          obj.visible = false;
+        }
+      });
+
       // First, hide ALL curved line handles on the canvas
+      let hiddenCount = 0;
       fabricCanvas?.getObjects().forEach((obj) => {
         if ((obj as any).isCurvedLine) {
           const curveData = obj as any;
           if (curveData.controlHandle) {
-            curveData.controlHandle.visible = false;
+            curveData.controlHandle.set({ opacity: 0 });
+            hiddenCount++;
           }
           if (curveData.handleLines) {
             curveData.handleLines.forEach((line: any) => {
@@ -701,12 +724,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           }
         }
       });
+      console.log('[manageCurvedLineHandles] Hidden handles for', hiddenCount, 'curved lines');
 
       // Then, show handles only for the selected curved line
       if (selectedObj && (selectedObj as any).isCurvedLine) {
         const curveData = selectedObj as any;
+        console.log('[manageCurvedLineHandles] Showing handles for selected curve');
         if (curveData.controlHandle) {
-          curveData.controlHandle.visible = true;
+          curveData.controlHandle.set({ opacity: 1 });
+          console.log('[manageCurvedLineHandles] Control handle opacity set to 1');
+        } else {
+          console.log('[manageCurvedLineHandles] WARNING: No controlHandle found on selected curve');
         }
         if (curveData.handleLines) {
           curveData.handleLines.forEach((line: any) => {
@@ -714,8 +742,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           });
         }
       }
-      
-      fabricCanvas?.requestRenderAll();
+
+      fabricCanvas?.renderAll();
     };
 
     // Track selected objects with debug and auto-fix for invisible text

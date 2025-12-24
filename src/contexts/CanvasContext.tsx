@@ -859,17 +859,27 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
 
       // Temporarily hide guides, previews, handles, and eraser paths
+      let controlHandleCount = 0;
+      const originalOpacities: Map<any, number> = new Map();
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
         if (
           o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath || obj.globalCompositeOperation === 'destination-out'
         ) {
-          if (obj.visible) {
-            hidden.push(obj);
+          if (o.isControlHandle) {
+            controlHandleCount++;
+            console.log('[exportAsPNG] Found control handle, opacity:', obj.opacity);
+            originalOpacities.set(obj, obj.opacity || 1);
+            obj.set({ opacity: 0 });
+          } else {
+            if (obj.visible) {
+              hidden.push(obj);
+            }
             obj.visible = false;
           }
         }
       });
+      console.log('[exportAsPNG] Set opacity to 0 for', controlHandleCount, 'control handles');
       canvas.renderAll();
 
       // Calculate multiplier based on DPI (300 is base)
@@ -922,6 +932,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Restore visibility
       hidden.forEach((o) => (o.visible = true));
       hiddenForSelection.forEach((o) => (o.visible = true));
+
+      // Restore opacity for control handles
+      originalOpacities.forEach((opacity, obj) => {
+        obj.set({ opacity });
+      });
+
       canvas.renderAll();
     }
   }, [canvas]);
@@ -949,11 +965,17 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
 
       // Temporarily hide guides, previews, handles, and eraser paths
+      const originalOpacities2: Map<any, number> = new Map();
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
         if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
-          if (obj.visible) {
-            hidden.push(obj);
+          if (o.isControlHandle) {
+            originalOpacities2.set(obj, obj.opacity || 1);
+            obj.set({ opacity: 0 });
+          } else {
+            if (obj.visible) {
+              hidden.push(obj);
+            }
             obj.visible = false;
           }
         }
@@ -1013,6 +1035,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       canvas.backgroundColor = originalBg;
       hidden.forEach((o) => (o.visible = true));
       hiddenForSelection.forEach((o) => (o.visible = true));
+
+      // Restore opacity for control handles
+      originalOpacities2.forEach((opacity, obj) => {
+        obj.set({ opacity });
+      });
+
       canvas.renderAll();
     }
   }, [canvas]);
@@ -1039,11 +1067,17 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
 
       // Temporarily hide guides, previews, handles, and eraser paths
+      const originalOpacities3: Map<any, number> = new Map();
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
         if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
-          if (obj.visible) {
-            hidden.push(obj);
+          if (o.isControlHandle) {
+            originalOpacities3.set(obj, obj.opacity || 1);
+            obj.set({ opacity: 0 });
+          } else {
+            if (obj.visible) {
+              hidden.push(obj);
+            }
             obj.visible = false;
           }
         }
@@ -1052,11 +1086,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
       // Calculate multiplier based on DPI (300 is base)
       const multiplier = dpi / 300;
-      
+
       // Guard against extreme dimensions
       const outW = (canvas.width || 0) * multiplier;
       const outH = (canvas.height || 0) * multiplier;
-      
+
       // Estimate file size
       const estimatedPixels = outW * outH;
       const estimatedMB = (estimatedPixels * 0.5) / (1024 * 1024); // JPG uses ~0.5 bytes per pixel
@@ -1100,6 +1134,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       // Restore visibility
       hidden.forEach((o) => (o.visible = true));
       hiddenForSelection.forEach((o) => (o.visible = true));
+
+      // Restore opacity for control handles
+      originalOpacities3.forEach((opacity, obj) => {
+        obj.set({ opacity });
+      });
+
       canvas.renderAll();
     }
   }, [canvas]);
@@ -1123,11 +1163,17 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
     // Temporarily hide guides, previews, handles, and eraser paths
     const hidden: FabricObject[] = [];
+    const originalOpacities4: Map<any, number> = new Map();
     canvas.getObjects().forEach((obj) => {
       const o: any = obj as any;
       if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
-        if (obj.visible) {
-          hidden.push(obj);
+        if (o.isControlHandle) {
+          originalOpacities4.set(obj, obj.opacity || 1);
+          obj.set({ opacity: 0 });
+        } else {
+          if (obj.visible) {
+            hidden.push(obj);
+          }
           obj.visible = false;
         }
       }
@@ -1139,6 +1185,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     // Restore visibility
     hidden.forEach((o) => (o.visible = true));
     hiddenForSelection.forEach((o) => (o.visible = true));
+
+    // Restore opacity for control handles
+    originalOpacities4.forEach((opacity, obj) => {
+      obj.set({ opacity });
+    });
+
     canvas.renderAll();
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
