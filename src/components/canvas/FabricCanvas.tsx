@@ -77,6 +77,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
   const [isDuplicating, setIsDuplicating] = useState(false);
   const clonedObjectRef = useRef<FabricObject | null>(null);
+  const originalOpacityMapRef = useRef<Map<any, number>>(new Map());
 
   // Helper functions for main-thread SVG processing (fallback when Web Worker fails)
   const calculateSVGComplexityMainThread = (svgContent: string): number => {
@@ -1042,6 +1043,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     // Snap-to-grid removed per user request: free movement while dragging and on release
     // (previous object:modified snapping handler deleted)
 
+    // Store original opacity before transformations to preserve user settings
+    fabricCanvas.on('mouse:down', (e) => {
+      if (e.target && !originalOpacityMapRef.current.has(e.target)) {
+        originalOpacityMapRef.current.set(e.target, e.target.opacity || 1);
+      }
+    });
+
     // Add drag feedback for better micro-interactions
     fabricCanvas.on('object:moving', (e) => {
       if (e.target) {
@@ -1051,8 +1059,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     fabricCanvas.on('object:modified', (e) => {
       if (e.target) {
-        e.target.set({ opacity: 1 }); // Restore full opacity after drag
+        // Restore original opacity instead of hardcoding to 1
+        const originalOpacity = originalOpacityMapRef.current.get(e.target);
+        if (originalOpacity !== undefined) {
+          e.target.set({ opacity: originalOpacity });
+          originalOpacityMapRef.current.delete(e.target);
+        }
         fabricCanvas?.requestRenderAll();
+      }
+    });
+
+    // Clean up opacity map when objects are removed to prevent memory leaks
+    fabricCanvas.on('object:removed', (e) => {
+      if (e.target) {
+        originalOpacityMapRef.current.delete(e.target);
       }
     });
 
