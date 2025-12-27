@@ -179,6 +179,14 @@ interface CanvasContextType {
   // Line gradient operations
   applyLineGradient: (config: any) => void;
   clearLineGradient: () => void;
+
+  // Bezier edit mode
+  isBezierEditMode: boolean;
+  setIsBezierEditMode: (mode: boolean) => void;
+  bezierEditModeRef: any;
+  editingBezierPath: FabricObject | null;
+  setEditingBezierPath: (path: FabricObject | null) => void;
+  exitBezierEditMode: () => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -262,6 +270,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   
   // Export dialog state
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  // Bezier edit mode state
+  const [isBezierEditMode, setIsBezierEditMode] = useState(false);
+  const [editingBezierPath, setEditingBezierPath] = useState<FabricObject | null>(null);
+  const bezierEditModeRef = useRef<any>(null);
 
   // History management with differential compression
   const saveState = useCallback(() => {
@@ -2317,6 +2330,18 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     toast.success('Line gradient cleared');
   }, [selectedObject, canvas, saveState]);
 
+  // Exit bezier edit mode
+  const exitBezierEditMode = useCallback(() => {
+    if (bezierEditModeRef.current && canvas) {
+      bezierEditModeRef.current.deactivate();
+      setIsBezierEditMode(false);
+      setEditingBezierPath(null);
+      // Extra render call to ensure handles are visually removed
+      canvas.requestRenderAll();
+      toast.success("Edit mode exited");
+    }
+  }, [canvas]);
+
   const value: CanvasContextType = {
     canvas,
     setCanvas,
@@ -2435,6 +2460,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     removeImageBackground,
     applyLineGradient,
     clearLineGradient,
+    isBezierEditMode,
+    setIsBezierEditMode,
+    bezierEditModeRef,
+    editingBezierPath,
+    setEditingBezierPath,
+    exitBezierEditMode,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

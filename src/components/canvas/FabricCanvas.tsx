@@ -13,7 +13,6 @@ import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
 import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { MembraneBrushTool } from "@/lib/membraneBrushTool";
 import { BezierEditMode } from "@/lib/bezierEditMode";
-import { BezierEditControls } from "./BezierEditControls";
 import { calculateArcPath } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { loadImageWithCORS } from "@/lib/utils";
@@ -109,26 +108,22 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
   const membraneBrushToolRef = useRef<MembraneBrushTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
-  const bezierEditModeRef = useRef<BezierEditMode | null>(null);
 
-  const [isBezierEditMode, setIsBezierEditMode] = useState(false);
-  const [editingBezierPath, setEditingBezierPath] = useState<any>(null);
-  
   // Object culling manager for viewport-based performance optimization
   const cullingManagerRef = useRef<ObjectCullingManager>(new ObjectCullingManager());
   const throttledCullRef = useRef<(() => void) | null>(null);
-  
-  const { 
+
+  const {
     canvas,
-    setCanvas, 
-    setSelectedObject, 
-    gridEnabled, 
-    rulersEnabled, 
+    setCanvas,
+    setSelectedObject,
+    gridEnabled,
+    rulersEnabled,
     backgroundColor,
     backgroundGradient,
     gridPattern,
     gridSize,
-    canvasDimensions, 
+    canvasDimensions,
     zoom,
     textFont,
     textAlign,
@@ -137,17 +132,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     textBold,
     textItalic,
     saveState,
+    isBezierEditMode,
+    setIsBezierEditMode,
+    bezierEditModeRef,
+    editingBezierPath,
+    setEditingBezierPath,
+    exitBezierEditMode,
   } = useCanvas();
-
-  // Handler to exit bezier edit mode
-  const exitBezierEditMode = () => {
-    if (bezierEditModeRef.current) {
-      bezierEditModeRef.current.deactivate();
-      setIsBezierEditMode(false);
-      setEditingBezierPath(null);
-      toast.success("Edit mode exited");
-    }
-  };
 
   // Keyboard handler for Escape key in edit mode
   useEffect(() => {
@@ -159,7 +150,14 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isBezierEditMode]);
+  }, [isBezierEditMode, exitBezierEditMode]);
+
+  // Exit edit mode when activeTool changes (user selects a different tool)
+  useEffect(() => {
+    if (isBezierEditMode && activeTool !== 'select') {
+      exitBezierEditMode();
+    }
+  }, [activeTool, isBezierEditMode, exitBezierEditMode]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -866,6 +864,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     fabricCanvas.on('selection:cleared', () => {
       setSelectedObject(null);
       manageCurvedLineHandles(null);
+      // Exit edit mode when selection is cleared
+      if (isBezierEditMode) {
+        exitBezierEditMode();
+      }
     });
 
     // Normalize fonts when text editing starts
@@ -4198,15 +4200,6 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           </div>
         </div>
       </div>
-
-      {/* Bezier Edit Mode Controls */}
-      {isBezierEditMode && (
-        <BezierEditControls
-          editMode={bezierEditModeRef.current}
-          selectedPath={editingBezierPath}
-          onExitEditMode={exitBezierEditMode}
-        />
-      )}
     </div>
   );
 };

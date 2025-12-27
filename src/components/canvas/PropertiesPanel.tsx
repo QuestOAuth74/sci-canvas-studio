@@ -16,6 +16,7 @@ import { DiagramSettingsSection } from "./properties/DiagramSettingsSection";
 import { TextPropertiesSection } from "./properties/TextPropertiesSection";
 import { ShapePropertiesSection } from "./properties/ShapePropertiesSection";
 import { ColorPickerSection } from "./properties/ColorPickerSection";
+import { EditModePanel } from "./EditModePanel";
 import { PAPER_SIZES, getPaperSize } from "@/types/paperSizes";
 import { useState, useEffect } from "react";
 import { useCanvas } from "@/contexts/CanvasContext";
@@ -50,12 +51,12 @@ const GOOGLE_FONTS = [
 ];
 
 export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: { isCollapsed?: boolean; onToggleCollapse?: () => void; activeTool?: string }) => {
-  const { 
-    gridEnabled, 
-    setGridEnabled, 
-    rulersEnabled, 
-    setRulersEnabled, 
-    backgroundColor, 
+  const {
+    gridEnabled,
+    setGridEnabled,
+    rulersEnabled,
+    setRulersEnabled,
+    backgroundColor,
     setBackgroundColor,
     paperSize,
     setPaperSize,
@@ -68,6 +69,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     smoothenPath,
     recentColors,
     addToRecentColors,
+    isBezierEditMode,
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -753,9 +755,14 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
-        <ScrollArea type="always" className="flex-1 min-h-0">
-          {/* Pin Object Section - shown when object is selected */}
-          {selectedObject && (
+        <>
+          {/* Edit Mode Panel - shown when in bezier edit mode */}
+          {isBezierEditMode ? (
+            <EditModePanel />
+          ) : (
+            <ScrollArea type="always" className="flex-1 min-h-0">
+              {/* Pin Object Section - shown when object is selected */}
+              {selectedObject && (
             <div className="p-3 border-b border-border/40 bg-accent/10 smooth-transition hover:bg-accent/20">
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pin Object</Label>
@@ -1506,6 +1513,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
           </div>
         </Tabs>
       </ScrollArea>
+          )}
+        </>
       )}
     </div>
   );

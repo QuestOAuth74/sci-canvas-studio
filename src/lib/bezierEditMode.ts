@@ -122,8 +122,13 @@ export class BezierEditMode {
   deactivate(): void {
     if (!this.path) return;
 
+    console.log('[BezierEditMode] Deactivating edit mode - cleaning up handles');
+
     // Remove all handles and guide lines
     this.clearHandles();
+
+    // Clear any active selections that might reference handles
+    this.canvas.discardActiveObject();
 
     // Convert bezierPoints back to world coordinates
     const bezierPoints = (this.path as any).bezierPoints as BezierPoint[];
@@ -177,7 +182,17 @@ export class BezierEditMode {
     this.selectedAnchorId = null;
     this.hoverAnchorId = null;
 
+    // Final cleanup: remove any objects with the edit mode flags
+    const objectsToRemove = this.canvas.getObjects().filter((obj: any) =>
+      obj.isAnchorHandle || obj.isControlHandle || obj.isGuideLine
+    );
+    objectsToRemove.forEach(obj => this.canvas.remove(obj));
+
+    console.log('[BezierEditMode] Removed', objectsToRemove.length, 'lingering edit mode objects');
+
+    // Force multiple render passes to ensure cleanup
     this.canvas.requestRenderAll();
+    setTimeout(() => this.canvas.requestRenderAll(), 0);
   }
 
   /**
@@ -760,21 +775,37 @@ export class BezierEditMode {
    * Clear all control handles and guide lines
    */
   private clearControlHandles(): void {
-    this.controlHandles.forEach(handle => this.canvas.remove(handle));
+    // Remove control handles
+    this.controlHandles.forEach(handle => {
+      this.canvas.remove(handle);
+    });
     this.controlHandles.clear();
 
-    this.guideLines.forEach(line => this.canvas.remove(line));
+    // Remove guide lines
+    this.guideLines.forEach(line => {
+      this.canvas.remove(line);
+    });
     this.guideLines.clear();
+
+    // Force canvas to update and remove any lingering objects
+    this.canvas.renderOnAddRemove = true;
   }
 
   /**
    * Clear all handles (anchor + control)
    */
   private clearHandles(): void {
-    this.anchorHandles.forEach(handle => this.canvas.remove(handle));
+    // Remove anchor handles
+    this.anchorHandles.forEach(handle => {
+      this.canvas.remove(handle);
+    });
     this.anchorHandles.clear();
 
+    // Remove control handles and guide lines
     this.clearControlHandles();
+
+    // Force canvas to clean up removed objects
+    this.canvas.renderOnAddRemove = true;
   }
 
   /**
