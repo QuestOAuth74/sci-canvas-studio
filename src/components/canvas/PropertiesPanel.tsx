@@ -1237,6 +1237,29 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                   </div>
                 </div>
               )}
+
+              {/* Bezier Path Editing */}
+              {selectedObject && (selectedObject as any).isBezierPath && (
+                <div className="pt-3 border-t">
+                  <h3 className="font-semibold text-sm mb-3">Advanced Path Editing</h3>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-accent/10 rounded-lg border border-border/40">
+                      <h4 className="text-xs font-semibold mb-2">Edit Anchor Points</h4>
+                      <ul className="space-y-1.5 text-xs text-muted-foreground">
+                        <li>• Double-click path to enter edit mode</li>
+                        <li>• Click on path to add anchor points</li>
+                        <li>• Select anchors to drag or delete</li>
+                        <li>• Toggle smooth/corner point types</li>
+                        <li>• Drag control handles to reshape</li>
+                        <li>• Press Escape to exit edit mode</li>
+                      </ul>
+                    </div>
+                    <p className="text-xs text-muted-foreground italic">
+                      Double-click this bezier path to activate advanced editing controls.
+                    </p>
+                  </div>
+                </div>
+              )}
             </TabsContent>
 
 

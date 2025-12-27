@@ -12,6 +12,8 @@ import { StraightLineTool } from "@/lib/straightLineTool";
 import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
 import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { MembraneBrushTool } from "@/lib/membraneBrushTool";
+import { BezierEditMode } from "@/lib/bezierEditMode";
+import { BezierEditControls } from "./BezierEditControls";
 import { calculateArcPath } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { loadImageWithCORS } from "@/lib/utils";
@@ -107,6 +109,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const curvedLineToolRef = useRef<CurvedLineTool | null>(null);
   const membraneBrushToolRef = useRef<MembraneBrushTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
+  const bezierEditModeRef = useRef<BezierEditMode | null>(null);
+
+  const [isBezierEditMode, setIsBezierEditMode] = useState(false);
+  const [editingBezierPath, setEditingBezierPath] = useState<any>(null);
   
   // Object culling manager for viewport-based performance optimization
   const cullingManagerRef = useRef<ObjectCullingManager>(new ObjectCullingManager());
@@ -132,6 +138,28 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     textItalic,
     saveState,
   } = useCanvas();
+
+  // Handler to exit bezier edit mode
+  const exitBezierEditMode = () => {
+    if (bezierEditModeRef.current) {
+      bezierEditModeRef.current.deactivate();
+      setIsBezierEditMode(false);
+      setEditingBezierPath(null);
+      toast.success("Edit mode exited");
+    }
+  };
+
+  // Keyboard handler for Escape key in edit mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isBezierEditMode) {
+        exitBezierEditMode();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isBezierEditMode]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -1018,16 +1046,28 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
 
-    // Handle double-click for image placeholders and text box editing
+    // Handle double-click for image placeholders, text box editing, and bezier paths
     fabricCanvas.on('mouse:dblclick', (e) => {
       const obj = e.target;
-      
+
+      // Handle bezier path double-click - enter edit mode
+      if (obj && (obj as any).isBezierPath) {
+        if (!bezierEditModeRef.current) {
+          bezierEditModeRef.current = new BezierEditMode(fabricCanvas);
+        }
+        bezierEditModeRef.current.activate(obj as any);
+        setIsBezierEditMode(true);
+        setEditingBezierPath(obj);
+        toast.info("Edit mode active. Click path to add points, drag anchors to reshape.");
+        return;
+      }
+
       // Handle image placeholder double-click - open file picker
       if (obj && (obj as any).isImagePlaceholder) {
         handleImagePlaceholderClick(obj);
         return;
       }
-      
+
       // Handle text box editing
       if (obj && isTextBox(obj)) {
         const textElement = getTextBoxTextElement(obj);
@@ -1885,7 +1925,17 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     if (!canvas || activeTool !== "pen") {
       // Clean up bezier tool when switching away
       if (bezierToolRef.current) {
-        bezierToolRef.current.cancel();
+        const state = bezierToolRef.current.getState();
+        if (state.isDrawing && state.pointCount >= 2) {
+          // Auto-finish the path if we have at least 2 points
+          const path = bezierToolRef.current.finish();
+          if (path) {
+            toast.success("Bezier path created! Double-click to edit anchor points.");
+          }
+        } else {
+          // Cancel if incomplete
+          bezierToolRef.current.cancel();
+        }
         bezierToolRef.current = null;
       }
       return;
@@ -1911,7 +1961,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       } else if (e.key === "Enter") {
         const path = bezierToolRef.current?.finish();
         if (path) {
-          toast.success("Smooth bezier curve created!");
+          toast.success("Bezier path created! Double-click to edit anchor points.");
           if (onShapeCreated) onShapeCreated();
         }
       }
@@ -1926,7 +1976,12 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       canvas.off("mouse:down", handleCanvasClick);
       window.removeEventListener("keydown", handleKeyDown);
       if (bezierToolRef.current) {
-        bezierToolRef.current.cancel();
+        const state = bezierToolRef.current.getState();
+        if (state.isDrawing && state.pointCount >= 2) {
+          bezierToolRef.current.finish();
+        } else {
+          bezierToolRef.current.cancel();
+        }
       }
     };
   }, [canvas, activeTool, onShapeCreated]);
@@ -4143,6 +4198,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           </div>
         </div>
       </div>
+
+      {/* Bezier Edit Mode Controls */}
+      {isBezierEditMode && (
+        <BezierEditControls
+          editMode={bezierEditModeRef.current}
+          selectedPath={editingBezierPath}
+          onExitEditMode={exitBezierEditMode}
+        />
+      )}
     </div>
   );
 };

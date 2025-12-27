@@ -864,7 +864,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
         if (
-          o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath || obj.globalCompositeOperation === 'destination-out'
+          o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isAnchorHandle || o.isEraserPath || obj.globalCompositeOperation === 'destination-out'
         ) {
           if (o.isControlHandle) {
             controlHandleCount++;
@@ -968,7 +968,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       const originalOpacities2: Map<any, number> = new Map();
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
-        if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
+        if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isAnchorHandle || o.isEraserPath) {
           if (o.isControlHandle) {
             originalOpacities2.set(obj, obj.opacity || 1);
             obj.set({ opacity: 0 });
@@ -1070,7 +1070,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       const originalOpacities3: Map<any, number> = new Map();
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
-        if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
+        if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isAnchorHandle || o.isEraserPath) {
           if (o.isControlHandle) {
             originalOpacities3.set(obj, obj.opacity || 1);
             obj.set({ opacity: 0 });
@@ -1166,7 +1166,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const originalOpacities4: Map<any, number> = new Map();
     canvas.getObjects().forEach((obj) => {
       const o: any = obj as any;
-      if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isEraserPath) {
+      if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isAnchorHandle || o.isEraserPath) {
         if (o.isControlHandle) {
           originalOpacities4.set(obj, obj.opacity || 1);
           obj.set({ opacity: 0 });

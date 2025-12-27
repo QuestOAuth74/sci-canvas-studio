@@ -1,12 +1,10 @@
 import { Path, Circle, Line as FabricLine, Canvas as FabricCanvas, Point } from "fabric";
 import { calculateSmoothCurve, snapToGrid } from "./advancedLineSystem";
+import { BezierPoint as BezierPointType } from "@/types/bezier";
+import { v4 as uuidv4 } from 'uuid';
 
-export interface BezierPoint {
-  x: number;
-  y: number;
-  controlPoint1?: { x: number; y: number };
-  controlPoint2?: { x: number; y: number };
-}
+// Re-export BezierPoint for backwards compatibility
+export type BezierPoint = BezierPointType;
 
 export class EnhancedBezierTool {
   private canvas: FabricCanvas;
@@ -67,10 +65,12 @@ export class EnhancedBezierTool {
     const snappedX = this.snapEnabled ? snapToGrid(x, 10) : x;
     const snappedY = this.snapEnabled ? snapToGrid(y, 10) : y;
 
-    // Add point
+    // Add point with type and unique ID
     this.points.push({
       x: snappedX,
       y: snappedY,
+      type: 'smooth',  // Default to smooth points
+      id: uuidv4(),    // Generate unique ID
     });
 
     // Auto-calculate control points for smooth curve
@@ -270,7 +270,7 @@ export class EnhancedBezierTool {
 
     this.isDrawing = false;
 
-    // Create final path
+    // Create final path from points (in world coordinates)
     let pathData = `M ${this.points[0].x} ${this.points[0].y}`;
 
     for (let i = 0; i < this.points.length - 1; i++) {
