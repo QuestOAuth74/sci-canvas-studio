@@ -415,8 +415,8 @@ export class CurvedLineTool {
       strokeWidth: 2,
       originX: 'center',
       originY: 'center',
-      selectable: true,
-      evented: true,
+      selectable: false, // Only selectable in edit mode
+      evented: false, // Only evented in edit mode
       hasControls: false,
       hasBorders: false,
       hoverCursor: 'move',
@@ -734,8 +734,8 @@ export function reconnectCurvedLines(canvas: Canvas): void {
       strokeWidth: 2,
       originX: 'center',
       originY: 'center',
-      selectable: true,
-      evented: true,
+      selectable: false, // Only selectable in edit mode
+      evented: false, // Only evented in edit mode
       hasControls: false,
       hasBorders: false,
       hoverCursor: 'move',

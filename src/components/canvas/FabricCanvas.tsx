@@ -13,6 +13,7 @@ import { OrthogonalLineTool } from "@/lib/orthogonalLineTool";
 import { CurvedLineTool } from "@/lib/curvedLineTool";
 import { MembraneBrushTool } from "@/lib/membraneBrushTool";
 import { BezierEditMode } from "@/lib/bezierEditMode";
+import { CurvedLineEditMode } from "@/lib/curvedLineEditMode";
 import { calculateArcPath } from "@/lib/advancedLineSystem";
 import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { loadImageWithCORS } from "@/lib/utils";
@@ -138,6 +139,12 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     editingBezierPath,
     setEditingBezierPath,
     exitBezierEditMode,
+    isCurvedLineEditMode,
+    setIsCurvedLineEditMode,
+    curvedLineEditModeRef,
+    editingCurvedLine,
+    setEditingCurvedLine,
+    exitCurvedLineEditMode,
   } = useCanvas();
 
   // Keyboard handler for Escape key in edit mode
@@ -146,18 +153,24 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (e.key === 'Escape' && isBezierEditMode) {
         exitBezierEditMode();
       }
+      if (e.key === 'Escape' && isCurvedLineEditMode) {
+        exitCurvedLineEditMode();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isBezierEditMode, exitBezierEditMode]);
+  }, [isBezierEditMode, exitBezierEditMode, isCurvedLineEditMode, exitCurvedLineEditMode]);
 
   // Exit edit mode when activeTool changes (user selects a different tool)
   useEffect(() => {
     if (isBezierEditMode && activeTool !== 'select') {
       exitBezierEditMode();
     }
-  }, [activeTool, isBezierEditMode, exitBezierEditMode]);
+    if (isCurvedLineEditMode && activeTool !== 'select') {
+      exitCurvedLineEditMode();
+    }
+  }, [activeTool, isBezierEditMode, exitBezierEditMode, isCurvedLineEditMode, exitCurvedLineEditMode]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -713,62 +726,57 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     fabricCanvas.requestRenderAll();
 
     // Helper function to manage curved line control handle visibility
+    // Handles are only shown when in edit mode, not on selection
     const manageCurvedLineHandles = (selectedObj: FabricObject | null) => {
       console.log('[manageCurvedLineHandles] Called with:', selectedObj ? 'selected object' : 'null');
 
-      // Count total control handles on canvas
-      let totalHandlesOnCanvas = 0;
-      fabricCanvas?.getObjects().forEach((obj) => {
-        if ((obj as any).isControlHandle) {
-          totalHandlesOnCanvas++;
-        }
-      });
-      console.log('[manageCurvedLineHandles] Total control handles on canvas:', totalHandlesOnCanvas);
-
-      // Force hide ALL control handle objects by setting opacity to 0
-      fabricCanvas?.getObjects().forEach((obj) => {
-        if ((obj as any).isControlHandle) {
-          obj.set({ opacity: 0 });
-        }
-        if ((obj as any).isHandleLine) {
-          obj.visible = false;
-        }
-      });
-
-      // First, hide ALL curved line handles on the canvas
+      // Manage handles for ALL curved lines on the canvas
       let hiddenCount = 0;
+      let shownCount = 0;
       fabricCanvas?.getObjects().forEach((obj) => {
         if ((obj as any).isCurvedLine) {
           const curveData = obj as any;
-          if (curveData.controlHandle) {
-            curveData.controlHandle.set({ opacity: 0 });
-            hiddenCount++;
-          }
-          if (curveData.handleLines) {
-            curveData.handleLines.forEach((line: any) => {
-              line.visible = false;
-            });
+
+          // If in edit mode: ensure handles are visible and interactive
+          if (curveData.isEditMode) {
+            if (curveData.controlHandle) {
+              curveData.controlHandle.set({
+                visible: true,
+                selectable: true,
+                evented: true,
+              });
+              shownCount++;
+            }
+            if (curveData.handleLines) {
+              curveData.handleLines.forEach((line: any) => {
+                line.set({
+                  visible: true,
+                  selectable: false,
+                  evented: false,
+                  hasControls: false,
+                  hasBorders: false,
+                });
+              });
+            }
+          } else {
+            // If NOT in edit mode: hide handles
+            if (curveData.controlHandle) {
+              curveData.controlHandle.set({
+                visible: false,
+                selectable: false,
+                evented: false,
+              });
+              hiddenCount++;
+            }
+            if (curveData.handleLines) {
+              curveData.handleLines.forEach((line: any) => {
+                line.set({ visible: false });
+              });
+            }
           }
         }
       });
-      console.log('[manageCurvedLineHandles] Hidden handles for', hiddenCount, 'curved lines');
-
-      // Then, show handles only for the selected curved line
-      if (selectedObj && (selectedObj as any).isCurvedLine) {
-        const curveData = selectedObj as any;
-        console.log('[manageCurvedLineHandles] Showing handles for selected curve');
-        if (curveData.controlHandle) {
-          curveData.controlHandle.set({ opacity: 1 });
-          console.log('[manageCurvedLineHandles] Control handle opacity set to 1');
-        } else {
-          console.log('[manageCurvedLineHandles] WARNING: No controlHandle found on selected curve');
-        }
-        if (curveData.handleLines) {
-          curveData.handleLines.forEach((line: any) => {
-            line.visible = true;
-          });
-        }
-      }
+      console.log('[manageCurvedLineHandles] Shown:', shownCount, 'Hidden:', hiddenCount);
 
       fabricCanvas?.renderAll();
     };
@@ -1077,6 +1085,20 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         setIsBezierEditMode(true);
         setEditingBezierPath(obj);
         toast.info("Edit mode active. Double-click path to add points, drag anchors to reshape.");
+        return;
+      }
+
+      // Handle curved line double-click - enter edit mode (unless already in edit mode)
+      if (obj && (obj as any).isCurvedLine && !isCurvedLineEditMode) {
+        if (!curvedLineEditModeRef.current) {
+          curvedLineEditModeRef.current = new CurvedLineEditMode(fabricCanvas);
+        }
+        curvedLineEditModeRef.current.activate(obj as any);
+        setIsCurvedLineEditMode(true);
+        setEditingCurvedLine(obj);
+        // Force handle visibility update
+        manageCurvedLineHandles(obj);
+        toast.info("Edit mode active. Drag control point to adjust curve.");
         return;
       }
 

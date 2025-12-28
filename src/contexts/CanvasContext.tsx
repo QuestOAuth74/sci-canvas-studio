@@ -187,6 +187,14 @@ interface CanvasContextType {
   editingBezierPath: FabricObject | null;
   setEditingBezierPath: (path: FabricObject | null) => void;
   exitBezierEditMode: () => void;
+
+  // Curved line edit mode
+  isCurvedLineEditMode: boolean;
+  setIsCurvedLineEditMode: (mode: boolean) => void;
+  curvedLineEditModeRef: any;
+  editingCurvedLine: FabricObject | null;
+  setEditingCurvedLine: (line: FabricObject | null) => void;
+  exitCurvedLineEditMode: () => void;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -275,6 +283,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [isBezierEditMode, setIsBezierEditMode] = useState(false);
   const [editingBezierPath, setEditingBezierPath] = useState<FabricObject | null>(null);
   const bezierEditModeRef = useRef<any>(null);
+
+  // Curved line edit mode state
+  const [isCurvedLineEditMode, setIsCurvedLineEditMode] = useState(false);
+  const [editingCurvedLine, setEditingCurvedLine] = useState<FabricObject | null>(null);
+  const curvedLineEditModeRef = useRef<any>(null);
 
   // History management with differential compression
   const saveState = useCallback(() => {
@@ -2342,6 +2355,18 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas]);
 
+  // Exit curved line edit mode
+  const exitCurvedLineEditMode = useCallback(() => {
+    if (curvedLineEditModeRef.current && canvas) {
+      curvedLineEditModeRef.current.deactivate();
+      setIsCurvedLineEditMode(false);
+      setEditingCurvedLine(null);
+      // Extra render call to ensure handles are visually removed
+      canvas.requestRenderAll();
+      toast.success("Edit mode exited");
+    }
+  }, [canvas]);
+
   const value: CanvasContextType = {
     canvas,
     setCanvas,
@@ -2466,6 +2491,12 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     editingBezierPath,
     setEditingBezierPath,
     exitBezierEditMode,
+    isCurvedLineEditMode,
+    setIsCurvedLineEditMode,
+    curvedLineEditModeRef,
+    editingCurvedLine,
+    setEditingCurvedLine,
+    exitCurvedLineEditMode,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

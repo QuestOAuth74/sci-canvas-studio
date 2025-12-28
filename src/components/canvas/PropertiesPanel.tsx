@@ -70,6 +70,7 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
     recentColors,
     addToRecentColors,
     isBezierEditMode,
+    isCurvedLineEditMode,
   } = useCanvas();
   const [showBgColor, setShowBgColor] = useState(false);
   const [textFont, setTextFont] = useState("Inter");
@@ -756,8 +757,8 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
       {/* Content - hidden when collapsed */}
       {!isCollapsed && (
         <>
-          {/* Edit Mode Panel - shown when in bezier edit mode */}
-          {isBezierEditMode ? (
+          {/* Edit Mode Panel - shown when in edit mode */}
+          {isBezierEditMode || isCurvedLineEditMode ? (
             <EditModePanel />
           ) : (
             <ScrollArea type="always" className="flex-1 min-h-0">
@@ -1217,30 +1218,12 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
                 <div className="pt-3 border-t">
                   <h3 className="font-semibold text-sm mb-3">Curved Line Control</h3>
                   <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        const curveData = selectedObject as any;
-                        const controlHandle = curveData.controlHandle;
-                        const handleLines = curveData.handleLines;
-                        if (controlHandle) {
-                          controlHandle.visible = !controlHandle.visible;
-                          if (handleLines) {
-                            handleLines.forEach((line: any) => {
-                              line.visible = controlHandle.visible;
-                            });
-                          }
-                          canvas?.renderAll();
-                        }
-                      }}
-                    >
-                      {((selectedObject as any).controlHandle?.visible) ? 'Hide' : 'Show'} Control Point
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      Drag the green control point to adjust the curve shape.
-                    </p>
+                    <div className="p-3 bg-accent/10 rounded-lg border border-border/40">
+                      <h4 className="text-xs font-semibold mb-2">Edit Curve</h4>
+                      <p className="text-xs text-muted-foreground">
+                        Double-click the curved line to enter edit mode and adjust the control point.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
