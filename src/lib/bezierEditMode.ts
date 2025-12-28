@@ -53,16 +53,6 @@ export class BezierEditMode {
       return;
     }
 
-    console.log('[BezierEditMode] ========== ACTIVATING EDIT MODE ==========');
-    console.log('[BezierEditMode] Path state:');
-    console.log('  - left:', this.path.left, 'top:', this.path.top);
-    console.log('  - width:', this.path.width, 'height:', this.path.height);
-    console.log('  - originX:', this.path.originX, 'originY:', this.path.originY);
-    console.log('  - pathOffset:', (this.path as any).pathOffset);
-    console.log('  - scaleX:', this.path.scaleX, 'scaleY:', this.path.scaleY);
-    console.log('  - angle:', this.path.angle);
-    console.log('[BezierEditMode] First bezierPoint (world):', bezierPoints[0]);
-
     // Mark path as in edit mode
     (this.path as any).isEditMode = true;
 
@@ -98,7 +88,6 @@ export class BezierEditMode {
       });
 
       (this.path as any).bezierPointsAreLocal = true;
-      console.log('[BezierEditMode] Converted to local - first point:', bezierPoints[0]);
     }
 
     // Deselect the path to hide the selection box/controls
@@ -119,11 +108,18 @@ export class BezierEditMode {
       this.createAnchorHandle(point);
     });
 
+    // Remove any existing handler first to prevent duplicates
+    if (this.pathDoubleClickHandler) {
+      this.canvas.off('mouse:dblclick', this.pathDoubleClickHandler);
+    }
+
     // Attach double-click handler to canvas for adding anchor points
     // (object-level double-click events aren't well supported, so use canvas-level event)
     this.pathDoubleClickHandler = (e: any) => {
       // Only handle if the target is our path
-      if (e.target !== this.path) return;
+      if (e.target !== this.path) {
+        return;
+      }
 
       // Get the pointer position relative to the canvas
       const pointer = this.canvas.getPointer(e.e);
@@ -149,8 +145,6 @@ export class BezierEditMode {
    */
   deactivate(): void {
     if (!this.path) return;
-
-    console.log('[BezierEditMode] Deactivating edit mode - cleaning up handles');
 
     // Remove double-click event handler from canvas
     if (this.pathDoubleClickHandler) {
@@ -198,8 +192,6 @@ export class BezierEditMode {
     );
     objectsToRemove.forEach(obj => this.canvas.remove(obj));
 
-    console.log('[BezierEditMode] Removed', objectsToRemove.length, 'lingering edit mode objects');
-
     // Force multiple render passes to ensure cleanup
     this.canvas.requestRenderAll();
     setTimeout(() => this.canvas.requestRenderAll(), 0);
@@ -218,8 +210,6 @@ export class BezierEditMode {
 
     const worldPoint = this.getWorldPoint(point);
     const isSmooth = point.type === 'smooth';
-
-    console.log('[createAnchorHandle] Creating handle at world position:', worldPoint.x, worldPoint.y);
 
     let handle: Circle | Rect;
 
@@ -292,6 +282,9 @@ export class BezierEditMode {
     // Attach event handlers
     handle.on('mousedown', () => this.handleAnchorClick(point.id));
     handle.on('moving', () => this.handleAnchorDrag(point.id));
+    handle.on('modified', () => {
+      this.recalculateHitArea();
+    });
     handle.on('mouseover', () => this.handleAnchorHover(point.id));
     handle.on('mouseout', () => this.handleAnchorHoverOut());
 
@@ -382,6 +375,9 @@ export class BezierEditMode {
     (handle as any).excludeFromExport = true;
 
     handle.on('moving', () => this.handleControlDrag(pointId, handleIndex));
+    handle.on('modified', () => {
+      this.recalculateHitArea();
+    });
 
     return handle;
   }
@@ -748,17 +744,14 @@ export class BezierEditMode {
   }
 
   /**
-   * Rebuild the path from bezier points (in local coordinates)
+   * Recalculate the path's hit detection area
+   * Call this after drag operations complete to update clickable regions
    */
-  private rebuildPath(): void {
+  private recalculateHitArea(): void {
     if (!this.path) return;
 
     const bezierPoints = (this.path as any).bezierPoints as BezierPoint[];
     if (bezierPoints.length < 2) return;
-
-    console.log('[rebuildPath] BEFORE - left:', this.path.left, 'top:', this.path.top);
-    console.log('[rebuildPath] BEFORE - pathOffset:', (this.path as any).pathOffset);
-    console.log('[rebuildPath] BezierPoints:', bezierPoints);
 
     // Build path data from bezierPoints
     let pathData = `M ${bezierPoints[0].x} ${bezierPoints[0].y}`;
@@ -770,7 +763,33 @@ export class BezierEditMode {
       pathData += ` C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${next.x} ${next.y}`;
     }
 
-    console.log('[rebuildPath] Path data:', pathData);
+    // Update path with new data
+    this.path.set({
+      path: util.parsePath(pathData),
+      dirty: true,
+    });
+
+    this.path.setCoords();
+  }
+
+  /**
+   * Rebuild the path from bezier points (in local coordinates)
+   */
+  private rebuildPath(): void {
+    if (!this.path) return;
+
+    const bezierPoints = (this.path as any).bezierPoints as BezierPoint[];
+    if (bezierPoints.length < 2) return;
+
+    // Build path data from bezierPoints
+    let pathData = `M ${bezierPoints[0].x} ${bezierPoints[0].y}`;
+    for (let i = 0; i < bezierPoints.length - 1; i++) {
+      const curr = bezierPoints[i];
+      const next = bezierPoints[i + 1];
+      const cp1 = curr.controlPoint2 || curr;
+      const cp2 = next.controlPoint1 || next;
+      pathData += ` C ${cp1.x} ${cp1.y}, ${cp2.x} ${cp2.y}, ${next.x} ${next.y}`;
+    }
 
     // Update path with new data
     this.path.set({
@@ -780,9 +799,6 @@ export class BezierEditMode {
     });
 
     this.path.setCoords();
-
-    console.log('[rebuildPath] AFTER - left:', this.path.left, 'top:', this.path.top);
-    console.log('[rebuildPath] AFTER - pathOffset:', (this.path as any).pathOffset);
 
     this.updateAnchorHandles();
     this.canvas.requestRenderAll();
@@ -833,15 +849,11 @@ export class BezierEditMode {
 
     // Convert from local coordinates to world coordinates using transform matrix
     const matrix = this.path.calcTransformMatrix();
-    console.log('[getWorldPoint] Transform matrix:', matrix);
-    console.log('[getWorldPoint] Input (local):', point.x, point.y);
 
     const worldPoint = util.transformPoint(
       new FabricPoint(point.x, point.y),
       matrix
     );
-
-    console.log('[getWorldPoint] Output (world):', worldPoint.x, worldPoint.y);
 
     return {
       x: worldPoint.x,
@@ -1017,6 +1029,9 @@ export class BezierEditMode {
 
     // Rebuild path
     this.rebuildPath();
+
+    // Recalculate hit area after deleting point
+    this.recalculateHitArea();
 
     this.canvas.requestRenderAll();
   }
