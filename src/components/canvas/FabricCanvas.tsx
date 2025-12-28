@@ -861,13 +861,29 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       }
     });
     
+    // Track the last selected object before selection is cleared
+    let lastSelectedObject: any = null;
+    fabricCanvas.on('selection:created', (e) => {
+      lastSelectedObject = e.selected?.[0];
+    });
+    fabricCanvas.on('selection:updated', (e) => {
+      lastSelectedObject = e.selected?.[0];
+    });
+
     fabricCanvas.on('selection:cleared', () => {
       setSelectedObject(null);
       manageCurvedLineHandles(null);
-      // Exit edit mode when selection is cleared
+
+      // Exit edit mode when selection is cleared, UNLESS we just cleared an anchor/control handle
+      // (which happens when clicking between anchor points)
       if (isBezierEditMode) {
-        exitBezierEditMode();
+        const wasEditModeHandle = lastSelectedObject?.isAnchorHandle || lastSelectedObject?.isControlHandle;
+        if (!wasEditModeHandle) {
+          exitBezierEditMode();
+        }
       }
+
+      lastSelectedObject = null;
     });
 
     // Normalize fonts when text editing starts
@@ -1052,15 +1068,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     fabricCanvas.on('mouse:dblclick', (e) => {
       const obj = e.target;
 
-      // Handle bezier path double-click - enter edit mode
-      if (obj && (obj as any).isBezierPath) {
+      // Handle bezier path double-click - enter edit mode (unless already in edit mode)
+      if (obj && (obj as any).isBezierPath && !isBezierEditMode) {
         if (!bezierEditModeRef.current) {
           bezierEditModeRef.current = new BezierEditMode(fabricCanvas);
         }
         bezierEditModeRef.current.activate(obj as any);
         setIsBezierEditMode(true);
         setEditingBezierPath(obj);
-        toast.info("Edit mode active. Click path to add points, drag anchors to reshape.");
+        toast.info("Edit mode active. Double-click path to add points, drag anchors to reshape.");
         return;
       }
 

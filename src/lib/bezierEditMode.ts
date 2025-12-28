@@ -29,6 +29,7 @@ export class BezierEditMode {
   private guideLines: Map<string, FabricLine> = new Map();
   private selectedAnchorId: string | null = null;
   private hoverAnchorId: string | null = null;
+  private pathDoubleClickHandler: ((e: any) => void) | null = null;
 
   constructor(canvas: Canvas, config?: Partial<BezierEditConfig>) {
     this.canvas = canvas;
@@ -100,18 +101,45 @@ export class BezierEditMode {
       console.log('[BezierEditMode] Converted to local - first point:', bezierPoints[0]);
     }
 
+    // Deselect the path to hide the selection box/controls
+    this.canvas.discardActiveObject();
+
     // Disable path selection/dragging while in edit mode
+    // Keep evented:true so path can receive double-click events for adding anchor points
     // Disable caching to prevent clipping issues
     this.path.set({
       selectable: false,
-      evented: false,
+      evented: true,
       objectCaching: false, // Prevents clipping during edit
+      hoverCursor: 'crosshair', // Show crosshair cursor when hovering over path
     });
 
     // Create anchor handles for all points
     bezierPoints.forEach((point, index) => {
       this.createAnchorHandle(point);
     });
+
+    // Attach double-click handler to canvas for adding anchor points
+    // (object-level double-click events aren't well supported, so use canvas-level event)
+    this.pathDoubleClickHandler = (e: any) => {
+      // Only handle if the target is our path
+      if (e.target !== this.path) return;
+
+      // Get the pointer position relative to the canvas
+      const pointer = this.canvas.getPointer(e.e);
+
+      // Convert from canvas coordinates to local coordinates
+      const invMatrix = util.invertTransform(this.path!.calcTransformMatrix());
+      const localPoint = util.transformPoint(
+        new FabricPoint(pointer.x, pointer.y),
+        invMatrix
+      );
+
+      // Add anchor point at the clicked position
+      this.addAnchorPoint(localPoint.x, localPoint.y);
+    };
+
+    this.canvas.on('mouse:dblclick', this.pathDoubleClickHandler);
 
     this.canvas.requestRenderAll();
   }
@@ -123,6 +151,12 @@ export class BezierEditMode {
     if (!this.path) return;
 
     console.log('[BezierEditMode] Deactivating edit mode - cleaning up handles');
+
+    // Remove double-click event handler from canvas
+    if (this.pathDoubleClickHandler) {
+      this.canvas.off('mouse:dblclick', this.pathDoubleClickHandler);
+      this.pathDoubleClickHandler = null;
+    }
 
     // Remove all handles and guide lines
     this.clearHandles();
@@ -148,6 +182,7 @@ export class BezierEditMode {
       evented: true,
       objectCaching: true,
       dirty: true,
+      hoverCursor: 'move', // Reset cursor back to default
     });
 
     // Force bounding box recalculation
@@ -174,6 +209,13 @@ export class BezierEditMode {
    * Create visual anchor handle for a bezier point
    */
   private createAnchorHandle(point: BezierPoint): void {
+    // Remove any existing handle for this point ID to prevent duplicates
+    const existingHandle = this.anchorHandles.get(point.id);
+    if (existingHandle) {
+      this.canvas.remove(existingHandle);
+      this.anchorHandles.delete(point.id);
+    }
+
     const worldPoint = this.getWorldPoint(point);
     const isSmooth = point.type === 'smooth';
 
@@ -879,6 +921,12 @@ export class BezierEditMode {
 
     const bezierPoints = (this.path as any).bezierPoints as BezierPoint[];
     if (bezierPoints.length < 2) return;
+
+    // Deselect any currently selected anchor
+    if (this.selectedAnchorId) {
+      this.deselectAnchor(this.selectedAnchorId);
+      this.selectedAnchorId = null;
+    }
 
     // Find closest point on path
     const result = findClosestPointOnPath(x, y, bezierPoints);
