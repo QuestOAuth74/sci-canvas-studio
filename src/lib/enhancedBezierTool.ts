@@ -1,4 +1,4 @@
-import { Path, Circle, Line as FabricLine, Canvas as FabricCanvas, Point } from "fabric";
+import { Path, Circle, Line as FabricLine, Canvas as FabricCanvas, Point, util } from "fabric";
 import { calculateSmoothCurve, snapToGrid } from "./advancedLineSystem";
 import { BezierPoint as BezierPointType } from "@/types/bezier";
 import { v4 as uuidv4 } from 'uuid';
@@ -293,8 +293,46 @@ export class EnhancedBezierTool {
       strokeUniform: true,
     } as any);
 
-    // Store bezier data for future editing
-    (finalPath as any).bezierPoints = this.points;
+    // Convert bezierPoints to local coordinates (relative to the path's coordinate system)
+    // This ensures anchor points stay aligned when the path is moved
+    const matrix = finalPath.calcTransformMatrix();
+    const invMatrix = util.invertTransform(matrix);
+
+    const localPoints: BezierPoint[] = this.points.map(point => {
+      const localAnchor = util.transformPoint(
+        new Point(point.x, point.y),
+        invMatrix
+      );
+
+      const localPoint: BezierPoint = {
+        x: localAnchor.x,
+        y: localAnchor.y,
+        type: point.type,
+        id: point.id,
+      };
+
+      if (point.controlPoint1) {
+        const localCp1 = util.transformPoint(
+          new Point(point.controlPoint1.x, point.controlPoint1.y),
+          invMatrix
+        );
+        localPoint.controlPoint1 = { x: localCp1.x, y: localCp1.y };
+      }
+
+      if (point.controlPoint2) {
+        const localCp2 = util.transformPoint(
+          new Point(point.controlPoint2.x, point.controlPoint2.y),
+          invMatrix
+        );
+        localPoint.controlPoint2 = { x: localCp2.x, y: localCp2.y };
+      }
+
+      return localPoint;
+    });
+
+    // Store bezier data for future editing (in local coordinates)
+    (finalPath as any).bezierPoints = localPoints;
+    (finalPath as any).bezierPointsAreLocal = true;
     (finalPath as any).isBezierPath = true;
 
     this.clearTemporaryObjects();

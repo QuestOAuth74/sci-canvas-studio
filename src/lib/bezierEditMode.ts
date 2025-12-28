@@ -130,37 +130,12 @@ export class BezierEditMode {
     // Clear any active selections that might reference handles
     this.canvas.discardActiveObject();
 
-    // Convert bezierPoints back to world coordinates
+    // Keep bezierPoints in local coordinates - they should always be local
+    // This ensures anchor points stay aligned when the path is moved
     const bezierPoints = (this.path as any).bezierPoints as BezierPoint[];
     if (bezierPoints && bezierPoints.length >= 2) {
-      const finalMatrix = this.path.calcTransformMatrix();
-      bezierPoints.forEach(point => {
-        const worldAnchor = util.transformPoint(
-          new FabricPoint(point.x, point.y),
-          finalMatrix
-        );
-        point.x = worldAnchor.x;
-        point.y = worldAnchor.y;
-
-        if (point.controlPoint1) {
-          const worldCp1 = util.transformPoint(
-            new FabricPoint(point.controlPoint1.x, point.controlPoint1.y),
-            finalMatrix
-          );
-          point.controlPoint1.x = worldCp1.x;
-          point.controlPoint1.y = worldCp1.y;
-        }
-        if (point.controlPoint2) {
-          const worldCp2 = util.transformPoint(
-            new FabricPoint(point.controlPoint2.x, point.controlPoint2.y),
-            finalMatrix
-          );
-          point.controlPoint2.x = worldCp2.x;
-          point.controlPoint2.y = worldCp2.y;
-        }
-      });
-
-      (this.path as any).bezierPointsAreLocal = false;
+      // Ensure the flag is set to local (it should already be, but just to be safe)
+      (this.path as any).bezierPointsAreLocal = true;
     }
 
     // Mark path as not in edit mode
