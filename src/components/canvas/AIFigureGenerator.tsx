@@ -957,7 +957,6 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
         <DialogHeader>
           <div className="flex items-center gap-2">
             <DialogTitle>AI Figure Generator</DialogTitle>
-            <Badge variant="secondary">Admin Only</Badge>
           </div>
           <DialogDescription>
             Upload a reference image and let AI recreate it with intelligent connector styling
