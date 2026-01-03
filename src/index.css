@@ -13,10 +13,6 @@ All colors MUST be HSL.
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
   
-  .dark .glass-effect {
-    @apply bg-card/80 backdrop-blur-md border border-white/5;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
 
   .soft-shadow {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -186,45 +182,12 @@ All colors MUST be HSL.
     --canvas-selection-border: 230 65% 28%;
   }
 
-  /* Canvas Workspace Theme - Dark Mode */
-  .canvas-workspace.dark {
-    /* Workspace Background - Deep slate */
-    --canvas-bg-primary: 224 30% 10%;
-    --canvas-bg-secondary: 224 28% 12%;
-    --canvas-bg-tertiary: 224 25% 14%;
-    
-    /* Workspace UI Elements */
-    --canvas-sidebar-bg: 224 28% 12%;
-    --canvas-panel-bg: 224 28% 14%;
-    --canvas-panel-border: 224 20% 22%;
-    
-    /* Accent Colors - Brighter for dark mode */
-    --canvas-accent-primary: 230 70% 55%;
-    --canvas-accent-secondary: 175 65% 48%;
-    --canvas-accent-tertiary: 230 60% 60%;
-    
-    /* Text & Icons */
-    --canvas-text-primary: 220 15% 92%;
-    --canvas-text-secondary: 220 12% 65%;
-    --canvas-text-muted: 220 10% 45%;
-    
-    /* Interactive Elements */
-    --canvas-hover-bg: 230 40% 18%;
-    --canvas-active-bg: 230 70% 55%;
-    --canvas-selection-border: 230 70% 55%;
-  }
-
   /* Scientific Workspace Patterns - Clean Dot Grid */
   .canvas-scientific-grid {
     background-image: 
       radial-gradient(circle, hsl(230 65% 28% / 0.06) 1px, transparent 1px);
     background-size: 20px 20px;
     background-position: 10px 10px;
-  }
-
-  .dark .canvas-scientific-grid {
-    background-image: 
-      radial-gradient(circle, hsl(230 70% 55% / 0.1) 1px, transparent 1px);
   }
 
   /* Canvas Interaction States */
@@ -370,50 +333,6 @@ All colors MUST be HSL.
     --sidebar-ring: 230 65% 28%;
   }
 
-  .dark {
-    /* BioRender-Inspired Professional Scientific Theme - Dark Mode */
-    --background: 224 30% 10%;
-    --foreground: 220 15% 92%;
-    --card: 224 28% 13%;
-    --card-foreground: 220 15% 92%;
-    --popover: 224 28% 13%;
-    --popover-foreground: 220 15% 92%;
-    
-    /* Primary - Bright Indigo */
-    --primary: 230 70% 55%;
-    --primary-foreground: 0 0% 100%;
-    
-    /* Secondary - Slate */
-    --secondary: 220 18% 22%;
-    --secondary-foreground: 220 15% 92%;
-    
-    /* Muted */
-    --muted: 224 25% 18%;
-    --muted-foreground: 220 12% 55%;
-    
-    /* Accent - Vibrant Teal */
-    --accent: 175 65% 48%;
-    --accent-foreground: 224 30% 10%;
-    
-    /* Destructive */
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    
-    /* UI Elements */
-    --border: 224 20% 22%;
-    --input: 224 25% 18%;
-    --ring: 230 70% 55%;
-    
-    /* Sidebar */
-    --sidebar-background: 224 28% 12%;
-    --sidebar-foreground: 220 15% 92%;
-    --sidebar-primary: 230 70% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 175 65% 48%;
-    --sidebar-accent-foreground: 224 30% 10%;
-    --sidebar-border: 224 20% 22%;
-    --sidebar-ring: 230 70% 55%;
-  }
 }
 
 @layer base {

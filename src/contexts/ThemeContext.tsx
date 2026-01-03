@@ -1,9 +1,6 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from 'react';
 
 interface ThemeContextType {
-  darkMode: boolean;
-  setDarkMode: (darkMode: boolean) => void;
-  toggleDarkMode: () => void;
   canvasMode: boolean;
   setCanvasMode: (mode: boolean) => void;
 }
@@ -11,34 +8,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [darkMode, setDarkModeState] = useState<boolean>(() => {
-    const stored = localStorage.getItem('theme-dark-mode');
-    return stored === 'true';
-  });
-
   const [canvasMode, setCanvasModeState] = useState<boolean>(false);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    
-    // Toggle dark mode class
-    if (darkMode) {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    
-    // Store preference
-    localStorage.setItem('theme-dark-mode', darkMode.toString());
-  }, [darkMode]);
-
-  const setDarkMode = (newDarkMode: boolean) => {
-    setDarkModeState(newDarkMode);
-  };
-
-  const toggleDarkMode = () => {
-    setDarkModeState(prev => !prev);
-  };
 
   const setCanvasMode = (mode: boolean) => {
     setCanvasModeState(mode);
@@ -51,7 +21,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <ThemeContext.Provider value={{ darkMode, setDarkMode, toggleDarkMode, canvasMode, setCanvasMode }}>
+    <ThemeContext.Provider value={{ canvasMode, setCanvasMode }}>
       {children}
     </ThemeContext.Provider>
   );
