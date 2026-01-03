@@ -4,10 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, User, UserX, CheckCheck } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, User, UserX, CheckCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+
+interface Profile {
+  id: string;
+  full_name: string | null;
+  field_of_study: string | null;
+}
 
 interface Feedback {
   id: string;
@@ -20,12 +26,19 @@ interface Feedback {
   is_viewed: boolean;
 }
 
+interface FeedbackWithProfile extends Feedback {
+  profile?: Profile | null;
+}
+
+const PAGE_SIZE = 10;
+
 export const ToolFeedbackManager = () => {
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-  const [filteredFeedbacks, setFilteredFeedbacks] = useState<Feedback[]>([]);
+  const [feedbacks, setFeedbacks] = useState<FeedbackWithProfile[]>([]);
+  const [filteredFeedbacks, setFilteredFeedbacks] = useState<FeedbackWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterRating, setFilterRating] = useState<string>('all');
   const [filterUser, setFilterUser] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     fetchFeedbacks();
@@ -35,15 +48,49 @@ export const ToolFeedbackManager = () => {
     applyFilters();
   }, [feedbacks, filterRating, filterUser]);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterRating, filterUser]);
+
   const fetchFeedbacks = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch feedbacks
+      const { data: feedbackData, error: feedbackError } = await supabase
         .from('tool_feedback')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setFeedbacks((data as Feedback[]) || []);
+      if (feedbackError) throw feedbackError;
+
+      const feedbackList = (feedbackData as Feedback[]) || [];
+
+      // Get unique user IDs
+      const userIds = [...new Set(feedbackList
+        .map(f => f.user_id)
+        .filter((id): id is string => id !== null)
+      )];
+
+      // Fetch profiles for those users
+      let profilesMap = new Map<string, Profile>();
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name, field_of_study')
+          .in('id', userIds);
+
+        if (profilesData) {
+          profilesMap = new Map(profilesData.map(p => [p.id, p]));
+        }
+      }
+
+      // Combine feedbacks with profiles
+      const feedbacksWithProfiles: FeedbackWithProfile[] = feedbackList.map(f => ({
+        ...f,
+        profile: f.user_id ? profilesMap.get(f.user_id) || null : null
+      }));
+
+      setFeedbacks(feedbacksWithProfiles);
     } catch (error) {
       console.error('Error fetching feedbacks:', error);
     } finally {
@@ -95,6 +142,16 @@ export const ToolFeedbackManager = () => {
   };
 
   const stats = getStatistics();
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredFeedbacks.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const paginatedFeedbacks = filteredFeedbacks.slice(startIndex, endIndex);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
 
   if (loading) {
     return (
@@ -194,72 +251,144 @@ export const ToolFeedbackManager = () => {
           {filteredFeedbacks.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">No feedback found</p>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Rating</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Page</TableHead>
-              <TableHead>Comment</TableHead>
-              <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFeedbacks.map((feedback) => (
-                    <TableRow key={feedback.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(feedback.created_at), 'MMM dd, yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell>
-                        {feedback.rating === 'thumbs_up' ? (
-                          <Badge variant="outline" className="border-green-500 text-green-700 dark:text-green-400">
-                            <ThumbsUp className="h-3 w-3 mr-1" />
-                            Positive
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-red-500 text-red-700 dark:text-red-400">
-                            <ThumbsDown className="h-3 w-3 mr-1" />
-                            Negative
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {feedback.user_id ? (
-                          <Badge variant="secondary">
-                            <User className="h-3 w-3 mr-1" />
-                            Logged In
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">
-                            <UserX className="h-3 w-3 mr-1" />
-                            Anonymous
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{feedback.page}</Badge>
-                      </TableCell>
-                       <TableCell className="max-w-md">
-                         {feedback.comment ? (
-                           <p className="text-sm text-foreground line-clamp-2" title={feedback.comment}>
-                             {feedback.comment}
-                           </p>
-                         ) : (
-                           <span className="text-sm text-muted-foreground italic">No comment</span>
-                         )}
-                       </TableCell>
-                       <TableCell>
-                         {!feedback.is_viewed && (
-                           <Badge variant="secondary" className="text-xs">New</Badge>
-                         )}
-                       </TableCell>
-                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Rating</TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Specialty</TableHead>
+                      <TableHead>Page</TableHead>
+                      <TableHead>Comment</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedFeedbacks.map((feedback) => (
+                      <TableRow key={feedback.id}>
+                        <TableCell className="whitespace-nowrap">
+                          {format(new Date(feedback.created_at), 'MMM dd, yyyy HH:mm')}
+                        </TableCell>
+                        <TableCell>
+                          {feedback.rating === 'thumbs_up' ? (
+                            <Badge variant="outline" className="border-green-500 text-green-700 dark:text-green-400">
+                              <ThumbsUp className="h-3 w-3 mr-1" />
+                              Positive
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-red-500 text-red-700 dark:text-red-400">
+                              <ThumbsDown className="h-3 w-3 mr-1" />
+                              Negative
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {feedback.user_id ? (
+                            <Badge variant="secondary">
+                              <User className="h-3 w-3 mr-1" />
+                              Logged In
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">
+                              <UserX className="h-3 w-3 mr-1" />
+                              Anonymous
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {feedback.profile?.full_name ? (
+                            <span className="font-medium">{feedback.profile.full_name}</span>
+                          ) : (
+                            <span className="text-muted-foreground italic">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {feedback.profile?.field_of_study ? (
+                            <Badge variant="outline">{feedback.profile.field_of_study}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground italic">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{feedback.page}</Badge>
+                        </TableCell>
+                        <TableCell className="max-w-md">
+                          {feedback.comment ? (
+                            <p className="text-sm text-foreground line-clamp-2" title={feedback.comment}>
+                              {feedback.comment}
+                            </p>
+                          ) : (
+                            <span className="text-sm text-muted-foreground italic">No comment</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {!feedback.is_viewed && (
+                            <Badge variant="secondary" className="text-xs">New</Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1}–{Math.min(endIndex, filteredFeedbacks.length)} of {filteredFeedbacks.length} results
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum: number;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => goToPage(pageNum)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
