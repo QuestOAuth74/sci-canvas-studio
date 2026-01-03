@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link } from "react-router-dom";
-import { Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, ArrowRight } from "lucide-react";
+import { Microscope, Palette, Sparkles, Zap, Shield, Users, Share2, MessageCircleHeart, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
@@ -18,6 +18,7 @@ import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 import { CommunityCarousel } from "@/components/community/CommunityCarousel";
 import { MaintenanceBanner } from "@/components/MaintenanceBanner";
 import { Card, CardContent } from "@/components/ui/card";
+import { GravityHero } from "@/components/landing/GravityHero";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -71,87 +72,12 @@ const Index = () => {
         structuredData={structuredData}
       />
 
-      <div className="container mx-auto px-4 py-16 md:py-20 relative z-10">
+      <div className="relative z-10">
+        {/* Gravity Hero Section */}
+        <GravityHero />
+
+        <div className="container mx-auto px-4 py-16 md:py-20">
         <div className="max-w-6xl mx-auto space-y-24">
-          {/* Hero Section */}
-          <div className="space-y-10 text-center animate-fade-in">
-            {/* Top Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
-              <Microscope className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-muted-foreground">Trusted by Researchers Worldwide</span>
-            </div>
-
-            {/* Logo and Branding */}
-            <div className="space-y-8">
-              <div className="flex items-center justify-center gap-5 flex-wrap">
-                <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-lg">
-                  <img
-                    src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
-                    alt="BioSketch Logo"
-                    className="h-14 w-14 md:h-16 md:w-16 object-contain"
-                  />
-                </div>
-                <h1 className="text-5xl md:text-7xl font-sans font-bold tracking-tight text-foreground">
-                  BioSketch
-                </h1>
-              </div>
-
-              <div className="max-w-4xl mx-auto space-y-5">
-                <h2 className="text-xl md:text-3xl font-serif font-medium leading-tight text-foreground">
-                  Professional Scientific Illustration Software
-                </h2>
-                <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  Design publication-quality figures for research papers, presentations, and grants.
-                  Trusted by scientists at leading institutions worldwide.
-                </p>
-              </div>
-            </div>
-
-            {/* Welcome Message for Logged-in Users */}
-            {user && (
-              <div className="flex items-center justify-center gap-3 animate-fade-in">
-                <p className="text-xl font-serif text-foreground">
-                  Welcome back, <span className="font-semibold text-primary">{user.user_metadata?.full_name?.split(" ")[0] || "there"}</span>
-                </p>
-              </div>
-            )}
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 justify-center items-center pt-4">
-              <Button 
-                size="lg" 
-                onClick={() => navigate(user ? "/projects" : "/auth")} 
-                className="min-w-[180px] h-12 text-base font-medium shadow-lg hover:shadow-xl transition-all"
-              >
-                <Palette className="h-5 w-5 mr-2" />
-                {user ? "Start Creating" : "Start Free"}
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-
-              {user && (
-                <>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    onClick={() => navigate("/projects")} 
-                    className="min-w-[160px] h-12 text-base"
-                  >
-                    <FolderOpen className="h-4 w-4 mr-2" />
-                    My Projects
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    onClick={() => navigate("/community")} 
-                    className="min-w-[160px] h-12 text-base"
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Community
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
 
           {/* Institution Logos */}
           <div className="space-y-6">
@@ -330,7 +256,8 @@ const Index = () => {
             </div>
           )}
         </div>
-      </div>
+        </div>
+        </div>
 
       {/* Footer */}
       <footer className="border-t border-border/50 bg-card/50 mt-20">
