@@ -1059,24 +1059,14 @@ const CanvasContent = () => {
           startOnboarding();
         }}
         onStartBlank={() => {
-          // Load the Getting Started template to reduce blank canvas anxiety
-          import('@/lib/templates').then(({ GETTING_STARTED_TEMPLATE }) => {
-            loadTemplate(GETTING_STARTED_TEMPLATE);
-            toast.success("Let's get started! Feel free to delete these examples and create your own.");
-          });
           localStorage.setItem('canvas_welcome_completed', 'true');
+          toast.success("Blank canvas ready. Start creating!");
         }}
         onSkipTutorial={() => {
-          // Load Getting Started template and mark tutorial as completed
-          import('@/lib/templates').then(({ GETTING_STARTED_TEMPLATE }) => {
-            import('@/contexts/OnboardingContext').then(({ OnboardingProvider }) => {
-              loadTemplate(GETTING_STARTED_TEMPLATE);
-              // Mark tutorial as completed
-              localStorage.setItem('biosketch-onboarding-completed', 'true');
-              toast.success("Here's a starter template to help you begin! Tutorial marked as complete.");
-            });
-          });
           localStorage.setItem('canvas_welcome_completed', 'true');
+        }}
+        onStartAIAssisted={() => {
+          setAiFigureStudioOpen(true);
         }}
       />
 
