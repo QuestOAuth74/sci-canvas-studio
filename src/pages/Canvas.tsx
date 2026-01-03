@@ -44,7 +44,7 @@ import { useOnboarding } from "@/contexts/OnboardingContext";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { FabricImage, Group } from "fabric";
+import { FabricImage, Group, FabricObject } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
@@ -662,6 +662,58 @@ const CanvasContent = () => {
               canvas.renderAll();
               toast.success('Figure inserted into canvas');
             });
+          }
+        }}
+        onInsertEditableElements={(elements: FabricObject[]) => {
+          if (canvas && elements.length > 0) {
+            // Calculate center position for the figure
+            const centerX = (canvas.width || 800) / 2;
+            const centerY = (canvas.height || 600) / 2;
+            
+            // Find the bounding box of all elements
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            elements.forEach(el => {
+              const bbox = el.getBoundingRect();
+              minX = Math.min(minX, bbox.left);
+              minY = Math.min(minY, bbox.top);
+              maxX = Math.max(maxX, bbox.left + bbox.width);
+              maxY = Math.max(maxY, bbox.top + bbox.height);
+            });
+            
+            const figureWidth = maxX - minX;
+            const figureHeight = maxY - minY;
+            
+            // Calculate offset to center the figure
+            const offsetX = centerX - (minX + figureWidth / 2);
+            const offsetY = centerY - (minY + figureHeight / 2);
+            
+            // Scale down if too large
+            const maxDim = Math.min(canvas.width || 800, canvas.height || 600) * 0.8;
+            const scale = Math.min(1, maxDim / Math.max(figureWidth, figureHeight));
+            
+            // Add each element to canvas with offset
+            elements.forEach(el => {
+              el.set({
+                left: (el.left || 0) + offsetX,
+                top: (el.top || 0) + offsetY,
+                scaleX: (el.scaleX || 1) * scale,
+                scaleY: (el.scaleY || 1) * scale,
+              });
+              canvas.add(el);
+            });
+            
+            // Select all added elements
+            if (elements.length > 1) {
+              canvas.discardActiveObject();
+              // Create active selection
+              const selection = new (canvas.constructor as any).ActiveSelection(elements, { canvas });
+              canvas.setActiveObject(selection);
+            } else {
+              canvas.setActiveObject(elements[0]);
+            }
+            
+            canvas.renderAll();
+            toast.success(`${elements.length} editable elements added to canvas`);
           }
         }}
       />

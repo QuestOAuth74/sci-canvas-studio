@@ -5,6 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
   FileText, 
   PenTool, 
@@ -20,7 +22,8 @@ import {
   Box,
   Pencil,
   BookOpen,
-  Coins
+  Coins,
+  Layers
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +38,8 @@ import { GenerationHistoryPanel } from './GenerationHistoryPanel';
 import { useAIGenerationHistory, AIGeneration } from '@/hooks/useAIGenerationHistory';
 import { useAICredits, CREDITS_PER_GENERATION } from '@/hooks/useAICredits';
 import { AICreditsDisplay } from './AICreditsDisplay';
+import { parseEditableFigure, FigureElement } from '@/lib/editableFigureParser';
+import { FabricObject } from 'fabric';
 
 type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match';
 type StyleType = 'flat' | '3d' | 'sketch';
@@ -43,6 +48,7 @@ interface AIFigureStudioProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onInsertImage: (imageUrl: string) => void;
+  onInsertEditableElements?: (elements: FabricObject[]) => void;
 }
 
 const modeConfig = {
@@ -104,6 +110,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   open,
   onOpenChange,
   onInsertImage,
+  onInsertEditableElements,
 }) => {
   const { toast } = useToast();
   const { saveGeneration } = useAIGenerationHistory();
@@ -118,6 +125,8 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   const [showLibrary, setShowLibrary] = useState(false);
   const [libraryReference, setLibraryReference] = useState<ReferenceImage | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [editableMode, setEditableMode] = useState(false);
+  const [editableElements, setEditableElements] = useState<FigureElement[] | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contextInputRef = useRef<HTMLInputElement>(null);
 
@@ -179,6 +188,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
 
     setIsGenerating(true);
     setGeneratedImage(null);
+    setEditableElements(null);
 
     try {
       // Use credits before generation (skip for admins)
@@ -202,42 +212,68 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
         }
       }
 
-      const { data, error } = await supabase.functions.invoke('generate-figure-gemini', {
-        body: {
-          mode,
+      // Use editable figure endpoint if editable mode is on and we're in prompt_to_visual mode
+      if (editableMode && mode === 'prompt_to_visual' && onInsertEditableElements) {
+        const { data, error } = await supabase.functions.invoke('generate-editable-figure', {
+          body: {
+            prompt: prompt.trim(),
+            style,
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data.success) {
+          throw new Error(data.error || 'Generation failed');
+        }
+
+        setEditableElements(data.elements);
+        
+        toast({
+          title: 'Editable figure generated',
+          description: `${data.elements.length} editable elements created. ${creditsInfo?.isAdmin ? '' : `${creditsInfo?.remainingCredits ? creditsInfo.remainingCredits - CREDITS_PER_GENERATION : 0} credits remaining.`}`,
+        });
+      } else {
+        // Standard raster image generation
+        const { data, error } = await supabase.functions.invoke('generate-figure-gemini', {
+          body: {
+            mode,
+            prompt: prompt.trim(),
+            style,
+            referenceImage: referenceImage || libraryImageBase64 || undefined,
+            contextImage: contextImage || undefined,
+            libraryReferenceId: libraryReference?.id,
+            libraryReferenceCategory: libraryReference?.category,
+          },
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data.success) {
+          throw new Error(data.error || 'Generation failed');
+        }
+
+        setGeneratedImage(data.image);
+        
+        // Save to generation history
+        await saveGeneration({
           prompt: prompt.trim(),
           style,
-          referenceImage: referenceImage || libraryImageBase64 || undefined,
-          contextImage: contextImage || undefined,
-          libraryReferenceId: libraryReference?.id,
-          libraryReferenceCategory: libraryReference?.category,
-        },
-      });
-
-      if (error) {
-        throw error;
+          creativity_level: 'medium',
+          background_type: 'transparent',
+          reference_image_url: referenceImage || libraryImageBase64 || '',
+          generated_image_url: data.image,
+        });
+        
+        toast({
+          title: 'Figure generated',
+          description: `Your scientific figure has been created. ${creditsInfo?.isAdmin ? '' : `${creditsInfo?.remainingCredits ? creditsInfo.remainingCredits - CREDITS_PER_GENERATION : 0} credits remaining.`}`,
+        });
       }
-
-      if (!data.success) {
-        throw new Error(data.error || 'Generation failed');
-      }
-
-      setGeneratedImage(data.image);
-      
-      // Save to generation history
-      await saveGeneration({
-        prompt: prompt.trim(),
-        style,
-        creativity_level: 'medium',
-        background_type: 'transparent',
-        reference_image_url: referenceImage || libraryImageBase64 || '',
-        generated_image_url: data.image,
-      });
-      
-      toast({
-        title: 'Figure generated',
-        description: `Your scientific figure has been created. ${creditsInfo?.isAdmin ? '' : `${creditsInfo?.remainingCredits ? creditsInfo.remainingCredits - CREDITS_PER_GENERATION : 0} credits remaining.`}`,
-      });
     } catch (error) {
       console.error('Generation error:', error);
       toast({
@@ -250,8 +286,23 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
     }
   };
 
-  const handleInsert = () => {
-    if (generatedImage) {
+  const handleInsert = async () => {
+    if (editableElements && onInsertEditableElements) {
+      // Parse editable elements into Fabric objects
+      const figureId = `figure-${Date.now()}`;
+      const parsedObjects = await parseEditableFigure(editableElements, figureId);
+      const fabricObjects = parsedObjects.map(p => p.fabricObject);
+      
+      if (fabricObjects.length > 0) {
+        onInsertEditableElements(fabricObjects);
+        onOpenChange(false);
+        resetState();
+        toast({
+          title: 'Editable figure inserted',
+          description: `${fabricObjects.length} elements added to canvas. Select any element to edit it.`,
+        });
+      }
+    } else if (generatedImage) {
       onInsertImage(generatedImage);
       onOpenChange(false);
       resetState();
@@ -274,6 +325,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
     setGeneratedImage(null);
     setLibraryReference(null);
     setShowLibrary(false);
+    setEditableElements(null);
   };
 
   const handleSelectLibraryReference = (image: ReferenceImage) => {
@@ -379,42 +431,72 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
                 />
 
                 {/* Style Selection */}
-                <div className="flex items-center gap-3 mt-4 pt-4 border-t">
-                  <span className="text-sm font-medium text-muted-foreground">STYLE</span>
-                  <TooltipProvider delayDuration={200}>
-                    <div className="flex gap-2">
-                      {(['flat', '3d', 'sketch'] as StyleType[]).map((s) => {
-                        const cfg = styleConfig[s];
-                        const Icon = cfg.icon;
-                        return (
-                          <Tooltip key={s}>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant={style === s ? 'default' : 'outline'}
-                                size="sm"
-                                onClick={() => setStyle(s)}
-                                className="gap-1.5"
-                              >
-                                <Icon className="h-3.5 w-3.5" />
-                                {cfg.label}
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="w-[200px] p-0 overflow-hidden">
-                              <img 
-                                src={cfg.image} 
-                                alt={`${cfg.label} style example`} 
-                                className="w-full h-28 object-cover"
-                              />
-                              <div className="p-2.5">
-                                <p className="font-medium text-sm mb-0.5">{cfg.label} Style</p>
-                                <p className="text-xs text-muted-foreground leading-snug">{cfg.preview}</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        );
-                      })}
-                    </div>
-                  </TooltipProvider>
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-muted-foreground">STYLE</span>
+                    <TooltipProvider delayDuration={200}>
+                      <div className="flex gap-2">
+                        {(['flat', '3d', 'sketch'] as StyleType[]).map((s) => {
+                          const cfg = styleConfig[s];
+                          const Icon = cfg.icon;
+                          return (
+                            <Tooltip key={s}>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant={style === s ? 'default' : 'outline'}
+                                  size="sm"
+                                  onClick={() => setStyle(s)}
+                                  className="gap-1.5"
+                                >
+                                  <Icon className="h-3.5 w-3.5" />
+                                  {cfg.label}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" className="w-[200px] p-0 overflow-hidden">
+                                <img 
+                                  src={cfg.image} 
+                                  alt={`${cfg.label} style example`} 
+                                  className="w-full h-28 object-cover"
+                                />
+                                <div className="p-2.5">
+                                  <p className="font-medium text-sm mb-0.5">{cfg.label} Style</p>
+                                  <p className="text-xs text-muted-foreground leading-snug">{cfg.preview}</p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          );
+                        })}
+                      </div>
+                    </TooltipProvider>
+                  </div>
+
+                  {/* Editable Mode Toggle - only show for prompt_to_visual mode */}
+                  {mode === 'prompt_to_visual' && onInsertEditableElements && (
+                    <TooltipProvider delayDuration={200}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-2">
+                            <Label htmlFor="editable-mode" className="text-xs text-muted-foreground cursor-pointer flex items-center gap-1.5">
+                              <Layers className="h-3.5 w-3.5" />
+                              Editable
+                            </Label>
+                            <Switch
+                              id="editable-mode"
+                              checked={editableMode}
+                              onCheckedChange={setEditableMode}
+                            />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="max-w-[250px]">
+                          <p className="text-sm font-medium mb-1">Editable Output Mode</p>
+                          <p className="text-xs text-muted-foreground">
+                            Generate figures as separate editable elements. You can replace individual icons, 
+                            modify arrows, and adjust each component after insertion.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                 </div>
 
                 {/* Image Upload Zone (for modes that require it) */}
@@ -551,6 +633,40 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
                       </Button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Editable Elements Preview */}
+              {editableElements && editableElements.length > 0 && (
+                <div className="mt-6 border border-border rounded-lg p-4 bg-card">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
+                    <Layers className="h-4 w-4" />
+                    Editable Figure Elements ({editableElements.length})
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[200px] overflow-y-auto">
+                    {editableElements.map((element) => (
+                      <div
+                        key={element.id}
+                        className="border rounded-md p-2 bg-muted/20 hover:bg-muted/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="secondary" className="text-[10px]">
+                            {element.type}
+                          </Badge>
+                        </div>
+                        <p className="text-xs font-medium truncate">{element.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button onClick={handleInsert} className="flex-1 bg-primary hover:bg-primary/90">
+                      <Layers className="h-4 w-4 mr-2" />
+                      Insert as Editable Elements
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
+                    Each element can be selected and edited independently on the canvas
+                  </p>
                 </div>
               )}
             </div>
