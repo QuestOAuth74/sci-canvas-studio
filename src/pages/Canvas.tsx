@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PropertiesPanel } from "@/components/canvas/PropertiesPanel";
 import { LayersPanel } from "@/components/canvas/LayersPanel";
 import { BottomBar } from "@/components/canvas/BottomBar";
-import { SmartSuggestions } from "@/components/canvas/SmartSuggestions";
+
 import { MenuBar } from "@/components/canvas/MenuBar";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
@@ -42,7 +42,7 @@ import { ScaleBarTool } from "@/components/canvas/ScaleBarTool";
 import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
-import { TipBanner } from "@/components/canvas/TipBanner";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -1054,8 +1054,6 @@ const CanvasContent = () => {
       {/* Contextual Toolbar - Appears when object is selected */}
       <ContextualToolbar />
 
-      {/* Smart Suggestions - Context-aware tips */}
-      <SmartSuggestions />
 
       {/* Welcome Dialog for First-Time Users */}
       <WelcomeDialog
@@ -1079,8 +1077,6 @@ const CanvasContent = () => {
         }}
       />
 
-      {/* Tip Banner - Shows on first canvas load */}
-      <TipBanner />
     </div>
     </>
   );
