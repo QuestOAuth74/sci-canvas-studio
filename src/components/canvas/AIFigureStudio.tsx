@@ -19,7 +19,8 @@ import {
   Square,
   Box,
   Pencil,
-  BookOpen
+  BookOpen,
+  Coins
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -32,6 +33,8 @@ import { ReferenceLibraryPanel } from './ReferenceLibraryPanel';
 import { ReferenceImage } from '@/lib/scientificReferenceLibrary';
 import { GenerationHistoryPanel } from './GenerationHistoryPanel';
 import { useAIGenerationHistory, AIGeneration } from '@/hooks/useAIGenerationHistory';
+import { useAICredits, CREDITS_PER_GENERATION } from '@/hooks/useAICredits';
+import { AICreditsDisplay } from './AICreditsDisplay';
 
 type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match';
 type StyleType = 'flat' | '3d' | 'sketch';
@@ -104,6 +107,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
 }) => {
   const { toast } = useToast();
   const { saveGeneration } = useAIGenerationHistory();
+  const { creditsInfo, isLoading: isLoadingCredits, useCredits, isUsingCredits } = useAICredits();
   const [mode, setMode] = useState<GenerationMode>('prompt_to_visual');
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<StyleType>('flat');
@@ -145,6 +149,16 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   });
 
   const handleGenerate = async () => {
+    // Check credits first (skip for admins)
+    if (!creditsInfo?.isAdmin && !creditsInfo?.canGenerate) {
+      toast({
+        title: 'Not enough credits',
+        description: `You need ${CREDITS_PER_GENERATION} credits to generate. Share projects to earn bonus credits!`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!prompt.trim() && mode === 'prompt_to_visual') {
       toast({
         title: 'Prompt required',
@@ -167,6 +181,11 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
     setGeneratedImage(null);
 
     try {
+      // Use credits before generation (skip for admins)
+      if (!creditsInfo?.isAdmin) {
+        await useCredits();
+      }
+
       // If using library reference, fetch it as base64
       let libraryImageBase64: string | undefined;
       if (libraryReference && !referenceImage) {
@@ -217,7 +236,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
       
       toast({
         title: 'Figure generated',
-        description: 'Your scientific figure has been created successfully.',
+        description: `Your scientific figure has been created. ${creditsInfo?.isAdmin ? '' : `${creditsInfo?.remainingCredits ? creditsInfo.remainingCredits - CREDITS_PER_GENERATION : 0} credits remaining.`}`,
       });
     } catch (error) {
       console.error('Generation error:', error);
@@ -289,10 +308,13 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 gap-0 bg-background">
         <DialogHeader className="p-6 pb-4 border-b bg-muted/20">
-          <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
-            <Wand2 className="h-5 w-5 text-primary" />
-            AI Figure Studio
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
+              <Wand2 className="h-5 w-5 text-primary" />
+              AI Figure Studio
+            </DialogTitle>
+            <AICreditsDisplay variant="compact" />
+          </div>
         </DialogHeader>
 
         <div className="flex flex-1 overflow-hidden">
@@ -534,22 +556,35 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
             </div>
 
             {/* Generate Button */}
-            <div className="p-6 pt-4 border-t border-border bg-muted/10">
+            <div className="p-6 pt-4 border-t border-border bg-muted/10 space-y-3">
+              {!creditsInfo?.isAdmin && !creditsInfo?.canGenerate && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-center">
+                  <p className="text-sm text-destructive font-medium">
+                    Not enough credits. Share projects to earn bonus credits!
+                  </p>
+                </div>
+              )}
               <Button
                 onClick={handleGenerate}
-                disabled={isGenerating}
+                disabled={isGenerating || isUsingCredits || (!creditsInfo?.isAdmin && !creditsInfo?.canGenerate)}
                 size="lg"
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {isGenerating ? (
+                {isGenerating || isUsingCredits ? (
                   <>
                     <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Generating...
+                    {isUsingCredits ? 'Using credits...' : 'Generating...'}
                   </>
                 ) : (
                   <>
                     <Wand2 className="h-5 w-5 mr-2" />
                     Generate
+                    {!creditsInfo?.isAdmin && (
+                      <Badge variant="secondary" className="ml-2 bg-primary-foreground/20">
+                        <Coins className="h-3 w-3 mr-1" />
+                        {CREDITS_PER_GENERATION}
+                      </Badge>
+                    )}
                   </>
                 )}
               </Button>
