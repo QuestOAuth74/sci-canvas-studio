@@ -184,11 +184,13 @@ const CanvasContent = () => {
   // Show welcome dialog for new/blank canvases
   useEffect(() => {
     const projectId = searchParams.get("project");
+    const isHidden = localStorage.getItem('canvas_welcome_hidden') === 'true';
     
     // Show welcome dialog if:
-    // 1. No specific project is being loaded (new canvas)
-    // 2. Canvas exists and is empty
-    if (!projectId && canvas) {
+    // 1. User hasn't hidden it permanently
+    // 2. No specific project is being loaded (new canvas)
+    // 3. Canvas exists and is empty
+    if (!isHidden && !projectId && canvas) {
       const isEmpty = canvas.getObjects().length === 0;
       if (isEmpty) {
         setShowWelcomeDialog(true);
