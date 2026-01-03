@@ -181,16 +181,14 @@ const CanvasContent = () => {
     }
   }, [searchParams, canvas, loadProject]);
 
-  // Check if first-time user and show welcome dialog
+  // Show welcome dialog for new/blank canvases
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('canvas_welcome_completed');
     const projectId = searchParams.get("project");
     
-    // Only show welcome dialog if:
-    // 1. User hasn't seen it before
-    // 2. No specific project is being loaded
-    // 3. Canvas exists and is empty
-    if (!hasSeenWelcome && !projectId && canvas) {
+    // Show welcome dialog if:
+    // 1. No specific project is being loaded (new canvas)
+    // 2. Canvas exists and is empty
+    if (!projectId && canvas) {
       const isEmpty = canvas.getObjects().length === 0;
       if (isEmpty) {
         setShowWelcomeDialog(true);

@@ -24,9 +24,6 @@ export const WelcomeDialog = ({
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   const handleChoice = (choice: 'template' | 'blank' | 'ai') => {
-    localStorage.setItem('canvas_welcome_completed', 'true');
-    localStorage.setItem('canvas_first_choice', choice);
-    
     if (choice === 'template') {
       onStartWithTemplate();
     } else if (choice === 'ai') {
@@ -147,10 +144,7 @@ export const WelcomeDialog = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              localStorage.setItem('canvas_welcome_completed', 'true');
-              onOpenChange(false);
-            }}
+            onClick={() => onOpenChange(false)}
             className="text-xs text-muted-foreground"
           >
             Dismiss
