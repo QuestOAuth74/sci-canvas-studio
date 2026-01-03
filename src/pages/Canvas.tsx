@@ -24,7 +24,6 @@ import { MobileWarningDialog } from "@/components/canvas/MobileWarningDialog";
 import { KeyboardShortcutsDialog } from "@/components/canvas/KeyboardShortcutsDialog";
 import { VersionHistory } from "@/components/canvas/VersionHistory";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
-import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { AIIconGenerator } from "@/components/canvas/AIIconGenerator";
 import { AIFigureStudio } from "@/components/canvas/AIFigureStudio";
 import { StyleTransferDialog } from '@/components/canvas/StyleTransferDialog';
@@ -62,7 +61,6 @@ const CanvasContent = () => {
   const [leftSidebarTab, setLeftSidebarTab] = useState<"icons" | "assets">("icons");
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "layers">("properties");
   const [showShortcuts, setShowShortcuts] = useState(false);
-  const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [aiIconGeneratorOpen, setAiIconGeneratorOpen] = useState(false);
   const [aiFigureStudioOpen, setAiFigureStudioOpen] = useState(false);
   const [styleTransferOpen, setStyleTransferOpen] = useState(false);
@@ -616,13 +614,6 @@ const CanvasContent = () => {
       {/* Save Upload Handler */}
       <SaveUploadHandler />
       
-      {/* AI Figure Generator */}
-      <AIFigureGenerator 
-        canvas={canvas}
-        open={aiGeneratorOpen} 
-        onOpenChange={setAiGeneratorOpen}
-        onOpenAIStudio={() => setAiFigureStudioOpen(true)}
-      />
       
       {/* AI Icon Generator */}
       <AIIconGenerator
@@ -801,11 +792,11 @@ const CanvasContent = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setAiGeneratorOpen(true)}
+                onClick={() => setAiFigureStudioOpen(true)}
                 className="h-8 text-muted-foreground hover:text-foreground"
               >
                 <Sparkles className="h-4 w-4 mr-1.5" />
-                AI
+                AI Studio
               </Button>
             )}
             <Button 
