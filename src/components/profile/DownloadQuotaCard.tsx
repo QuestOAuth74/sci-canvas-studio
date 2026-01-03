@@ -55,11 +55,14 @@ export function DownloadQuotaCard() {
           <div className="flex items-center justify-center p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border-2 border-primary/20">
             <div className="text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 mb-2">
-                <Sparkles className="h-4 w-4 text-[hsl(var(--ink-blue))]" />
-                <span className="font-caveat text-xl text-[hsl(var(--ink-blue))]">Unlimited Access</span>
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="font-semibold text-lg text-primary">Unlimited Downloads</span>
               </div>
-              <p className="text-sm text-muted-foreground font-['Source_Serif_4']">
+              <p className="text-sm text-muted-foreground">
                 Thank you for sharing {quota.sharedProjects} project{quota.sharedProjects !== 1 ? 's' : ''}!
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Download unlimited community projects. AI credits are separate.
               </p>
             </div>
           </div>
