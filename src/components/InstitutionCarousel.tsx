@@ -30,13 +30,13 @@ export function InstitutionCarousel() {
         </div>
         
         {/* Marquee Container */}
-        <div className="relative">
+        <div className="relative overflow-hidden">
           {/* Gradient Overlays */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[hsl(var(--cream))] to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[hsl(var(--cream))] to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-[hsl(var(--cream))] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-[hsl(var(--cream))] to-transparent z-10 pointer-events-none" />
           
           {/* Scrolling Content */}
-          <div className="flex gap-8 animate-marquee hover:[animation-play-state:paused]">
+          <div className="flex gap-8 w-max animate-marquee hover:[animation-play-state:paused]">
             {duplicatedInstitutions.map((inst, index) => {
               const rotation = (index % 2 === 0 ? -1.5 : 1.5) + (index % 3) * 0.5;
               return (
