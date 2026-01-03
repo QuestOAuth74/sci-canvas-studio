@@ -871,6 +871,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const hidden: FabricObject[] = [];
     
     const toastId = toast.loading(`Preparing PNG export at ${dpi} DPI...`);
+    
+    // Store original opacities outside try block for finally access
+    const originalOpacities: Map<any, number> = new Map();
 
     try {
       // If exporting selection only, temporarily hide non-selected objects
@@ -886,7 +889,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
 
       // Temporarily hide guides, previews, handles, and eraser paths
       let controlHandleCount = 0;
-      const originalOpacities: Map<any, number> = new Map();
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
         if (
@@ -977,6 +979,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const originalBg = canvas.backgroundColor;
     
     const toastId = toast.loading(`Preparing transparent PNG export at ${dpi} DPI...`);
+    
+    // Store original opacities outside try block for finally access
+    const originalOpacities2: Map<any, number> = new Map();
 
     try {
       // If exporting selection only, temporarily hide non-selected objects
@@ -991,7 +996,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
 
       // Temporarily hide guides, previews, handles, and eraser paths
-      const originalOpacities2: Map<any, number> = new Map();
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
         if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isAnchorHandle || o.isEraserPath) {
@@ -1079,6 +1083,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     const hidden: FabricObject[] = [];
     
     const toastId = toast.loading(`Preparing JPG export at ${dpi} DPI...`);
+    
+    // Store original opacities outside try block for finally access
+    const originalOpacities3: Map<any, number> = new Map();
 
     try {
       // If exporting selection only, temporarily hide non-selected objects
@@ -1093,7 +1100,6 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
       }
 
       // Temporarily hide guides, previews, handles, and eraser paths
-      const originalOpacities3: Map<any, number> = new Map();
       canvas.getObjects().forEach((obj) => {
         const o: any = obj as any;
         if (o.isGridLine || o.isRuler || o.isGuideLine || o.isHandleLine || o.isPreviewLine || o.isPortIndicator || o.isFeedback || o.isControlHandle || o.isAnchorHandle || o.isEraserPath) {

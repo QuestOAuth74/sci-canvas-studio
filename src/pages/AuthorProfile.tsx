@@ -22,14 +22,24 @@ export default function AuthorProfile() {
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['author-profile', userId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('public_profiles')
         .select('id, full_name, avatar_url, bio, country, field_of_study, created_at, updated_at, quote')
         .eq('id', userId)
         .single();
 
       if (error) throw error;
-      return data;
+      return data as {
+        id: string;
+        full_name: string | null;
+        avatar_url: string | null;
+        bio: string | null;
+        country: string | null;
+        field_of_study: string | null;
+        created_at: string | null;
+        updated_at: string | null;
+        quote: string | null;
+      };
     },
     enabled: !!userId,
   });

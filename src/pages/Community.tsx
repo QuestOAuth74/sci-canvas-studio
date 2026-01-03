@@ -130,7 +130,7 @@ export default function Community() {
 
     // Fetch profiles only for users of current page projects
     const userIds = [...new Set(projectsData?.map(p => p.user_id) || [])];
-    const { data: profilesData, error: profilesError } = await supabase
+    const { data: profilesData, error: profilesError } = await (supabase as any)
       .from('public_profiles')
       .select('id, full_name, avatar_url')
       .in('id', userIds);
@@ -140,11 +140,13 @@ export default function Community() {
     }
 
     // Map profiles to projects
-    const profilesMap = new Map(profilesData?.map(p => [p.id, p]));
+    const profilesMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>(
+      (profilesData as any[])?.map((p: any) => [p.id, p]) || []
+    );
     const projectsWithProfiles = projectsData?.map(project => ({
       ...project,
       profiles: profilesMap.get(project.user_id) || null,
-    })) || [];
+    })) as CommunityProject[] || [];
 
     setProjects(projectsWithProfiles);
     setLoading(false);

@@ -26,6 +26,7 @@ import { VersionHistory } from "@/components/canvas/VersionHistory";
 import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIFigureGenerator } from "@/components/canvas/AIFigureGenerator";
 import { AIIconGenerator } from "@/components/canvas/AIIconGenerator";
+import { AIFigureStudio } from "@/components/canvas/AIFigureStudio";
 import { StyleTransferDialog } from '@/components/canvas/StyleTransferDialog';
 import { CommandPalette } from "@/components/canvas/CommandPalette";
 import { AlignmentGuides } from "@/components/canvas/AlignmentGuides";
@@ -63,6 +64,7 @@ const CanvasContent = () => {
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiGeneratorOpen, setAiGeneratorOpen] = useState(false);
   const [aiIconGeneratorOpen, setAiIconGeneratorOpen] = useState(false);
+  const [aiFigureStudioOpen, setAiFigureStudioOpen] = useState(false);
   const [styleTransferOpen, setStyleTransferOpen] = useState(false);
   const [customOrthogonalDialogOpen, setCustomOrthogonalDialogOpen] = useState(false);
   const [customCurvedDialogOpen, setCustomCurvedDialogOpen] = useState(false);
@@ -637,6 +639,33 @@ const CanvasContent = () => {
         onOpenChange={setStyleTransferOpen}
       />
 
+      {/* AI Figure Studio */}
+      <AIFigureStudio
+        open={aiFigureStudioOpen}
+        onOpenChange={setAiFigureStudioOpen}
+        onInsertImage={(imageUrl) => {
+          if (canvas) {
+            FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' }).then((img) => {
+              // Center the image on canvas
+              img.set({
+                left: (canvas.width || 800) / 2,
+                top: (canvas.height || 600) / 2,
+                originX: 'center',
+                originY: 'center',
+              });
+              // Scale down if too large
+              const maxDim = Math.min(canvas.width || 800, canvas.height || 600) * 0.8;
+              const scale = Math.min(1, maxDim / Math.max(img.width || 1, img.height || 1));
+              img.scale(scale);
+              canvas.add(img);
+              canvas.setActiveObject(img);
+              canvas.renderAll();
+              toast.success('Figure inserted into canvas');
+            });
+          }
+        }}
+      />
+
       {/* Panel Label Tool */}
       <PanelLabelTool 
         open={panelLabelToolOpen}
@@ -752,6 +781,7 @@ const CanvasContent = () => {
               onVersionHistoryClick={() => setVersionHistoryOpen(true)}
               onScaleBarClick={() => setScaleBarToolOpen(true)}
               onStyleTransferClick={() => setStyleTransferOpen(true)}
+              onAIFigureStudioClick={() => setAiFigureStudioOpen(true)}
             />
             <Tooltip>
               <TooltipTrigger asChild>

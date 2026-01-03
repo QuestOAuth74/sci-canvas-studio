@@ -56,7 +56,7 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
           const randomProjectData = projects[Math.floor(Math.random() * projects.length)];
           
           // Fetch creator profile separately with error handling
-          const { data: profile, error: profileError } = await supabase
+          const { data: profile, error: profileError } = await (supabase as any)
             .from('public_profiles')
             .select('full_name, avatar_url')
             .eq('id', randomProjectData.user_id)
@@ -69,8 +69,8 @@ export function FeaturedProjectPopup({ onViewProject }: FeaturedProjectPopupProp
 
           const projectData = {
             ...randomProjectData,
-            profiles: profile || null,
-          };
+            profiles: (profile as { full_name: string | null; avatar_url: string | null }) || null,
+          } as CommunityProject;
           
           console.log('Featured project loaded:', projectData);
           setProject(projectData);

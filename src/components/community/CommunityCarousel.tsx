@@ -71,18 +71,20 @@ export const CommunityCarousel = () => {
 
         // Fetch profiles
         const userIds = [...new Set(projectsData.map((p) => p.user_id))];
-        const { data: profilesData } = await supabase
+        const { data: profilesData } = await (supabase as any)
           .from("public_profiles")
           .select("id, full_name, avatar_url")
           .in("id", userIds);
 
-        const profilesMap = new Map(profilesData?.map((p) => [p.id, p]) || []);
+        const profilesMap = new Map<string, { id: string; full_name: string | null; avatar_url: string | null }>(
+          (profilesData as any[])?.map((p: any) => [p.id, p]) || []
+        );
 
         const projectsWithData = projectsData.map((project) => ({
           ...project,
           profiles: profilesMap.get(project.user_id) || null,
           like_count: likesMap.get(project.id) || 0,
-        }));
+        })) as Project[];
 
         setProjects(projectsWithData);
       }

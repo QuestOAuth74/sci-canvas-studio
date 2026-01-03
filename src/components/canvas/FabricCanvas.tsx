@@ -1826,8 +1826,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
 
       return () => {
         // Safely remove event listener if method exists
-        if (typeof eraserBrush.off === 'function') {
-          eraserBrush.off("end", handleEraserEnd);
+        if (typeof (eraserBrush as any).off === 'function') {
+          (eraserBrush as any).off("end", handleEraserEnd);
         }
         canvas.isDrawingMode = false;
         canvas.selection = true;
