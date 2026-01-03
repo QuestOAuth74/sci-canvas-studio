@@ -5,21 +5,21 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-semibold transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/85 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/85 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm",
-        outline: "border border-border bg-background hover:bg-muted hover:border-foreground/20 hover:-translate-y-0.5 active:translate-y-0",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70 hover:-translate-y-0.5 active:translate-y-0",
-        ghost: "hover:bg-muted/60 rounded-lg",
+        default: "bg-primary text-primary-foreground hover:bg-primary/85 active:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/85 active:bg-destructive/90",
+        outline: "border border-border bg-background hover:bg-muted hover:text-primary",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
+        ghost: "hover:bg-muted hover:text-primary",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/70",
-        glass: "bg-white/70 backdrop-blur-md border border-border/50 text-foreground hover:bg-white/90 hover:-translate-y-0.5 active:translate-y-0",
-        sticky: "bg-accent text-accent-foreground shadow-sm hover:bg-accent/85 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm",
-        ink: "bg-foreground text-background shadow-sm hover:bg-foreground/85 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0",
-        pencil: "border border-dashed border-border bg-background text-muted-foreground hover:bg-muted hover:border-foreground/30 hover:-translate-y-0.5 active:translate-y-0",
-        bubble: "bg-primary/8 text-foreground border border-primary/15 hover:bg-primary/15 hover:border-primary/30 hover:-translate-y-0.5 active:translate-y-0",
+        glass: "bg-background/5 backdrop-blur-lg border border-border hover:bg-muted",
+        sticky: "bg-accent text-accent-foreground hover:bg-accent/85",
+        ink: "bg-foreground text-background hover:bg-foreground/85",
+        pencil: "border border-dashed border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+        bubble: "bg-primary/5 text-foreground border border-border hover:bg-primary/10 hover:text-primary",
       },
       size: {
         default: "h-11 px-6 py-2",
