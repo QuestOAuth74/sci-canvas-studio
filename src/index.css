@@ -7,10 +7,10 @@ All colors MUST be HSL.
 */
 
 @layer utilities {
-  /* Soft Modern Theme Utilities */
+  /* Modern Theme Utilities */
   .glass-effect {
-    @apply bg-white/90 backdrop-blur-md border border-border/50;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    @apply bg-card border border-border;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
   
 

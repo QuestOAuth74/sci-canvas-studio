@@ -100,7 +100,7 @@ export const UserMenu = ({ showName = false }: UserMenuProps) => {
           </Button>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 glass-card border-white/20 dark:border-white/10">
+      <DropdownMenuContent align="end" className="w-56 bg-card border border-border">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.email}</p>
