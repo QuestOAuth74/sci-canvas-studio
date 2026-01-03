@@ -26,7 +26,7 @@ function Footerdemo() {
   return (
     <footer className="relative border-t bg-background text-foreground transition-colors duration-300">
       <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
           {/* Newsletter Section */}
           <div className="relative">
             <h2 className="mb-4 text-lg font-semibold">Stay Connected</h2>
@@ -81,84 +81,6 @@ function Footerdemo() {
               <p>United States</p>
               <p>Email: support@biosketch.art</p>
             </address>
-          </div>
-
-          {/* Follow Us */}
-          <div className="relative">
-            <h2 className="mb-4 text-lg font-semibold">Follow Us</h2>
-            <TooltipProvider>
-              <div className="mb-6 flex space-x-4">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="icon" className="rounded-full">
-                        <Facebook className="h-4 w-4" />
-                        <span className="sr-only">Facebook</span>
-                      </Button>
-                    </a>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Follow us on Facebook</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="icon" className="rounded-full">
-                        <Twitter className="h-4 w-4" />
-                        <span className="sr-only">Twitter</span>
-                      </Button>
-                    </a>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Follow us on Twitter</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="icon" className="rounded-full">
-                        <Instagram className="h-4 w-4" />
-                        <span className="sr-only">Instagram</span>
-                      </Button>
-                    </a>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Follow us on Instagram</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline" size="icon" className="rounded-full">
-                        <Linkedin className="h-4 w-4" />
-                        <span className="sr-only">LinkedIn</span>
-                      </Button>
-                    </a>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Connect with us on LinkedIn</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </TooltipProvider>
-
-            {/* Dark Mode Toggle */}
-            <div className="flex items-center space-x-2">
-              <Sun className="h-4 w-4" />
-              <Switch
-                id="dark-mode"
-                checked={isDarkMode}
-                onCheckedChange={toggleDarkMode}
-              />
-              <Moon className="h-4 w-4" />
-              <Label htmlFor="dark-mode" className="sr-only">
-                Toggle dark mode
-              </Label>
-            </div>
           </div>
         </div>
 
