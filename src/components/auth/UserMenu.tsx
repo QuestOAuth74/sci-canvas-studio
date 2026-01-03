@@ -9,9 +9,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, LogOut, Settings, ShieldCheck, Users, UserCircle, Upload } from 'lucide-react';
+import { LogOut, Settings, ShieldCheck, Users, UserCircle, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { NavigationTestIds } from '@/lib/test-ids';
@@ -132,8 +131,6 @@ export const UserMenu = ({ showName = false }: UserMenuProps) => {
             Admin Panel
           </DropdownMenuItem>
         )}
-        <DropdownMenuSeparator />
-        <ThemeSwitcher />
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()} data-testid={NavigationTestIds.SIGNOUT_BUTTON}>
           <LogOut className="mr-2 h-4 w-4" />
