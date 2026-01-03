@@ -193,17 +193,17 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 gap-0">
-        <DialogHeader className="p-6 pb-4 border-b">
-          <DialogTitle className="flex items-center gap-2 text-xl font-bold text-[hsl(var(--ink-blue))]">
-            <Wand2 className="h-5 w-5" />
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 gap-0 bg-background">
+        <DialogHeader className="p-6 pb-4 border-b bg-muted/20">
+          <DialogTitle className="flex items-center gap-2 text-xl font-semibold text-foreground">
+            <Wand2 className="h-5 w-5 text-primary" />
             AI Figure Studio
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-1 overflow-hidden">
           {/* Left Sidebar - Mode Selection */}
-          <div className="w-64 border-r bg-muted/30 p-4 flex flex-col gap-2">
+          <div className="w-64 border-r bg-muted/10 p-4 flex flex-col gap-1">
             {(Object.keys(modeConfig) as GenerationMode[]).map((modeKey) => {
               const cfg = modeConfig[modeKey];
               const Icon = cfg.icon;
@@ -214,10 +214,10 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
                   key={modeKey}
                   onClick={() => handleModeChange(modeKey)}
                   className={cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all',
+                    'flex items-center gap-3 px-4 py-3 rounded-md text-left transition-colors border',
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background hover:bg-muted border-transparent text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
@@ -228,13 +228,13 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col overflow-hidden bg-background">
             {/* Header with description */}
-            <div className="p-6 pb-4">
-              <h2 className="text-2xl font-bold text-[hsl(var(--ink-blue))] mb-1">
+            <div className="p-6 pb-4 border-b border-border/50">
+              <h2 className="text-xl font-semibold text-foreground mb-1">
                 {config.description.split(' with AI.')[0]}
               </h2>
-              <p className="text-primary text-xl font-semibold">
+              <p className="text-primary text-lg font-medium">
                 with AI.
               </p>
             </div>
@@ -242,14 +242,14 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto px-6 pb-6">
               {/* Prompt Input */}
-              <div className="border rounded-xl p-4 bg-card shadow-sm">
+              <div className="border border-border rounded-lg p-4 bg-card">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Info className="h-4 w-4" />
                     <span>Write a generation-ready prompt</span>
                     <span className="text-muted-foreground/60">| Be specific · Be structured</span>
                   </div>
-                  <Badge variant="secondary" className="text-primary">
+                  <Badge variant="outline" className="text-primary border-primary/30 bg-primary/5">
                     <Sparkles className="h-3 w-3 mr-1" />
                     AI Enhance
                   </Badge>
@@ -328,16 +328,16 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
 
               {/* Generated Image Preview */}
               {generatedImage && (
-                <div className="mt-6 border rounded-xl p-4 bg-card shadow-sm">
+                <div className="mt-6 border border-border rounded-lg p-4 bg-card">
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">Generated Figure</h3>
                   <div className="relative">
                     <img
                       src={generatedImage}
                       alt="Generated figure"
-                      className="w-full rounded-lg border"
+                      className="w-full rounded-md border border-border"
                     />
                     <div className="flex gap-2 mt-4">
-                      <Button onClick={handleInsert} className="flex-1">
+                      <Button onClick={handleInsert} className="flex-1 bg-primary hover:bg-primary/90">
                         <ImageIcon className="h-4 w-4 mr-2" />
                         Insert into Canvas
                       </Button>
@@ -352,12 +352,12 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
             </div>
 
             {/* Generate Button */}
-            <div className="p-6 pt-4 border-t bg-background">
+            <div className="p-6 pt-4 border-t border-border bg-muted/10">
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerating}
                 size="lg"
-                className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 {isGenerating ? (
                   <>
