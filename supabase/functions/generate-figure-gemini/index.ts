@@ -31,39 +31,89 @@ serve(async (req) => {
 
     console.log(`[generate-figure-gemini] Mode: ${mode}, Style: ${style}, Prompt length: ${prompt.length}`);
 
+    // Build style description based on selected style
+    const getStyleDescription = (style: 'flat' | '3d' | 'sketch'): string => {
+      switch (style) {
+        case 'flat':
+          return 'Flat vector style: Use solid, uniform colors without gradients or shading. Clean geometric shapes with sharp edges. Minimal shadows, no textures. Think modern infographic or icon style with distinct color blocks and clear outlines.';
+        case '3d':
+          return '3D rendered style: Add realistic depth, shadows, and lighting. Use gradients and shading to create volume. Include specular highlights and ambient occlusion. Render with smooth surfaces and realistic material properties like glass, metal, or organic textures.';
+        case 'sketch':
+          return 'Hand-drawn sketch style: Use pencil or pen-like strokes with visible line work. Include hatching and cross-hatching for shading. Imperfect, organic lines with varying thickness. Minimal color, mostly grayscale or limited palette. Scientific notebook aesthetic.';
+        default:
+          return 'Clean, professional scientific illustration style.';
+      }
+    };
+
+    const styleDescription = getStyleDescription(style);
+
     // Build the system prompt based on mode
     let systemPrompt = '';
     let userPrompt = '';
 
     switch (mode) {
       case 'prompt_to_visual':
-        systemPrompt = `You are a scientific illustration expert. Generate a clear, professional scientific figure based on the user's description. 
-Style: ${style === 'flat' ? 'Clean flat design with solid colors and clear outlines' : style === '3d' ? 'Detailed 3D rendering with realistic shading and depth' : 'Hand-drawn sketch style with pencil-like textures'}.
-Focus on scientific accuracy and clarity. The figure should be suitable for academic publications.`;
+        systemPrompt = `You are a scientific illustration expert creating publication-quality figures.
+
+VISUAL STYLE REQUIREMENTS:
+${styleDescription}
+
+SCIENTIFIC STANDARDS:
+- Anatomically and scientifically accurate representations
+- Clear labels and annotations where appropriate
+- Professional composition suitable for academic journals
+- White or transparent background preferred
+
+Generate a scientific figure based on the user's description.`;
         userPrompt = prompt;
         break;
 
       case 'sketch_transform':
         systemPrompt = `You are a scientific illustration expert. Transform the provided hand-drawn sketch into a polished, professional scientific figure.
-Maintain the core structure and concept from the sketch while enhancing it with:
-Style: ${style === 'flat' ? 'Clean flat design with solid colors and clear outlines' : style === '3d' ? 'Detailed 3D rendering with realistic shading and depth' : 'Refined hand-drawn aesthetic with consistent line weights'}.
-Keep scientific accuracy and improve visual clarity for academic use.`;
+
+VISUAL STYLE REQUIREMENTS:
+${styleDescription}
+
+TRANSFORMATION GUIDELINES:
+- Preserve the original concept and layout from the sketch
+- Correct any anatomical or structural inaccuracies
+- Add proper proportions and clean geometry
+- Make it publication-ready while maintaining the original intent
+
+Transform this sketch while applying the specified visual style.`;
         userPrompt = prompt || 'Transform this hand-drawn sketch into a professional scientific figure.';
         break;
 
       case 'image_enhancer':
         systemPrompt = `You are a scientific image enhancement specialist. Enhance the provided image to make it publication-ready.
-Apply: Sharp edges, clean lines, consistent colors, and professional appearance.
-Style: ${style === 'flat' ? 'Clean flat design' : style === '3d' ? 'Enhanced 3D appearance' : 'Refined sketch style'}.
-Remove noise, improve contrast, and ensure the image meets journal publication standards.`;
+
+VISUAL STYLE REQUIREMENTS:
+${styleDescription}
+
+ENHANCEMENT GUIDELINES:
+- Sharpen edges and improve clarity
+- Correct colors and improve contrast
+- Remove noise and artifacts
+- Maintain scientific accuracy
+- Apply the specified visual style consistently throughout
+
+Enhance this image while applying the specified visual style.`;
         userPrompt = prompt || 'Enhance this scientific image to be sharp, clean, and journal-ready.';
         break;
 
       case 'style_match':
         systemPrompt = `You are a scientific illustration expert. Generate a new figure that matches the visual style of the reference image provided.
-Capture the artistic style, color palette, line weights, and overall aesthetic.
-Generate: ${prompt}
-Style reference should be closely followed while creating original scientific content.`;
+
+STYLE MATCHING GUIDELINES:
+- Analyze the reference image's color palette, line weights, and rendering technique
+- Apply the same artistic style to the new content
+- Match the level of detail and abstraction
+- Maintain consistency with the reference's visual language
+
+Additionally apply these style characteristics:
+${styleDescription}
+
+Generate the requested figure while matching the reference style.`;
         userPrompt = prompt;
         break;
 
