@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, LayoutGrid, Users, BookOpen, Settings } from 'lucide-react';
+import { Menu, Home, LayoutGrid, Users, BookOpen, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { AdminNotificationBell } from '@/components/admin/AdminNotificationBell';
@@ -15,6 +15,7 @@ export const TopNavBar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
+    { name: 'Home', url: '/', icon: Home },
     { name: 'Gallery', url: '/projects', icon: LayoutGrid },
     { name: 'Community', url: '/community', icon: Users },
     { name: 'Blog', url: '/blog', icon: BookOpen },
