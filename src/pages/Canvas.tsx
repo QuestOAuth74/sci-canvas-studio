@@ -620,7 +620,8 @@ const CanvasContent = () => {
       <AIFigureGenerator 
         canvas={canvas}
         open={aiGeneratorOpen} 
-        onOpenChange={setAiGeneratorOpen} 
+        onOpenChange={setAiGeneratorOpen}
+        onOpenAIStudio={() => setAiFigureStudioOpen(true)}
       />
       
       {/* AI Icon Generator */}
