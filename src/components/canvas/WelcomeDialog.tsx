@@ -1,29 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, BookOpen, Pencil, LayoutTemplate } from "lucide-react";
-
-const FEATURED_TEMPLATES = [
-  {
-    id: "CELL_SIGNALING",
-    name: "Cell Signaling",
-    thumbnail: "/placeholder.svg",
-    description: "Start with a basic cell signaling pathway"
-  },
-  {
-    id: "WESTERN_BLOT",
-    name: "Western Blot",
-    thumbnail: "/placeholder.svg",
-    description: "Create a western blot result figure"
-  },
-  {
-    id: "FLOWCHART",
-    name: "Experimental Flow",
-    thumbnail: "/placeholder.svg",
-    description: "Design your experiment workflow"
-  }
-];
+import { Sparkles, FileEdit, Users, Wand2 } from "lucide-react";
 
 interface WelcomeDialogProps {
   open: boolean;
@@ -32,26 +11,26 @@ interface WelcomeDialogProps {
   onStartTutorial: () => void;
   onStartBlank: () => void;
   onSkipTutorial: () => void;
+  onStartAIAssisted?: () => void;
 }
 
 export const WelcomeDialog = ({
   open,
   onOpenChange,
   onStartWithTemplate,
-  onStartTutorial,
   onStartBlank,
-  onSkipTutorial
+  onStartAIAssisted
 }: WelcomeDialogProps) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-  const handleChoice = (choice: 'template' | 'tutorial' | 'blank') => {
+  const handleChoice = (choice: 'template' | 'blank' | 'ai') => {
     localStorage.setItem('canvas_welcome_completed', 'true');
     localStorage.setItem('canvas_first_choice', choice);
     
     if (choice === 'template') {
       onStartWithTemplate();
-    } else if (choice === 'tutorial') {
-      onStartTutorial();
+    } else if (choice === 'ai') {
+      onStartAIAssisted?.();
     } else {
       onStartBlank();
     }
@@ -61,33 +40,63 @@ export const WelcomeDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border border-slate-200 bg-white shadow-xl">
+      <DialogContent className="max-w-3xl border border-border bg-card shadow-xl">
         <DialogHeader>
           <div className="flex items-center gap-2 justify-center mb-2">
             <Sparkles className="h-6 w-6 text-primary" />
-            <DialogTitle className="text-2xl font-semibold text-slate-900">Welcome to BioSketch Canvas!</DialogTitle>
+            <DialogTitle className="text-2xl font-semibold">Welcome to BioSketch Canvas!</DialogTitle>
           </div>
-          <DialogDescription className="text-center text-base text-slate-600">
-            Choose how you'd like to start creating your first scientific figure
+          <DialogDescription className="text-center text-base text-muted-foreground">
+            Choose how you'd like to start creating your scientific figure
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-          {/* Option 1: Start with Template */}
+          {/* Option 1: Blank Canvas */}
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg border border-slate-200 bg-white ${
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-card ${
+              selectedOption === 'blank' ? 'ring-2 ring-primary' : ''
+            }`}
+            onClick={() => setSelectedOption('blank')}
+          >
+            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
+                <FileEdit className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Blank Canvas</h3>
+                <p className="text-sm text-muted-foreground">
+                  Start fresh with an empty canvas and build your figure from scratch
+                </p>
+              </div>
+              <Button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleChoice('blank');
+                }}
+                variant="outline"
+                className="w-full"
+              >
+                Start Blank
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Option 2: Community Templates */}
+          <Card 
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-card ${
               selectedOption === 'template' ? 'ring-2 ring-primary' : ''
             }`}
             onClick={() => setSelectedOption('template')}
           >
             <CardContent className="p-6 flex flex-col items-center text-center gap-4">
               <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <LayoutTemplate className="h-8 w-8 text-primary" />
+                <Users className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2 text-slate-900">Start with a Template</h3>
-                <p className="text-sm text-slate-600">
-                  Choose from ready-made templates and customize them to your needs
+                <h3 className="font-semibold text-lg mb-2">Community Templates</h3>
+                <p className="text-sm text-muted-foreground">
+                  Get inspired by templates created and shared by the community
                 </p>
               </div>
               <Button 
@@ -102,116 +111,50 @@ export const WelcomeDialog = ({
             </CardContent>
           </Card>
 
-          {/* Option 2: Interactive Tutorial */}
+          {/* Option 3: AI Assisted */}
           <Card 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg border border-slate-200 bg-white ${
-              selectedOption === 'tutorial' ? 'ring-2 ring-primary' : ''
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg bg-card ${
+              selectedOption === 'ai' ? 'ring-2 ring-primary' : ''
             }`}
-            onClick={() => setSelectedOption('tutorial')}
+            onClick={() => setSelectedOption('ai')}
           >
             <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-blue-50 flex items-center justify-center">
-                <BookOpen className="h-8 w-8 text-blue-600" />
+              <div className="h-16 w-16 rounded-full bg-accent flex items-center justify-center">
+                <Wand2 className="h-8 w-8 text-accent-foreground" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2 text-slate-900">Try Interactive Tutorial</h3>
-                <p className="text-sm text-slate-600">
-                  Learn by doing with a guided 90-second hands-on walkthrough
+                <h3 className="font-semibold text-lg mb-2">AI-Assisted Generation</h3>
+                <p className="text-sm text-muted-foreground">
+                  Describe your figure and let AI help you create it quickly
                 </p>
               </div>
               <Button 
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleChoice('tutorial');
+                  handleChoice('ai');
                 }}
-                variant="outline"
+                variant="secondary"
                 className="w-full"
               >
-                Start Tutorial
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generate with AI
               </Button>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Option 3: Start from Scratch */}
-          <Card 
-            className={`cursor-pointer transition-all duration-200 hover:shadow-lg border border-slate-200 bg-white ${
-              selectedOption === 'blank' ? 'ring-2 ring-primary' : ''
-            }`}
-            onClick={() => setSelectedOption('blank')}
+        <div className="mt-6 pt-4 border-t border-border flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              localStorage.setItem('canvas_welcome_completed', 'true');
+              onOpenChange(false);
+            }}
+            className="text-xs text-muted-foreground"
           >
-            <CardContent className="p-6 flex flex-col items-center text-center gap-4">
-              <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center">
-                <Pencil className="h-8 w-8 text-slate-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2 text-slate-900">Start from Scratch</h3>
-                <p className="text-sm text-slate-600">
-                  Jump right in with a blank canvas for experienced users
-                </p>
-              </div>
-              <Button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleChoice('blank');
-                }}
-                variant="outline"
-                className="w-full"
-              >
-                Blank Canvas
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Featured Templates Preview */}
-        <div className="mt-6 pt-6 border-t border-slate-200">
-          <h4 className="text-sm font-medium mb-3 text-center text-slate-700">
-            Popular templates to get you started:
-          </h4>
-          <div className="grid grid-cols-3 gap-3">
-            {FEATURED_TEMPLATES.map((template) => (
-              <div 
-                key={template.id}
-                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-slate-50 transition-all duration-200 cursor-pointer border border-transparent hover:border-slate-200"
-                onClick={() => handleChoice('template')}
-              >
-                <div className="h-16 w-full bg-slate-50 rounded flex items-center justify-center border border-slate-200">
-                  <LayoutTemplate className="h-8 w-8 text-slate-400" />
-                </div>
-                <span className="text-xs font-medium text-center text-slate-700">{template.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 pt-4 border-t border-slate-200 flex flex-col items-center gap-2">
-          <p className="text-xs text-center text-slate-500">
-            You can always access templates and tutorials later from the menu
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                onSkipTutorial();
-                onOpenChange(false);
-              }}
-              className="text-xs"
-            >
-              Skip & Start with Guide
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                localStorage.setItem('canvas_welcome_completed', 'true');
-                onOpenChange(false);
-              }}
-              className="text-xs text-slate-500 hover:text-slate-700"
-            >
-              Dismiss
-            </Button>
-          </div>
+            Dismiss
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
