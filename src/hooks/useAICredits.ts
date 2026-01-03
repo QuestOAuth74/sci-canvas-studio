@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export interface AICreditsInfo {
   credits: number;
   bonusCredits: number;
+  purchasedCredits: number;
   totalCredits: number;
   creditsUsed: number;
   remainingCredits: number;
@@ -44,6 +45,7 @@ export const useAICredits = () => {
         return {
           credits: FREE_CREDITS,
           bonusCredits: 0,
+          purchasedCredits: 0,
           totalCredits: FREE_CREDITS,
           creditsUsed: 0,
           remainingCredits: FREE_CREDITS,
@@ -67,11 +69,31 @@ export const useAICredits = () => {
       const sharedProjectsCount = projectsData?.length ?? 0;
       const hasBonusCredits = sharedProjectsCount >= PROJECTS_FOR_BONUS;
 
+      // Get purchased credits (these never expire)
+      // Using type assertion since table may not be in generated types yet
+      let purchasedCredits = 0;
+      try {
+        const { data: purchasedData } = await supabase
+          .from('purchased_credits' as any)
+          .select('credits_amount, credits_used')
+          .eq('user_id', user.id);
+
+        if (purchasedData && Array.isArray(purchasedData) && purchasedData.length > 0) {
+          purchasedCredits = purchasedData.reduce((sum: number, row: any) => {
+            const remaining = (row.credits_amount || 0) - (row.credits_used || 0);
+            return sum + Math.max(0, remaining);
+          }, 0);
+        }
+      } catch (e) {
+        // Table may not exist yet
+        console.log('Purchased credits table not available yet');
+      }
+
       // Calculate reset period (30 days from first generation or account creation)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - RESET_PERIOD_DAYS);
       
-      // Get generations in current period
+      // Get generations in current period (for free/bonus credits only)
       const { data: usageData } = await supabase
         .from('ai_generation_usage')
         .select('id, generated_at')
@@ -79,13 +101,17 @@ export const useAICredits = () => {
         .gte('generated_at', thirtyDaysAgo.toISOString());
 
       const generationsInPeriod = usageData?.length ?? 0;
-      const creditsUsed = generationsInPeriod * CREDITS_PER_GENERATION;
+      const freeCreditsUsed = generationsInPeriod * CREDITS_PER_GENERATION;
 
       // Calculate total available credits
       const baseCredits = FREE_CREDITS;
       const bonusCredits = hasBonusCredits ? BONUS_CREDITS : 0;
-      const totalCredits = baseCredits + bonusCredits;
-      const remainingCredits = Math.max(0, totalCredits - creditsUsed);
+      const freeAndBonusTotal = baseCredits + bonusCredits;
+      const freeAndBonusRemaining = Math.max(0, freeAndBonusTotal - freeCreditsUsed);
+      
+      // Total remaining = free/bonus remaining + purchased credits
+      const totalCredits = freeAndBonusTotal + purchasedCredits;
+      const remainingCredits = freeAndBonusRemaining + purchasedCredits;
 
       // Calculate reset date (30 days from now if they started recently, or from first gen)
       const resetDate = new Date();
@@ -94,8 +120,9 @@ export const useAICredits = () => {
       return {
         credits: baseCredits,
         bonusCredits,
+        purchasedCredits,
         totalCredits,
-        creditsUsed,
+        creditsUsed: freeCreditsUsed,
         remainingCredits,
         canGenerate: remainingCredits >= CREDITS_PER_GENERATION,
         sharedProjectsCount,

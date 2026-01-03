@@ -38,3 +38,9 @@ verify_jwt = false
 
 [functions.generate-figure-gemini]
 verify_jwt = true
+
+[functions.purchase-credits]
+verify_jwt = true
+
+[functions.stripe-webhook-credits]
+verify_jwt = false
