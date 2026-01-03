@@ -1,14 +1,17 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Share2, Gift, ArrowRight, Zap, Clock, Coins } from 'lucide-react';
+import { Sparkles, Share2, Gift, ArrowRight, Zap, Clock, Coins, ShoppingCart } from 'lucide-react';
 import { useAICredits, CREDITS_PER_GENERATION, FREE_CREDITS, BONUS_CREDITS, PROJECTS_FOR_BONUS } from '@/hooks/useAICredits';
 import { useNavigate } from 'react-router-dom';
+import { PurchaseCreditsDialog } from '@/components/canvas/PurchaseCreditsDialog';
 
 export function AIGenerationQuotaCard() {
   const { creditsInfo, isLoading } = useAICredits();
   const navigate = useNavigate();
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
 
   if (isLoading) {
     return (
@@ -113,21 +116,30 @@ export function AIGenerationQuotaCard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 bg-white/50 rounded-lg border border-[hsl(var(--pencil-gray))]">
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="h-4 w-4 text-[hsl(var(--ink-blue))]" />
-              <span className="text-xs text-muted-foreground font-['Source_Serif_4']">Free</span>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="p-2 bg-white/50 rounded-lg border border-[hsl(var(--pencil-gray))]">
+            <div className="flex items-center gap-1 mb-1">
+              <Sparkles className="h-3 w-3 text-[hsl(var(--ink-blue))]" />
+              <span className="text-[10px] text-muted-foreground font-['Source_Serif_4']">Free</span>
             </div>
-            <div className="text-2xl font-bold text-[hsl(var(--ink-blue))]">{FREE_CREDITS}</div>
+            <div className="text-lg font-bold text-[hsl(var(--ink-blue))]">{FREE_CREDITS}</div>
           </div>
-          <div className="p-3 bg-white/50 rounded-lg border border-[hsl(var(--pencil-gray))]">
-            <div className="flex items-center gap-2 mb-1">
-              <Gift className="h-4 w-4 text-[hsl(var(--ink-blue))]" />
-              <span className="text-xs text-muted-foreground font-['Source_Serif_4']">Bonus</span>
+          <div className="p-2 bg-white/50 rounded-lg border border-[hsl(var(--pencil-gray))]">
+            <div className="flex items-center gap-1 mb-1">
+              <Gift className="h-3 w-3 text-[hsl(var(--ink-blue))]" />
+              <span className="text-[10px] text-muted-foreground font-['Source_Serif_4']">Bonus</span>
             </div>
-            <div className="text-2xl font-bold text-[hsl(var(--ink-blue))]">
+            <div className="text-lg font-bold text-[hsl(var(--ink-blue))]">
               {creditsInfo.hasBonusCredits ? BONUS_CREDITS : 0}
+            </div>
+          </div>
+          <div className="p-2 bg-white/50 rounded-lg border border-[hsl(var(--pencil-gray))]">
+            <div className="flex items-center gap-1 mb-1">
+              <ShoppingCart className="h-3 w-3 text-[hsl(var(--ink-blue))]" />
+              <span className="text-[10px] text-muted-foreground font-['Source_Serif_4']">Purchased</span>
+            </div>
+            <div className="text-lg font-bold text-[hsl(var(--ink-blue))]">
+              {creditsInfo.purchasedCredits || 0}
             </div>
           </div>
         </div>
@@ -199,11 +211,26 @@ export function AIGenerationQuotaCard() {
           </div>
         )}
 
+        {/* Purchase button */}
+        <Button
+          onClick={() => setShowPurchaseDialog(true)}
+          variant="outline"
+          className="w-full gap-2 bg-[hsl(var(--ink-blue))]/10 hover:bg-[hsl(var(--ink-blue))]/20 border-[hsl(var(--ink-blue))]/30"
+        >
+          <ShoppingCart className="h-4 w-4" />
+          Purchase More Credits
+        </Button>
+
         {/* Cost info */}
         <p className="text-xs text-muted-foreground text-center font-['Source_Serif_4']">
           Each AI figure generation costs {CREDITS_PER_GENERATION} credits
         </p>
       </CardContent>
+      
+      <PurchaseCreditsDialog 
+        open={showPurchaseDialog} 
+        onOpenChange={setShowPurchaseDialog} 
+      />
     </Card>
   );
 }
