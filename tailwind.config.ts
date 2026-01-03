@@ -13,8 +13,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'serif': ['Source Serif 4', 'Georgia', 'serif'],
+        'sans': ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        'display': ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        'body': ['DM Sans', 'system-ui', 'sans-serif'],
         'mono': ['SF Mono', 'Fira Code', 'Consolas', 'monospace'],
       },
       fontSize: {
