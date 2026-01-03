@@ -16,17 +16,21 @@ import {
   Scatter,
   ScatterChart,
   ZAxis,
+  LineChart,
+  Line,
 } from 'recharts';
 import {
   DataPoint,
   BoxPlotStats,
   HeatmapDataPoint,
+  ScatterDataPoint,
+  LineDataPoint,
   ChartType,
 } from '@/lib/chartDataUtils';
 
 interface ChartPreviewProps {
   type: ChartType;
-  data: DataPoint[] | BoxPlotStats[] | HeatmapDataPoint[];
+  data: DataPoint[] | BoxPlotStats[] | HeatmapDataPoint[] | ScatterDataPoint[] | LineDataPoint[];
   colors: string[];
   title?: string;
   xAxisLabel?: string;
@@ -335,6 +339,101 @@ export const ChartPreview = ({
                 shape={(props: any) => <HeatmapCell {...props} colorScale={colorScale} />}
               />
             </ScatterChart>
+          </ResponsiveContainer>
+        );
+      }
+
+      case 'scatter': {
+        const scatterData = data as ScatterDataPoint[];
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <ScatterChart margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />}
+              <XAxis 
+                type="number"
+                dataKey="x"
+                tick={{ fontSize: 10 }}
+                label={xAxisLabel ? { value: xAxisLabel, position: 'bottom', offset: 40 } : undefined}
+              />
+              <YAxis 
+                type="number"
+                dataKey="y"
+                tick={{ fontSize: 10 }}
+                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined}
+              />
+              <Tooltip 
+                content={({ payload }) => {
+                  if (!payload?.[0]) return null;
+                  const d = payload[0].payload as ScatterDataPoint;
+                  return (
+                    <div className="bg-background border rounded p-2 text-xs shadow-lg">
+                      {d.label && <p className="font-semibold">{d.label}</p>}
+                      <p>X: {d.x}</p>
+                      <p>Y: {d.y}</p>
+                    </div>
+                  );
+                }}
+              />
+              {showLegend && <Legend />}
+              <Scatter 
+                name="Data" 
+                data={scatterData} 
+                fill={colors[0] || '#4C72B0'}
+              >
+                {scatterData.map((_, index) => (
+                  <Cell key={index} fill={colors[index % colors.length]} />
+                ))}
+              </Scatter>
+            </ScatterChart>
+          </ResponsiveContainer>
+        );
+      }
+
+      case 'line': {
+        const lineData = data as LineDataPoint[];
+        // Group by series if present
+        const series = [...new Set(lineData.map(d => d.series || 'default'))];
+        const groupedData = lineData.reduce((acc, point) => {
+          const existing = acc.find(d => d.x === point.x);
+          const seriesKey = point.series || 'default';
+          if (existing) {
+            existing[seriesKey] = point.y;
+          } else {
+            acc.push({ x: point.x, [seriesKey]: point.y });
+          }
+          return acc;
+        }, [] as any[]);
+
+        return (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={groupedData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+              {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />}
+              <XAxis 
+                dataKey="x"
+                tick={{ fontSize: 10 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+                label={xAxisLabel ? { value: xAxisLabel, position: 'bottom', offset: 40 } : undefined}
+              />
+              <YAxis 
+                tick={{ fontSize: 10 }}
+                label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined}
+              />
+              <Tooltip />
+              {showLegend && <Legend />}
+              {series.map((s, idx) => (
+                <Line
+                  key={s}
+                  type="monotone"
+                  dataKey={s}
+                  stroke={colors[idx % colors.length]}
+                  strokeWidth={2}
+                  dot={{ fill: colors[idx % colors.length], r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              ))}
+            </LineChart>
           </ResponsiveContainer>
         );
       }

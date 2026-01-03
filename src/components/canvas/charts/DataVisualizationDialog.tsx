@@ -17,6 +17,8 @@ import {
   Grid3X3,
   BarChart,
   Check,
+  ScatterChart,
+  LineChart,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -32,9 +34,13 @@ import {
   calculateHistogramBins,
   calculateBoxPlotStats,
   parseRawValues,
+  parseScatterData,
+  parseLineData,
   DataPoint,
   BoxPlotStats,
   HeatmapDataPoint,
+  ScatterDataPoint,
+  LineDataPoint,
 } from '@/lib/chartDataUtils';
 import { useCanvas } from '@/contexts/CanvasContext';
 
@@ -49,6 +55,8 @@ const CHART_ICONS: Record<ChartType, typeof BarChart> = {
   pie: PieChart,
   boxplot: BoxSelect,
   heatmap: Grid3X3,
+  scatter: ScatterChart,
+  line: LineChart,
 };
 
 export const DataVisualizationDialog = ({
@@ -75,7 +83,7 @@ export const DataVisualizationDialog = ({
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Parse and process data based on chart type
-  const processedData = useMemo((): DataPoint[] | BoxPlotStats[] | HeatmapDataPoint[] => {
+  const processedData = useMemo((): DataPoint[] | BoxPlotStats[] | HeatmapDataPoint[] | ScatterDataPoint[] | LineDataPoint[] => {
     if (!rawData.trim()) return [];
 
     try {
@@ -96,6 +104,12 @@ export const DataVisualizationDialog = ({
         
         case 'heatmap':
           return csvToHeatmapData(rawData);
+        
+        case 'scatter':
+          return parseScatterData(rawData);
+        
+        case 'line':
+          return parseLineData(rawData);
         
         default:
           return [];
