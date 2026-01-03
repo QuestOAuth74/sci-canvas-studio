@@ -6,6 +6,18 @@ export interface DataPoint {
   category?: string;
 }
 
+export interface ScatterDataPoint {
+  x: number;
+  y: number;
+  label?: string;
+}
+
+export interface LineDataPoint {
+  x: string | number;
+  y: number;
+  series?: string;
+}
+
 export interface HeatmapDataPoint {
   x: string;
   y: string;
@@ -209,7 +221,49 @@ export const CHART_TYPES = {
     description: 'Matrix of values',
     icon: 'Grid3X3',
     dataFormat: 'CSV matrix with headers'
+  },
+  scatter: {
+    name: 'Scatter Plot',
+    description: 'Correlation analysis',
+    icon: 'ScatterChart',
+    dataFormat: 'X,Y per row'
+  },
+  line: {
+    name: 'Line Chart',
+    description: 'Time series & trends',
+    icon: 'LineChart',
+    dataFormat: 'X,Y per row'
   }
 } as const;
 
 export type ChartType = keyof typeof CHART_TYPES;
+
+// Parse scatter/line data from CSV
+export const parseScatterData = (csvString: string): ScatterDataPoint[] => {
+  const lines = csvString.trim().split('\n');
+  const results: ScatterDataPoint[] = [];
+  for (const line of lines) {
+    const parts = line.split(',').map(p => p.trim());
+    const x = parseFloat(parts[0]);
+    const y = parseFloat(parts[1]);
+    if (!isNaN(x) && !isNaN(y)) {
+      results.push({ x, y, label: parts[2] || undefined });
+    }
+  }
+  return results;
+};
+
+export const parseLineData = (csvString: string): LineDataPoint[] => {
+  const lines = csvString.trim().split('\n');
+  const results: LineDataPoint[] = [];
+  for (const line of lines) {
+    const parts = line.split(',').map(p => p.trim());
+    const xRaw = parts[0];
+    const y = parseFloat(parts[1]);
+    if (!isNaN(y)) {
+      const x = isNaN(parseFloat(xRaw)) ? xRaw : parseFloat(xRaw);
+      results.push({ x, y, series: parts[2] || undefined });
+    }
+  }
+  return results;
+};

@@ -64,6 +64,19 @@ Treatment C,78`;
 Sample1,2.5,1.2,3.8
 Sample2,1.8,3.1,2.2
 Sample3,3.2,2.4,1.5`;
+      case 'scatter':
+        return `1.2,3.4
+2.5,5.1
+3.1,4.8
+4.2,7.2
+5.0,6.5`;
+      case 'line':
+        return `0,1.2
+1,2.5
+2,3.1
+3,4.8
+4,5.2
+5,6.1`;
       default:
         return '';
     }
@@ -127,6 +140,28 @@ Gene B,0.5,1.8,4.2,3.8
 Gene C,2.1,1.2,0.8,1.5
 Gene D,1.5,3.2,2.9,4.1
 Gene E,0.8,0.9,1.1,0.7`;
+      case 'scatter':
+        return `0.5,2.1,Sample 1
+1.2,3.5,Sample 2
+2.1,4.2,Sample 3
+2.8,5.8,Sample 4
+3.5,6.1,Sample 5
+4.2,7.5,Sample 6
+5.0,8.2,Sample 7
+5.8,9.1,Sample 8
+6.5,10.3,Sample 9
+7.2,11.0,Sample 10`;
+      case 'line':
+        return `Day 1,12.5
+Day 2,15.2
+Day 3,18.7
+Day 4,22.1
+Day 5,25.8
+Day 6,28.3
+Day 7,31.2
+Day 8,33.8
+Day 9,35.1
+Day 10,36.9`;
       default:
         return '';
     }
