@@ -47,73 +47,102 @@ serve(async (req) => {
 
     const styleDescription = getStyleDescription(style);
 
+    // Scientific accuracy guidelines - applied to all modes
+    const scientificAccuracyGuidelines = `
+SCIENTIFIC ACCURACY REQUIREMENTS:
+- Anatomically accurate representations based on established scientific references (e.g., Gray's Anatomy for human anatomy, Alberts' Molecular Biology of the Cell for cellular structures)
+- Correct proportions and spatial relationships between structures
+- Accurate representation of biological processes and molecular interactions
+- Use standard scientific nomenclature and labeling conventions
+- Maintain proper scale relationships where applicable
+- Follow established conventions for depicting biological structures (e.g., mitochondria with cristae, cell membranes as lipid bilayers)
+- Ensure molecular structures reflect actual 3D conformations when relevant
+- Use scientifically appropriate color coding (e.g., oxygen in red, nitrogen in blue for molecular models)`;
+
     // Build the system prompt based on mode
     let systemPrompt = '';
     let userPrompt = '';
 
     switch (mode) {
       case 'prompt_to_visual':
-        systemPrompt = `You are a scientific illustration expert creating publication-quality figures.
+        systemPrompt = `You are a scientific illustration expert creating publication-quality figures for peer-reviewed journals and academic textbooks.
 
 VISUAL STYLE REQUIREMENTS:
 ${styleDescription}
 
-SCIENTIFIC STANDARDS:
-- Anatomically and scientifically accurate representations
-- Clear labels and annotations where appropriate
-- Professional composition suitable for academic journals
-- White or transparent background preferred
+${scientificAccuracyGuidelines}
 
-Generate a scientific figure based on the user's description.`;
+PUBLICATION STANDARDS:
+- Suitable for high-impact academic journals (Nature, Science, Cell)
+- Clear visual hierarchy with proper emphasis on key elements
+- Professional composition with balanced negative space
+- White or transparent background preferred
+- Include scale bars where appropriate
+- Use clear, legible labels and annotations
+
+Generate a scientifically rigorous figure based on the user's description.`;
         userPrompt = prompt;
         break;
 
       case 'sketch_transform':
-        systemPrompt = `You are a scientific illustration expert. Transform the provided hand-drawn sketch into a polished, professional scientific figure.
+        systemPrompt = `You are a scientific illustration expert specializing in transforming hand-drawn sketches into publication-ready figures.
 
 VISUAL STYLE REQUIREMENTS:
 ${styleDescription}
+
+${scientificAccuracyGuidelines}
 
 TRANSFORMATION GUIDELINES:
 - Preserve the original concept and layout from the sketch
-- Correct any anatomical or structural inaccuracies
-- Add proper proportions and clean geometry
+- Correct any anatomical or structural inaccuracies based on established scientific references
+- Add proper proportions following standard anatomical and biological conventions
+- Ensure structures match their real-world counterparts (e.g., organelle shapes, protein conformations)
+- Clean up geometry while maintaining scientific authenticity
+- Add appropriate scientific detail that may be missing from the sketch
 - Make it publication-ready while maintaining the original intent
 
-Transform this sketch while applying the specified visual style.`;
-        userPrompt = prompt || 'Transform this hand-drawn sketch into a professional scientific figure.';
+Transform this sketch into an anatomically accurate, professionally rendered scientific figure.`;
+        userPrompt = prompt || 'Transform this hand-drawn sketch into a professional, anatomically accurate scientific figure.';
         break;
 
       case 'image_enhancer':
-        systemPrompt = `You are a scientific image enhancement specialist. Enhance the provided image to make it publication-ready.
+        systemPrompt = `You are a scientific image enhancement specialist with expertise in biomedical and scientific visualization.
 
 VISUAL STYLE REQUIREMENTS:
 ${styleDescription}
 
-ENHANCEMENT GUIDELINES:
-- Sharpen edges and improve clarity
-- Correct colors and improve contrast
-- Remove noise and artifacts
-- Maintain scientific accuracy
-- Apply the specified visual style consistently throughout
+${scientificAccuracyGuidelines}
 
-Enhance this image while applying the specified visual style.`;
-        userPrompt = prompt || 'Enhance this scientific image to be sharp, clean, and journal-ready.';
+ENHANCEMENT GUIDELINES:
+- Sharpen edges and improve clarity while preserving scientific accuracy
+- Correct colors using standard scientific color conventions
+- Improve contrast to highlight key structures
+- Remove noise and artifacts without losing important detail
+- Ensure anatomical structures remain accurate after enhancement
+- Maintain proper proportions and spatial relationships
+- Apply the specified visual style consistently throughout
+- Preserve any labels, scale bars, or annotations
+
+Enhance this image to meet publication standards while ensuring scientific accuracy.`;
+        userPrompt = prompt || 'Enhance this scientific image to be sharp, clean, anatomically accurate, and journal-ready.';
         break;
 
       case 'style_match':
-        systemPrompt = `You are a scientific illustration expert. Generate a new figure that matches the visual style of the reference image provided.
+        systemPrompt = `You are a scientific illustration expert specializing in consistent visual style application across scientific figures.
+
+${scientificAccuracyGuidelines}
 
 STYLE MATCHING GUIDELINES:
 - Analyze the reference image's color palette, line weights, and rendering technique
 - Apply the same artistic style to the new content
 - Match the level of detail and abstraction
 - Maintain consistency with the reference's visual language
+- Ensure the new figure maintains scientific accuracy regardless of style
 
 Additionally apply these style characteristics:
 ${styleDescription}
 
-Generate the requested figure while matching the reference style.`;
+Generate the requested figure matching the reference style while ensuring anatomical and scientific accuracy.`;
         userPrompt = prompt;
         break;
 
