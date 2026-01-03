@@ -10,8 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Mail, Trash2, Eye, EyeOff, StickyNote, MapPin, Calendar, Reply, Loader2, CheckCheck } from "lucide-react";
+import { Mail, Trash2, Eye, EyeOff, StickyNote, MapPin, Calendar, Reply, Loader2, CheckCheck, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
+
+const PAGE_SIZE = 10;
 
 export const ContactMessagesManager = () => {
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
@@ -23,6 +25,7 @@ export const ContactMessagesManager = () => {
   const [replyMessage, setReplyMessage] = useState("");
   const [adminName, setAdminName] = useState("BioSketch Support Team");
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
 
   const queryClient = useQueryClient();
 
@@ -165,6 +168,22 @@ export const ContactMessagesManager = () => {
 
   const unreadCount = messages?.filter(msg => !msg.is_read).length || 0;
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredMessages.length / PAGE_SIZE);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const paginatedMessages = filteredMessages.slice(startIndex, endIndex);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  // Reset to page 1 when filter changes
+  const handleFilterChange = () => {
+    setShowUnreadOnly(!showUnreadOnly);
+    setCurrentPage(1);
+  };
+
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedMessages);
     if (newExpanded.has(id)) {
@@ -208,7 +227,7 @@ export const ContactMessagesManager = () => {
               <Button
                 variant={showUnreadOnly ? "default" : "outline"}
                 size="sm"
-                onClick={() => setShowUnreadOnly(!showUnreadOnly)}
+                onClick={handleFilterChange}
               >
                 {showUnreadOnly ? "Show All" : "Unread Only"}
               </Button>
@@ -223,111 +242,167 @@ export const ContactMessagesManager = () => {
               {showUnreadOnly ? "No unread messages" : "No messages yet"}
             </p>
           ) : (
-            <div className="space-y-4">
-              {filteredMessages.map((message) => (
-                <Card key={message.id} className="border-border/60">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-bold text-lg">{message.full_name}</h3>
-                          <Badge variant={message.is_read ? "secondary" : "default"}>
-                            {message.is_read ? "Read" : "Unread"}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                          <span className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {message.email}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {message.country}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {format(new Date(message.created_at), "MMM d, yyyy HH:mm")}
-                          </span>
-                        </div>
+            <>
+              <div className="space-y-4">
+                {paginatedMessages.map((message) => (
+                  <Card key={message.id} className="border-border/60">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-bold text-lg">{message.full_name}</h3>
+                            <Badge variant={message.is_read ? "secondary" : "default"}>
+                              {message.is_read ? "Read" : "Unread"}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {message.email}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {message.country}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {format(new Date(message.created_at), "MMM d, yyyy HH:mm")}
+                            </span>
+                          </div>
 
-                        <div className="pt-2">
-                          <p className="text-sm whitespace-pre-wrap">
-                            {truncateMessage(message.message, message.id)}
-                          </p>
-                          {message.message.length > 200 && (
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="p-0 h-auto"
-                              onClick={() => toggleExpanded(message.id)}
-                            >
-                              {expandedMessages.has(message.id) ? "Show less" : "Read more"}
-                            </Button>
+                          <div className="pt-2">
+                            <p className="text-sm whitespace-pre-wrap">
+                              {truncateMessage(message.message, message.id)}
+                            </p>
+                            {message.message.length > 200 && (
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="p-0 h-auto"
+                                onClick={() => toggleExpanded(message.id)}
+                              >
+                                {expandedMessages.has(message.id) ? "Show less" : "Read more"}
+                              </Button>
+                            )}
+                          </div>
+
+                          {message.admin_notes && (
+                            <div className="mt-2 p-2 bg-muted/50 rounded-md border border-border/40">
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Admin Notes:</p>
+                              <p className="text-sm">{message.admin_notes}</p>
+                            </div>
                           )}
                         </div>
 
-                        {message.admin_notes && (
-                          <div className="mt-2 p-2 bg-muted/50 rounded-md border border-border/40">
-                            <p className="text-xs font-medium text-muted-foreground mb-1">Admin Notes:</p>
-                            <p className="text-sm">{message.admin_notes}</p>
-                          </div>
-                        )}
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => updateReadStatus.mutate({ 
+                              id: message.id, 
+                              is_read: !message.is_read 
+                            })}
+                            title={message.is_read ? "Mark as unread" : "Mark as read"}
+                          >
+                            {message.is_read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedMessage(message);
+                              setReplyMessage('');
+                              setReplyDialogOpen(true);
+                            }}
+                            title="Reply to message"
+                          >
+                            <Reply className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedMessage(message);
+                              setAdminNotes(message.admin_notes || "");
+                              setNotesDialogOpen(true);
+                            }}
+                            title="Add/Edit notes"
+                          >
+                            <StickyNote className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedMessage(message);
+                              setDeleteDialogOpen(true);
+                            }}
+                            title="Delete message"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
 
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => updateReadStatus.mutate({ 
-                            id: message.id, 
-                            is_read: !message.is_read 
-                          })}
-                          title={message.is_read ? "Mark as unread" : "Mark as read"}
-                        >
-                          {message.is_read ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedMessage(message);
-                            setReplyMessage('');
-                            setReplyDialogOpen(true);
-                          }}
-                          title="Reply to message"
-                        >
-                          <Reply className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedMessage(message);
-                            setAdminNotes(message.admin_notes || "");
-                            setNotesDialogOpen(true);
-                          }}
-                          title="Add/Edit notes"
-                        >
-                          <StickyNote className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            setSelectedMessage(message);
-                            setDeleteDialogOpen(true);
-                          }}
-                          title="Delete message"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1}–{Math.min(endIndex, filteredMessages.length)} of {filteredMessages.length} messages
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum: number;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => goToPage(pageNum)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
