@@ -909,7 +909,7 @@ const CanvasContent = () => {
               <Toolbar activeTool={activeTool} onToolChange={setActiveTool} />
 
               {/* Canvas */}
-              <ScrollArea className="flex-1 relative min-h-0 bg-muted/20">
+              <ScrollArea className="flex-1 relative min-h-0 canvas-scientific-grid bg-muted/30">
           <div className="p-6">
             <CanvasContextMenu
               selectedObject={selectedObject}
