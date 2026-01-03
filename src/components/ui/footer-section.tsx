@@ -76,10 +76,10 @@ function Footerdemo() {
           <div>
             <h2 className="mb-4 text-lg font-semibold">Contact Us</h2>
             <address className="space-y-2 text-sm not-italic text-muted-foreground">
-              <p>123 Innovation Street</p>
-              <p>Tech City, TC 12345</p>
-              <p>Phone: (123) 456-7890</p>
-              <p>Email: hello@biosketch.com</p>
+              <p>2136 Ford Parkway #5111</p>
+              <p>Saint Paul, MN 55116</p>
+              <p>United States</p>
+              <p>Email: support@biosketch.art</p>
             </address>
           </div>
 
