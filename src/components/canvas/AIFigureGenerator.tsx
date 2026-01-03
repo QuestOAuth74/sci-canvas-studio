@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Upload, Sparkles, X, Loader2, CheckCircle2, XCircle, AlertCircle, Lock, Info } from "lucide-react";
+import { Upload, Sparkles, X, Loader2, CheckCircle2, XCircle, AlertCircle, Lock, Info, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,7 @@ interface AIFigureGeneratorProps {
   canvas: FabricCanvas | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onOpenAIStudio?: () => void;
 }
 
 interface GeneratedLayout {
@@ -181,7 +182,7 @@ const initialProgressStages: ProgressStage[] = [
   }
 ];
 
-export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGeneratorProps) => {
+export const AIFigureGenerator = ({ canvas, open, onOpenChange, onOpenAIStudio }: AIFigureGeneratorProps) => {
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -955,8 +956,24 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange }: AIFigureGenera
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <DialogTitle>AI Figure Generator</DialogTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <DialogTitle>AI Figure Generator</DialogTitle>
+            </div>
+            {onOpenAIStudio && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onOpenChange(false);
+                  onOpenAIStudio();
+                }}
+                className="gap-1.5"
+              >
+                <Wand2 className="h-4 w-4" />
+                Open AI Studio
+              </Button>
+            )}
           </div>
           <DialogDescription>
             Upload a reference image and let AI recreate it with intelligent connector styling
