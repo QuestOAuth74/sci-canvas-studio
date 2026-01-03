@@ -9,17 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.03] active:scale-[0.97]",
-        destructive: "bg-gradient-to-r from-destructive to-rose-400 text-destructive-foreground shadow-lg shadow-destructive/25 hover:shadow-xl hover:shadow-destructive/30 hover:scale-[1.03] active:scale-[0.97]",
+        default: "bg-primary text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.03] active:scale-[0.97]",
+        destructive: "bg-destructive text-destructive-foreground shadow-lg shadow-destructive/25 hover:bg-destructive/90 hover:shadow-xl hover:shadow-destructive/30 hover:scale-[1.03] active:scale-[0.97]",
         outline: "border-2 border-border bg-background hover:bg-muted hover:border-primary/30 shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98]",
         secondary: "bg-secondary text-secondary-foreground shadow-md hover:bg-secondary/80 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
         ghost: "hover:bg-muted hover:scale-[1.02] active:scale-[0.98] rounded-xl",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary/80",
         glass: "bg-white/80 backdrop-blur-lg border border-white/20 text-foreground shadow-lg hover:bg-white/90 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]",
-        sticky: "bg-gradient-to-r from-accent to-cyan-400 text-accent-foreground shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.03] active:scale-[0.97]",
+        sticky: "bg-accent text-accent-foreground shadow-lg shadow-accent/25 hover:bg-accent/90 hover:shadow-xl hover:shadow-accent/30 hover:scale-[1.03] active:scale-[0.97]",
         ink: "bg-foreground text-background shadow-lg hover:bg-foreground/90 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]",
         pencil: "border-2 border-dashed border-border bg-background text-muted-foreground hover:bg-muted hover:border-foreground/40 hover:scale-[1.02] active:scale-[0.98] shadow-sm",
-        bubble: "bg-gradient-to-br from-primary/10 to-accent/10 text-foreground border border-primary/20 hover:from-primary/20 hover:to-accent/20 hover:border-primary/40 hover:scale-[1.02] active:scale-[0.98]",
+        bubble: "bg-primary/10 text-foreground border border-primary/20 hover:bg-primary/20 hover:border-primary/40 hover:scale-[1.02] active:scale-[0.98]",
       },
       size: {
         default: "h-11 px-6 py-2",
