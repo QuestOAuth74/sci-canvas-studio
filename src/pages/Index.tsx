@@ -91,7 +91,7 @@ const Index = () => {
                     className="h-14 w-14 md:h-16 md:w-16 object-contain"
                   />
                 </div>
-                <h1 className="text-5xl md:text-7xl font-serif font-semibold tracking-tight text-foreground">
+                <h1 className="text-5xl md:text-7xl font-sans font-bold tracking-tight text-foreground">
                   BioSketch
                 </h1>
               </div>
