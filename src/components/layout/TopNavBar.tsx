@@ -40,7 +40,7 @@ export const TopNavBar = () => {
       )}
 
       {/* Top Bar with Logo and User Menu */}
-      <nav className="sticky top-0 z-40 w-full bg-[#f9f6f0] ruled-lines border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
+      <nav className="sticky top-0 z-50 w-full bg-[#f9f6f0] ruled-lines border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex h-16 items-center justify-between relative">
             {/* Margin line decoration */}
