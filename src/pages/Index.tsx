@@ -7,8 +7,6 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
 import { ProjectPreviewModal } from "@/components/community/ProjectPreviewModal";
 import { supabase } from "@/integrations/supabase/client";
-import carousel1 from "@/assets/carousel-1.png";
-import carousel2 from "@/assets/carousel-2.png";
 import { SEOHead } from "@/components/SEO/SEOHead";
 import { getWebApplicationSchema, getOrganizationSchema } from "@/components/SEO/StructuredData";
 import { useRecentSignups } from "@/hooks/useRecentSignups";
@@ -18,6 +16,7 @@ import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 import { CommunityCarousel } from "@/components/community/CommunityCarousel";
 import { MaintenanceBanner } from "@/components/MaintenanceBanner";
 import { Card, CardContent } from "@/components/ui/card";
+import { HeroImageAccordion } from "@/components/ui/interactive-image-accordion";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -73,153 +72,9 @@ const Index = () => {
 
       <div className="container mx-auto px-4 py-16 md:py-20 relative z-10">
         <div className="max-w-6xl mx-auto space-y-24">
-          {/* Hero Section */}
-          <div className="space-y-10 text-center animate-fade-in">
-            {/* Top Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
-              <Microscope className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-muted-foreground">Trusted by Researchers Worldwide</span>
-            </div>
-
-            {/* Logo and Branding */}
-            <div className="space-y-8">
-              <div className="flex items-center justify-center gap-5 flex-wrap">
-                <div className="p-4 rounded-2xl bg-card border border-border/50 shadow-lg">
-                  <img
-                    src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
-                    alt="BioSketch Logo"
-                    className="h-14 w-14 md:h-16 md:w-16 object-contain"
-                  />
-                </div>
-                <h1 className="text-5xl md:text-7xl font-sans font-bold tracking-tight text-foreground">
-                  BioSketch
-                </h1>
-              </div>
-
-              <div className="max-w-4xl mx-auto space-y-5">
-                <h2 className="text-xl md:text-3xl font-serif font-medium leading-tight text-foreground">
-                  Professional Scientific Illustration Software
-                </h2>
-                <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                  Design publication-quality figures for research papers, presentations, and grants.
-                  Trusted by scientists at leading institutions worldwide.
-                </p>
-              </div>
-            </div>
-
-            {/* Welcome Message for Logged-in Users */}
-            {user && (
-              <div className="flex items-center justify-center gap-3 animate-fade-in">
-                <p className="text-xl font-serif text-foreground">
-                  Welcome back, <span className="font-semibold text-primary">{user.user_metadata?.full_name?.split(" ")[0] || "there"}</span>
-                </p>
-              </div>
-            )}
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 justify-center items-center pt-4">
-              <Button 
-                size="lg" 
-                onClick={() => navigate(user ? "/projects" : "/auth")} 
-                className="min-w-[180px] h-12 text-base font-medium shadow-lg hover:shadow-xl transition-all"
-              >
-                <Palette className="h-5 w-5 mr-2" />
-                {user ? "Start Creating" : "Start Free"}
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-
-              {user && (
-                <>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    onClick={() => navigate("/projects")} 
-                    className="min-w-[160px] h-12 text-base"
-                  >
-                    <FolderOpen className="h-4 w-4 mr-2" />
-                    My Projects
-                  </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    onClick={() => navigate("/community")} 
-                    className="min-w-[160px] h-12 text-base"
-                  >
-                    <Users className="h-4 w-4 mr-2" />
-                    Community
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Institution Logos */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-center gap-3">
-              <div className="h-px flex-1 max-w-[100px] bg-border/50" />
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest">
-                Trusted by researchers at
-              </p>
-              <div className="h-px flex-1 max-w-[100px] bg-border/50" />
-            </div>
-            <InstitutionCarousel />
-          </div>
-
-          {/* Showcase Carousel */}
-          <div className="animate-fade-in [animation-delay:200ms]">
-            <div className="max-w-5xl mx-auto">
-              <Carousel opts={{ loop: true }}>
-                <CarouselContent>
-                  <CarouselItem>
-                    <div className="rounded-2xl overflow-hidden border border-border/50 shadow-2xl bg-card">
-                      <img src={carousel1} alt="BioSketch Interface Showcase" className="w-full h-auto" />
-                      <div className="p-4 bg-muted/30 border-t border-border/30">
-                        <p className="text-center text-sm text-muted-foreground">Canvas workspace in action</p>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                  <CarouselItem>
-                    <div className="rounded-2xl overflow-hidden border border-border/50 shadow-2xl bg-card">
-                      <img src={carousel2} alt="BioSketch Features Showcase" className="w-full h-auto" />
-                      <div className="p-4 bg-muted/30 border-t border-border/30">
-                        <p className="text-center text-sm text-muted-foreground">Full feature showcase</p>
-                      </div>
-                    </div>
-                  </CarouselItem>
-                </CarouselContent>
-                <CarouselPrevious className="-left-6 md:-left-12 shadow-lg border-border/50" />
-                <CarouselNext className="-right-6 md:-right-12 shadow-lg border-border/50" />
-              </Carousel>
-            </div>
-          </div>
-
-          {/* Demo Video Section */}
-          <div className="space-y-8 animate-fade-in [animation-delay:300ms]">
-            <div className="text-center space-y-3">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-1 h-8 bg-primary rounded-full" />
-                <span className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-                  Quick Demo
-                </span>
-              </div>
-              <h2 className="text-2xl md:text-3xl font-serif font-semibold text-foreground">See BioSketch in Action</h2>
-              <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-                Watch how easy it is to create professional figures
-              </p>
-            </div>
-            <div className="max-w-4xl mx-auto">
-              <div className="rounded-2xl overflow-hidden border border-border/50 shadow-2xl">
-                <video
-                  src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
-                  className="w-full h-auto"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  aria-label="BioSketch Canvas Demo Video"
-                />
-              </div>
-            </div>
+          {/* Hero Section with Image Accordion */}
+          <div className="animate-fade-in">
+            <HeroImageAccordion />
           </div>
 
           {/* Feature Cards */}
