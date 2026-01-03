@@ -40,7 +40,7 @@ export function FeaturedProjectShowcase() {
         if (projects && projects.length > 0) {
           const randomProjectData = projects[Math.floor(Math.random() * projects.length)];
           
-          const { data: profile } = await supabase
+          const { data: profile } = await (supabase as any)
             .from('public_profiles')
             .select('full_name')
             .eq('id', randomProjectData.user_id)
@@ -48,7 +48,7 @@ export function FeaturedProjectShowcase() {
 
           setProject({
             ...randomProjectData,
-            profiles: profile || null,
+            profiles: profile as { full_name: string } | null,
           });
         }
       } catch (error) {

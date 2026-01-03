@@ -60,7 +60,7 @@ function transformPathToObjectSpace(
   targetObject: FabricObject
 ): Path {
   // Clone the path to avoid modifying the original
-  const clonedPath = util.object.clone(path) as Path;
+  const clonedPath = (path as any).clone ? (path as any).clone() : JSON.parse(JSON.stringify(path)) as Path;
 
   // Get object's transform matrix
   const objectMatrix = targetObject.calcTransformMatrix();
@@ -127,10 +127,10 @@ export function attachEraserToObject(
       if (existingClipPath instanceof Group) {
         // Add to existing group
         clipGroup = existingClipPath;
-        clipGroup.addWithUpdate(localEraserPath);
+        (clipGroup as any).add?.(localEraserPath) || clipGroup._objects?.push(localEraserPath);
       } else {
         // Create new group with both clipPaths
-        clipGroup = new Group([existingClipPath, localEraserPath], {
+        clipGroup = new Group([existingClipPath as any, localEraserPath], {
           left: 0,
           top: 0,
         });
