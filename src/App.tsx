@@ -36,6 +36,7 @@ import PowerPointGenerator from "./pages/admin/PowerPointGenerator";
 import AISettings from "./pages/admin/AISettings";
 import RateLimits from "./pages/admin/RateLimits";
 import EmailPreview from "./pages/admin/EmailPreview";
+import CreditsHistory from "./pages/CreditsHistory";
 
 // Configure QueryClient with optimized defaults for caching and performance
 const queryClient = new QueryClient({
@@ -81,6 +82,7 @@ const App = () => (
             <Route path="/author/:userId" element={<MainLayout><ProtectedRoute><AuthorProfile /></ProtectedRoute></MainLayout>} />
             <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
             <Route path="/my-submissions" element={<MainLayout><ProtectedRoute><MySubmissions /></ProtectedRoute></MainLayout>} />
+            <Route path="/credits-history" element={<MainLayout><ProtectedRoute><CreditsHistory /></ProtectedRoute></MainLayout>} />
             <Route path="/testimonials" element={<MainLayout><Testimonials /></MainLayout>} />
             <Route path="/release-notes" element={<MainLayout><ReleaseNotes /></MainLayout>} />
             <Route path="/terms" element={<MainLayout><Terms /></MainLayout>} />

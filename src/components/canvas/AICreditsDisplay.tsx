@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Sparkles, Gift, Share2, Zap, Clock, ShoppingCart, Coins } from 'lucide-react';
+import { Sparkles, Gift, Share2, Zap, Clock, ShoppingCart, Coins, History } from 'lucide-react';
 import { useAICredits, CREDITS_PER_GENERATION, PROJECTS_FOR_BONUS, FREE_CREDITS, BONUS_CREDITS } from '@/hooks/useAICredits';
 import { cn } from '@/lib/utils';
 import { PurchaseCreditsDialog } from './PurchaseCreditsDialog';
@@ -150,14 +151,26 @@ export function AICreditsDisplay({ variant = 'compact', className }: AICreditsDi
           </div>
         )}
 
-        <Button
-          onClick={() => setShowPurchaseDialog(true)}
-          variant="outline"
-          className="w-full gap-2"
-        >
-          <ShoppingCart className="h-4 w-4" />
-          Purchase More Credits
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setShowPurchaseDialog(true)}
+            variant="outline"
+            className="flex-1 gap-2"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            Buy Credits
+          </Button>
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+          >
+            <Link to="/credits-history">
+              <History className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
 
         <p className="text-xs text-muted-foreground text-center">
           Each AI figure generation costs {CREDITS_PER_GENERATION} credits
