@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles, FileEdit, Users, Wand2 } from "lucide-react";
 
 interface WelcomeDialogProps {
@@ -22,8 +23,13 @@ export const WelcomeDialog = ({
   onStartAIAssisted
 }: WelcomeDialogProps) => {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   const handleChoice = (choice: 'template' | 'blank' | 'ai') => {
+    if (dontShowAgain) {
+      localStorage.setItem('canvas_welcome_hidden', 'true');
+    }
+    
     if (choice === 'template') {
       onStartWithTemplate();
     } else if (choice === 'ai') {
@@ -140,11 +146,29 @@ export const WelcomeDialog = ({
           </Card>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-border flex justify-center">
+        <div className="mt-6 pt-4 border-t border-border flex flex-col items-center gap-3">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="dont-show-again" 
+              checked={dontShowAgain}
+              onCheckedChange={(checked) => setDontShowAgain(checked === true)}
+            />
+            <label 
+              htmlFor="dont-show-again" 
+              className="text-sm text-muted-foreground cursor-pointer"
+            >
+              Don't show this again
+            </label>
+          </div>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              if (dontShowAgain) {
+                localStorage.setItem('canvas_welcome_hidden', 'true');
+              }
+              onOpenChange(false);
+            }}
             className="text-xs text-muted-foreground"
           >
             Dismiss
