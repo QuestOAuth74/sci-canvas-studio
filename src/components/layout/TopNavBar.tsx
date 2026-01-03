@@ -47,7 +47,7 @@ export const TopNavBar = () => {
                 alt="BioSketch Logo"
                 className="h-10 w-10 object-contain group-hover:scale-105 transition-transform"
               />
-              <span className="text-lg font-bold font-['Caveat'] text-[hsl(var(--ink-blue))] group-hover:text-[hsl(var(--pencil-gray))] transition-colors">
+              <span className="text-lg font-bold font-sans text-[hsl(var(--ink-blue))] group-hover:text-[hsl(var(--pencil-gray))] transition-colors">
                 BioSketch
               </span>
             </button>
