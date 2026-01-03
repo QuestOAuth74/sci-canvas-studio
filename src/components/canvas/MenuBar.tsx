@@ -21,6 +21,7 @@ import {
   Palette,
   ArrowsClockwise,
   MagicWand,
+  ChartBar,
 } from "@phosphor-icons/react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 
@@ -31,9 +32,10 @@ interface MenuBarProps {
   onScaleBarClick?: () => void;
   onStyleTransferClick?: () => void;
   onAIFigureStudioClick?: () => void;
+  onDataVisualizationClick?: () => void;
 }
 
-export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick, onAIFigureStudioClick }: MenuBarProps = {}) => {
+export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick, onAIFigureStudioClick, onDataVisualizationClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
@@ -201,6 +203,11 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
             </MenubarItem>
             <MenubarItem onClick={onScaleBarClick}>
               Scale Bar
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={onDataVisualizationClick}>
+              <ChartBar size={16} weight="regular" className="mr-2" />
+              Charts & Graphs
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={onTemplatesClick}>

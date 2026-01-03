@@ -11,6 +11,7 @@ import {
   Waves,
   FilePpt,
   ImageSquare,
+  ChartBar,
 } from "@phosphor-icons/react";
 import { useCanvas } from "@/contexts/CanvasContext";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ import { useRecentlyUsedTools } from "@/hooks/useRecentlyUsedTools";
 import { useEffect, useState } from "react";
 import { useImagePlaceholder } from "./ImagePlaceholderTool";
 import { MembraneBrushIconSelector } from "./MembraneBrushIconSelector";
+import { DataVisualizationDialog } from "./charts";
 
 interface ToolbarProps {
   activeTool: string;
@@ -53,6 +55,7 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
   const [powerpointOpen, setPowerpointOpen] = useState(false);
   const { addImagePlaceholder } = useImagePlaceholder();
   const [membraneBrushOpen, setMembraneBrushOpen] = useState(false);
+  const [chartDialogOpen, setChartDialogOpen] = useState(false);
   
   const tools = [
     { id: "select", Icon: Cursor, label: "Select and Transform", shortcut: "1" },
@@ -265,6 +268,24 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
 
         <div className="w-8 h-px bg-blue-300/50 my-1.5" />
 
+        {/* Data Section */}
+        <SectionLabel>Data</SectionLabel>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setChartDialogOpen(true)}
+              className={toolButtonInactive}
+            >
+              <ChartBar size={18} weight="regular" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="text-xs font-medium">Charts & Graphs</TooltipContent>
+        </Tooltip>
+
+        <div className="w-8 h-px bg-blue-300/50 my-1.5" />
+
         {/* Export Section */}
         <SectionLabel>Export</SectionLabel>
         <Tooltip>
@@ -292,6 +313,11 @@ export const Toolbar = ({ activeTool, onToolChange }: ToolbarProps) => {
           onStart={(iconSVG, options) => {
             onToolChange(`membrane-brush:${JSON.stringify({ iconSVG, ...options })}`);
           }}
+        />
+        
+        <DataVisualizationDialog
+          open={chartDialogOpen}
+          onOpenChange={setChartDialogOpen}
         />
       </div>
     </div>

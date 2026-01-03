@@ -27,6 +27,7 @@ import { SaveUploadHandler } from "@/components/canvas/SaveUploadHandler";
 import { AIIconGenerator } from "@/components/canvas/AIIconGenerator";
 import { AIFigureStudio } from "@/components/canvas/AIFigureStudio";
 import { StyleTransferDialog } from '@/components/canvas/StyleTransferDialog';
+import { DataVisualizationDialog } from '@/components/canvas/charts';
 import { CommandPalette } from "@/components/canvas/CommandPalette";
 import { AlignmentGuides } from "@/components/canvas/AlignmentGuides";
 import { CropTool } from "@/components/canvas/CropTool";
@@ -75,6 +76,7 @@ const CanvasContent = () => {
   const [hasClipboard, setHasClipboard] = useState(false);
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
+  const [dataVisualizationOpen, setDataVisualizationOpen] = useState(false);
   const { isAdmin } = useAuth();
   const { startOnboarding } = useOnboarding();
   
@@ -631,6 +633,12 @@ const CanvasContent = () => {
         onOpenChange={setStyleTransferOpen}
       />
 
+      {/* Data Visualization Dialog */}
+      <DataVisualizationDialog
+        open={dataVisualizationOpen}
+        onOpenChange={setDataVisualizationOpen}
+      />
+
       {/* AI Figure Studio */}
       <AIFigureStudio
         open={aiFigureStudioOpen}
@@ -774,6 +782,7 @@ const CanvasContent = () => {
               onScaleBarClick={() => setScaleBarToolOpen(true)}
               onStyleTransferClick={() => setStyleTransferOpen(true)}
               onAIFigureStudioClick={() => setAiFigureStudioOpen(true)}
+              onDataVisualizationClick={() => setDataVisualizationOpen(true)}
             />
             <Tooltip>
               <TooltipTrigger asChild>
