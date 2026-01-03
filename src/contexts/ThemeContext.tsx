@@ -1,10 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-type Theme = 'purple' | 'blue' | 'fall';
-
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
   darkMode: boolean;
   setDarkMode: (darkMode: boolean) => void;
   toggleDarkMode: () => void;
@@ -15,30 +11,12 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    const stored = localStorage.getItem('theme-color-scheme');
-    return (stored === 'blue' || stored === 'purple' || stored === 'fall') ? stored : 'purple';
-  });
-
   const [darkMode, setDarkModeState] = useState<boolean>(() => {
     const stored = localStorage.getItem('theme-dark-mode');
     return stored === 'true';
   });
 
   const [canvasMode, setCanvasModeState] = useState<boolean>(false);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    
-    // Remove all theme classes first
-    root.classList.remove('theme-purple', 'theme-blue', 'theme-fall');
-    
-    // Add the selected theme class
-    root.classList.add(`theme-${theme}`);
-    
-    // Store preference
-    localStorage.setItem('theme-color-scheme', theme);
-  }, [theme]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -53,10 +31,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     // Store preference
     localStorage.setItem('theme-dark-mode', darkMode.toString());
   }, [darkMode]);
-
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-  };
 
   const setDarkMode = (newDarkMode: boolean) => {
     setDarkModeState(newDarkMode);
@@ -77,7 +51,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, darkMode, setDarkMode, toggleDarkMode, canvasMode, setCanvasMode }}>
+    <ThemeContext.Provider value={{ darkMode, setDarkMode, toggleDarkMode, canvasMode, setCanvasMode }}>
       {children}
     </ThemeContext.Provider>
   );
