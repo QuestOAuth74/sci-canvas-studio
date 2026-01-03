@@ -75,7 +75,7 @@ All colors MUST be HSL.
   }
   
   .tech-accent {
-    background: hsl(250 89% 62%);
+    background: hsl(220 10% 40%);
   }
 
   /* Stable Dialog - Prevents vibration on hover/tablet */
@@ -192,40 +192,40 @@ All colors MUST be HSL.
     line-height: var(--line-height-loose);
   }
 
-  /* Canvas Workspace Theme - Modern Tech Design */
+  /* Canvas Workspace Theme - Minimalist Grey Design */
   
   /* Canvas-specific color variables */
   .canvas-workspace {
-    /* Workspace Background - Clean white with subtle warmth */
+    /* Workspace Background - Clean white */
     --canvas-bg-primary: 0 0% 100%;
     --canvas-bg-secondary: 0 0% 99%;
-    --canvas-bg-tertiary: 240 5% 96%;
+    --canvas-bg-tertiary: 220 10% 96%;
     
     /* Workspace UI Elements */
     --canvas-sidebar-bg: 0 0% 100%;
     --canvas-panel-bg: 0 0% 100%;
-    --canvas-panel-border: 240 6% 90%;
+    --canvas-panel-border: 220 10% 90%;
     
-    /* Accent Colors - Vibrant Purple & Blue */
-    --canvas-accent-primary: 262 83% 58%;
-    --canvas-accent-secondary: 217 91% 60%;
-    --canvas-accent-tertiary: 280 70% 60%;
+    /* Accent Colors - Neutral Grey */
+    --canvas-accent-primary: 220 10% 40%;
+    --canvas-accent-secondary: 220 8% 50%;
+    --canvas-accent-tertiary: 220 6% 60%;
     
     /* Text & Icons */
-    --canvas-text-primary: 240 10% 10%;
-    --canvas-text-secondary: 240 5% 40%;
-    --canvas-text-muted: 240 4% 55%;
+    --canvas-text-primary: 220 15% 10%;
+    --canvas-text-secondary: 220 8% 40%;
+    --canvas-text-muted: 220 6% 55%;
     
     /* Interactive Elements */
-    --canvas-hover-bg: 262 50% 97%;
-    --canvas-active-bg: 262 83% 58%;
-    --canvas-selection-border: 262 83% 58%;
+    --canvas-hover-bg: 220 10% 96%;
+    --canvas-active-bg: 220 10% 40%;
+    --canvas-selection-border: 220 10% 40%;
   }
 
   /* Workspace Patterns - Subtle Dot Grid */
   .canvas-scientific-grid {
     background-image: 
-      radial-gradient(circle, hsl(262 83% 58% / 0.05) 1px, transparent 1px);
+      radial-gradient(circle, hsl(220 10% 40% / 0.05) 1px, transparent 1px);
     background-size: 20px 20px;
     background-position: 10px 10px;
   }
@@ -325,49 +325,49 @@ All colors MUST be HSL.
     --letter-spacing-normal: -0.011em;
     --letter-spacing-wide: 0.025em;
     
-    /* Social Media Inspired Theme - Sleek & Bubbly */
-    --background: 220 20% 97%;
-    --foreground: 222 47% 11%;
+    /* Minimalist Grey Theme */
+    --background: 0 0% 98%;
+    --foreground: 220 15% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 220 15% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 15% 15%;
     
-    /* Primary - Vibrant Gradient Purple-Blue */
-    --primary: 250 89% 62%;
+    /* Primary - Neutral Charcoal Grey */
+    --primary: 220 10% 35%;
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary - Soft Lavender */
-    --secondary: 240 11% 95%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary - Light Grey */
+    --secondary: 220 10% 94%;
+    --secondary-foreground: 220 15% 15%;
     
-    /* Muted - Soft Gray */
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    /* Muted - Soft Grey */
+    --muted: 220 10% 95%;
+    --muted-foreground: 220 8% 45%;
     
-    /* Accent - Electric Cyan */
-    --accent: 199 89% 48%;
+    /* Accent - Medium Grey */
+    --accent: 220 8% 50%;
     --accent-foreground: 0 0% 100%;
     
-    /* Destructive - Soft Coral */
-    --destructive: 0 72% 63%;
+    /* Destructive - Muted Red */
+    --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 100%;
     
-    /* UI Elements - Extra Rounded */
-    --border: 220 13% 91%;
+    /* UI Elements */
+    --border: 220 10% 90%;
     --input: 0 0% 100%;
-    --ring: 250 89% 62%;
-    --radius: 1rem;
+    --ring: 220 10% 35%;
+    --radius: 0.75rem;
     
-    /* Sidebar - Clean & Modern */
+    /* Sidebar - Clean & Minimal */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 250 89% 62%;
+    --sidebar-foreground: 220 15% 15%;
+    --sidebar-primary: 220 10% 35%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 199 89% 48%;
+    --sidebar-accent: 220 8% 50%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 13% 93%;
-    --sidebar-ring: 250 89% 62%;
+    --sidebar-border: 220 10% 92%;
+    --sidebar-ring: 220 10% 35%;
   }
 
 }
