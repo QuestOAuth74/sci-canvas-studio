@@ -20,6 +20,7 @@ import {
   GraduationCap,
   Palette,
   ArrowsClockwise,
+  MagicWand,
 } from "@phosphor-icons/react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 
@@ -29,9 +30,10 @@ interface MenuBarProps {
   onVersionHistoryClick?: () => void;
   onScaleBarClick?: () => void;
   onStyleTransferClick?: () => void;
+  onAIFigureStudioClick?: () => void;
 }
 
-export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick }: MenuBarProps = {}) => {
+export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick, onAIFigureStudioClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
@@ -210,6 +212,11 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Tools</MenubarTrigger>
           <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+            <MenubarItem onClick={onAIFigureStudioClick}>
+              <MagicWand size={16} weight="regular" className="mr-2" />
+              AI Figure Studio
+            </MenubarItem>
+            <MenubarSeparator />
             <MenubarItem onClick={onStyleTransferClick}>
               <Palette size={16} weight="regular" className="mr-2" />
               Style Transfer
