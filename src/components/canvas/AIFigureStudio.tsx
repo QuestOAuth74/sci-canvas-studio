@@ -24,7 +24,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useDropzone } from 'react-dropzone';
-
+import flatExampleImg from '@/assets/ai-styles/flat-example.png';
+import threeDExampleImg from '@/assets/ai-styles/3d-example.png';
+import sketchExampleImg from '@/assets/ai-styles/sketch-example.png';
 type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match';
 type StyleType = 'flat' | '3d' | 'sketch';
 
@@ -71,18 +73,21 @@ const styleConfig = {
     icon: Square,
     description: 'Solid colors, clean shapes',
     preview: 'Clean vector style with uniform solid colors, sharp geometric edges, and no gradients. Perfect for diagrams and infographics.',
+    image: flatExampleImg,
   },
   '3d': {
     label: '3D',
     icon: Box,
     description: 'Realistic depth & shading',
     preview: 'Rendered with realistic shadows, lighting, and material textures. Includes specular highlights and ambient occlusion for volume.',
+    image: threeDExampleImg,
   },
   sketch: {
     label: 'Sketch',
     icon: Pencil,
     description: 'Hand-drawn appearance',
     preview: 'Pencil or pen-like strokes with visible line work. Uses hatching for shading with an organic, notebook aesthetic.',
+    image: sketchExampleImg,
   },
 };
 
@@ -308,9 +313,16 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
                                 {cfg.label}
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[220px] p-3">
-                              <p className="font-medium text-sm mb-1">{cfg.label} Style</p>
-                              <p className="text-xs text-muted-foreground">{cfg.preview}</p>
+                            <TooltipContent side="bottom" className="w-[200px] p-0 overflow-hidden">
+                              <img 
+                                src={cfg.image} 
+                                alt={`${cfg.label} style example`} 
+                                className="w-full h-28 object-cover"
+                              />
+                              <div className="p-2.5">
+                                <p className="font-medium text-sm mb-0.5">{cfg.label} Style</p>
+                                <p className="text-xs text-muted-foreground leading-snug">{cfg.preview}</p>
+                              </div>
                             </TooltipContent>
                           </Tooltip>
                         );
