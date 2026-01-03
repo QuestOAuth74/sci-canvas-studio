@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   FileText, 
   PenTool, 
@@ -14,7 +15,10 @@ import {
   Download,
   Loader2,
   X,
-  Info
+  Info,
+  Square,
+  Box,
+  Pencil
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -58,6 +62,27 @@ const modeConfig = {
     icon: ImageIcon,
     requiresUpload: true,
     placeholder: 'Describe what new figure you want to create in the style of your reference image...',
+  },
+};
+
+const styleConfig = {
+  flat: {
+    label: 'Flat',
+    icon: Square,
+    description: 'Solid colors, clean shapes',
+    preview: 'Clean vector style with uniform solid colors, sharp geometric edges, and no gradients. Perfect for diagrams and infographics.',
+  },
+  '3d': {
+    label: '3D',
+    icon: Box,
+    description: 'Realistic depth & shading',
+    preview: 'Rendered with realistic shadows, lighting, and material textures. Includes specular highlights and ambient occlusion for volume.',
+  },
+  sketch: {
+    label: 'Sketch',
+    icon: Pencil,
+    description: 'Hand-drawn appearance',
+    preview: 'Pencil or pen-like strokes with visible line work. Uses hatching for shading with an organic, notebook aesthetic.',
   },
 };
 
@@ -265,19 +290,33 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
                 {/* Style Selection */}
                 <div className="flex items-center gap-3 mt-4 pt-4 border-t">
                   <span className="text-sm font-medium text-muted-foreground">STYLE</span>
-                  <div className="flex gap-2">
-                    {(['flat', '3d', 'sketch'] as StyleType[]).map((s) => (
-                      <Button
-                        key={s}
-                        variant={style === s ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setStyle(s)}
-                        className="capitalize"
-                      >
-                        {s === '3d' ? '3D' : s.charAt(0).toUpperCase() + s.slice(1)}
-                      </Button>
-                    ))}
-                  </div>
+                  <TooltipProvider delayDuration={200}>
+                    <div className="flex gap-2">
+                      {(['flat', '3d', 'sketch'] as StyleType[]).map((s) => {
+                        const cfg = styleConfig[s];
+                        const Icon = cfg.icon;
+                        return (
+                          <Tooltip key={s}>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant={style === s ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => setStyle(s)}
+                                className="gap-1.5"
+                              >
+                                <Icon className="h-3.5 w-3.5" />
+                                {cfg.label}
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-[220px] p-3">
+                              <p className="font-medium text-sm mb-1">{cfg.label} Style</p>
+                              <p className="text-xs text-muted-foreground">{cfg.preview}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  </TooltipProvider>
                 </div>
 
                 {/* Image Upload Zone (for modes that require it) */}
