@@ -9,13 +9,13 @@ export const GravityHero = () => {
   const { user } = useAuth();
 
   const scienceKeywords = [
-    { text: "DNA", icon: Dna, color: "bg-primary/90 text-primary-foreground" },
-    { text: "Cells", icon: Microscope, color: "bg-secondary text-secondary-foreground" },
-    { text: "Proteins", icon: FlaskConical, color: "bg-accent text-accent-foreground" },
-    { text: "Neural", icon: Brain, color: "bg-primary/80 text-primary-foreground" },
-    { text: "Cardiac", icon: Heart, color: "bg-destructive/80 text-destructive-foreground" },
-    { text: "Molecular", icon: Atom, color: "bg-muted text-muted-foreground border border-border" },
-    { text: "Research", icon: TestTube, color: "bg-primary/70 text-primary-foreground" },
+    { text: "DNA", icon: Dna, color: "bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30" },
+    { text: "Cells", icon: Microscope, color: "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30" },
+    { text: "Proteins", icon: FlaskConical, color: "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30" },
+    { text: "Neural", icon: Brain, color: "bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-lg shadow-pink-500/30" },
+    { text: "Cardiac", icon: Heart, color: "bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg shadow-red-500/30" },
+    { text: "Molecular", icon: Atom, color: "bg-gradient-to-r from-amber-400 to-yellow-500 text-white shadow-lg shadow-amber-400/30" },
+    { text: "Research", icon: TestTube, color: "bg-gradient-to-r from-indigo-500 to-blue-600 text-white shadow-lg shadow-indigo-500/30" },
   ];
 
   return (
@@ -54,7 +54,7 @@ export const GravityHero = () => {
           y="15%"
           angle={10}
         >
-          <div className="w-12 h-12 rounded-full bg-primary/20 border-2 border-primary/40" />
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 shadow-lg shadow-violet-500/40" />
         </MatterBody>
         
         <MatterBody
@@ -63,7 +63,7 @@ export const GravityHero = () => {
           y="20%"
           angle={-20}
         >
-          <div className="w-8 h-8 rounded-lg bg-accent/30 border-2 border-accent/50 rotate-45" />
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 rotate-45 shadow-lg shadow-cyan-500/40" />
         </MatterBody>
 
         <MatterBody
@@ -72,7 +72,25 @@ export const GravityHero = () => {
           y="25%"
           angle={15}
         >
-          <div className="w-6 h-6 rounded-full bg-secondary/40 border-2 border-secondary/60" />
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-400 to-rose-600 shadow-lg shadow-pink-500/40" />
+        </MatterBody>
+        
+        <MatterBody
+          matterBodyOptions={{ friction: 0.2, restitution: 0.8, density: 0.001 }}
+          x="5%"
+          y="35%"
+          angle={25}
+        >
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg shadow-emerald-500/40" />
+        </MatterBody>
+        
+        <MatterBody
+          matterBodyOptions={{ friction: 0.2, restitution: 0.8, density: 0.001 }}
+          x="95%"
+          y="40%"
+          angle={-10}
+        >
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/40" />
         </MatterBody>
       </Gravity>
 
