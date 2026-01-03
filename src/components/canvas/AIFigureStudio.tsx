@@ -18,7 +18,8 @@ import {
   Info,
   Square,
   Box,
-  Pencil
+  Pencil,
+  BookOpen
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +28,9 @@ import { useDropzone } from 'react-dropzone';
 import flatExampleImg from '@/assets/ai-styles/flat-example.png';
 import threeDExampleImg from '@/assets/ai-styles/3d-example.png';
 import sketchExampleImg from '@/assets/ai-styles/sketch-example.png';
+import { ReferenceLibraryPanel } from './ReferenceLibraryPanel';
+import { ReferenceImage } from '@/lib/scientificReferenceLibrary';
+
 type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match';
 type StyleType = 'flat' | '3d' | 'sketch';
 
@@ -104,6 +108,8 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   const [contextImage, setContextImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [libraryReference, setLibraryReference] = useState<ReferenceImage | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contextInputRef = useRef<HTMLInputElement>(null);
 
@@ -157,13 +163,31 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
     setGeneratedImage(null);
 
     try {
+      // If using library reference, fetch it as base64
+      let libraryImageBase64: string | undefined;
+      if (libraryReference && !referenceImage) {
+        try {
+          const response = await fetch(libraryReference.imagePath);
+          const blob = await response.blob();
+          libraryImageBase64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+        } catch (err) {
+          console.error('Failed to load library reference:', err);
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-figure-gemini', {
         body: {
           mode,
           prompt: prompt.trim(),
           style,
-          referenceImage: referenceImage || undefined,
+          referenceImage: referenceImage || libraryImageBase64 || undefined,
           contextImage: contextImage || undefined,
+          libraryReferenceId: libraryReference?.id,
+          libraryReferenceCategory: libraryReference?.category,
         },
       });
 
@@ -214,6 +238,18 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
     setReferenceImage(null);
     setContextImage(null);
     setGeneratedImage(null);
+    setLibraryReference(null);
+    setShowLibrary(false);
+  };
+
+  const handleSelectLibraryReference = (image: ReferenceImage) => {
+    setLibraryReference(image);
+    setReferenceImage(null); // Clear uploaded image when selecting from library
+    setShowLibrary(false);
+  };
+
+  const clearLibraryReference = () => {
+    setLibraryReference(null);
   };
 
   const handleModeChange = (newMode: string) => {
@@ -334,45 +370,112 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
                 {/* Image Upload Zone (for modes that require it) */}
                 {config.requiresUpload && (
                   <div className="mt-4 pt-4 border-t">
-                    <div
-                      {...getRootProps()}
-                      className={cn(
-                        'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
-                        isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/30 hover:border-primary/50'
-                      )}
-                    >
-                      <input {...getInputProps()} />
-                      {referenceImage ? (
-                        <div className="relative inline-block">
-                          <img
-                            src={referenceImage}
-                            alt="Reference"
-                            className="max-h-40 rounded-lg mx-auto"
-                          />
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            className="absolute -top-2 -right-2 h-6 w-6"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setReferenceImage(null);
-                            }}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
-                          <p className="text-sm text-muted-foreground">
-                            {isDragActive ? 'Drop the image here' : 'Upload Context'}
-                          </p>
-                          <p className="text-xs text-muted-foreground/60 mt-1">
-                            Drag and drop or click to upload
-                          </p>
-                        </>
-                      )}
+                    {/* Toggle between Upload and Library */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-sm font-medium text-muted-foreground">REFERENCE</span>
+                      <div className="flex gap-1">
+                        <Button
+                          variant={!showLibrary ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setShowLibrary(false)}
+                          className="h-7 text-xs gap-1"
+                        >
+                          <Upload className="h-3 w-3" />
+                          Upload
+                        </Button>
+                        <Button
+                          variant={showLibrary ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setShowLibrary(true)}
+                          className="h-7 text-xs gap-1"
+                        >
+                          <BookOpen className="h-3 w-3" />
+                          Library
+                        </Button>
+                      </div>
                     </div>
+
+                    {/* Library Reference Preview */}
+                    {libraryReference && !showLibrary && (
+                      <div className="mb-3 p-3 border rounded-lg bg-muted/20">
+                        <div className="flex items-start gap-3">
+                          <img
+                            src={libraryReference.imagePath}
+                            alt={libraryReference.name}
+                            className="w-20 h-20 object-cover rounded-md border"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-medium text-sm truncate">{libraryReference.name}</p>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 shrink-0"
+                                onClick={clearLibraryReference}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                              {libraryReference.description}
+                            </p>
+                            <Badge variant="secondary" className="text-[10px] mt-1.5">
+                              {libraryReference.category.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {showLibrary ? (
+                      <div className="h-[280px]">
+                        <ReferenceLibraryPanel
+                          onSelectReference={handleSelectLibraryReference}
+                          selectedId={libraryReference?.id}
+                          onClose={() => setShowLibrary(false)}
+                        />
+                      </div>
+                    ) : !libraryReference && (
+                      <div
+                        {...getRootProps()}
+                        className={cn(
+                          'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
+                          isDragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/30 hover:border-primary/50'
+                        )}
+                      >
+                        <input {...getInputProps()} />
+                        {referenceImage ? (
+                          <div className="relative inline-block">
+                            <img
+                              src={referenceImage}
+                              alt="Reference"
+                              className="max-h-40 rounded-lg mx-auto"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute -top-2 -right-2 h-6 w-6"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReferenceImage(null);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                            <p className="text-sm text-muted-foreground">
+                              {isDragActive ? 'Drop the image here' : 'Upload your own reference'}
+                            </p>
+                            <p className="text-xs text-muted-foreground/60 mt-1">
+                              Drag and drop or click to upload
+                            </p>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

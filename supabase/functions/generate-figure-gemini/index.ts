@@ -13,7 +13,19 @@ interface GenerationRequest {
   style: 'flat' | '3d' | 'sketch';
   referenceImage?: string; // base64 encoded image
   contextImage?: string; // base64 encoded context/style reference
+  libraryReferenceId?: string; // ID from the reference library
+  libraryReferenceCategory?: string; // Category for additional context
 }
+
+// Reference library category context for enhanced prompts
+const categoryContext: Record<string, string> = {
+  cell_biology: 'This is a cell biology reference showing cellular structures and organelles. Apply accurate depiction of cellular components with proper proportions as seen in standard cell biology textbooks.',
+  molecular: 'This is a molecular biology reference showing molecular structures. Use accurate molecular representations with proper bond angles and atomic arrangements.',
+  anatomy: 'This is an anatomical reference based on established anatomy standards like Gray\'s Anatomy. Maintain anatomical accuracy with proper tissue representations.',
+  pathways: 'This is a biological pathway reference showing signaling or metabolic cascades. Use clear directional flow with proper enzyme and substrate representations.',
+  data_viz: 'This is a scientific data visualization reference. Apply clean chart aesthetics with proper axis labels, legends, and statistical annotations.',
+  microscopy: 'This is a microscopy-style reference. Apply appropriate imaging characteristics such as fluorescent signals, contrast, and resolution typical of scientific imaging.',
+};
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -27,9 +39,9 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    const { mode, prompt, style, referenceImage, contextImage } = await req.json() as GenerationRequest;
+    const { mode, prompt, style, referenceImage, contextImage, libraryReferenceId, libraryReferenceCategory } = await req.json() as GenerationRequest;
 
-    console.log(`[generate-figure-gemini] Mode: ${mode}, Style: ${style}, Prompt length: ${prompt.length}`);
+    console.log(`[generate-figure-gemini] Mode: ${mode}, Style: ${style}, Prompt length: ${prompt.length}, Library ref: ${libraryReferenceId || 'none'}`);
 
     // Build style description based on selected style
     const getStyleDescription = (style: 'flat' | '3d' | 'sketch'): string => {
@@ -128,10 +140,15 @@ Enhance this image to meet publication standards while ensuring scientific accur
         break;
 
       case 'style_match':
+        // Add library reference context if available
+        const libraryContext = libraryReferenceCategory && categoryContext[libraryReferenceCategory] 
+          ? `\n\nREFERENCE LIBRARY CONTEXT:\n${categoryContext[libraryReferenceCategory]}\n` 
+          : '';
+        
         systemPrompt = `You are a scientific illustration expert specializing in consistent visual style application across scientific figures.
 
 ${scientificAccuracyGuidelines}
-
+${libraryContext}
 STYLE MATCHING GUIDELINES:
 - Analyze the reference image's color palette, line weights, and rendering technique
 - Apply the same artistic style to the new content
