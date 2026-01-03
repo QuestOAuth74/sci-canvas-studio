@@ -30,6 +30,8 @@ import threeDExampleImg from '@/assets/ai-styles/3d-example.png';
 import sketchExampleImg from '@/assets/ai-styles/sketch-example.png';
 import { ReferenceLibraryPanel } from './ReferenceLibraryPanel';
 import { ReferenceImage } from '@/lib/scientificReferenceLibrary';
+import { GenerationHistoryPanel } from './GenerationHistoryPanel';
+import { useAIGenerationHistory, AIGeneration } from '@/hooks/useAIGenerationHistory';
 
 type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match';
 type StyleType = 'flat' | '3d' | 'sketch';
@@ -101,6 +103,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   onInsertImage,
 }) => {
   const { toast } = useToast();
+  const { saveGeneration } = useAIGenerationHistory();
   const [mode, setMode] = useState<GenerationMode>('prompt_to_visual');
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState<StyleType>('flat');
@@ -110,6 +113,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
   const [libraryReference, setLibraryReference] = useState<ReferenceImage | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const contextInputRef = useRef<HTMLInputElement>(null);
 
@@ -200,6 +204,17 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
       }
 
       setGeneratedImage(data.image);
+      
+      // Save to generation history
+      await saveGeneration({
+        prompt: prompt.trim(),
+        style,
+        creativity_level: 'medium',
+        background_type: 'transparent',
+        reference_image_url: referenceImage || libraryImageBase64 || '',
+        generated_image_url: data.image,
+      });
+      
       toast({
         title: 'Figure generated',
         description: 'Your scientific figure has been created successfully.',
@@ -255,6 +270,19 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   const handleModeChange = (newMode: string) => {
     setMode(newMode as GenerationMode);
     resetState();
+  };
+
+  const handleReusePrompt = (generation: AIGeneration) => {
+    setPrompt(generation.prompt);
+    setStyle(generation.style as StyleType);
+    // If there was a reference image, we could set it too
+    if (generation.reference_image_url) {
+      setReferenceImage(generation.reference_image_url);
+    }
+    toast({
+      title: 'Prompt loaded',
+      description: 'Previous generation settings have been applied.',
+    });
   };
 
   return (
@@ -526,6 +554,13 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
                 )}
               </Button>
             </div>
+
+            {/* Generation History Panel */}
+            <GenerationHistoryPanel
+              onReusePrompt={handleReusePrompt}
+              isExpanded={showHistory}
+              onToggleExpand={() => setShowHistory(!showHistory)}
+            />
           </div>
         </div>
       </DialogContent>
