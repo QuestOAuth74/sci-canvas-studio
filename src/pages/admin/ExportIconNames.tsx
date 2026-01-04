@@ -36,6 +36,7 @@ const saveAltNames = (altNames: Record<string, string>) => {
 export default function ExportIconNames() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [downloadingAll, setDownloadingAll] = useState(false);
   const [icons, setIcons] = useState<IconData[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -44,6 +45,7 @@ export default function ExportIconNames() {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const hasUnsavedChanges = icons.some((icon) => icon.isDirty);
@@ -100,6 +102,73 @@ export default function ExportIconNames() {
       if (!confirm) return;
     }
     fetchIconNames(page);
+  };
+
+  const fetchAllIcons = async (): Promise<IconData[]> => {
+    const allIcons: IconData[] = [];
+    const storedAltNames = loadAltNames();
+    let page = 0;
+    const pageCount = Math.ceil(totalCount / PAGE_SIZE);
+
+    while (page < pageCount) {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error } = await supabase
+        .from("icons")
+        .select("id, name, category, created_at")
+        .order("category", { ascending: true })
+        .order("name", { ascending: true })
+        .range(from, to);
+
+      if (error) throw error;
+
+      if (data) {
+        allIcons.push(
+          ...data.map((icon) => ({
+            id: icon.id,
+            name: icon.name,
+            category: icon.category,
+            created_at: icon.created_at,
+            altName: storedAltNames[icon.id] || "",
+            isDirty: false,
+          }))
+        );
+      }
+
+      page++;
+      setDownloadProgress(Math.round((page / pageCount) * 100));
+    }
+
+    return allIcons;
+  };
+
+  const downloadAllAsCsv = async () => {
+    setDownloadingAll(true);
+    setDownloadProgress(0);
+    try {
+      const allIcons = await fetchAllIcons();
+      const headers = "Name,Alternative Name,Category,Date Added";
+      const rows = allIcons.map(
+        (icon) =>
+          `"${icon.name.replace(/"/g, '""')}","${(icon.altName || "").replace(/"/g, '""')}","${icon.category}","${formatDate(icon.created_at)}"`
+      );
+      const content = [headers, ...rows].join("\n");
+      const blob = new Blob([content], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `svg_icon_names_all_${allIcons.length}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`Downloaded all ${allIcons.length} icons as CSV`);
+    } catch (error) {
+      console.error("Error downloading all icons:", error);
+      toast.error("Failed to download all icons");
+    } finally {
+      setDownloadingAll(false);
+      setDownloadProgress(0);
+    }
   };
 
   const saveChanges = () => {
@@ -437,7 +506,7 @@ ${icons
               </div>
 
               {/* Export Buttons */}
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <p className="text-sm text-muted-foreground">
                   Showing {icons.length} icons on this page. Download as:
                 </p>
@@ -458,6 +527,42 @@ ${icons
                     <Download className="h-4 w-4" />
                     Backup Alt Names
                   </Button>
+                </div>
+
+                {/* Download All Section */}
+                <div className="rounded-lg border border-dashed bg-muted/20 p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Download All Pages</p>
+                      <p className="text-xs text-muted-foreground">
+                        Fetch and export all {totalCount} icons into a single CSV file
+                      </p>
+                    </div>
+                    <Button
+                      onClick={downloadAllAsCsv}
+                      disabled={downloadingAll || totalCount === 0}
+                    >
+                      {downloadingAll ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          {downloadProgress}%
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4" />
+                          Download All ({totalCount})
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  {downloadingAll && (
+                    <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-primary transition-all duration-300"
+                        style={{ width: `${downloadProgress}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
