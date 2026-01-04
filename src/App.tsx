@@ -36,6 +36,7 @@ import PowerPointGenerator from "./pages/admin/PowerPointGenerator";
 import AISettings from "./pages/admin/AISettings";
 import RateLimits from "./pages/admin/RateLimits";
 import EmailPreview from "./pages/admin/EmailPreview";
+import ExportIconNames from "./pages/admin/ExportIconNames";
 import CreditsHistory from "./pages/CreditsHistory";
 
 // Configure QueryClient with optimized defaults for caching and performance
@@ -102,6 +103,7 @@ const App = () => (
             <Route path="/admin/blog/categories" element={<MainLayout><AdminRoute><BlogCategories /></AdminRoute></MainLayout>} />
             <Route path="/admin/blog/tags" element={<MainLayout><AdminRoute><BlogTags /></AdminRoute></MainLayout>} />
             <Route path="/admin/email-preview" element={<MainLayout><AdminRoute><EmailPreview /></AdminRoute></MainLayout>} />
+            <Route path="/admin/export-icons" element={<MainLayout><AdminRoute><ExportIconNames /></AdminRoute></MainLayout>} />
             <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </BrowserRouter>
