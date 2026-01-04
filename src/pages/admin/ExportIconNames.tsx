@@ -3,38 +3,70 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Download, FileText, Loader2, Pencil, Check, X, Upload } from "lucide-react";
+import { Download, FileText, Loader2, Pencil, Check, X, Upload, Save } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface IconData {
+  id: string;
   name: string;
   category: string;
   created_at: string;
-  altName?: string;
+  altName: string;
+  isDirty?: boolean;
 }
+
+// Store alt names in localStorage as a simple persistence layer
+const ALT_NAMES_KEY = "icon_alt_names";
+
+const loadAltNames = (): Record<string, string> => {
+  try {
+    const stored = localStorage.getItem(ALT_NAMES_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+};
+
+const saveAltNames = (altNames: Record<string, string>) => {
+  localStorage.setItem(ALT_NAMES_KEY, JSON.stringify(altNames));
+};
 
 export default function ExportIconNames() {
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [icons, setIcons] = useState<IconData[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const [importStats, setImportStats] = useState<{ matched: number; notFound: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const hasUnsavedChanges = icons.some((icon) => icon.isDirty);
+
   const fetchIconNames = async () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from("icons")
-        .select("name, category, created_at")
+        .select("id, name, category, created_at")
         .order("category", { ascending: true })
         .order("name", { ascending: true });
 
       if (error) throw error;
 
-      setIcons(data?.map((icon) => ({ ...icon, altName: "" })) || []);
+      const storedAltNames = loadAltNames();
+
+      setIcons(
+        data?.map((icon) => ({
+          id: icon.id,
+          name: icon.name,
+          category: icon.category,
+          created_at: icon.created_at,
+          altName: storedAltNames[icon.id] || "",
+          isDirty: false,
+        })) || []
+      );
       setImportStats(null);
       toast.success(`Found ${data?.length || 0} icons`);
     } catch (error) {
@@ -43,6 +75,20 @@ export default function ExportIconNames() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const saveChanges = () => {
+    const altNames = loadAltNames();
+    icons.forEach((icon) => {
+      if (icon.altName) {
+        altNames[icon.id] = icon.altName;
+      } else {
+        delete altNames[icon.id];
+      }
+    });
+    saveAltNames(altNames);
+    setIcons((prev) => prev.map((icon) => ({ ...icon, isDirty: false })));
+    toast.success("Alternative names saved");
   };
 
   const formatDate = (dateStr: string) => {
@@ -60,7 +106,11 @@ export default function ExportIconNames() {
 
   const saveEdit = (index: number) => {
     const updated = [...icons];
-    updated[index].altName = editValue.trim();
+    const newAltName = editValue.trim();
+    if (updated[index].altName !== newAltName) {
+      updated[index].altName = newAltName;
+      updated[index].isDirty = true;
+    }
     setIcons(updated);
     setEditingIndex(null);
     setEditValue("");
@@ -75,12 +125,10 @@ export default function ExportIconNames() {
     const lines = text.split("\n").filter((line) => line.trim());
     const results: { name: string; altName: string }[] = [];
 
-    // Skip header row if it looks like headers
     const startIndex = lines[0]?.toLowerCase().includes("name") ? 1 : 0;
 
     for (let i = startIndex; i < lines.length; i++) {
       const line = lines[i];
-      // Handle quoted CSV values
       const matches = line.match(/("([^"]|"")*"|[^,]*),("([^"]|"")*"|[^,]*)/);
       if (matches) {
         const name = matches[1].replace(/^"|"$/g, "").replace(/""/g, '"').trim();
@@ -89,7 +137,6 @@ export default function ExportIconNames() {
           results.push({ name, altName });
         }
       } else {
-        // Simple comma split fallback
         const parts = line.split(",");
         if (parts.length >= 2) {
           const name = parts[0].trim();
@@ -123,23 +170,22 @@ export default function ExportIconNames() {
       }
 
       let matched = 0;
-      let notFound = 0;
 
       const updated = icons.map((icon) => {
         const match = importData.find(
           (row) => row.name.toLowerCase() === icon.name.toLowerCase()
         );
-        if (match) {
+        if (match && match.altName !== icon.altName) {
           matched++;
-          return { ...icon, altName: match.altName };
+          return { ...icon, altName: match.altName, isDirty: true };
         }
         return icon;
       });
 
-      notFound = importData.length - matched;
+      const notFound = importData.length - matched;
       setIcons(updated);
       setImportStats({ matched, notFound });
-      toast.success(`Imported ${matched} alternative names`);
+      toast.success(`Imported ${matched} alternative names (unsaved)`);
     };
 
     reader.onerror = () => {
@@ -148,7 +194,6 @@ export default function ExportIconNames() {
 
     reader.readAsText(file);
 
-    // Reset input so the same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -225,6 +270,18 @@ ${icons
     toast.success("Template downloaded");
   };
 
+  const exportAltNamesJson = () => {
+    const altNames = loadAltNames();
+    const blob = new Blob([JSON.stringify(altNames, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "icon_alt_names_backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Alt names backup downloaded");
+  };
+
   return (
     <div className="container max-w-3xl py-12 space-y-6">
       <Card>
@@ -234,7 +291,7 @@ ${icons
             Export SVG Icon Names
           </CardTitle>
           <CardDescription>
-            Fetch icons, add alternative names, and export in various formats
+            Fetch icons, add alternative names, and export in various formats. Alt names are saved locally.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -251,6 +308,23 @@ ${icons
 
           {icons.length > 0 && (
             <>
+              {/* Save Button */}
+              {hasUnsavedChanges && (
+                <Alert className="border-primary/50 bg-primary/5">
+                  <AlertDescription className="flex items-center justify-between">
+                    <span className="text-sm">You have unsaved changes</span>
+                    <Button size="sm" onClick={saveChanges} disabled={saving}>
+                      {saving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4" />
+                      )}
+                      Save Changes
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Import Section */}
               <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
                 <div className="flex items-center justify-between">
@@ -314,6 +388,10 @@ ${icons
                     <Download className="h-4 w-4" />
                     Word (.rtf)
                   </Button>
+                  <Button variant="outline" onClick={exportAltNamesJson}>
+                    <Download className="h-4 w-4" />
+                    Backup Alt Names
+                  </Button>
                 </div>
               </div>
 
@@ -322,8 +400,10 @@ ${icons
                 <div className="p-3 space-y-1">
                   {icons.map((icon, i) => (
                     <div
-                      key={i}
-                      className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/80 text-sm"
+                      key={icon.id}
+                      className={`flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/80 text-sm ${
+                        icon.isDirty ? "bg-primary/5 border-l-2 border-primary" : ""
+                      }`}
                     >
                       <div className="flex-1 min-w-0">
                         <span className="font-medium">{icon.name}</span>
