@@ -2,18 +2,23 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Download, FileText, Loader2, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface IconData {
   name: string;
   category: string;
   created_at: string;
+  altName?: string;
 }
 
 export default function ExportIconNames() {
   const [loading, setLoading] = useState(false);
   const [icons, setIcons] = useState<IconData[]>([]);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   const fetchIconNames = async () => {
     setLoading(true);
@@ -26,7 +31,7 @@ export default function ExportIconNames() {
 
       if (error) throw error;
 
-      setIcons(data || []);
+      setIcons(data?.map((icon) => ({ ...icon, altName: "" })) || []);
       toast.success(`Found ${data?.length || 0} icons`);
     } catch (error) {
       console.error("Error fetching icons:", error);
@@ -44,8 +49,31 @@ export default function ExportIconNames() {
     });
   };
 
+  const startEdit = (index: number) => {
+    setEditingIndex(index);
+    setEditValue(icons[index].altName || "");
+  };
+
+  const saveEdit = (index: number) => {
+    const updated = [...icons];
+    updated[index].altName = editValue.trim();
+    setIcons(updated);
+    setEditingIndex(null);
+    setEditValue("");
+  };
+
+  const cancelEdit = () => {
+    setEditingIndex(null);
+    setEditValue("");
+  };
+
   const downloadAsTxt = () => {
-    const content = icons.map((icon) => `${icon.category} - ${icon.name}`).join("\n");
+    const content = icons
+      .map((icon) => {
+        const alt = icon.altName ? ` (Alt: ${icon.altName})` : "";
+        return `${icon.category} - ${icon.name}${alt}`;
+      })
+      .join("\n");
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -57,9 +85,10 @@ export default function ExportIconNames() {
   };
 
   const downloadAsCsv = () => {
-    const headers = "Name,Category,Date Added";
+    const headers = "Name,Alternative Name,Category,Date Added";
     const rows = icons.map(
-      (icon) => `"${icon.name.replace(/"/g, '""')}","${icon.category}","${formatDate(icon.created_at)}"`
+      (icon) =>
+        `"${icon.name.replace(/"/g, '""')}","${(icon.altName || "").replace(/"/g, '""')}","${icon.category}","${formatDate(icon.created_at)}"`
     );
     const content = [headers, ...rows].join("\n");
     const blob = new Blob([content], { type: "text/csv" });
@@ -78,7 +107,12 @@ export default function ExportIconNames() {
 \\f0\\fs24
 SVG Icon Names from Database\\par
 \\par
-${icons.map((icon) => `${icon.category} - ${icon.name}`.replace(/\\/g, "\\\\") + "\\par").join("\n")}
+${icons
+  .map((icon) => {
+    const alt = icon.altName ? ` (Alt: ${icon.altName})` : "";
+    return `${icon.category} - ${icon.name}${alt}`.replace(/\\/g, "\\\\") + "\\par";
+  })
+  .join("\n")}
 }`;
     const blob = new Blob([rtfContent], { type: "application/rtf" });
     const url = URL.createObjectURL(blob);
@@ -91,7 +125,7 @@ ${icons.map((icon) => `${icon.category} - ${icon.name}`.replace(/\\/g, "\\\\") +
   };
 
   return (
-    <div className="container max-w-2xl py-12">
+    <div className="container max-w-3xl py-12">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -114,7 +148,7 @@ ${icons.map((icon) => `${icon.category} - ${icon.name}`.replace(/\\/g, "\\\\") +
           {icons.length > 0 && (
             <>
               <p className="text-sm text-muted-foreground">
-                Found {icons.length} icons. Download as:
+                Found {icons.length} icons. Click the pencil to add alternative names.
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button variant="outline" onClick={downloadAsTxt}>
@@ -130,19 +164,71 @@ ${icons.map((icon) => `${icon.category} - ${icon.name}`.replace(/\\/g, "\\\\") +
                   Word (.rtf)
                 </Button>
               </div>
-              <div className="max-h-64 overflow-auto rounded border bg-muted/50 p-3 text-sm">
-                {icons.slice(0, 50).map((icon, i) => (
-                  <div key={i} className="flex justify-between py-0.5">
-                    <span>{icon.category} - {icon.name}</span>
-                    <span className="text-muted-foreground text-xs">{formatDate(icon.created_at)}</span>
-                  </div>
-                ))}
-                {icons.length > 50 && (
-                  <div className="pt-2 text-muted-foreground">
-                    ... and {icons.length - 50} more
-                  </div>
-                )}
-              </div>
+              <ScrollArea className="h-80 rounded border bg-muted/50">
+                <div className="p-3 space-y-1">
+                  {icons.map((icon, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/80 text-sm"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <span className="font-medium">{icon.name}</span>
+                        <span className="text-muted-foreground"> · {icon.category}</span>
+                        {icon.altName && (
+                          <span className="ml-2 text-primary text-xs">
+                            Alt: {icon.altName}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 ml-2">
+                        <span className="text-muted-foreground text-xs whitespace-nowrap">
+                          {formatDate(icon.created_at)}
+                        </span>
+                        {editingIndex === i ? (
+                          <div className="flex items-center gap-1">
+                            <Input
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              placeholder="Alt name..."
+                              className="h-7 w-32 text-xs"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") saveEdit(i);
+                                if (e.key === "Escape") cancelEdit();
+                              }}
+                            />
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              onClick={() => saveEdit(i)}
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              onClick={cancelEdit}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6"
+                            onClick={() => startEdit(i)}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </>
           )}
         </CardContent>

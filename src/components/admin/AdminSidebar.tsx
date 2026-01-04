@@ -16,6 +16,7 @@ import {
   LineChart,
   Megaphone,
   Wrench,
+  Download,
 } from "lucide-react";
 import {
   Sidebar,
@@ -76,6 +77,7 @@ const menuItems: MenuGroup[] = [
       { id: 'clean-names', label: 'Clean Names', icon: FileText },
       { id: 'icon-sanitizer', label: 'Sanitizer', icon: Shield },
       { id: 'categories', label: 'Categories', icon: Tags },
+      { id: 'export-icons', label: 'Export Icons', icon: Download, route: '/admin/export-icons' },
     ]
   },
   {
