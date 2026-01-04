@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Download, FileText, Loader2, Pencil, Check, X } from "lucide-react";
+import { Download, FileText, Loader2, Pencil, Check, X, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface IconData {
   name: string;
@@ -19,6 +20,8 @@ export default function ExportIconNames() {
   const [icons, setIcons] = useState<IconData[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [importStats, setImportStats] = useState<{ matched: number; notFound: number } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchIconNames = async () => {
     setLoading(true);
@@ -32,6 +35,7 @@ export default function ExportIconNames() {
       if (error) throw error;
 
       setIcons(data?.map((icon) => ({ ...icon, altName: "" })) || []);
+      setImportStats(null);
       toast.success(`Found ${data?.length || 0} icons`);
     } catch (error) {
       console.error("Error fetching icons:", error);
@@ -65,6 +69,89 @@ export default function ExportIconNames() {
   const cancelEdit = () => {
     setEditingIndex(null);
     setEditValue("");
+  };
+
+  const parseCSV = (text: string): { name: string; altName: string }[] => {
+    const lines = text.split("\n").filter((line) => line.trim());
+    const results: { name: string; altName: string }[] = [];
+
+    // Skip header row if it looks like headers
+    const startIndex = lines[0]?.toLowerCase().includes("name") ? 1 : 0;
+
+    for (let i = startIndex; i < lines.length; i++) {
+      const line = lines[i];
+      // Handle quoted CSV values
+      const matches = line.match(/("([^"]|"")*"|[^,]*),("([^"]|"")*"|[^,]*)/);
+      if (matches) {
+        const name = matches[1].replace(/^"|"$/g, "").replace(/""/g, '"').trim();
+        const altName = matches[3].replace(/^"|"$/g, "").replace(/""/g, '"').trim();
+        if (name && altName) {
+          results.push({ name, altName });
+        }
+      } else {
+        // Simple comma split fallback
+        const parts = line.split(",");
+        if (parts.length >= 2) {
+          const name = parts[0].trim();
+          const altName = parts[1].trim();
+          if (name && altName) {
+            results.push({ name, altName });
+          }
+        }
+      }
+    }
+    return results;
+  };
+
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".csv")) {
+      toast.error("Please upload a CSV file");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const importData = parseCSV(text);
+
+      if (importData.length === 0) {
+        toast.error("No valid data found in CSV. Expected format: Name, Alternative Name");
+        return;
+      }
+
+      let matched = 0;
+      let notFound = 0;
+
+      const updated = icons.map((icon) => {
+        const match = importData.find(
+          (row) => row.name.toLowerCase() === icon.name.toLowerCase()
+        );
+        if (match) {
+          matched++;
+          return { ...icon, altName: match.altName };
+        }
+        return icon;
+      });
+
+      notFound = importData.length - matched;
+      setIcons(updated);
+      setImportStats({ matched, notFound });
+      toast.success(`Imported ${matched} alternative names`);
+    };
+
+    reader.onerror = () => {
+      toast.error("Failed to read file");
+    };
+
+    reader.readAsText(file);
+
+    // Reset input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const downloadAsTxt = () => {
@@ -124,14 +211,31 @@ ${icons
     toast.success("Downloaded as RTF (opens in Word)");
   };
 
+  const downloadTemplateCsv = () => {
+    const headers = "Name,Alternative Name";
+    const sampleRows = icons.slice(0, 5).map((icon) => `"${icon.name.replace(/"/g, '""')}",""`);
+    const content = [headers, ...sampleRows].join("\n");
+    const blob = new Blob([content], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "alt_names_template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Template downloaded");
+  };
+
   return (
-    <div className="container max-w-3xl py-12">
+    <div className="container max-w-3xl py-12 space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
             Export SVG Icon Names
           </CardTitle>
+          <CardDescription>
+            Fetch icons, add alternative names, and export in various formats
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button onClick={fetchIconNames} disabled={loading} className="w-full">
@@ -147,23 +251,73 @@ ${icons
 
           {icons.length > 0 && (
             <>
-              <p className="text-sm text-muted-foreground">
-                Found {icons.length} icons. Click the pencil to add alternative names.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={downloadAsTxt}>
-                  <Download className="h-4 w-4" />
-                  Notepad (.txt)
-                </Button>
-                <Button variant="outline" onClick={downloadAsCsv}>
-                  <Download className="h-4 w-4" />
-                  Excel (.csv)
-                </Button>
-                <Button variant="outline" onClick={downloadAsDocx}>
-                  <Download className="h-4 w-4" />
-                  Word (.rtf)
-                </Button>
+              {/* Import Section */}
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium text-sm">Bulk Import Alternative Names</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Upload a CSV with columns: Name, Alternative Name
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={downloadTemplateCsv}>
+                      <Download className="h-3 w-3" />
+                      Template
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-3 w-3" />
+                      Import CSV
+                    </Button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      className="hidden"
+                      onChange={handleFileImport}
+                    />
+                  </div>
+                </div>
+                {importStats && (
+                  <Alert>
+                    <AlertDescription className="text-sm">
+                      ✓ Matched {importStats.matched} icons
+                      {importStats.notFound > 0 && (
+                        <span className="text-muted-foreground">
+                          {" "}· {importStats.notFound} names in CSV not found in database
+                        </span>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
+
+              {/* Export Buttons */}
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Found {icons.length} icons. Download as:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button variant="outline" onClick={downloadAsTxt}>
+                    <Download className="h-4 w-4" />
+                    Notepad (.txt)
+                  </Button>
+                  <Button variant="outline" onClick={downloadAsCsv}>
+                    <Download className="h-4 w-4" />
+                    Excel (.csv)
+                  </Button>
+                  <Button variant="outline" onClick={downloadAsDocx}>
+                    <Download className="h-4 w-4" />
+                    Word (.rtf)
+                  </Button>
+                </div>
+              </div>
+
+              {/* Icon List */}
               <ScrollArea className="h-80 rounded border bg-muted/50">
                 <div className="p-3 space-y-1">
                   {icons.map((icon, i) => (
