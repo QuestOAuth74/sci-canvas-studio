@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Download, FileText, Loader2, Pencil, Check, X, Upload, Save } from "lucide-react";
+import { Download, FileText, Loader2, Pencil, Check, X, Upload, Save, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -17,8 +17,8 @@ interface IconData {
   isDirty?: boolean;
 }
 
-// Store alt names in localStorage as a simple persistence layer
 const ALT_NAMES_KEY = "icon_alt_names";
+const PAGE_SIZE = 1000;
 
 const loadAltNames = (): Record<string, string> => {
   try {
@@ -41,17 +41,32 @@ export default function ExportIconNames() {
   const [editValue, setEditValue] = useState("");
   const [importStats, setImportStats] = useState<{ matched: number; notFound: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const hasUnsavedChanges = icons.some((icon) => icon.isDirty);
 
-  const fetchIconNames = async () => {
+  const fetchIconNames = async (page: number = 1) => {
     setLoading(true);
     try {
+      const { count, error: countError } = await supabase
+        .from("icons")
+        .select("*", { count: "exact", head: true });
+
+      if (countError) throw countError;
+      setTotalCount(count || 0);
+
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
       const { data, error } = await supabase
         .from("icons")
         .select("id, name, category, created_at")
         .order("category", { ascending: true })
-        .order("name", { ascending: true });
+        .order("name", { ascending: true })
+        .range(from, to);
 
       if (error) throw error;
 
@@ -67,14 +82,24 @@ export default function ExportIconNames() {
           isDirty: false,
         })) || []
       );
+      setCurrentPage(page);
       setImportStats(null);
-      toast.success(`Found ${data?.length || 0} icons`);
+      toast.success(`Loaded ${data?.length || 0} icons (page ${page} of ${Math.ceil((count || 0) / PAGE_SIZE)})`);
     } catch (error) {
       console.error("Error fetching icons:", error);
       toast.error("Failed to fetch icon names");
     } finally {
       setLoading(false);
     }
+  };
+
+  const goToPage = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    if (hasUnsavedChanges) {
+      const confirm = window.confirm("You have unsaved changes. Continue without saving?");
+      if (!confirm) return;
+    }
+    fetchIconNames(page);
   };
 
   const saveChanges = () => {
@@ -210,7 +235,7 @@ export default function ExportIconNames() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "svg_icon_names.txt";
+    a.download = `svg_icon_names_page${currentPage}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Downloaded as TXT");
@@ -227,7 +252,7 @@ export default function ExportIconNames() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "svg_icon_names.csv";
+    a.download = `svg_icon_names_page${currentPage}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Downloaded as CSV");
@@ -237,7 +262,7 @@ export default function ExportIconNames() {
     const rtfContent = `{\\rtf1\\ansi\\deff0
 {\\fonttbl{\\f0 Arial;}}
 \\f0\\fs24
-SVG Icon Names from Database\\par
+SVG Icon Names from Database (Page ${currentPage} of ${totalPages})\\par
 \\par
 ${icons
   .map((icon) => {
@@ -250,7 +275,7 @@ ${icons
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "svg_icon_names.rtf";
+    a.download = `svg_icon_names_page${currentPage}.rtf`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Downloaded as RTF (opens in Word)");
@@ -291,11 +316,11 @@ ${icons
             Export SVG Icon Names
           </CardTitle>
           <CardDescription>
-            Fetch icons, add alternative names, and export in various formats. Alt names are saved locally.
+            Fetch icons in batches of {PAGE_SIZE}, add alternative names, and export. Alt names are saved locally.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button onClick={fetchIconNames} disabled={loading} className="w-full">
+          <Button onClick={() => fetchIconNames(1)} disabled={loading} className="w-full">
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -308,6 +333,47 @@ ${icons
 
           {icons.length > 0 && (
             <>
+              {/* Pagination Controls */}
+              <div className="flex items-center justify-between rounded-lg border bg-muted/30 p-3">
+                <div className="text-sm text-muted-foreground">
+                  Page {currentPage} of {totalPages} ({totalCount} total icons)
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage <= 1 || loading}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={1}
+                      max={totalPages}
+                      value={currentPage}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        if (!isNaN(val)) goToPage(val);
+                      }}
+                      className="h-8 w-16 text-center text-sm"
+                    />
+                    <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage >= totalPages || loading}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
               {/* Save Button */}
               {hasUnsavedChanges && (
                 <Alert className="border-primary/50 bg-primary/5">
@@ -373,7 +439,7 @@ ${icons
               {/* Export Buttons */}
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  Found {icons.length} icons. Download as:
+                  Showing {icons.length} icons on this page. Download as:
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" onClick={downloadAsTxt}>
@@ -463,6 +529,29 @@ ${icons
                   ))}
                 </div>
               </ScrollArea>
+
+              {/* Bottom Pagination */}
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage <= 1 || loading}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground px-2">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage >= totalPages || loading}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </>
           )}
         </CardContent>
