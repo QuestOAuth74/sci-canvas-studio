@@ -299,6 +299,68 @@ export async function convertSceneGraphToFabric(
 }
 
 /**
+ * Convert array of detected elements to Fabric objects (without canvas dependency)
+ * Simplified version that works without a live canvas reference
+ */
+export async function convertElementsToFabricObjects(
+  elements: AnyDetectedElement[]
+): Promise<FabricObject[]> {
+  const results: FabricObject[] = [];
+  const sceneGraphId = `sg-${Date.now()}`;
+
+  for (const element of elements) {
+    let fabricObject: FabricObject | null = null;
+
+    switch (element.type) {
+      case 'text':
+        fabricObject = textToFabric(element as DetectedText, sceneGraphId);
+        break;
+
+      case 'box':
+        fabricObject = boxToFabric(element as DetectedBox, sceneGraphId);
+        break;
+
+      case 'arrow':
+        // For arrows without canvas, create a simple path representation
+        const arrow = element as DetectedArrow;
+        const pathData = `M ${arrow.startPoint.x} ${arrow.startPoint.y} L ${arrow.endPoint.x} ${arrow.endPoint.y}`;
+        const path = new Path(pathData, {
+          stroke: arrow.color || '#000000',
+          strokeWidth: arrow.strokeWidth || 2,
+          fill: 'transparent',
+          strokeDashArray: arrow.style === 'dashed' ? [10, 5] : arrow.style === 'dotted' ? [2, 5] : undefined,
+          originX: 'left',
+          originY: 'top',
+        });
+        
+        (path as any).reconstructedData = {
+          isReconstructed: true,
+          sceneGraphId,
+          elementId: element.id,
+          elementType: 'arrow',
+          originalDetection: element,
+        } as ReconstructedObjectData;
+        
+        path.set('name' as any, `Arrow: ${arrow.label}`);
+        fabricObject = path;
+        break;
+
+      case 'icon':
+        const iconElement = element as DetectedIcon;
+        // Create placeholder for icons - they need manual icon selection
+        fabricObject = createIconPlaceholder(iconElement, sceneGraphId);
+        break;
+    }
+
+    if (fabricObject) {
+      results.push(fabricObject);
+    }
+  }
+
+  return results;
+}
+
+/**
  * Check if a Fabric object is a reconstructed element
  */
 export function isReconstructedElement(obj: FabricObject): boolean {

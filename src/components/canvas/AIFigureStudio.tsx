@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { 
   FileText, 
   PenTool, 
@@ -23,7 +24,9 @@ import {
   Pencil,
   BookOpen,
   Coins,
-  Layers
+  Layers,
+  ScanSearch,
+  Check
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -40,8 +43,12 @@ import { useAICredits, CREDITS_PER_GENERATION } from '@/hooks/useAICredits';
 import { AICreditsDisplay } from './AICreditsDisplay';
 import { parseEditableFigure, FigureElement } from '@/lib/editableFigureParser';
 import { FabricObject } from 'fabric';
+import { ReconstructionProvider, useReconstruction } from './reconstruction/ReconstructionContext';
+import { ElementsSidebar } from './reconstruction/ElementsSidebar';
+import { PropertiesSidebar } from './reconstruction/PropertiesSidebar';
+import { convertElementsToFabricObjects } from '@/lib/figureToFabric';
 
-type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match';
+type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match' | 'reconstruct';
 type StyleType = 'flat' | '3d' | 'sketch';
 
 interface AIFigureStudioProps {
@@ -80,6 +87,13 @@ const modeConfig = {
     requiresUpload: true,
     placeholder: 'Describe what new figure you want to create in the style of your reference image...',
   },
+  reconstruct: {
+    title: 'Reconstruct',
+    description: 'Convert images to editable elements with AI detection.',
+    icon: ScanSearch,
+    requiresUpload: true,
+    placeholder: '',
+  },
 };
 
 const styleConfig = {
@@ -105,6 +119,211 @@ const styleConfig = {
     image: sketchExampleImg,
   },
 };
+
+// Reconstruction Mode Content Component
+function ReconstructionModeContent({ 
+  onInsertEditableElements,
+  onOpenChange,
+}: { 
+  onInsertEditableElements?: (elements: FabricObject[]) => void;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const { toast } = useToast();
+  const {
+    elements,
+    sourceImageUrl,
+    isDetecting,
+    detectionProgress,
+    error,
+    startDetection,
+    reset,
+    acceptElement,
+  } = useReconstruction();
+
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      const file = acceptedFiles[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string;
+        setUploadedImage(base64);
+      };
+      reader.readAsDataURL(file);
+    }
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] },
+    maxFiles: 1,
+  });
+
+  const handleStartDetection = async () => {
+    if (!uploadedImage) return;
+    await startDetection(uploadedImage);
+  };
+
+  const handleInsertElements = async () => {
+    if (!onInsertEditableElements) return;
+    
+    // Get accepted elements
+    const acceptedElements = elements.filter(e => e.status === 'accepted');
+    if (acceptedElements.length === 0) {
+      toast({
+        title: 'No elements accepted',
+        description: 'Please accept at least one element before inserting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Convert to Fabric objects
+    const fabricObjects = await convertElementsToFabricObjects(acceptedElements);
+    onInsertEditableElements(fabricObjects);
+    
+    toast({
+      title: 'Elements inserted',
+      description: `${fabricObjects.length} editable elements added to canvas.`,
+    });
+    
+    reset();
+    onOpenChange(false);
+  };
+
+  const acceptedCount = elements.filter(e => e.status === 'accepted').length;
+  const hasDetected = elements.length > 0;
+
+  // Show upload UI if not detecting and no elements yet
+  if (!hasDetected && !isDetecting) {
+    return (
+      <div className="flex-1 flex flex-col p-6">
+        <div className="border-2 border-dashed rounded-lg p-8 flex-1 flex flex-col items-center justify-center">
+          {uploadedImage ? (
+            <div className="text-center space-y-4">
+              <img
+                src={uploadedImage}
+                alt="Uploaded"
+                className="max-h-[300px] rounded-lg mx-auto border"
+              />
+              <div className="flex gap-2 justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => setUploadedImage(null)}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Remove
+                </Button>
+                <Button onClick={handleStartDetection}>
+                  <ScanSearch className="h-4 w-4 mr-2" />
+                  Detect Elements
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div
+              {...getRootProps()}
+              className={cn(
+                'w-full h-full flex flex-col items-center justify-center cursor-pointer transition-colors',
+                isDragActive ? 'bg-primary/5' : ''
+              )}
+            >
+              <input {...getInputProps()} />
+              <Upload className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-lg font-medium">Upload an image to reconstruct</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                AI will detect text, icons, arrows, and boxes
+              </p>
+              <p className="text-xs text-muted-foreground mt-4">
+                Drag and drop or click to upload
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Show detection progress
+  if (isDetecting) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-lg font-medium">Detecting elements...</p>
+        <Progress value={detectionProgress} className="w-64 mt-4" />
+        <p className="text-sm text-muted-foreground mt-2">
+          Analyzing text, icons, arrows, and shapes
+        </p>
+      </div>
+    );
+  }
+
+  // Show error
+  if (error) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <p className="text-destructive text-lg font-medium">Detection failed</p>
+        <p className="text-sm text-muted-foreground mt-2">{error}</p>
+        <Button onClick={reset} className="mt-4">
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  // Show reconstruction UI with three-panel layout
+  return (
+    <div className="flex-1 flex overflow-hidden">
+      {/* Left Sidebar - Elements */}
+      <div className="w-64 flex-shrink-0">
+        <ElementsSidebar />
+      </div>
+
+      {/* Center - Canvas Preview */}
+      <div className="flex-1 flex flex-col overflow-hidden border-x">
+        <div className="flex-1 overflow-auto p-4 bg-muted/20">
+          <div className="relative inline-block">
+            {sourceImageUrl && (
+              <img
+                src={sourceImageUrl}
+                alt="Source"
+                className="max-w-full rounded-lg opacity-60"
+              />
+            )}
+            {/* Overlay for detected elements would go here */}
+          </div>
+        </div>
+
+        {/* Bottom action bar */}
+        <div className="p-4 border-t bg-background">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              {acceptedCount} of {elements.length} elements accepted
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={reset}>
+                Start Over
+              </Button>
+              <Button 
+                onClick={handleInsertElements}
+                disabled={acceptedCount === 0}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Insert {acceptedCount} Elements
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Sidebar - Properties */}
+      <div className="w-72 flex-shrink-0">
+        <PropertiesSidebar />
+      </div>
+    </div>
+  );
+}
 
 export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   open,
@@ -355,6 +574,41 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
       description: 'Previous generation settings have been applied.',
     });
   };
+
+  // For reconstruct mode, show special full-width layout
+  if (mode === 'reconstruct') {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[95vw] w-[1400px] h-[90vh] flex flex-col p-0 gap-0 bg-background">
+          <DialogHeader className="p-4 pb-3 border-b bg-muted/20">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                <ScanSearch className="h-5 w-5 text-primary" />
+                Reconstruct Figure
+              </DialogTitle>
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleModeChange('prompt_to_visual')}
+                >
+                  ← Back to Studio
+                </Button>
+                <AICreditsDisplay variant="compact" />
+              </div>
+            </div>
+          </DialogHeader>
+
+          <ReconstructionProvider>
+            <ReconstructionModeContent 
+              onInsertEditableElements={onInsertEditableElements}
+              onOpenChange={onOpenChange}
+            />
+          </ReconstructionProvider>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
