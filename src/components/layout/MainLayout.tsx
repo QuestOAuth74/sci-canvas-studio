@@ -8,7 +8,7 @@ interface MainLayoutProps {
 
 export const MainLayout = ({ children }: MainLayoutProps) => {
   return (
-    <div className="min-h-screen notebook-page flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <TopNavBar />
       <main className="flex-1">
         {children}

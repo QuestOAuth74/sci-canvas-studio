@@ -45,32 +45,31 @@ export const TopNavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#f9f6f0] ruled-lines border-b-2 border-[hsl(var(--pencil-gray))] paper-shadow">
+    <nav className="sticky top-0 z-50 w-full bg-card border-b border-border backdrop-blur-md bg-opacity-95">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex h-16 items-center justify-between relative">
-          {/* Margin line decoration */}
-          <div className="margin-line" />
-          
+        <div className="flex h-16 items-center justify-between">
           {/* Left side - Logo */}
           <div className="flex items-center">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 group"
+              className="flex items-center gap-3 group"
             >
-              <img 
-                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
-                alt="BioSketch Logo"
-                className="h-10 w-10 object-contain group-hover:scale-105 transition-transform"
-              />
-              <span className="text-lg font-bold font-sans text-[hsl(var(--ink-blue))] group-hover:text-[hsl(var(--pencil-gray))] transition-colors">
+              <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+                <img 
+                  src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
+                  alt="BioSketch Logo"
+                  className="h-8 w-8 object-contain"
+                />
+              </div>
+              <span className="text-lg font-semibold font-display text-foreground group-hover:text-primary transition-colors">
                 BioSketch
               </span>
             </button>
           </div>
 
-          {/* Center - Tubelight Navigation */}
+          {/* Center - Navigation */}
           <div className="hidden md:flex absolute left-1/2 -translate-x-1/2">
-            <div className="flex items-center gap-1 bg-background/5 border border-border backdrop-blur-lg py-1 px-1 rounded-full shadow-sm">
+            <div className="flex items-center gap-1 bg-muted/50 border border-border/50 py-1 px-1.5 rounded-full">
               {filteredNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.name;
@@ -81,32 +80,26 @@ export const TopNavBar = () => {
                     to={item.url}
                     onClick={() => setActiveTab(item.name)}
                     className={cn(
-                      "relative cursor-pointer text-sm font-semibold px-5 py-2 rounded-full transition-colors",
-                      "text-foreground/80 hover:text-primary",
-                      isActive && "bg-muted text-primary",
+                      "relative cursor-pointer text-sm font-medium px-4 py-2 rounded-full transition-all duration-200",
+                      "text-muted-foreground hover:text-foreground",
+                      isActive && "bg-card text-primary shadow-sm",
                     )}
                   >
                     <span className="flex items-center gap-2">
-                      <Icon size={16} strokeWidth={2.5} />
+                      <Icon size={16} strokeWidth={2} />
                       {item.name}
                     </span>
                     {isActive && (
                       <motion.div
-                        layoutId="lamp"
-                        className="absolute inset-0 w-full bg-primary/5 rounded-full -z-10"
+                        layoutId="nav-indicator"
+                        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full"
                         initial={false}
                         transition={{
                           type: "spring",
-                          stiffness: 300,
+                          stiffness: 400,
                           damping: 30,
                         }}
-                      >
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-primary rounded-t-full">
-                          <div className="absolute w-12 h-6 bg-primary/20 rounded-full blur-md -top-2 -left-2" />
-                          <div className="absolute w-8 h-6 bg-primary/20 rounded-full blur-md -top-1" />
-                          <div className="absolute w-4 h-4 bg-primary/20 rounded-full blur-sm top-0 left-2" />
-                        </div>
-                      </motion.div>
+                      />
                     )}
                   </Link>
                 );
@@ -115,7 +108,7 @@ export const TopNavBar = () => {
           </div>
 
           {/* Right side - Notifications, User Menu */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Admin Notification Bell */}
             {isAdmin && (
               <div className="hidden md:block">
@@ -136,20 +129,21 @@ export const TopNavBar = () => {
             {/* Mobile Menu Toggle */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden pencil-button">
-                  <Menu className="h-5 w-5 text-[hsl(var(--ink-blue))]" />
+                <Button variant="ghost" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-64 bg-[#f9f6f0] ruled-lines border-l-2 border-[hsl(var(--pencil-gray))]">
-                <div className="flex flex-col gap-4 mt-8">
+              <SheetContent side="right" className="w-72 bg-card border-l border-border">
+                <div className="flex flex-col gap-2 mt-8">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-3 mb-2">Navigation</p>
                   {filteredNavItems.map((item) => (
                     <Button
                       key={item.url}
-                      variant="ghost"
+                      variant={activeTab === item.name ? "secondary" : "ghost"}
                       onClick={() => handleNavClick(item.url)}
-                      className="justify-start text-base text-[hsl(var(--ink-blue))] hover:bg-[hsl(var(--highlighter-yellow)_/_0.2)] pencil-sketch"
+                      className="justify-start text-base"
                     >
-                      <item.icon className="mr-2 h-4 w-4" />
+                      <item.icon className="mr-3 h-4 w-4" />
                       {item.name}
                     </Button>
                   ))}
