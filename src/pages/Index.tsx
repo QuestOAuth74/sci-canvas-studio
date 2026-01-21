@@ -23,6 +23,7 @@ import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 import { CommunityCarousel } from "@/components/community/CommunityCarousel";
 import { MaintenanceBanner } from "@/components/MaintenanceBanner";
 import { Card, CardContent } from "@/components/ui/card";
+import { IconShowcase } from "@/components/home/IconShowcase";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -263,6 +264,9 @@ const Index = () => {
             </Carousel>
           </div>
         </section>
+
+        {/* Icon Showcase - visible to all users */}
+        <IconShowcase />
 
         {/* Disciplines Section */}
         <section className="py-16">
