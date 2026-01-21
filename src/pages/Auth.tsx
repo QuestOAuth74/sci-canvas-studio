@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Microscope, Beaker, FlaskConical, Dna, TestTube, Pill, Syringe, Brain, Heart, Atom, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, Microscope } from 'lucide-react';
 import { z } from 'zod';
 
 import { useToast } from '@/hooks/use-toast';
@@ -54,20 +54,6 @@ export default function Auth() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [updatePasswordErrors, setUpdatePasswordErrors] = useState<any>({});
-
-  // Floating lab icons configuration
-  const floatingIcons = [
-    { Icon: Microscope, top: '10%', left: '5%', size: 48, speed: 'slow', delay: '0s' },
-    { Icon: Beaker, top: '15%', right: '8%', size: 56, speed: 'medium', delay: '2s' },
-    { Icon: FlaskConical, top: '45%', left: '3%', size: 44, speed: 'fast', delay: '1s' },
-    { Icon: Dna, top: '65%', right: '5%', size: 52, speed: 'slow', delay: '3s' },
-    { Icon: TestTube, top: '30%', right: '15%', size: 40, speed: 'medium', delay: '1.5s' },
-    { Icon: Pill, top: '75%', left: '10%', size: 36, speed: 'fast', delay: '2.5s' },
-    { Icon: Syringe, top: '20%', left: '20%', size: 42, speed: 'slow', delay: '4s' },
-    { Icon: Brain, top: '55%', right: '20%', size: 50, speed: 'medium', delay: '0.5s' },
-    { Icon: Heart, top: '85%', right: '12%', size: 46, speed: 'fast', delay: '3.5s' },
-    { Icon: Atom, top: '40%', left: '15%', size: 38, speed: 'slow', delay: '1s' },
-  ];
 
   // Form states
   const [signInEmail, setSignInEmail] = useState('');
@@ -228,37 +214,22 @@ export default function Auth() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center notebook-page graph-paper relative overflow-hidden">
-        <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--ink-blue))]" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center notebook-page graph-paper relative overflow-hidden p-4 lg:p-8">
-      {/* Decorative notebook elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Floating Lab Icons - styled as pencil sketches */}
-        {floatingIcons.map((config, index) => {
-          const IconComponent = config.Icon;
-          const style: React.CSSProperties = {
-            top: config.top,
-            left: config.left,
-            right: config.right,
-            animationDelay: config.delay,
-          };
-          
-          return (
-            <IconComponent
-              key={index}
-              size={config.size}
-              className={`floating-icon ${config.speed} text-[hsl(var(--pencil-gray))]/20`}
-              style={style}
-              aria-hidden="true"
-            />
-          );
-        })}
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4 lg:p-8">
+      {/* Subtle background pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
+          backgroundSize: '24px 24px'
+        }}
+      />
 
       <SEOHead
         title="Sign In - BioSketch"
@@ -266,296 +237,275 @@ export default function Auth() {
         noindex={true}
       />
       
-      <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-6 lg:gap-8 items-center lg:items-stretch relative z-10">
+      <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-center lg:items-stretch relative z-10">
         {/* Featured Project - Hidden on mobile */}
         <div className="hidden lg:block lg:flex-1">
           <FeaturedProjectShowcase />
         </div>
 
         {/* Auth Card */}
-        <Card className="w-full lg:flex-1 lg:max-w-md paper-shadow border-2 border-[hsl(var(--pencil-gray))] bg-[hsl(var(--cream))] rotate-1 hover:rotate-0 transition-transform duration-300">
+        <Card className="w-full lg:flex-1 lg:max-w-md border border-border shadow-lg">
           <div className="p-4 pb-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="mb-2 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
+              className="mb-2 text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Home
             </Button>
           </div>
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-4xl font-bold text-center handwritten text-[hsl(var(--ink-blue))]">
-            BioSketch
-          </CardTitle>
-          <CardDescription className="text-center font-source-serif text-[hsl(var(--pencil-gray))]">
-            {showUpdatePassword ? 'Set your new password' : showResetPassword ? 'Reset your password' : 'Create and manage your diagrams'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {showUpdatePassword ? (
-            <div className="space-y-4">
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-semibold font-source-serif ink-text">Set New Password</h3>
-                <p className="text-sm text-[hsl(var(--pencil-gray))]">Enter your new password below</p>
+          <CardHeader className="space-y-3 text-center">
+            <div className="flex justify-center">
+              <div className="p-3 rounded-xl bg-primary/10">
+                <Microscope className="h-8 w-8 text-primary" />
               </div>
-              <form onSubmit={handleUpdatePassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password" className="font-source-serif ink-text">New Password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    placeholder="Enter new password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    disabled={isLoading}
-                    data-testid={AuthTestIds.UPDATE_PASSWORD_INPUT}
-                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
-                  />
-                  {updatePasswordErrors.password && (
-                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.UPDATE_ERROR_PASSWORD}>{updatePasswordErrors.password}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password" className="font-source-serif ink-text">Confirm Password</Label>
-                  <Input
-                    id="confirm-password"
-                    type="password"
-                    placeholder="Confirm new password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={isLoading}
-                    data-testid={AuthTestIds.UPDATE_CONFIRM_INPUT}
-                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
-                  />
-                  {updatePasswordErrors.confirmPassword && (
-                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.UPDATE_ERROR_CONFIRM}>{updatePasswordErrors.confirmPassword}</p>
-                  )}
-                </div>
-                <Button type="submit" variant="ink" className="w-full" disabled={isLoading} data-testid={AuthTestIds.UPDATE_SUBMIT_BUTTON}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Update Password
-                </Button>
-              </form>
             </div>
-          ) : showResetPassword ? (
-            <div className="space-y-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowResetPassword(false);
-                  setResetEmail('');
-                  setResetEmailError('');
-                }}
-                data-testid={AuthTestIds.RESET_BACK_BUTTON}
-                className="mb-2 hover:bg-[hsl(var(--highlighter-yellow))]/20 text-[hsl(var(--ink-blue))]"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Sign In
-              </Button>
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email" className="font-source-serif ink-text">Email Address</Label>
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    disabled={isLoading}
-                    data-testid={AuthTestIds.RESET_EMAIL_INPUT}
-                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
-                  />
-                  {resetEmailError && (
-                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.RESET_ERROR_EMAIL}>{resetEmailError}</p>
-                  )}
-                  <p className="text-sm text-[hsl(var(--pencil-gray))] font-source-serif italic">
-                    Enter your email address and we'll send you a link to reset your password.
-                  </p>
+            <CardTitle className="text-3xl font-display font-bold text-foreground">
+              BioSketch
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              {showUpdatePassword ? 'Set your new password' : showResetPassword ? 'Reset your password' : 'Scientific illustration made simple'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {showUpdatePassword ? (
+              <div className="space-y-4">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-semibold text-foreground">Set New Password</h3>
+                  <p className="text-sm text-muted-foreground">Enter your new password below</p>
                 </div>
-                <Button type="submit" variant="ink" className="w-full" disabled={isLoading} data-testid={AuthTestIds.RESET_SEND_BUTTON}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Send Reset Link
-                </Button>
-              </form>
-            </div>
-          ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2 mb-6 bg-white border-2 border-[hsl(var(--pencil-gray))] p-1">
-                <TabsTrigger value="signin" data-testid={AuthTestIds.TAB_SIGNIN} className="data-[state=active]:bg-[hsl(var(--highlighter-yellow))]/40 data-[state=active]:text-[hsl(var(--ink-blue))] font-source-serif">Sign In</TabsTrigger>
-                <TabsTrigger value="signup" data-testid={AuthTestIds.TAB_SIGNUP} className="data-[state=active]:bg-[hsl(var(--highlighter-yellow))]/40 data-[state=active]:text-[hsl(var(--ink-blue))] font-source-serif">Sign Up</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="signin">
-                <form onSubmit={handleSignIn} className="space-y-4">
+                <form onSubmit={handleUpdatePassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email" className="font-source-serif ink-text">Email</Label>
+                    <Label htmlFor="new-password">New Password</Label>
                     <Input
-                      id="signin-email"
-                      type="email"
-                      placeholder="you@example.com"
-                      value={signInEmail}
-                      onChange={(e) => setSignInEmail(e.target.value)}
-                      disabled={isLoading}
-                      data-testid={AuthTestIds.SIGNIN_EMAIL_INPUT}
-                      className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
-                    />
-                    {signInErrors.email && (
-                      <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNIN_ERROR_EMAIL}>{signInErrors.email}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="signin-password" className="font-source-serif ink-text">Password</Label>
-                      <Button
-                        type="button"
-                        variant="link"
-                        size="sm"
-                        onClick={() => setShowResetPassword(true)}
-                        data-testid={AuthTestIds.FORGOT_PASSWORD_LINK}
-                        className="h-auto p-0 text-xs text-[hsl(var(--ink-blue))] hover:text-[hsl(var(--ink-blue))]/70"
-                      >
-                        Forgot password?
-                      </Button>
-                    </div>
-                    <Input
-                      id="signin-password"
+                      id="new-password"
                       type="password"
-                      value={signInPassword}
-                      onChange={(e) => setSignInPassword(e.target.value)}
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
                       disabled={isLoading}
-                      data-testid={AuthTestIds.SIGNIN_PASSWORD_INPUT}
-                      className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
+                      data-testid={AuthTestIds.UPDATE_PASSWORD_INPUT}
                     />
-                    {signInErrors.password && (
-                      <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNIN_ERROR_PASSWORD}>{signInErrors.password}</p>
+                    {updatePasswordErrors.password && (
+                      <p className="text-sm text-destructive" data-testid={AuthTestIds.UPDATE_ERROR_PASSWORD}>{updatePasswordErrors.password}</p>
                     )}
                   </div>
-                  <Button type="submit" variant="ink" className="w-full" disabled={isLoading} data-testid={AuthTestIds.SIGNIN_SUBMIT_BUTTON}>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isLoading}
+                      data-testid={AuthTestIds.UPDATE_CONFIRM_INPUT}
+                    />
+                    {updatePasswordErrors.confirmPassword && (
+                      <p className="text-sm text-destructive" data-testid={AuthTestIds.UPDATE_ERROR_CONFIRM}>{updatePasswordErrors.confirmPassword}</p>
+                    )}
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading} data-testid={AuthTestIds.UPDATE_SUBMIT_BUTTON}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Sign In
+                    Update Password
                   </Button>
                 </form>
-              </TabsContent>
-
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name" className="font-source-serif ink-text">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={signUpFullName}
-                    onChange={(e) => setSignUpFullName(e.target.value)}
-                    disabled={isLoading}
-                    data-testid={AuthTestIds.SIGNUP_NAME_INPUT}
-                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
-                  />
-                  {signUpErrors.fullName && (
-                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_NAME}>{signUpErrors.fullName}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="font-source-serif ink-text">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={signUpEmail}
-                    onChange={(e) => setSignUpEmail(e.target.value)}
-                    disabled={isLoading}
-                    data-testid={AuthTestIds.SIGNUP_EMAIL_INPUT}
-                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
-                  />
-                  {signUpErrors.email && (
-                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_EMAIL}>{signUpErrors.email}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="font-source-serif ink-text">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    value={signUpPassword}
-                    onChange={(e) => setSignUpPassword(e.target.value)}
-                    disabled={isLoading}
-                    data-testid={AuthTestIds.SIGNUP_PASSWORD_INPUT}
-                    className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))] sketch-border"
-                  />
-                  {signUpErrors.password && (
-                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_PASSWORD}>{signUpErrors.password}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-country" className="font-source-serif ink-text">Country *</Label>
-                  <Select
-                    value={signUpCountry}
-                    onValueChange={setSignUpCountry}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger id="signup-country" data-testid={AuthTestIds.SIGNUP_COUNTRY_SELECT} className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]">
-                      <SelectValue placeholder="Select your country" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))] max-h-[300px]">
-                      {COUNTRIES.map((country) => (
-                        <SelectItem key={country} value={country} className="font-source-serif">
-                          {country}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {signUpErrors.country && (
-                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_COUNTRY}>{signUpErrors.country}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-field" className="font-source-serif ink-text">Field of Study *</Label>
-                  <Select
-                    value={signUpFieldOfStudy}
-                    onValueChange={setSignUpFieldOfStudy}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger id="signup-field" data-testid={AuthTestIds.SIGNUP_FIELD_SELECT} className="bg-[hsl(var(--highlighter-yellow))]/20 border-2 border-[hsl(var(--pencil-gray))] focus:border-[hsl(var(--ink-blue))]">
-                      <SelectValue placeholder="Select your field of study" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[hsl(var(--cream))] border-2 border-[hsl(var(--pencil-gray))]">
-                      {FIELDS_OF_STUDY.map((field) => (
-                        <SelectItem key={field} value={field} className="font-source-serif">
-                          {field}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {signUpErrors.fieldOfStudy && (
-                    <p className="text-sm text-destructive handwritten" data-testid={AuthTestIds.SIGNUP_ERROR_FIELD}>{signUpErrors.fieldOfStudy}</p>
-                  )}
-                </div>
-                <div className="pt-2 pb-1">
-                  <p className="text-xs text-[hsl(var(--pencil-gray))] leading-relaxed font-source-serif">
-                    By entering my email address and clicking "Create Account", I agree to BioSketch's{' '}
-                    <a 
-                      href="/terms" 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-[hsl(var(--ink-blue))] hover:underline font-medium"
-                    >
-                      privacy policy and terms of service
-                    </a>.
-                  </p>
-                </div>
-                <Button type="submit" variant="sticky" className="w-full" disabled={isLoading} data-testid={AuthTestIds.SIGNUP_SUBMIT_BUTTON}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Account
+              </div>
+            ) : showResetPassword ? (
+              <div className="space-y-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowResetPassword(false);
+                    setResetEmail('');
+                    setResetEmailError('');
+                  }}
+                  data-testid={AuthTestIds.RESET_BACK_BUTTON}
+                  className="mb-2 text-muted-foreground hover:text-foreground"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Sign In
                 </Button>
-              </form>
-            </TabsContent>
-            </Tabs>
-          )}
-        </CardContent>
-      </Card>
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">Email Address</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      disabled={isLoading}
+                      data-testid={AuthTestIds.RESET_EMAIL_INPUT}
+                    />
+                    {resetEmailError && (
+                      <p className="text-sm text-destructive" data-testid={AuthTestIds.RESET_ERROR_EMAIL}>{resetEmailError}</p>
+                    )}
+                    <p className="text-sm text-muted-foreground">
+                      Enter your email address and we'll send you a link to reset your password.
+                    </p>
+                  </div>
+                  <Button type="submit" className="w-full" disabled={isLoading} data-testid={AuthTestIds.RESET_SEND_BUTTON}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Send Reset Link
+                  </Button>
+                </form>
+              </div>
+            ) : (
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="signin" data-testid={AuthTestIds.TAB_SIGNIN}>Sign In</TabsTrigger>
+                  <TabsTrigger value="signup" data-testid={AuthTestIds.TAB_SIGNUP}>Sign Up</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="signin">
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signin-email">Email</Label>
+                      <Input
+                        id="signin-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={signInEmail}
+                        onChange={(e) => setSignInEmail(e.target.value)}
+                        disabled={isLoading}
+                        data-testid={AuthTestIds.SIGNIN_EMAIL_INPUT}
+                      />
+                      {signInErrors.email && (
+                        <p className="text-sm text-destructive" data-testid={AuthTestIds.SIGNIN_ERROR_EMAIL}>{signInErrors.email}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="signin-password">Password</Label>
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="px-0 h-auto text-xs text-muted-foreground hover:text-primary"
+                          onClick={() => setShowResetPassword(true)}
+                          data-testid={AuthTestIds.FORGOT_PASSWORD_LINK}
+                        >
+                          Forgot password?
+                        </Button>
+                      </div>
+                      <Input
+                        id="signin-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={signInPassword}
+                        onChange={(e) => setSignInPassword(e.target.value)}
+                        disabled={isLoading}
+                        data-testid={AuthTestIds.SIGNIN_PASSWORD_INPUT}
+                      />
+                      {signInErrors.password && (
+                        <p className="text-sm text-destructive" data-testid={AuthTestIds.SIGNIN_ERROR_PASSWORD}>{signInErrors.password}</p>
+                      )}
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading} data-testid={AuthTestIds.SIGNIN_SUBMIT_BUTTON}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Sign In
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="signup">
+                  <form onSubmit={handleSignUp} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-name">Full Name</Label>
+                      <Input
+                        id="signup-name"
+                        type="text"
+                        placeholder="Dr. Jane Smith"
+                        value={signUpFullName}
+                        onChange={(e) => setSignUpFullName(e.target.value)}
+                        disabled={isLoading}
+                        data-testid={AuthTestIds.SIGNUP_NAME_INPUT}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-email">Email</Label>
+                      <Input
+                        id="signup-email"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={signUpEmail}
+                        onChange={(e) => setSignUpEmail(e.target.value)}
+                        disabled={isLoading}
+                        data-testid={AuthTestIds.SIGNUP_EMAIL_INPUT}
+                      />
+                      {signUpErrors.email && (
+                        <p className="text-sm text-destructive" data-testid={AuthTestIds.SIGNUP_ERROR_EMAIL}>{signUpErrors.email}</p>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="signup-password">Password</Label>
+                      <Input
+                        id="signup-password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={signUpPassword}
+                        onChange={(e) => setSignUpPassword(e.target.value)}
+                        disabled={isLoading}
+                        data-testid={AuthTestIds.SIGNUP_PASSWORD_INPUT}
+                      />
+                      {signUpErrors.password && (
+                        <p className="text-sm text-destructive" data-testid={AuthTestIds.SIGNUP_ERROR_PASSWORD}>{signUpErrors.password}</p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-country">Country</Label>
+                        <Select value={signUpCountry} onValueChange={setSignUpCountry} disabled={isLoading}>
+                          <SelectTrigger id="signup-country" data-testid={AuthTestIds.SIGNUP_COUNTRY_SELECT}>
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {COUNTRIES.map((country) => (
+                              <SelectItem key={country} value={country}>{country}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {signUpErrors.country && (
+                          <p className="text-sm text-destructive" data-testid={AuthTestIds.SIGNUP_ERROR_COUNTRY}>{signUpErrors.country}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-field">Field of Study</Label>
+                        <Select value={signUpFieldOfStudy} onValueChange={setSignUpFieldOfStudy} disabled={isLoading}>
+                          <SelectTrigger id="signup-field" data-testid={AuthTestIds.SIGNUP_FIELD_SELECT}>
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FIELDS_OF_STUDY.map((field) => (
+                              <SelectItem key={field} value={field}>{field}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {signUpErrors.fieldOfStudy && (
+                          <p className="text-sm text-destructive" data-testid={AuthTestIds.SIGNUP_ERROR_FIELD}>{signUpErrors.fieldOfStudy}</p>
+                        )}
+                      </div>
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading} data-testid={AuthTestIds.SIGNUP_SUBMIT_BUTTON}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create Account
+                    </Button>
+                    <p className="text-xs text-center text-muted-foreground">
+                      By signing up, you agree to our{' '}
+                      <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+                      {' '}and{' '}
+                      <a href="/terms" className="text-primary hover:underline">Privacy Policy</a>
+                    </p>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

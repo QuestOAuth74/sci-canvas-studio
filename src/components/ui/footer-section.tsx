@@ -3,103 +3,130 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { Facebook, Instagram, Linkedin, Moon, Send, Sun, Twitter } from "lucide-react"
+import { Send, Mail, MapPin, ExternalLink } from "lucide-react"
 import { Link } from "react-router-dom"
-import { useTheme } from "next-themes"
 
 function Footerdemo() {
-  const { theme, setTheme } = useTheme()
-  const isDarkMode = theme === "dark"
-
-  const toggleDarkMode = () => {
-    setTheme(isDarkMode ? "light" : "dark")
-  }
-
   return (
-    <footer className="relative border-t bg-background text-foreground transition-colors duration-300">
-      <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">
-        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-3">
-          {/* Newsletter Section */}
-          <div className="relative">
-            <h2 className="mb-4 text-lg font-semibold">Stay Connected</h2>
-            <p className="mb-6 text-muted-foreground">
-              Join our newsletter for the latest updates and exclusive offers.
+    <footer className="border-t border-border bg-card">
+      <div className="container mx-auto px-4 py-12 md:py-16">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+          {/* Brand Column */}
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-1.5 rounded-lg bg-primary/10">
+                <img 
+                  src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
+                  alt="BioSketch Logo"
+                  className="h-8 w-8 object-contain"
+                />
+              </div>
+              <span className="text-lg font-semibold font-display text-foreground">BioSketch</span>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+              Professional scientific illustration software trusted by researchers worldwide. Create publication-ready figures with ease.
             </p>
-            <form className="relative">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                className="pr-12 backdrop-blur-sm"
-              />
-              <Button
-                type="submit"
-                size="icon"
-                className="absolute right-1 top-1 h-8 w-8 rounded-full bg-primary text-primary-foreground transition-transform hover:scale-105"
-              >
-                <Send className="h-4 w-4" />
-                <span className="sr-only">Subscribe</span>
-              </Button>
-            </form>
+            
+            {/* Newsletter */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-foreground">Stay updated</p>
+              <form className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="flex-1 h-9 text-sm"
+                />
+                <Button type="submit" size="sm" className="h-9 px-3">
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h2 className="mb-4 text-lg font-semibold">Quick Links</h2>
-            <nav className="space-y-2 text-sm">
-              <Link to="/" className="block transition-colors hover:text-primary">
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Product</h3>
+            <nav className="space-y-3">
+              <Link to="/" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
                 Home
               </Link>
-              <Link to="/community" className="block transition-colors hover:text-primary">
-                Community
+              <Link to="/community" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
+                Community Gallery
               </Link>
-              <Link to="/blog" className="block transition-colors hover:text-primary">
-                Blog
+              <Link to="/blog" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
+                Blog & Tutorials
               </Link>
-              <Link to="/testimonials" className="block transition-colors hover:text-primary">
+              <Link to="/testimonials" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
                 Testimonials
               </Link>
-              <Link to="/contact" className="block transition-colors hover:text-primary">
-                Contact
+              <Link to="/release-notes" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
+                Release Notes
               </Link>
             </nav>
           </div>
 
-          {/* Contact Us */}
+          {/* Support */}
           <div>
-            <h2 className="mb-4 text-lg font-semibold">Contact Us</h2>
-            <address className="space-y-2 text-sm not-italic text-muted-foreground">
-              <p>2136 Ford Parkway #5111</p>
-              <p>Saint Paul, MN 55116</p>
-              <p>United States</p>
-              <p>Email: support@biosketch.art</p>
-            </address>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Support</h3>
+            <nav className="space-y-3">
+              <Link to="/contact" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
+                Contact Us
+              </Link>
+              <Link to="/terms" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
+                Terms of Service
+              </Link>
+              <Link to="/terms" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/share" className="block text-sm text-muted-foreground hover:text-primary transition-colors">
+                Share BioSketch
+              </Link>
+            </nav>
+          </div>
+
+          {/* Contact Info */}
+          <div>
+            <h3 className="text-sm font-semibold text-foreground uppercase tracking-wider mb-4">Contact</h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-muted-foreground">
+                  <p>2136 Ford Parkway #5111</p>
+                  <p>Saint Paul, MN 55116</p>
+                  <p>United States</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <a 
+                  href="mailto:support@biosketch.art" 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  support@biosketch.art
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 text-center md:flex-row">
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} BioSketch. All rights reserved.
-          </p>
-          <nav className="flex gap-4 text-sm">
-            <Link to="/terms" className="transition-colors hover:text-primary">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="transition-colors hover:text-primary">
-              Terms of Service
-            </Link>
-            <Link to="/terms" className="transition-colors hover:text-primary">
-              Cookie Settings
-            </Link>
-          </nav>
+        {/* Bottom Bar */}
+        <div className="mt-12 pt-8 border-t border-border">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-muted-foreground">
+              © {new Date().getFullYear()} BioSketch. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6">
+              <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Privacy
+              </Link>
+              <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Terms
+              </Link>
+              <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Cookies
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

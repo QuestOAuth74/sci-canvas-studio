@@ -13,10 +13,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        'sans': ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        'display': ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        'body': ['DM Sans', 'system-ui', 'sans-serif'],
-        'mono': ['SF Mono', 'Fira Code', 'Consolas', 'monospace'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'display': ['Source Serif 4', 'Georgia', 'serif'],
+        'serif': ['Source Serif 4', 'Georgia', 'serif'],
+        'body': ['Inter', 'system-ui', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'SF Mono', 'Consolas', 'monospace'],
       },
       fontSize: {
         'xs': ['var(--font-size-xs)', { lineHeight: 'var(--line-height-normal)' }],
