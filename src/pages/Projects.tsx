@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserMenu } from '@/components/auth/UserMenu';
 import { 
   Pagination, 
   PaginationContent, 
@@ -17,10 +15,11 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from '@/components/ui/pagination';
-import { Loader2, Plus, Trash2, FolderOpen, Search, ArrowLeft, Share2, Calendar, Ruler, Globe, Lock, CheckCircle, XCircle, Clock, Eye, BarChart3, FileText, Sparkles } from 'lucide-react';
+import { Plus, Trash2, FolderOpen, Search, Share2, Globe, Lock, CheckCircle, XCircle, Clock, FileText, Star, MoveRight, Calendar, Ruler, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ShareProjectDialog } from '@/components/projects/ShareProjectDialog';
+import { cn } from '@/lib/utils';
 
 import noPreviewImage from '@/assets/no_preview.png';
 
@@ -132,354 +131,261 @@ export default function Projects() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Subtle academic pattern background */}
-      <div className="fixed inset-0 opacity-[0.02] pointer-events-none" style={{
-        backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
-        backgroundSize: '24px 24px'
-      }} />
-      
+    <div className="min-h-screen bg-background relative">
       <main className="container mx-auto px-4 py-10 max-w-7xl relative">
-        {/* Modern Academic Header */}
-        <header className="mb-12">
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-10">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-1 h-8 bg-primary rounded-full" />
-                <span className="text-sm font-medium text-primary uppercase tracking-widest">Research Workspace</span>
-              </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground tracking-tight leading-none">
-                My Projects
-              </h1>
-              <p className="text-muted-foreground text-lg max-w-xl">
-                Create, manage, and share publication-ready scientific illustrations
-              </p>
-            </div>
-            <Button 
-              onClick={createNewProject} 
-              size="lg"
-              className="gap-2.5 h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 font-medium text-base"
-            >
-              <Plus className="w-5 h-5" />
-              New Project
-            </Button>
+        {/* Modern Header Section */}
+        <section className="relative py-8 mb-8">
+          <h1 className="text-4xl md:text-5xl font-serif font-semibold text-foreground tracking-tight mb-2">
+            My Projects
+          </h1>
+          
+          {/* Background Label */}
+          <div className="pointer-events-none absolute top-0 left-0 text-[8rem] md:text-[12rem] font-bold text-muted/5 select-none leading-none -z-10">
+            PROJECTS
           </div>
+          
+          <p className="text-muted-foreground text-lg max-w-2xl mb-8">
+            Create, manage, and share publication-ready scientific illustrations
+          </p>
 
-          {/* Stats Dashboard - Modern Academic Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-            <div className="group relative bg-card rounded-xl border border-border/50 p-6 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Total</p>
-                  <p className="text-4xl font-bold text-foreground font-serif">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">projects</p>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/10 transition-colors">
-                  <FileText className="w-6 h-6 text-primary" />
-                </div>
-              </div>
+          {/* Quick Stats Row */}
+          <div className="flex flex-wrap items-center gap-6 mb-8 text-sm">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <FileText className="w-4 h-4" />
+              <span className="font-semibold text-foreground">{stats.total}</span> total
             </div>
-
-            <div className="group relative bg-card rounded-xl border border-border/50 p-6 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Public</p>
-                  <p className="text-4xl font-bold text-foreground font-serif">{stats.public}</p>
-                  <p className="text-xs text-muted-foreground">shared</p>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 flex items-center justify-center group-hover:from-emerald-500/30 group-hover:to-emerald-500/10 transition-colors">
-                  <Globe className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
-                </div>
-              </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Globe className="w-4 h-4 text-emerald-600" />
+              <span className="font-semibold text-foreground">{stats.public}</span> public
             </div>
-
-            <div className="group relative bg-card rounded-xl border border-border/50 p-6 hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Private</p>
-                  <p className="text-4xl font-bold text-foreground font-serif">{stats.private}</p>
-                  <p className="text-xs text-muted-foreground">drafts</p>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center group-hover:from-amber-500/30 group-hover:to-amber-500/10 transition-colors">
-                  <Lock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-                </div>
-              </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Lock className="w-4 h-4 text-amber-600" />
+              <span className="font-semibold text-foreground">{stats.private}</span> private
             </div>
-
-            <div className="group relative bg-card rounded-xl border border-border/50 p-6 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
-              <div className="flex items-start justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Recent</p>
-                  <p className="text-4xl font-bold text-foreground font-serif">{stats.recent}</p>
-                  <p className="text-xs text-muted-foreground">this week</p>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center group-hover:from-blue-500/30 group-hover:to-blue-500/10 transition-colors">
-                  <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-              </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="w-4 h-4 text-blue-600" />
+              <span className="font-semibold text-foreground">{stats.recent}</span> this week
             </div>
           </div>
 
-          {/* Search and Filters - Modern Design */}
+          {/* Search and Filters */}
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
                 placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-base border-border/50 bg-card rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary/50"
+                className="pl-11 h-11 text-base border-border/50 bg-card rounded-xl focus:border-primary/50"
               />
             </div>
-            <div className="flex gap-1 bg-muted/30 p-1.5 rounded-xl border border-border/50">
-              <button
-                onClick={() => setFilterStatus('all')}
-                className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all ${
-                  filterStatus === 'all' 
-                    ? 'bg-card text-foreground shadow-sm border border-border/50' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilterStatus('public')}
-                className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                  filterStatus === 'public' 
-                    ? 'bg-card text-foreground shadow-sm border border-border/50' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-                }`}
-              >
-                <Globe className="w-4 h-4" />
-                Public
-              </button>
-              <button
-                onClick={() => setFilterStatus('private')}
-                className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-all flex items-center gap-2 ${
-                  filterStatus === 'private' 
-                    ? 'bg-card text-foreground shadow-sm border border-border/50' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
-                }`}
-              >
-                <Lock className="w-4 h-4" />
-                Private
-              </button>
+            <div className="flex gap-1.5 p-1.5 bg-muted/30 rounded-xl border border-border/50">
+              {(['all', 'public', 'private'] as const).map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={cn(
+                    "px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-2",
+                    filterStatus === status 
+                      ? 'bg-card text-foreground shadow-sm border border-border/50' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
+                  )}
+                >
+                  {status === 'public' && <Globe className="w-3.5 h-3.5" />}
+                  {status === 'private' && <Lock className="w-3.5 h-3.5" />}
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </button>
+              ))}
             </div>
+            <Button 
+              onClick={createNewProject} 
+              size="lg"
+              className="gap-2 h-11 px-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+            >
+              <Plus className="w-4 h-4" />
+              New Project
+            </Button>
           </div>
-        </header>
+        </section>
 
         {/* Loading State */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="rounded-xl border border-border/50 bg-card overflow-hidden">
-                <Skeleton className="w-full aspect-[16/9]" />
-                <div className="p-5 space-y-4">
+              <div key={i} className="rounded-2xl border border-border/50 bg-card overflow-hidden">
+                <Skeleton className="w-full aspect-[4/3]" />
+                <div className="p-5 space-y-3">
                   <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
-                  <div className="flex gap-2 pt-2">
-                    <Skeleton className="h-10 flex-1 rounded-lg" />
-                    <Skeleton className="h-10 w-10 rounded-lg" />
-                  </div>
                 </div>
               </div>
             ))}
           </div>
         ) : filteredProjects.length === 0 ? (
-          /* Modern Academic Empty State */
+          /* Empty State */
           <div className="text-center py-24">
-            <div className="max-w-2xl mx-auto">
-              {/* Elegant icon container */}
-              <div className="w-24 h-24 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/10">
-                <FolderOpen className="w-12 h-12 text-primary/70" />
+            <div className="max-w-lg mx-auto">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/50 flex items-center justify-center">
+                <FolderOpen className="w-10 h-10 text-muted-foreground" />
               </div>
-
-              <h2 className="text-3xl font-serif font-bold text-foreground mb-4">
+              <h2 className="text-2xl font-serif font-semibold text-foreground mb-3">
                 {searchQuery || filterStatus !== 'all' ? 'No projects found' : 'Begin Your Research'}
               </h2>
-              <p className="text-muted-foreground text-lg mb-10 max-w-lg mx-auto leading-relaxed">
+              <p className="text-muted-foreground mb-8">
                 {searchQuery || filterStatus !== 'all' 
-                  ? 'Try adjusting your search or filters to find what you\'re looking for'
-                  : 'Create publication-ready scientific illustrations for your research papers and presentations'}
+                  ? 'Try adjusting your search or filters'
+                  : 'Create publication-ready scientific illustrations for your research'}
               </p>
-
               {!searchQuery && filterStatus === 'all' && (
-                <>
-                  <div className="flex flex-wrap gap-4 justify-center mb-16">
-                    <Button 
-                      onClick={createNewProject} 
-                      size="lg"
-                      className="gap-2.5 h-12 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
-                    >
-                      <Plus className="w-5 h-5" />
-                      Start Blank Canvas
-                    </Button>
-                    <Button 
-                      onClick={createNewProject}
-                      size="lg"
-                      variant="outline"
-                      className="gap-2.5 h-12 px-8 border-border/50 hover:bg-muted/50"
-                    >
-                      <FileText className="w-5 h-5" />
-                      Browse Templates
-                    </Button>
-                  </div>
-
-                  {/* Feature cards - Academic style with numbers */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
-                    <div className="relative bg-card rounded-xl border border-border/50 p-6 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-                      <div className="absolute -top-3 left-6 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center shadow-lg">1</div>
-                      <div className="pt-4">
-                        <h3 className="font-semibold text-foreground mb-2 text-lg">Choose Template</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">Start with a blank canvas or browse community templates for inspiration</p>
-                      </div>
-                    </div>
-                    
-                    <div className="relative bg-card rounded-xl border border-border/50 p-6 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-                      <div className="absolute -top-3 left-6 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center shadow-lg">2</div>
-                      <div className="pt-4">
-                        <h3 className="font-semibold text-foreground mb-2 text-lg">Design & Create</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">Add icons, shapes, connectors, and text to build your scientific diagram</p>
-                      </div>
-                    </div>
-                    
-                    <div className="relative bg-card rounded-xl border border-border/50 p-6 hover:border-primary/30 hover:shadow-lg transition-all duration-300">
-                      <div className="absolute -top-3 left-6 w-8 h-8 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center shadow-lg">3</div>
-                      <div className="pt-4">
-                        <h3 className="font-semibold text-foreground mb-2 text-lg">Export & Share</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">Download high-quality images or share with the research community</p>
-                      </div>
-                    </div>
-                  </div>
-                </>
+                <Button onClick={createNewProject} size="lg" className="gap-2">
+                  <Plus className="w-5 h-5" />
+                  Create Your First Project
+                </Button>
               )}
             </div>
           </div>
         ) : (
           <>
-            {/* Modern Academic Project Cards Grid */}
+            {/* Modern Project Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-              {paginatedProjects.map((project, index) => (
-                <div 
-                  key={project.id}
-                  className="group relative bg-card rounded-xl border border-border/50 overflow-hidden hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 animate-fade-in"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  {/* Thumbnail - Full Canvas Snapshot */}
-                  <div className="relative w-full min-h-[160px] max-h-[280px] flex items-center justify-center bg-muted/30 overflow-hidden">
-                    <img
-                      src={project.thumbnail_url || noPreviewImage}
-                      alt={project.name}
-                      className="max-w-full max-h-[280px] object-contain transition-transform duration-500 group-hover:scale-105"
-                    />
-                    
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                    
-                    {/* Status Badge */}
-                    {project.approval_status && project.approval_status !== 'pending' && (
-                      <div className="absolute top-4 right-4">
+              {paginatedProjects.map((project, index) => {
+                const isPrimary = index === 0;
+                
+                return (
+                  <div
+                    key={project.id}
+                    className={cn(
+                      "group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-500",
+                      "bg-card border border-border/50 hover:border-primary/30",
+                      "hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1",
+                      isPrimary && "md:col-span-2 md:row-span-2"
+                    )}
+                    onClick={() => openProject(project.id)}
+                  >
+                    {/* Image Container */}
+                    <div className={cn(
+                      "relative overflow-hidden bg-muted/30",
+                      isPrimary ? "aspect-[16/9]" : "aspect-[4/3]"
+                    )}>
+                      <img
+                        src={project.thumbnail_url || noPreviewImage}
+                        alt={project.name}
+                        className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                      />
+                      {/* Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-70 group-hover:opacity-90 transition-opacity" />
+                      
+                      {/* Status Badge */}
+                      <div className="absolute top-4 left-4">
                         <Badge 
-                          variant={
-                            project.approval_status === 'approved' ? 'default' : 
-                            project.approval_status === 'rejected' ? 'destructive' : 
-                            'secondary'
-                          }
-                          className="shadow-lg backdrop-blur-sm"
+                          variant="secondary"
+                          className={cn(
+                            "backdrop-blur-sm border-0",
+                            project.is_public 
+                              ? 'bg-emerald-500/90 text-white' 
+                              : 'bg-amber-500/90 text-white'
+                          )}
                         >
-                          {project.approval_status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
-                          {project.approval_status === 'rejected' && <XCircle className="w-3 h-3 mr-1" />}
-                          {project.approval_status}
+                          {project.is_public ? (
+                            <><Globe className="w-3 h-3 mr-1" /> Public</>
+                          ) : (
+                            <><Lock className="w-3 h-3 mr-1" /> Private</>
+                          )}
                         </Badge>
                       </div>
-                    )}
 
-                    {/* Quick Action Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <Button
-                        onClick={() => openProject(project.id)}
-                        size="lg"
-                        className="shadow-xl bg-white/95 hover:bg-white text-foreground font-medium"
-                      >
-                        <FolderOpen className="w-5 h-5 mr-2" />
-                        Open Project
-                      </Button>
+                      {/* Approval Status Badge */}
+                      {project.approval_status && project.approval_status !== 'pending' && (
+                        <div className="absolute top-4 right-4">
+                          <Badge 
+                            variant={project.approval_status === 'approved' ? 'default' : 'destructive'}
+                            className="backdrop-blur-sm"
+                          >
+                            {project.approval_status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
+                            {project.approval_status === 'rejected' && <XCircle className="w-3 h-3 mr-1" />}
+                            {project.approval_status}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  {/* Card Content */}
-                  <div className="p-5 space-y-4">
-                    {/* Project Name */}
-                    <h3 className="font-semibold text-foreground text-lg line-clamp-1 group-hover:text-primary transition-colors">{project.name}</h3>
                     
-                    {/* Metadata row */}
-                    <div className="flex items-center justify-between text-sm">
-                      <p className="text-muted-foreground flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
-                      </p>
-                      <Badge 
-                        variant="outline"
-                        className={`gap-1.5 font-medium ${
-                          project.is_public 
-                            ? 'border-emerald-500/50 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' 
-                            : 'border-amber-500/50 text-amber-600 dark:text-amber-400 bg-amber-500/5'
-                        }`}
-                      >
-                        {project.is_public ? (
-                          <>
-                            <Globe className="w-3.5 h-3.5" />
-                            Public
-                          </>
-                        ) : (
-                          <>
-                            <Lock className="w-3.5 h-3.5" />
-                            Private
-                          </>
-                        )}
-                      </Badge>
-                    </div>
-
-                    {/* Dimensions */}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Ruler className="w-3.5 h-3.5" />
-                      <span>{project.canvas_width} × {project.canvas_height} px</span>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        onClick={() => openProject(project.id)}
-                        className="flex-1 gap-2 h-10"
-                        size="sm"
-                      >
-                        <FolderOpen className="w-4 h-4" />
-                        Open
-                      </Button>
-                      <Button
-                        onClick={() => setShareDialogProject(project)}
-                        variant="outline"
-                        size="sm"
-                        className="h-10 w-10 p-0 border-border/50"
-                      >
-                        <Share2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        onClick={() => deleteProject(project.id, project.name)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-10 w-10 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    {/* Content Overlay */}
+                    <div className="absolute inset-0 flex flex-col justify-end p-5">
+                      <div className="space-y-3">
+                        {/* Title */}
+                        <h3 className={cn(
+                          "font-semibold text-white leading-tight line-clamp-2",
+                          isPrimary ? "text-2xl md:text-3xl" : "text-lg"
+                        )}>
+                          {project.name}
+                        </h3>
+                        
+                        {/* Meta Info */}
+                        <div className="flex flex-wrap items-center gap-3 text-white/80 text-sm">
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Ruler className="w-3.5 h-3.5" />
+                            {project.canvas_width} × {project.canvas_height}
+                          </span>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex gap-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <Button
+                            size="sm"
+                            className="bg-white/90 hover:bg-white text-foreground"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openProject(project.id);
+                            }}
+                          >
+                            <FolderOpen className="w-4 h-4 mr-1.5" />
+                            Open
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="bg-white/20 hover:bg-white/30 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShareDialogProject(project);
+                            }}
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="bg-white/20 hover:bg-destructive/90 text-white"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteProject(project.id, project.name);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Hover Arrow */}
+                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
+                        {!project.approval_status || project.approval_status === 'pending' ? (
+                          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                            <MoveRight className="w-5 h-5 text-white" />
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Modern Academic Pagination */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center pt-4">
                 <div className="bg-card rounded-xl border border-border/50 p-2">
@@ -488,67 +394,39 @@ export default function Projects() {
                       <PaginationItem>
                         <PaginationPrevious 
                           onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                          className={`rounded-lg ${currentPage === 1 ? 'pointer-events-none opacity-40' : 'cursor-pointer hover:bg-muted'}`}
+                          className={cn(
+                            "rounded-lg",
+                            currentPage === 1 ? 'pointer-events-none opacity-40' : 'cursor-pointer hover:bg-muted'
+                          )}
                         />
                       </PaginationItem>
                       
-                      {(() => {
-                        const getVisiblePages = (): (number | 'ellipsis')[] => {
-                          if (totalPages <= 7) {
-                            return Array.from({ length: totalPages }, (_, i) => i + 1);
-                          }
-                          
-                          const pages: (number | 'ellipsis')[] = [];
-                          pages.push(1, 2, 3);
-                          
-                          if (currentPage > 5) {
-                            pages.push('ellipsis');
-                          }
-                          
-                          for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-                            if (i > 3 && i < totalPages - 2 && !pages.includes(i)) {
-                              pages.push(i);
-                            }
-                          }
-                          
-                          if (currentPage < totalPages - 4) {
-                            pages.push('ellipsis');
-                          }
-                          
-                          for (let i = totalPages - 2; i <= totalPages; i++) {
-                            if (!pages.includes(i)) {
-                              pages.push(i);
-                            }
-                          }
-                          
-                          return pages;
-                        };
-                        
-                        return getVisiblePages().map((page, index) => (
-                          <PaginationItem key={`${page}-${index}`}>
-                            {page === 'ellipsis' ? (
-                              <PaginationEllipsis />
-                            ) : (
-                              <PaginationLink
-                                onClick={() => setCurrentPage(page)}
-                                isActive={currentPage === page}
-                                className={`cursor-pointer rounded-lg font-medium ${
-                                  currentPage === page 
-                                    ? 'bg-primary text-primary-foreground shadow-sm' 
-                                    : 'hover:bg-muted'
-                                }`}
-                              >
-                                {page}
-                              </PaginationLink>
+                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className={cn(
+                              "cursor-pointer rounded-lg font-medium",
+                              currentPage === page 
+                                ? 'bg-primary text-primary-foreground' 
+                                : 'hover:bg-muted'
                             )}
-                          </PaginationItem>
-                        ));
-                      })()}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      
+                      {totalPages > 5 && <PaginationEllipsis />}
                       
                       <PaginationItem>
                         <PaginationNext 
                           onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                          className={`rounded-lg ${currentPage === totalPages ? 'pointer-events-none opacity-40' : 'cursor-pointer hover:bg-muted'}`}
+                          className={cn(
+                            "rounded-lg",
+                            currentPage === totalPages ? 'pointer-events-none opacity-40' : 'cursor-pointer hover:bg-muted'
+                          )}
                         />
                       </PaginationItem>
                     </PaginationContent>
