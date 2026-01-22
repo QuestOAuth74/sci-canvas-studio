@@ -3,12 +3,11 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { 
   Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, 
-  MessageCircleHeart, ArrowRight, ChevronRight, Download, Layers, PenTool,
-  FileImage, Grid3X3, Wand2, BookOpen, GraduationCap, FlaskConical, Dna,
-  Brain, Heart, Target, CheckCircle2, Star, Trophy, Globe, Clock
+  ArrowRight, ChevronRight, Download, Layers, PenTool,
+  FileImage, Grid3X3, Wand2, BookOpen, GraduationCap, Play,
+  CheckCircle, Star, Globe, MousePointerClick, Atom, Image
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
 import { ProjectPreviewModal } from "@/components/community/ProjectPreviewModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +21,6 @@ import { InstitutionCarousel } from "@/components/InstitutionCarousel";
 import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
 import { CommunityCarousel } from "@/components/community/CommunityCarousel";
 import { MaintenanceBanner } from "@/components/MaintenanceBanner";
-import { Card, CardContent } from "@/components/ui/card";
 import { IconShowcase } from "@/components/home/IconShowcase";
 
 const Index = () => {
@@ -32,6 +30,7 @@ const Index = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const { data: signupData } = useRecentSignups();
 
   useEffect(() => {
@@ -42,45 +41,42 @@ const Index = () => {
       .then(({ data }) => setCategories(data || []));
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev === 0 ? 1 : 0));
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [getWebApplicationSchema(), getOrganizationSchema()],
   };
 
   const features = [
-    { icon: Layers, title: "Intuitive Canvas", desc: "Drag-and-drop interface optimized for scientific workflows", color: "text-primary" },
-    { icon: Microscope, title: "6,000+ Icons", desc: "Comprehensive biomedical icon library for any research field", color: "text-accent" },
-    { icon: FileImage, title: "Publication-Ready", desc: "Export high-resolution PNG, JPG, and vector SVG formats", color: "text-primary" },
-    { icon: Share2, title: "Collaboration", desc: "Share figures with colleagues and explore community work", color: "text-accent" },
-    { icon: Wand2, title: "AI-Assisted", desc: "Generate custom figures and icons using AI technology", color: "text-primary" },
-    { icon: Heart, title: "Free Forever", desc: "No subscription required for essential features", color: "text-accent" },
+    { icon: Layers, title: "Intuitive Canvas", desc: "Drag-and-drop interface built for scientists" },
+    { icon: Microscope, title: "6,000+ Icons", desc: "Comprehensive biomedical icon library" },
+    { icon: FileImage, title: "Publication-Ready", desc: "Export PNG, JPG, and SVG formats" },
+    { icon: Share2, title: "Easy Sharing", desc: "Collaborate with your research team" },
+    { icon: Wand2, title: "AI-Powered", desc: "Generate custom figures with AI" },
+    { icon: Shield, title: "Free Forever", desc: "Essential features at no cost" },
   ];
 
   const stats = [
-    { icon: Users, value: "10,000+", label: "Researchers" },
-    { icon: Microscope, value: "6,000+", label: "Icons" },
-    { icon: Globe, value: "150+", label: "Countries" },
-    { icon: Download, value: "500K+", label: "Downloads" },
+    { value: "10K+", label: "Researchers", icon: Users },
+    { value: "6K+", label: "Icons", icon: Atom },
+    { value: "150+", label: "Countries", icon: Globe },
+    { value: "500K+", label: "Downloads", icon: Download },
   ];
 
-  const disciplines = [
-    { icon: Dna, name: "Molecular Biology" },
-    { icon: Brain, name: "Neuroscience" },
-    { icon: FlaskConical, name: "Biochemistry" },
-    { icon: Heart, name: "Cardiology" },
-    { icon: Microscope, name: "Cell Biology" },
-    { icon: Target, name: "Immunology" },
-  ];
-
-  const benefits = [
-    { icon: Clock, title: "Save Hours", desc: "Create figures in minutes, not hours" },
-    { icon: CheckCircle2, title: "Journal-Ready", desc: "Meet publication requirements easily" },
-    { icon: Star, title: "Professional Quality", desc: "Impress reviewers and readers" },
-    { icon: Trophy, title: "Stand Out", desc: "Elevate your research presentation" },
+  const steps = [
+    { num: "01", title: "Sign Up Free", desc: "Create your account in seconds", icon: MousePointerClick },
+    { num: "02", title: "Choose Icons", desc: "Browse our extensive library", icon: Grid3X3 },
+    { num: "03", title: "Design & Export", desc: "Create and download your figure", icon: Image },
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-hidden">
       <MaintenanceBanner />
 
       <SEOHead
@@ -91,224 +87,276 @@ const Index = () => {
         structuredData={structuredData}
       />
 
-      <div className="container mx-auto px-4">
-        {/* Hero Section */}
-        <section className="py-16 md:py-24">
-          <div className="max-w-5xl mx-auto text-center space-y-8">
-            {/* Floating Icons Background */}
-            <div className="relative">
-              <div className="absolute -top-8 left-1/4 opacity-10">
-                <Dna className="h-16 w-16 text-primary animate-pulse" />
-              </div>
-              <div className="absolute -top-4 right-1/4 opacity-10">
-                <Brain className="h-12 w-12 text-accent animate-pulse" style={{ animationDelay: '0.5s' }} />
-              </div>
-              <div className="absolute top-8 left-1/6 opacity-10">
-                <FlaskConical className="h-10 w-10 text-primary animate-pulse" style={{ animationDelay: '1s' }} />
-              </div>
-            </div>
+      {/* Hero Section */}
+      <section className="relative min-h-[90vh] flex items-center">
+        {/* Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)]" />
 
-            {/* Badge */}
-            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-primary/5 border border-primary/20 backdrop-blur-sm">
-              <div className="flex -space-x-1">
-                <GraduationCap className="h-4 w-4 text-primary" />
-                <BookOpen className="h-4 w-4 text-accent" />
-              </div>
-              <span className="text-sm font-medium text-muted-foreground">Trusted by 10,000+ Researchers Worldwide</span>
-              <div className="flex items-center gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-3 w-3 fill-primary text-primary" />
-                ))}
-              </div>
-            </div>
-
-            {/* Logo & Title */}
-            <div className="space-y-6">
-              <div className="flex items-center justify-center gap-5">
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/10 border border-primary/20 shadow-lg">
-                  <img
-                    src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
-                    alt="BioSketch Logo"
-                    className="h-14 w-14 md:h-16 md:w-16 object-contain"
-                  />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+            {/* Left Content */}
+            <div className="space-y-8">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 shadow-sm">
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-3.5 w-3.5 fill-primary text-primary" />
+                  ))}
                 </div>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold tracking-tight text-foreground">
-                  BioSketch
+                <span className="text-sm text-muted-foreground">Trusted by 10,000+ researchers</span>
+              </div>
+
+              {/* Title */}
+              <div className="space-y-4">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight text-foreground leading-[1.1]">
+                  Scientific figures
+                  <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    made simple
+                  </span>
                 </h1>
-              </div>
-
-              <div className="space-y-4 max-w-2xl mx-auto">
-                <p className="text-xl md:text-2xl font-display text-foreground flex items-center justify-center gap-3">
-                  <PenTool className="h-6 w-6 text-primary" />
-                  Professional Scientific Illustration
-                  <Sparkles className="h-6 w-6 text-accent" />
-                </p>
-                <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                  Create publication-quality figures for research papers, presentations, and grants.
-                  Free and trusted by scientists at leading institutions worldwide.
+                <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
+                  Create publication-ready illustrations in minutes. 
+                  Drag, drop, and export—no design skills needed.
                 </p>
               </div>
-            </div>
 
-            {/* Welcome for logged-in users */}
-            {user && (
-              <div className="flex items-center justify-center gap-2 text-lg font-display text-foreground animate-fade-in">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <span>Welcome back, <span className="font-semibold text-primary">{user.user_metadata?.full_name?.split(" ")[0] || "Researcher"}</span></span>
-              </div>
-            )}
+              {/* User Welcome */}
+              {user && (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  <span className="text-foreground">
+                    Welcome back, <span className="font-semibold text-primary">{user.user_metadata?.full_name?.split(" ")[0] || "Researcher"}</span>
+                  </span>
+                </div>
+              )}
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 justify-center pt-4">
-              <Button 
-                size="lg" 
-                onClick={() => navigate(user ? "/canvas" : "/auth")} 
-                className="h-13 px-8 text-base font-medium shadow-lg hover:shadow-xl transition-all group"
-              >
-                <Palette className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
-                {user ? "Open Canvas" : "Start Free"}
-                <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-
-              {user ? (
-                <>
+              {/* CTA Buttons */}
+              <div className="flex flex-wrap gap-4">
+                <Button 
+                  size="lg"
+                  onClick={() => navigate(user ? "/canvas" : "/auth")} 
+                  className="h-12 px-6 text-base font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all group"
+                >
+                  <Palette className="h-5 w-5 mr-2" />
+                  {user ? "Open Canvas" : "Start Creating — It's Free"}
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                </Button>
+                
+                {user ? (
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    onClick={() => navigate("/projects")} 
-                    className="h-13 px-6 group"
+                    onClick={() => navigate("/projects")}
+                    className="h-12 px-6"
                   >
-                    <FolderOpen className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                    <FolderOpen className="h-4 w-4 mr-2" />
                     My Projects
                   </Button>
+                ) : (
                   <Button 
                     size="lg" 
                     variant="outline" 
-                    onClick={() => navigate("/community")} 
-                    className="h-13 px-6 group"
+                    onClick={() => navigate("/community")}
+                    className="h-12 px-6"
                   >
-                    <Users className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
-                    Community
+                    <Play className="h-4 w-4 mr-2" />
+                    See Examples
                   </Button>
-                </>
-              ) : (
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  onClick={() => navigate("/community")} 
-                  className="h-13 px-8 group"
-                >
-                  <Grid3X3 className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform" />
-                  Browse Gallery
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Button>
-              )}
+                )}
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="flex items-center gap-6 pt-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Free forever</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>No credit card</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <span>Instant access</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right - Product Preview */}
+            <div className="relative">
+              <div className="relative rounded-2xl overflow-hidden border border-border/50 shadow-2xl bg-card">
+                {/* Browser Chrome */}
+                <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border/50">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-400/80" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-400/80" />
+                    <div className="w-3 h-3 rounded-full bg-green-400/80" />
+                  </div>
+                  <div className="flex-1 flex justify-center">
+                    <div className="px-4 py-1 rounded-md bg-background/50 text-xs text-muted-foreground">
+                      biosketch.art/canvas
+                    </div>
+                  </div>
+                </div>
+                {/* Screenshot */}
+                <div className="relative">
+                  <img 
+                    src={currentSlide === 0 ? carousel1 : carousel2} 
+                    alt="BioSketch Canvas" 
+                    className="w-full h-auto transition-opacity duration-500"
+                  />
+                </div>
+              </div>
+              
+              {/* Floating Elements */}
+              <div className="absolute -bottom-6 -left-6 p-4 rounded-xl bg-card/95 backdrop-blur-sm border border-border/50 shadow-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Microscope className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">6,000+</p>
+                    <p className="text-xs text-muted-foreground">Scientific Icons</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="absolute -top-4 -right-4 p-3 rounded-xl bg-card/95 backdrop-blur-sm border border-border/50 shadow-xl">
+                <div className="flex items-center gap-2">
+                  <Wand2 className="h-5 w-5 text-accent" />
+                  <span className="text-sm font-medium text-foreground">AI-Powered</span>
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Stats Section */}
-        <section className="py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            {stats.map((stat, index) => (
-              <Card key={index} className="border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/30 transition-colors">
-                <CardContent className="p-6 text-center space-y-2">
-                  <stat.icon className="h-8 w-8 mx-auto text-primary" />
-                  <p className="text-3xl font-display font-bold text-foreground">{stat.value}</p>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                </CardContent>
-              </Card>
+      {/* Trusted By */}
+      <section className="py-16 border-y border-border/50 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-sm font-medium text-muted-foreground uppercase tracking-widest mb-8 flex items-center justify-center gap-2">
+            <GraduationCap className="h-4 w-4" />
+            Trusted by researchers at leading institutions
+          </p>
+          <InstitutionCarousel />
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            {stats.map((stat, i) => (
+              <div 
+                key={i}
+                className="group relative p-6 rounded-2xl bg-gradient-to-br from-card to-muted/30 border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg"
+              >
+                <stat.icon className="h-6 w-6 text-primary/60 mb-3 group-hover:scale-110 transition-transform" />
+                <p className="text-3xl lg:text-4xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+              </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Institution Logos */}
-        <section className="py-12 border-y border-border/50">
-          <div className="text-center mb-8">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-widest flex items-center justify-center gap-2">
-              <GraduationCap className="h-4 w-4" />
-              Trusted by researchers at
-              <GraduationCap className="h-4 w-4" />
-            </p>
-          </div>
-          <InstitutionCarousel />
-        </section>
-
-        {/* Product Showcase */}
-        <section className="py-20">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-10 space-y-3">
-              <div className="flex items-center justify-center gap-2 text-sm font-medium text-primary uppercase tracking-widest">
-                <Layers className="h-4 w-4" />
-                <span>Powerful Canvas</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                Everything You Need in One Place
-              </h2>
+      {/* Features Bento Grid */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+              <Sparkles className="h-4 w-4" />
+              Features
             </div>
-            <Carousel opts={{ loop: true }}>
-              <CarouselContent>
-                <CarouselItem>
-                  <div className="rounded-xl overflow-hidden border border-border shadow-2xl">
-                    <img src={carousel1} alt="BioSketch Interface" className="w-full h-auto" />
-                  </div>
-                </CarouselItem>
-                <CarouselItem>
-                  <div className="rounded-xl overflow-hidden border border-border shadow-2xl">
-                    <img src={carousel2} alt="BioSketch Features" className="w-full h-auto" />
-                  </div>
-                </CarouselItem>
-              </CarouselContent>
-              <CarouselPrevious className="-left-4 md:-left-12" />
-              <CarouselNext className="-right-4 md:-right-12" />
-            </Carousel>
-          </div>
-        </section>
-
-        {/* Icon Showcase - visible to all users */}
-        <IconShowcase />
-
-        {/* Disciplines Section */}
-        <section className="py-16">
-          <div className="text-center mb-10 space-y-3">
-            <div className="flex items-center justify-center gap-2 text-sm font-medium text-primary uppercase tracking-widest">
-              <FlaskConical className="h-4 w-4" />
-              <span>For Every Field</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-              Icons for Every Discipline
+            <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground">
+              Everything you need to create
+              <span className="block text-primary">stunning figures</span>
             </h2>
           </div>
-          <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
-            {disciplines.map((discipline, index) => (
+
+          {/* Bento Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+            {features.map((feature, i) => (
               <div
-                key={index}
-                className="flex items-center gap-3 px-5 py-3 rounded-full bg-muted/50 border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-default"
+                key={i}
+                className={`group relative p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all hover:shadow-xl overflow-hidden ${
+                  i === 0 ? 'lg:col-span-2 lg:row-span-1' : ''
+                }`}
               >
-                <discipline.icon className="h-5 w-5 text-primary" />
-                <span className="text-sm font-medium text-foreground">{discipline.name}</span>
+                {/* Gradient Hover Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+                </div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Demo Video */}
-        <section className="py-20 bg-muted/30 -mx-4 px-4 rounded-3xl">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="text-center space-y-3">
-              <div className="flex items-center justify-center gap-2 text-sm font-medium text-primary uppercase tracking-widest">
-                <Zap className="h-4 w-4" />
-                <span>Quick Demo</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                See BioSketch in Action
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto flex items-center justify-center gap-2">
-                <Clock className="h-4 w-4" />
-                Create professional figures in minutes
-              </p>
+      {/* How It Works */}
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16 space-y-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-sm font-medium">
+              <Zap className="h-4 w-4" />
+              How it works
             </div>
-            <div className="rounded-xl overflow-hidden border border-border shadow-2xl">
+            <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground">
+              Three steps to publication-ready figures
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {steps.map((step, i) => (
+              <div key={i} className="relative">
+                {/* Connector Line */}
+                {i < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/30 to-transparent" />
+                )}
+                
+                <div className="text-center space-y-4">
+                  <div className="relative mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 flex items-center justify-center">
+                    <step.icon className="h-10 w-10 text-primary" />
+                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-lg bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
+                      {step.num.split('')[1]}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground">{step.title}</h3>
+                  <p className="text-muted-foreground">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Video Demo */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                <Play className="h-4 w-4" />
+                Quick Demo
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground">
+                See it in action
+              </h2>
+            </div>
+            
+            <div className="rounded-2xl overflow-hidden border border-border/50 shadow-2xl">
               <video
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
                 className="w-full h-auto"
@@ -316,187 +364,107 @@ const Index = () => {
                 muted
                 loop
                 playsInline
-                aria-label="BioSketch Canvas Demo"
               />
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Benefits Section */}
+      {/* Icon Showcase */}
+      <div className="container mx-auto px-4">
+        <IconShowcase />
+      </div>
+
+      {/* Community / CTA Section */}
+      {user ? (
+        <section className="py-20 bg-muted/30">
+          <div className="container mx-auto px-4">
+            <CommunityCarousel />
+          </div>
+        </section>
+      ) : (
         <section className="py-20">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12 space-y-3">
-              <div className="flex items-center justify-center gap-2 text-sm font-medium text-primary uppercase tracking-widest">
-                <Trophy className="h-4 w-4" />
-                <span>Why BioSketch</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                Elevate Your Research
-              </h2>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {benefits.map((benefit, index) => (
-                <Card key={index} className="border-border/50 bg-gradient-to-b from-card to-muted/20 hover:shadow-lg transition-all group">
-                  <CardContent className="p-6 text-center space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto group-hover:scale-110 group-hover:bg-primary/15 transition-all">
-                      <benefit.icon className="h-7 w-7 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground mb-1">{benefit.title}</h3>
-                      <p className="text-sm text-muted-foreground">{benefit.desc}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Features Grid */}
-        <section className="py-20 bg-muted/30 -mx-4 px-4 rounded-3xl">
-          <div className="max-w-6xl mx-auto space-y-12">
-            <div className="text-center space-y-3">
-              <div className="flex items-center justify-center gap-2 text-sm font-medium text-primary uppercase tracking-widest">
-                <Sparkles className="h-4 w-4" />
-                <span>Features</span>
-              </div>
-              <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                Professional-Grade Tools
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Everything you need to create publication-ready scientific figures
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature, index) => (
-                <Card
-                  key={index}
-                  className="group border border-border/50 bg-card hover:border-primary/30 hover:shadow-xl transition-all duration-300"
+          <div className="container mx-auto px-4">
+            <div className="max-w-4xl mx-auto relative rounded-3xl overflow-hidden">
+              {/* Gradient Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent)]" />
+              
+              <div className="relative z-10 text-center py-16 px-8 space-y-6">
+                <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto">
+                  <Users className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-3xl font-display font-bold text-white">
+                  Join thousands of researchers
+                </h3>
+                <p className="text-white/80 max-w-md mx-auto">
+                  Create, share, and explore scientific illustrations with our growing community.
+                </p>
+                <Button 
+                  size="lg" 
+                  variant="secondary"
+                  onClick={() => navigate("/auth")} 
+                  className="mt-4 h-12 px-8 text-base font-medium"
                 >
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 group-hover:scale-110 transition-all shrink-0">
-                        <feature.icon className={`h-6 w-6 ${feature.color}`} />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-foreground mb-1">{feature.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{feature.desc}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  Get Started Free
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
             </div>
           </div>
         </section>
+      )}
 
-        {/* Community Section */}
-        {user ? (
-          <section className="py-20">
-            <div className="max-w-6xl mx-auto">
-              <CommunityCarousel />
-            </div>
-          </section>
-        ) : (
-          <section className="py-20">
-            <Card className="max-w-3xl mx-auto border-0 bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 overflow-hidden relative">
-              <div className="absolute top-4 left-4 opacity-10">
-                <Users className="h-24 w-24 text-primary" />
-              </div>
-              <div className="absolute bottom-4 right-4 opacity-10">
-                <Share2 className="h-20 w-20 text-accent" />
-              </div>
-              <CardContent className="text-center py-16 px-8 space-y-6 relative">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-display font-bold text-foreground">Join the Community</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Explore thousands of scientific illustrations created by researchers worldwide.
-                  </p>
-                </div>
-                <Button size="lg" onClick={() => navigate("/auth")} className="mt-4 group">
-                  <MessageCircleHeart className="h-4 w-4 mr-2" />
-                  Get Started Free
-                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </CardContent>
-            </Card>
-          </section>
-        )}
+      {/* Blog Section */}
+      {user && (
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <BlogPostsCarousel />
+          </div>
+        </section>
+      )}
 
-        {/* Blog Section */}
-        {user ? (
-          <section className="py-20 bg-muted/30 -mx-4 px-4 rounded-3xl">
-            <div className="max-w-6xl mx-auto">
-              <BlogPostsCarousel />
-            </div>
-          </section>
-        ) : (
-          <section className="py-20 bg-muted/30 -mx-4 px-4 rounded-3xl">
-            <Card className="max-w-3xl mx-auto border-0 bg-card overflow-hidden relative">
-              <div className="absolute top-4 right-4 opacity-10">
-                <BookOpen className="h-20 w-20 text-primary" />
-              </div>
-              <CardContent className="text-center py-16 px-8 space-y-6 relative">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-                  <BookOpen className="h-8 w-8 text-primary" />
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-display font-bold text-foreground">Learn & Grow</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Access tutorials, tips, and best practices for scientific illustration.
-                  </p>
-                </div>
-                <Button size="lg" variant="outline" onClick={() => navigate("/blog")} className="group">
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Browse Articles
-                  <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </CardContent>
-            </Card>
-          </section>
-        )}
-
-        {/* Final CTA */}
-        {!user && (
-          <section className="py-24 text-center relative">
-            <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-              <Microscope className="h-96 w-96 text-primary" />
-            </div>
-            <div className="max-w-2xl mx-auto space-y-8 relative">
+      {/* Final CTA */}
+      {!user && (
+        <section className="py-24 relative">
+          {/* Background */}
+          <div className="absolute inset-0 bg-gradient-to-t from-muted/50 to-background" />
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-2xl mx-auto text-center space-y-8">
               <div className="space-y-4">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <Sparkles className="h-6 w-6 text-primary" />
-                  <Zap className="h-6 w-6 text-accent" />
-                  <Sparkles className="h-6 w-6 text-primary" />
-                </div>
-                <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-                  Start Creating Today
+                <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground">
+                  Ready to create beautiful figures?
                 </h2>
                 <p className="text-lg text-muted-foreground">
-                  Join thousands of researchers using BioSketch for their scientific illustrations
+                  Join 10,000+ researchers who trust BioSketch for their scientific illustrations.
                 </p>
               </div>
+              
               <Button 
                 size="lg" 
                 onClick={() => navigate("/auth")} 
-                className="h-14 px-10 text-lg shadow-xl hover:shadow-2xl transition-all group"
+                className="h-14 px-10 text-lg shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all group"
               >
-                <Palette className="h-5 w-5 mr-2 group-hover:rotate-12 transition-transform" />
-                Create Free Account
+                <Palette className="h-5 w-5 mr-2" />
+                Start Creating — It's Free
                 <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                <Shield className="h-4 w-4" />
-                No credit card required • Free forever
-              </p>
+              
+              <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  Free forever
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  No credit card
+                </span>
+              </div>
             </div>
-          </section>
-        )}
-      </div>
+          </div>
+        </section>
+      )}
 
       <IconSubmissionDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} categories={categories} />
       <ProjectPreviewModal project={selectedProject} isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} />
