@@ -335,333 +335,139 @@ export default function Profile() {
     .slice(0, 2);
 
   return (
-    <div className="min-h-screen bg-background relative">
-      {/* Subtle dot pattern background */}
-      <div className="absolute inset-0 opacity-[0.015]" style={{
-        backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
-        backgroundSize: '24px 24px'
-      }} />
-      
-      {/* Hero Header */}
-      <div className="relative bg-card/50 border-b border-border/50">
-        <div className="relative max-w-7xl mx-auto px-4 py-12">
+    <div className="min-h-screen bg-background">
+      {/* Clean Header */}
+      <div className="border-b border-border/50">
+        <div className="max-w-5xl mx-auto px-6 py-6">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="mb-6 text-muted-foreground hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground mb-8"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
+            Back
           </Button>
 
-          {/* Profile Header */}
-          <div className="flex flex-col md:flex-row items-center md:items-end gap-8">
+          {/* Profile Header - Minimal */}
+          <div className="flex items-center gap-6">
             {/* Avatar */}
             <div className="relative group">
-              <div className="p-1 bg-card rounded-2xl border border-border/50 shadow-lg">
-                <Avatar className="h-32 w-32 rounded-xl">
-                  <AvatarImage src={avatarUrl} alt={fullName} className="rounded-xl" />
-                  <AvatarFallback className="text-4xl rounded-xl bg-primary/10 text-primary">
-                    {initials || <UserIcon className="h-16 w-16" />}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-              <div className="absolute -bottom-2 -right-2 z-10">
-                <Input
-                  id="avatar-upload-header"
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-                <Label htmlFor="avatar-upload-header">
-                  <Button
-                    type="button"
-                    size="icon"
-                    className="h-10 w-10 rounded-full shadow-lg"
-                    disabled={uploading}
-                    onClick={() => document.getElementById('avatar-upload-header')?.click()}
-                    asChild
-                  >
-                    <span>
-                      {uploading ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <Upload className="h-5 w-5" />
-                      )}
-                    </span>
-                  </Button>
-                </Label>
-              </div>
+              <Avatar className="h-20 w-20 rounded-2xl border-2 border-border/50">
+                <AvatarImage src={avatarUrl} alt={fullName} className="rounded-2xl" />
+                <AvatarFallback className="text-2xl rounded-2xl bg-muted text-muted-foreground">
+                  {initials || <UserIcon className="h-8 w-8" />}
+                </AvatarFallback>
+              </Avatar>
+              <Input
+                id="avatar-upload-header"
+                type="file"
+                accept="image/png,image/jpeg,image/jpg"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => document.getElementById('avatar-upload-header')?.click()}
+                className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-foreground text-background flex items-center justify-center hover:bg-foreground/90 transition-colors"
+              >
+                {uploading ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" />
+                )}
+              </button>
             </div>
 
-            {/* Profile Info */}
-            <div className="flex-1 text-center md:text-left space-y-2">
-              <h1 className="text-3xl md:text-4xl font-serif font-semibold text-foreground">
+            {/* Info */}
+            <div className="flex-1">
+              <h1 className="text-2xl font-semibold text-foreground">
                 {fullName || 'Your Name'}
               </h1>
-              <p className="text-lg text-muted-foreground">
-                {fieldOfStudy || 'Field of Study'} {country && `• ${country}`}
+              <p className="text-muted-foreground">
+                {fieldOfStudy}{fieldOfStudy && country && ' · '}{country}
               </p>
-              {quote && (
-                <p className="text-sm italic text-muted-foreground max-w-2xl">
-                  "{quote}"
-                </p>
-              )}
             </div>
 
             {/* Quick Stats */}
-            <div className="flex gap-3">
-              <Card className="border border-border/50 bg-card hover:shadow-lg transition-all">
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-serif font-semibold text-foreground">{stats?.totalProjects || 0}</div>
-                  <div className="text-xs text-muted-foreground font-medium">Projects</div>
-                </CardContent>
-              </Card>
-              <Card className="border border-border/50 bg-card hover:shadow-lg transition-all">
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-serif font-semibold text-foreground">{stats?.totalImpact || 0}</div>
-                  <div className="text-xs text-muted-foreground font-medium">Impact</div>
-                </CardContent>
-              </Card>
-              <Card className="border border-border/50 bg-card hover:shadow-lg transition-all">
-                <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-serif font-semibold text-foreground">{stats?.totalCollaborations || 0}</div>
-                  <div className="text-xs text-muted-foreground font-medium">Collaborations</div>
-                </CardContent>
-              </Card>
+            <div className="hidden md:flex items-center gap-8">
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-foreground">{stats?.totalProjects || 0}</p>
+                <p className="text-xs text-muted-foreground">Projects</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-foreground">{stats?.totalViews || 0}</p>
+                <p className="text-xs text-muted-foreground">Views</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-semibold text-foreground">{stats?.totalLikes || 0}</p>
+                <p className="text-xs text-muted-foreground">Likes</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8 relative z-10">
+      <div className="max-w-5xl mx-auto px-6 py-8">
         <FeatureUnlockBanner />
 
-        {/* Three Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[280px,1fr,300px] gap-6 mt-6">
-          {/* LEFT SIDEBAR - Stats & Activity */}
-          <div className="space-y-5">
-            {/* Refined Stats Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <div className="w-1 h-4 bg-primary rounded-full" />
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                  Statistics
-                </h3>
-              </div>
-              
-              {/* Compact Stats Grid */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-primary/40 hover:shadow-md transition-all duration-200">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                      <FolderOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalProjects || 0}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Projects</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-emerald-500/40 hover:shadow-md transition-all duration-200">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                      <Eye className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalViews || 0}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Views</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-rose-500/40 hover:shadow-md transition-all duration-200">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-rose-500/10 flex items-center justify-center">
-                      <Heart className="h-4 w-4 text-rose-600 dark:text-rose-400" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalLikes || 0}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Likes</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-violet-500/40 hover:shadow-md transition-all duration-200">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
-                      <Users className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalCollaborations || 0}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Collabs</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Clone Stats - Full Width */}
-              <div className="group p-3.5 rounded-xl bg-gradient-to-br from-card to-muted/20 border border-border/40 hover:border-amber-500/40 hover:shadow-md transition-all duration-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                    <Copy className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <div className="flex-1 flex items-center justify-between">
-                    <div>
-                      <div className="text-lg font-bold text-foreground leading-none">{stats?.totalClones || 0}</div>
-                      <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wide mt-0.5">Times Cloned</div>
-                    </div>
-                    <div className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
-                      Impact Score
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Activity Timeline - Refined */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 px-1">
-                <div className="w-1 h-4 bg-muted-foreground/30 rounded-full" />
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                  Activity
-                </h3>
-              </div>
-              
-              <div className="rounded-xl border border-border/40 bg-gradient-to-br from-card to-muted/10 overflow-hidden">
-                <ScrollArea className="h-[240px]">
-                  <div className="p-4 space-y-4">
-                    {stats && stats.totalProjects > 0 ? (
-                      <>
-                        <div className="flex gap-3 items-start">
-                          <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <FolderOpen className="h-3.5 w-3.5 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground leading-tight">Created {stats.totalProjects} projects</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">Building your portfolio</p>
-                          </div>
-                        </div>
-                        
-                        {stats.totalViews > 0 && (
-                          <div className="flex gap-3 items-start">
-                            <div className="w-7 h-7 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <TrendingUp className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground leading-tight">Gained {stats.totalViews} views</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">Your work is getting noticed</p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {stats.publicProjects > 0 && (
-                          <div className="flex gap-3 items-start">
-                            <div className="w-7 h-7 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <Award className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground leading-tight">Shared {stats.publicProjects} public projects</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">Contributing to the community</p>
-                            </div>
-                          </div>
-                        )}
-                        
-                        {stats.totalLikes > 0 && (
-                          <div className="flex gap-3 items-start">
-                            <div className="w-7 h-7 rounded-full bg-rose-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <Heart className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground leading-tight">Received {stats.totalLikes} likes</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">Community appreciation</p>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="text-center py-8">
-                        <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
-                          <Clock className="h-5 w-5 text-muted-foreground/50" />
-                        </div>
-                        <p className="text-sm font-medium text-muted-foreground">No activity yet</p>
-                        <p className="text-xs text-muted-foreground/70 mt-1">Start creating projects!</p>
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
-            </div>
-          </div>
-
-          {/* CENTER COLUMN - Main Content */}
+        {/* Two Column Layout - Simplified */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr,320px] gap-8 mt-8">
+          {/* Main Content */}
           <div className="space-y-6">
-            <Card className="border border-border/50">
-              <CardHeader className="border-b border-border/30">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2 font-serif">
-                      <UserCircle className="h-5 w-5 text-primary" />
-                      Profile Settings
-                    </CardTitle>
-                    <CardDescription>Manage your personal information and preferences</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <Tabs defaultValue="profile" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="profile">
-                      <UserIcon className="h-4 w-4 mr-2" />
-                      Profile
-                    </TabsTrigger>
-                    <TabsTrigger value="notifications" className="relative">
-                      <Bell className="h-4 w-4 mr-2" />
-                      Notifications
-                      {unreadCount > 0 && (
-                        <Badge 
-                          variant="destructive" 
-                          className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
-                        >
-                          {unreadCount}
-                        </Badge>
-                      )}
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="profile" className="space-y-6 mt-0">
-                    {/* Form Grid Layout */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Profile Tab Switcher */}
+            <div className="flex rounded-lg bg-muted/50 p-1 w-fit">
+              <Tabs defaultValue="profile" className="w-full">
+                <TabsList className="bg-transparent p-0 h-auto gap-1">
+                  <TabsTrigger 
+                    value="profile" 
+                    className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md px-4 py-2 text-sm"
+                  >
+                    Profile
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="notifications" 
+                    className="data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md px-4 py-2 text-sm relative"
+                  >
+                    Notifications
+                    {unreadCount > 0 && (
+                      <span className="ml-2 w-5 h-5 rounded-full bg-foreground text-background text-xs flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="profile" className="mt-6 space-y-6">
+                  {/* Form */}
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+                        <Label htmlFor="fullName" className="text-sm text-muted-foreground">Full Name</Label>
                         <Input
                           id="fullName"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           placeholder="Enter your full name"
-                          className="h-11"
+                          className="h-11 border-border/50"
                         />
                       </div>
-
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                        <Label htmlFor="email" className="text-sm text-muted-foreground">Email</Label>
                         <Input
                           id="email"
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="Enter your email"
-                          className="h-11"
+                          className="h-11 border-border/50"
                         />
                       </div>
-
                       <div className="space-y-2">
-                        <Label htmlFor="country" className="text-sm font-medium">Country</Label>
+                        <Label htmlFor="country" className="text-sm text-muted-foreground">Country</Label>
                         <Select value={country} onValueChange={setCountry}>
-                          <SelectTrigger id="country" className="h-11">
+                          <SelectTrigger id="country" className="h-11 border-border/50">
                             <SelectValue placeholder="Select your country" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[300px]">
@@ -673,12 +479,11 @@ export default function Profile() {
                           </SelectContent>
                         </Select>
                       </div>
-
                       <div className="space-y-2">
-                        <Label htmlFor="fieldOfStudy" className="text-sm font-medium">Field of Study</Label>
+                        <Label htmlFor="fieldOfStudy" className="text-sm text-muted-foreground">Field of Study</Label>
                         <Select value={fieldOfStudy} onValueChange={setFieldOfStudy}>
-                          <SelectTrigger id="fieldOfStudy" className="h-11">
-                            <SelectValue placeholder="Select your field of study" />
+                          <SelectTrigger id="fieldOfStudy" className="h-11 border-border/50">
+                            <SelectValue placeholder="Select your field" />
                           </SelectTrigger>
                           <SelectContent>
                             {FIELDS_OF_STUDY.map((field) => (
@@ -692,332 +497,216 @@ export default function Profile() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="quote" className="text-sm font-medium">Profile Quote</Label>
+                      <Label htmlFor="quote" className="text-sm text-muted-foreground">Profile Quote</Label>
                       <Textarea
                         id="quote"
                         value={quote}
                         onChange={(e) => setQuote(e.target.value)}
-                        placeholder="Share an inspiring quote or personal motto..."
-                        rows={3}
-                        maxLength={200}
-                        className="resize-none"
+                        placeholder="Share an inspiring quote..."
+                        rows={2}
+                        className="resize-none border-border/50"
                       />
-                      <p className="text-xs text-muted-foreground text-right">{quote.length}/200</p>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="bio" className="text-sm font-medium">Author Bio</Label>
+                      <Label htmlFor="bio" className="text-sm text-muted-foreground">Bio</Label>
                       <Textarea
                         id="bio"
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
-                        placeholder="Write a brief bio about yourself and your work..."
-                        rows={5}
-                        maxLength={500}
-                        className="resize-none"
+                        placeholder="Tell us about yourself..."
+                        rows={3}
+                        className="resize-none border-border/50"
                       />
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Info className="h-3 w-3" />
-                          Visible on your public author profile
-                        </p>
-                        <p className="text-xs text-muted-foreground">{bio.length}/500</p>
-                      </div>
                     </div>
 
-                    {/* Password Section */}
-                    <div className="space-y-3 pt-6 border-t border-border/50">
-                      <div className="flex items-center justify-between p-4 rounded-xl border border-border/50 bg-muted/30">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                            <Lock className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <Label className="text-sm font-medium">Password</Label>
-                            <p className="text-sm text-muted-foreground">••••••••••••</p>
-                          </div>
-                        </div>
-                        <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
-                          <DialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              <Lock className="h-4 w-4 mr-2" />
-                              Change
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Change Password</DialogTitle>
-                              <DialogDescription>
-                                Enter your current password and choose a new one.
-                              </DialogDescription>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="current-password">Current Password</Label>
-                                <Input
-                                  id="current-password"
-                                  type="password"
-                                  value={currentPassword}
-                                  onChange={(e) => setCurrentPassword(e.target.value)}
-                                  placeholder="Enter current password"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="new-password">New Password</Label>
-                                <Input
-                                  id="new-password"
-                                  type="password"
-                                  value={newPassword}
-                                  onChange={(e) => setNewPassword(e.target.value)}
-                                  placeholder="Enter new password"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                                <Input
-                                  id="confirm-password"
-                                  type="password"
-                                  value={confirmPassword}
-                                  onChange={(e) => setConfirmPassword(e.target.value)}
-                                  placeholder="Confirm new password"
-                                />
-                              </div>
+                    <div className="flex items-center gap-3 pt-2">
+                      <Button onClick={handleSave} disabled={saving} className="h-10">
+                        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Save Changes
+                      </Button>
+                      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="h-10">
+                            <Lock className="h-4 w-4 mr-2" />
+                            Change Password
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Change Password</DialogTitle>
+                            <DialogDescription>
+                              Enter your current password and a new password.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="current-password">Current Password</Label>
+                              <Input
+                                id="current-password"
+                                type="password"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                placeholder="••••••••"
+                              />
                             </div>
-                            <DialogFooter>
-                              <Button
-                                variant="outline"
-                                onClick={() => {
-                                  setPasswordDialogOpen(false);
-                                  setCurrentPassword('');
-                                  setNewPassword('');
-                                  setConfirmPassword('');
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                onClick={handlePasswordChange}
-                                disabled={changePassword.isPending}
-                              >
-                                {changePassword.isPending ? (
-                                  <>
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Updating...
-                                  </>
-                                ) : (
-                                  'Update Password'
-                                )}
-                              </Button>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="new-password">New Password</Label>
+                              <Input
+                                id="new-password"
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="••••••••"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                              <Input
+                                id="confirm-new-password"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                placeholder="••••••••"
+                              />
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>
+                              Cancel
+                            </Button>
+                            <Button onClick={handlePasswordChange} disabled={changePassword.isPending}>
+                              {changePassword.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              Update Password
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
+                  </div>
+                </TabsContent>
 
-                    {/* Save Button */}
-                    <Button
-                      onClick={handleSave}
-                      disabled={saving}
-                      size="lg"
-                      className="w-full md:w-auto px-8"
-                    >
-                      {saving ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Saving Changes...
-                        </>
-                      ) : (
-                        'Save Changes'
-                      )}
-                    </Button>
-                  </TabsContent>
-                  
-                  <TabsContent value="notifications" className="space-y-4 mt-0">
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
-                        <h3 className="text-lg font-serif font-semibold flex items-center gap-2">
-                          <Bell className="h-5 w-5 text-primary" />
-                          Your Notifications
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
-                        </p>
-                      </div>
-                      {unreadCount > 0 && (
+                <TabsContent value="notifications" className="mt-6">
+                  <div className="space-y-4">
+                    {unreadCount > 0 && (
+                      <div className="flex justify-end">
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => markAllAsRead.mutate()}
                           disabled={markAllAsRead.isPending}
+                          className="text-muted-foreground"
                         >
-                          <BellOff className="h-4 w-4 mr-2" />
-                          Mark All Read
+                          Mark all as read
                         </Button>
-                      )}
-                    </div>
-                    
-                    {loadingNotifications ? (
-                      <div className="flex items-center justify-center py-16">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
-                    ) : notifications && notifications.length > 0 ? (
-                      <ScrollArea className="h-[500px] pr-4">
-                        <div className="space-y-3">
+                    )}
+                    
+                    <ScrollArea className="h-[400px]">
+                      {loadingNotifications ? (
+                        <div className="flex items-center justify-center py-12">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        </div>
+                      ) : notifications && notifications.length > 0 ? (
+                        <div className="space-y-2">
                           {notifications.map((notification) => (
-                            <Card 
+                            <div
                               key={notification.id}
                               className={cn(
-                                "border border-border/50 hover:shadow-lg transition-all",
-                                !notification.is_read && "border-l-4 border-l-primary bg-primary/5"
+                                "p-4 rounded-lg border transition-colors",
+                                notification.is_read 
+                                  ? "bg-background border-border/50" 
+                                  : "bg-muted/30 border-border"
                               )}
                             >
-                              <CardContent className="p-5">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex-1 space-y-3">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                      {!notification.is_read && (
-                                        <Badge variant="default" className="text-xs">New</Badge>
-                                      )}
-                                      <h4 className="font-semibold text-foreground">{notification.subject}</h4>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                                      {notification.message}
-                                    </p>
-                                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                      <span className="flex items-center gap-1">
-                                        <Mail className="h-3 w-3" />
-                                        {notification.sender_name}
-                                      </span>
-                                      <span>•</span>
-                                      <span className="flex items-center gap-1">
-                                        <Clock className="h-3 w-3" />
-                                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                                      </span>
-                                    </div>
-                                  </div>
-                                  <div className="flex flex-col gap-2 flex-shrink-0">
-                                    {!notification.is_read && (
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => markAsRead.mutate(notification.id)}
-                                        disabled={markAsRead.isPending}
-                                        title="Mark as read"
-                                      >
-                                        <Bell className="h-4 w-4" />
-                                      </Button>
-                                    )}
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-foreground">{notification.subject}</p>
+                                  <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+                                  <p className="text-xs text-muted-foreground mt-2">
+                                    {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  {!notification.is_read && (
                                     <Button
                                       variant="ghost"
                                       size="icon"
-                                      onClick={() => {
-                                        if (confirm('Are you sure you want to delete this notification?')) {
-                                          deleteNotification.mutate(notification.id);
-                                        }
-                                      }}
-                                      disabled={deleteNotification.isPending}
-                                      title="Delete notification"
+                                      className="h-8 w-8"
+                                      onClick={() => markAsRead.mutate(notification.id)}
                                     >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                      <Bell className="h-4 w-4" />
                                     </Button>
-                                  </div>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                    onClick={() => deleteNotification.mutate(notification.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
-                              </CardContent>
-                            </Card>
+                              </div>
+                            </div>
                           ))}
                         </div>
-                      </ScrollArea>
-                    ) : (
-                      <div className="text-center py-16 space-y-4">
-                        <div className="mx-auto w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center">
-                          <BellOff className="h-8 w-8 text-muted-foreground" />
+                      ) : (
+                        <div className="text-center py-12">
+                          <BellOff className="h-8 w-8 mx-auto text-muted-foreground/50 mb-3" />
+                          <p className="text-sm text-muted-foreground">No notifications yet</p>
                         </div>
-                        <div>
-                          <p className="text-lg font-medium text-muted-foreground">No notifications yet</p>
-                          <p className="text-sm text-muted-foreground mt-1">When you receive notifications, they'll appear here</p>
-                        </div>
-                      </div>
-                    )}
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
+                      )}
+                    </ScrollArea>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
 
-          {/* RIGHT COLUMN - Download Quota & Premium Features */}
-          <div className="lg:sticky lg:top-6 lg:self-start space-y-5">
+          {/* Right Sidebar - Quotas & Stats */}
+          <div className="space-y-6">
             <DownloadQuotaCard />
             <AIGenerationQuotaCard />
             
-            {/* Premium Features - Refined */}
-            {hasAccess && !featureAccessLoading && (
+            {/* Stats Summary */}
+            <div className="p-4 rounded-xl border border-border/50 bg-muted/20 space-y-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Activity</p>
               <div className="space-y-3">
-                <div className="flex items-center gap-2 px-1">
-                  <div className="w-1 h-4 bg-primary rounded-full" />
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-                    Premium Tools
-                  </h3>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Public projects</span>
+                  <span className="text-sm font-medium text-foreground">{stats?.publicProjects || 0}</span>
                 </div>
-                
-                <div className="rounded-xl border border-border/40 bg-gradient-to-br from-card to-muted/10 overflow-hidden">
-                  <div className="p-4 space-y-3">
-                    {/* AI Figure Generator */}
-                    <div 
-                      className="group p-3 rounded-lg border border-border/30 bg-card/50 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all duration-200"
-                      onClick={() => navigate('/canvas')}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center group-hover:from-primary/30 group-hover:to-primary/10 transition-colors">
-                          <Wand2 className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-foreground">AI Figure Generator</h4>
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">Pro</Badge>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Generate figures from references</p>
-                        </div>
-                      </div>
-                    </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Collaborations</span>
+                  <span className="text-sm font-medium text-foreground">{stats?.totalCollaborations || 0}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Total clones</span>
+                  <span className="text-sm font-medium text-foreground">{stats?.totalClones || 0}</span>
+                </div>
+              </div>
+            </div>
 
-                    {/* AI Icon Generator */}
-                    <div 
-                      className="group p-3 rounded-lg border border-border/30 bg-card/50 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all duration-200"
-                      onClick={() => navigate('/canvas')}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500/20 to-violet-500/5 flex items-center justify-center group-hover:from-violet-500/30 group-hover:to-violet-500/10 transition-colors">
-                          <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-foreground">AI Icon Generator</h4>
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">Pro</Badge>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Create custom scientific icons</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* PowerPoint Generator */}
-                    <div 
-                      className="group p-3 rounded-lg border border-border/30 bg-card/50 hover:border-primary/40 hover:bg-primary/5 cursor-pointer transition-all duration-200"
-                      onClick={() => navigate('/admin/powerpoint-generator')}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center group-hover:from-amber-500/30 group-hover:to-amber-500/10 transition-colors">
-                          <FileText className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-foreground">PowerPoint Maker</h4>
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">Pro</Badge>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">Convert designs to presentations</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+            {/* Premium Features */}
+            {hasAccess && !featureAccessLoading && (
+              <div className="p-4 rounded-xl border border-border/50 bg-muted/20 space-y-3">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">Premium Tools</p>
+                <div className="space-y-2">
+                  <button 
+                    onClick={() => navigate('/canvas')}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-background transition-colors text-left"
+                  >
+                    <Wand2 className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-foreground">AI Figure Generator</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/canvas')}
+                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-background transition-colors text-left"
+                  >
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-sm text-foreground">AI Icon Generator</span>
+                  </button>
                 </div>
               </div>
             )}

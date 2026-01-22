@@ -221,117 +221,93 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4 lg:p-8">
-      {/* Subtle background pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.02] pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(circle, hsl(var(--foreground)) 1px, transparent 1px)',
-          backgroundSize: '24px 24px'
-        }}
-      />
-
+    <div className="min-h-screen flex bg-background">
       <SEOHead
         title="Sign In - BioSketch"
         description="Sign in to BioSketch to access your scientific illustrations and projects"
         noindex={true}
       />
       
-      <div className="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-center lg:items-stretch relative z-10">
-        {/* Featured Project - Hidden on mobile */}
-        <div className="hidden lg:block lg:flex-1">
-          <FeaturedProjectShowcase />
+      {/* Left Side - Featured Project (Desktop) */}
+      <div className="hidden lg:flex lg:flex-1 bg-muted/30 items-center justify-center p-12">
+        <FeaturedProjectShowcase />
+      </div>
+
+      {/* Right Side - Auth Form */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Top Bar */}
+        <div className="p-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/')}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
         </div>
 
-        {/* Auth Card */}
-        <Card className="w-full lg:flex-1 lg:max-w-md border border-border shadow-lg">
-          <div className="p-4 pb-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="mb-2 text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-          </div>
-          <CardHeader className="space-y-3 text-center">
-            <div className="flex justify-center">
-              <div className="p-3 rounded-xl bg-primary/10">
-                <Microscope className="h-8 w-8 text-primary" />
+        {/* Auth Content */}
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-sm space-y-8">
+            {/* Logo & Title */}
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-foreground mb-4">
+                <Microscope className="h-6 w-6 text-background" />
               </div>
+              <h1 className="text-2xl font-semibold text-foreground">
+                {showUpdatePassword ? 'Set new password' : showResetPassword ? 'Reset password' : 'Welcome back'}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {showUpdatePassword ? 'Enter your new password below' : showResetPassword ? 'We\'ll send you a reset link' : 'Sign in to continue to BioSketch'}
+              </p>
             </div>
-            <CardTitle className="text-3xl font-display font-bold text-foreground">
-              BioSketch
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              {showUpdatePassword ? 'Set your new password' : showResetPassword ? 'Reset your password' : 'Scientific illustration made simple'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+
             {showUpdatePassword ? (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold text-foreground">Set New Password</h3>
-                  <p className="text-sm text-muted-foreground">Enter your new password below</p>
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="new-password" className="text-sm">New Password</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="h-11"
+                    data-testid={AuthTestIds.UPDATE_PASSWORD_INPUT}
+                  />
+                  {updatePasswordErrors.password && (
+                    <p className="text-sm text-destructive" data-testid={AuthTestIds.UPDATE_ERROR_PASSWORD}>{updatePasswordErrors.password}</p>
+                  )}
                 </div>
-                <form onSubmit={handleUpdatePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">New Password</Label>
-                    <Input
-                      id="new-password"
-                      type="password"
-                      placeholder="Enter new password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      disabled={isLoading}
-                      data-testid={AuthTestIds.UPDATE_PASSWORD_INPUT}
-                    />
-                    {updatePasswordErrors.password && (
-                      <p className="text-sm text-destructive" data-testid={AuthTestIds.UPDATE_ERROR_PASSWORD}>{updatePasswordErrors.password}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      placeholder="Confirm new password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      disabled={isLoading}
-                      data-testid={AuthTestIds.UPDATE_CONFIRM_INPUT}
-                    />
-                    {updatePasswordErrors.confirmPassword && (
-                      <p className="text-sm text-destructive" data-testid={AuthTestIds.UPDATE_ERROR_CONFIRM}>{updatePasswordErrors.confirmPassword}</p>
-                    )}
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading} data-testid={AuthTestIds.UPDATE_SUBMIT_BUTTON}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Update Password
-                  </Button>
-                </form>
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password" className="text-sm">Confirm Password</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isLoading}
+                    className="h-11"
+                    data-testid={AuthTestIds.UPDATE_CONFIRM_INPUT}
+                  />
+                  {updatePasswordErrors.confirmPassword && (
+                    <p className="text-sm text-destructive" data-testid={AuthTestIds.UPDATE_ERROR_CONFIRM}>{updatePasswordErrors.confirmPassword}</p>
+                  )}
+                </div>
+                <Button type="submit" className="w-full h-11" disabled={isLoading} data-testid={AuthTestIds.UPDATE_SUBMIT_BUTTON}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Update Password
+                </Button>
+              </form>
             ) : showResetPassword ? (
               <div className="space-y-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowResetPassword(false);
-                    setResetEmail('');
-                    setResetEmailError('');
-                  }}
-                  data-testid={AuthTestIds.RESET_BACK_BUTTON}
-                  className="mb-2 text-muted-foreground hover:text-foreground"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Sign In
-                </Button>
                 <form onSubmit={handleResetPassword} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="reset-email">Email Address</Label>
+                    <Label htmlFor="reset-email" className="text-sm">Email Address</Label>
                     <Input
                       id="reset-email"
                       type="email"
@@ -339,32 +315,65 @@ export default function Auth() {
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
                       disabled={isLoading}
+                      className="h-11"
                       data-testid={AuthTestIds.RESET_EMAIL_INPUT}
                     />
                     {resetEmailError && (
                       <p className="text-sm text-destructive" data-testid={AuthTestIds.RESET_ERROR_EMAIL}>{resetEmailError}</p>
                     )}
-                    <p className="text-sm text-muted-foreground">
-                      Enter your email address and we'll send you a link to reset your password.
-                    </p>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isLoading} data-testid={AuthTestIds.RESET_SEND_BUTTON}>
+                  <Button type="submit" className="w-full h-11" disabled={isLoading} data-testid={AuthTestIds.RESET_SEND_BUTTON}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Send Reset Link
                   </Button>
                 </form>
+                <Button
+                  variant="ghost"
+                  className="w-full text-muted-foreground"
+                  onClick={() => {
+                    setShowResetPassword(false);
+                    setResetEmail('');
+                    setResetEmailError('');
+                  }}
+                  data-testid={AuthTestIds.RESET_BACK_BUTTON}
+                >
+                  Back to Sign In
+                </Button>
               </div>
             ) : (
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="signin" data-testid={AuthTestIds.TAB_SIGNIN}>Sign In</TabsTrigger>
-                  <TabsTrigger value="signup" data-testid={AuthTestIds.TAB_SIGNUP}>Sign Up</TabsTrigger>
-                </TabsList>
+              <div className="space-y-6">
+                {/* Tab Switcher */}
+                <div className="flex rounded-lg bg-muted/50 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('signin')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+                      activeTab === 'signin' 
+                        ? 'bg-background text-foreground shadow-sm' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid={AuthTestIds.TAB_SIGNIN}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('signup')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
+                      activeTab === 'signup' 
+                        ? 'bg-background text-foreground shadow-sm' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    data-testid={AuthTestIds.TAB_SIGNUP}
+                  >
+                    Sign Up
+                  </button>
+                </div>
 
-                <TabsContent value="signin">
+                {activeTab === 'signin' ? (
                   <form onSubmit={handleSignIn} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signin-email">Email</Label>
+                      <Label htmlFor="signin-email" className="text-sm">Email</Label>
                       <Input
                         id="signin-email"
                         type="email"
@@ -372,6 +381,7 @@ export default function Auth() {
                         value={signInEmail}
                         onChange={(e) => setSignInEmail(e.target.value)}
                         disabled={isLoading}
+                        className="h-11"
                         data-testid={AuthTestIds.SIGNIN_EMAIL_INPUT}
                       />
                       {signInErrors.email && (
@@ -380,17 +390,15 @@ export default function Auth() {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="signin-password">Password</Label>
-                        <Button
+                        <Label htmlFor="signin-password" className="text-sm">Password</Label>
+                        <button
                           type="button"
-                          variant="link"
-                          size="sm"
-                          className="px-0 h-auto text-xs text-muted-foreground hover:text-primary"
+                          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                           onClick={() => setShowResetPassword(true)}
                           data-testid={AuthTestIds.FORGOT_PASSWORD_LINK}
                         >
                           Forgot password?
-                        </Button>
+                        </button>
                       </div>
                       <Input
                         id="signin-password"
@@ -399,23 +407,22 @@ export default function Auth() {
                         value={signInPassword}
                         onChange={(e) => setSignInPassword(e.target.value)}
                         disabled={isLoading}
+                        className="h-11"
                         data-testid={AuthTestIds.SIGNIN_PASSWORD_INPUT}
                       />
                       {signInErrors.password && (
                         <p className="text-sm text-destructive" data-testid={AuthTestIds.SIGNIN_ERROR_PASSWORD}>{signInErrors.password}</p>
                       )}
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading} data-testid={AuthTestIds.SIGNIN_SUBMIT_BUTTON}>
+                    <Button type="submit" className="w-full h-11" disabled={isLoading} data-testid={AuthTestIds.SIGNIN_SUBMIT_BUTTON}>
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Sign In
                     </Button>
                   </form>
-                </TabsContent>
-
-                <TabsContent value="signup">
+                ) : (
                   <form onSubmit={handleSignUp} className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-name">Full Name</Label>
+                      <Label htmlFor="signup-name" className="text-sm">Full Name</Label>
                       <Input
                         id="signup-name"
                         type="text"
@@ -423,11 +430,12 @@ export default function Auth() {
                         value={signUpFullName}
                         onChange={(e) => setSignUpFullName(e.target.value)}
                         disabled={isLoading}
+                        className="h-11"
                         data-testid={AuthTestIds.SIGNUP_NAME_INPUT}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
+                      <Label htmlFor="signup-email" className="text-sm">Email</Label>
                       <Input
                         id="signup-email"
                         type="email"
@@ -435,6 +443,7 @@ export default function Auth() {
                         value={signUpEmail}
                         onChange={(e) => setSignUpEmail(e.target.value)}
                         disabled={isLoading}
+                        className="h-11"
                         data-testid={AuthTestIds.SIGNUP_EMAIL_INPUT}
                       />
                       {signUpErrors.email && (
@@ -442,7 +451,7 @@ export default function Auth() {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
+                      <Label htmlFor="signup-password" className="text-sm">Password</Label>
                       <Input
                         id="signup-password"
                         type="password"
@@ -450,6 +459,7 @@ export default function Auth() {
                         value={signUpPassword}
                         onChange={(e) => setSignUpPassword(e.target.value)}
                         disabled={isLoading}
+                        className="h-11"
                         data-testid={AuthTestIds.SIGNUP_PASSWORD_INPUT}
                       />
                       {signUpErrors.password && (
@@ -458,9 +468,9 @@ export default function Auth() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="signup-country">Country</Label>
+                        <Label htmlFor="signup-country" className="text-sm">Country</Label>
                         <Select value={signUpCountry} onValueChange={setSignUpCountry} disabled={isLoading}>
-                          <SelectTrigger id="signup-country" data-testid={AuthTestIds.SIGNUP_COUNTRY_SELECT}>
+                          <SelectTrigger id="signup-country" className="h-11" data-testid={AuthTestIds.SIGNUP_COUNTRY_SELECT}>
                             <SelectValue placeholder="Select" />
                           </SelectTrigger>
                           <SelectContent>
@@ -474,9 +484,9 @@ export default function Auth() {
                         )}
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="signup-field">Field of Study</Label>
+                        <Label htmlFor="signup-field" className="text-sm">Field</Label>
                         <Select value={signUpFieldOfStudy} onValueChange={setSignUpFieldOfStudy} disabled={isLoading}>
-                          <SelectTrigger id="signup-field" data-testid={AuthTestIds.SIGNUP_FIELD_SELECT}>
+                          <SelectTrigger id="signup-field" className="h-11" data-testid={AuthTestIds.SIGNUP_FIELD_SELECT}>
                             <SelectValue placeholder="Select" />
                           </SelectTrigger>
                           <SelectContent>
@@ -490,22 +500,29 @@ export default function Auth() {
                         )}
                       </div>
                     </div>
-                    <Button type="submit" className="w-full" disabled={isLoading} data-testid={AuthTestIds.SIGNUP_SUBMIT_BUTTON}>
+                    <Button type="submit" className="w-full h-11" disabled={isLoading} data-testid={AuthTestIds.SIGNUP_SUBMIT_BUTTON}>
                       {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Create Account
                     </Button>
                     <p className="text-xs text-center text-muted-foreground">
                       By signing up, you agree to our{' '}
-                      <a href="/terms" className="text-primary hover:underline">Terms of Service</a>
+                      <a href="/terms" className="text-foreground hover:underline">Terms</a>
                       {' '}and{' '}
-                      <a href="/terms" className="text-primary hover:underline">Privacy Policy</a>
+                      <a href="/terms" className="text-foreground hover:underline">Privacy Policy</a>
                     </p>
                   </form>
-                </TabsContent>
-              </Tabs>
+                )}
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+
+        {/* Bottom */}
+        <div className="p-6 text-center">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} BioSketch. Free forever.
+          </p>
+        </div>
       </div>
     </div>
   );
