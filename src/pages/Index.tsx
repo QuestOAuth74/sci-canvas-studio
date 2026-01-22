@@ -305,58 +305,16 @@ const Index = () => {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-20">
+      {/* Video Demo - Minimal */}
+      <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-sm font-medium">
-              <Zap className="h-4 w-4" />
-              How it works
-            </div>
-            <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground">
-              Three steps to publication-ready figures
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {steps.map((step, i) => (
-              <div key={i} className="relative">
-                {/* Connector Line */}
-                {i < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-12 left-[60%] w-[80%] h-0.5 bg-gradient-to-r from-primary/30 to-transparent" />
-                )}
-                
-                <div className="text-center space-y-4">
-                  <div className="relative mx-auto w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20 flex items-center justify-center">
-                    <step.icon className="h-10 w-10 text-primary" />
-                    <div className="absolute -top-2 -right-2 w-8 h-8 rounded-lg bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">
-                      {step.num.split('')[1]}
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground">{step.title}</h3>
-                  <p className="text-muted-foreground">{step.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Video Demo */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-12 space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                <Play className="h-4 w-4" />
-                Quick Demo
-              </div>
-              <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground">
-                See it in action
-              </h2>
+          <div className="max-w-4xl mx-auto space-y-8">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground uppercase tracking-wide">Quick demo</p>
+              <h2 className="text-2xl font-semibold text-foreground">See how it works</h2>
             </div>
             
-            <div className="rounded-2xl overflow-hidden border border-border/50 shadow-2xl">
+            <div className="rounded-2xl overflow-hidden border border-border/50 shadow-lg">
               <video
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
                 className="w-full h-auto"
@@ -371,44 +329,46 @@ const Index = () => {
       </section>
 
       {/* Icon Showcase */}
-      <div className="container mx-auto px-4">
-        <IconShowcase />
-      </div>
+      <section className="bg-muted/20">
+        <div className="container mx-auto px-4">
+          <IconShowcase />
+        </div>
+      </section>
 
-      {/* Community / CTA Section */}
+      {/* Community Section */}
       {user ? (
-        <section className="py-20 bg-muted/30">
+        <section className="py-24">
           <div className="container mx-auto px-4">
             <CommunityCarousel />
           </div>
         </section>
       ) : (
-        <section className="py-20">
+        <section className="py-24">
           <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto relative rounded-3xl overflow-hidden">
-              {/* Gradient Background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-accent" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent)]" />
-              
-              <div className="relative z-10 text-center py-16 px-8 space-y-6">
-                <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mx-auto">
-                  <Users className="h-8 w-8 text-white" />
+            <div className="max-w-3xl mx-auto">
+              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-foreground to-foreground/90 p-12 md:p-16">
+                {/* Subtle Pattern */}
+                <div className="absolute inset-0 opacity-5">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[size:24px_24px]" />
                 </div>
-                <h3 className="text-3xl font-display font-bold text-white">
-                  Join thousands of researchers
-                </h3>
-                <p className="text-white/80 max-w-md mx-auto">
-                  Create, share, and explore scientific illustrations with our growing community.
-                </p>
-                <Button 
-                  size="lg" 
-                  variant="secondary"
-                  onClick={() => navigate("/auth")} 
-                  className="mt-4 h-12 px-8 text-base font-medium"
-                >
-                  Get Started Free
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
+                
+                <div className="relative z-10 text-center space-y-6">
+                  <h3 className="text-2xl md:text-3xl font-semibold text-background">
+                    Ready to create your first figure?
+                  </h3>
+                  <p className="text-background/70 max-w-md mx-auto">
+                    Join researchers from 150+ countries using BioSketch.
+                  </p>
+                  <Button 
+                    size="lg"
+                    variant="secondary"
+                    onClick={() => navigate("/auth")} 
+                    className="h-11 px-6 font-medium"
+                  >
+                    Get started free
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -417,50 +377,35 @@ const Index = () => {
 
       {/* Blog Section */}
       {user && (
-        <section className="py-20">
+        <section className="py-24 bg-muted/20">
           <div className="container mx-auto px-4">
             <BlogPostsCarousel />
           </div>
         </section>
       )}
 
-      {/* Final CTA */}
+      {/* Final CTA - Ultra Minimal */}
       {!user && (
-        <section className="py-24 relative">
-          {/* Background */}
-          <div className="absolute inset-0 bg-gradient-to-t from-muted/50 to-background" />
-          
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-2xl mx-auto text-center space-y-8">
-              <div className="space-y-4">
-                <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground">
-                  Ready to create beautiful figures?
-                </h2>
-                <p className="text-lg text-muted-foreground">
-                  Join 10,000+ researchers who trust BioSketch for their scientific illustrations.
-                </p>
-              </div>
+        <section className="py-32">
+          <div className="container mx-auto px-4">
+            <div className="max-w-xl mx-auto text-center space-y-8">
+              <h2 className="text-3xl md:text-4xl font-semibold text-foreground leading-tight">
+                Start creating publication-ready figures today
+              </h2>
               
               <Button 
                 size="lg" 
                 onClick={() => navigate("/auth")} 
-                className="h-14 px-10 text-lg shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all group"
+                className="h-12 px-8 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all"
               >
                 <Palette className="h-5 w-5 mr-2" />
-                Start Creating — It's Free
-                <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                Create free account
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
               
-              <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  Free forever
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  No credit card
-                </span>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Free forever · No credit card required
+              </p>
             </div>
           </div>
         </section>
