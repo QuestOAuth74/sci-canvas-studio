@@ -92,19 +92,49 @@ const Analytics = () => {
     setCurrentPage(1); // Reset to first page on sort
   };
 
-  const handleExportToExcel = () => {
-    if (!analyticsData) return;
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportToExcel = async () => {
+    if (totalUsers === 0) return;
     
+    setIsExporting(true);
     try {
-      exportUsersToExcel(analyticsData);
+      // Fetch ALL users for export (not just current page)
+      const { data: allUsers, error } = await supabase
+        .rpc('get_user_analytics', {
+          limit_count: totalUsers,
+          offset_count: 0
+        });
+      
+      if (error) throw error;
+      
+      if (!allUsers || allUsers.length === 0) {
+        toast.error("No users to export");
+        return;
+      }
+
+      const formattedUsers = allUsers.map(row => ({
+        id: row.id,
+        email: row.email,
+        full_name: row.full_name,
+        country: row.country,
+        field_of_study: row.field_of_study,
+        created_at: row.created_at,
+        last_login_at: row.last_login_at,
+        project_count: Number(row.project_count),
+      }));
+
+      exportUsersToExcel(formattedUsers);
       toast.success("Export successful", {
-        description: `Exported ${analyticsData.length} users to Excel`,
+        description: `Exported ${formattedUsers.length} users to Excel`,
       });
     } catch (error) {
       console.error('Export error:', error);
       toast.error("Export failed", {
         description: "Failed to export user data. Please try again.",
       });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -334,11 +364,15 @@ const Analytics = () => {
               <CardTitle className="text-xl font-semibold">User Details</CardTitle>
               <Button
                 onClick={handleExportToExcel}
-                disabled={!analyticsData || analyticsData.length === 0}
+                disabled={isExporting || totalUsers === 0}
                 className="gap-2"
               >
-                <Download className="h-4 w-4" />
-                Export to Excel ({totalUsers} users)
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                {isExporting ? 'Exporting...' : `Export to Excel (${totalUsers} users)`}
               </Button>
             </div>
           </CardHeader>
