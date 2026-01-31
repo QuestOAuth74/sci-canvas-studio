@@ -54,12 +54,43 @@ const Index = () => {
   };
 
   const features = [
-    { icon: Layers, title: "Intuitive Canvas", desc: "Drag-and-drop interface built for scientists" },
-    { icon: Microscope, title: "6,000+ Icons", desc: "Comprehensive biomedical icon library" },
-    { icon: FileImage, title: "Publication-Ready", desc: "Export PNG, JPG, and SVG formats" },
-    { icon: Share2, title: "Easy Sharing", desc: "Collaborate with your research team" },
-    { icon: Wand2, title: "AI-Powered", desc: "Generate custom figures with AI" },
-    { icon: Shield, title: "Free Forever", desc: "Essential features at no cost" },
+    { 
+      icon: Wand2, 
+      title: "AI Figure Generation", 
+      desc: "Transform text descriptions into professional scientific illustrations. Our AI understands pathways, cells, and molecular structures.",
+      size: "large",
+      tag: "NEW"
+    },
+    { 
+      icon: Microscope, 
+      title: "6,000+ Scientific Icons", 
+      desc: "Curated library covering molecular biology, biochemistry, anatomy, and more.",
+      size: "medium"
+    },
+    { 
+      icon: PenTool, 
+      title: "Precision Tools", 
+      desc: "Scale bars, annotations, and connectors designed for scientific accuracy.",
+      size: "medium"
+    },
+    { 
+      icon: FileImage, 
+      title: "Publication-Ready Export", 
+      desc: "High-res PNG, SVG, PDF at 300+ DPI. Meet any journal's requirements.",
+      size: "small"
+    },
+    { 
+      icon: Layers, 
+      title: "Smart Layers", 
+      desc: "Organize complex diagrams with layer management.",
+      size: "small"
+    },
+    { 
+      icon: Share2, 
+      title: "Team Collaboration", 
+      desc: "Share and co-edit with your research group.",
+      size: "small"
+    },
   ];
 
   const stats = [
@@ -266,41 +297,94 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Features Bento Grid */}
-      <section className="py-20 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16 space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-              <Sparkles className="h-4 w-4" />
-              Features
+      {/* Features Bento Grid - Redesigned */}
+      <section className="py-24 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 lab-grid opacity-50" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        
+        <div className="container mx-auto px-4 relative z-10">
+          {/* Section Header */}
+          <div className="max-w-3xl mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/20 border-2 border-foreground text-foreground text-sm font-bold mb-6">
+              <Zap className="h-4 w-4" />
+              POWERFUL TOOLKIT
             </div>
-            <h2 className="text-3xl lg:text-4xl font-display font-bold text-foreground">
-              Everything you need to create
-              <span className="block text-primary">stunning figures</span>
+            <h2 className="text-4xl lg:text-5xl font-display font-bold text-foreground mb-4 leading-tight">
+              Everything you need to create{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10">stunning figures</span>
+                <span className="absolute bottom-2 left-0 right-0 h-3 bg-secondary/60 -z-0" />
+              </span>
             </h2>
+            <p className="text-lg text-muted-foreground">
+              Professional-grade tools designed specifically for scientific illustration.
+            </p>
           </div>
 
-          {/* Bento Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-            {features.map((feature, i) => (
-              <div
-                key={i}
-                className={`group relative p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-all hover:shadow-xl overflow-hidden ${
-                  i === 0 ? 'lg:col-span-2 lg:row-span-1' : ''
-                }`}
-              >
-                {/* Gradient Hover Effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          {/* Bento Grid - New Layout */}
+          <div className="grid grid-cols-12 gap-4 max-w-6xl">
+            {/* Large Feature - AI */}
+            <div className="col-span-12 lg:col-span-7 group">
+              <div className="h-full p-8 rounded-2xl border-2 border-foreground bg-gradient-to-br from-primary to-primary/80 text-primary-foreground relative overflow-hidden transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] shadow-[6px_6px_0px_0px_hsl(var(--foreground))] hover:shadow-[8px_8px_0px_0px_hsl(var(--foreground))]">
+                {/* Background decoration */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 
                 <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <feature.icon className="h-6 w-6 text-primary" />
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+                      <Wand2 className="h-7 w-7" />
+                    </div>
+                    <span className="px-3 py-1 rounded-full bg-white/20 text-xs font-bold uppercase tracking-wider">
+                      New Feature
+                    </span>
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
+                  <h3 className="text-2xl lg:text-3xl font-bold mb-3">{features[0].title}</h3>
+                  <p className="text-primary-foreground/80 text-lg leading-relaxed max-w-lg">
+                    {features[0].desc}
+                  </p>
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Medium Feature 1 */}
+            <div className="col-span-12 sm:col-span-6 lg:col-span-5 group">
+              <div className="h-full p-6 rounded-2xl border-2 border-foreground bg-card transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] shadow-[5px_5px_0px_0px_hsl(var(--foreground))] hover:shadow-[7px_7px_0px_0px_hsl(var(--foreground))]">
+                <div className="w-12 h-12 rounded-xl bg-accent/15 border-2 border-foreground flex items-center justify-center mb-4">
+                  <Microscope className="h-6 w-6 text-accent" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2">{features[1].title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{features[1].desc}</p>
+              </div>
+            </div>
+
+            {/* Medium Feature 2 */}
+            <div className="col-span-12 sm:col-span-6 lg:col-span-5 group">
+              <div className="h-full p-6 rounded-2xl border-2 border-foreground bg-card transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] shadow-[5px_5px_0px_0px_hsl(var(--foreground))] hover:shadow-[7px_7px_0px_0px_hsl(var(--foreground))]">
+                <div className="w-12 h-12 rounded-xl bg-secondary/30 border-2 border-foreground flex items-center justify-center mb-4">
+                  <PenTool className="h-6 w-6 text-foreground" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2">{features[2].title}</h3>
+                <p className="text-muted-foreground leading-relaxed">{features[2].desc}</p>
+              </div>
+            </div>
+
+            {/* Small Features Row */}
+            <div className="col-span-12 lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {features.slice(3).map((feature, i) => (
+                <div 
+                  key={i}
+                  className="group p-5 rounded-xl border-2 border-foreground bg-card transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[6px_6px_0px_0px_hsl(var(--foreground))]"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-muted border-2 border-foreground flex items-center justify-center mb-3">
+                    <feature.icon className="h-5 w-5 text-foreground" />
+                  </div>
+                  <h3 className="font-bold text-foreground mb-1">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground">{feature.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
