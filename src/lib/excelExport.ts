@@ -12,7 +12,7 @@ interface UserExportData {
   project_count: number;
 }
 
-export const exportUsersToExcel = (users: UserExportData[]) => {
+export const exportUsersToExcel = (users: UserExportData[], customFilename?: string) => {
   // Transform data for Excel
   const excelData = users.map((user, index) => ({
     '#': index + 1,
@@ -48,7 +48,9 @@ export const exportUsersToExcel = (users: UserExportData[]) => {
 
   // Generate filename with timestamp
   const timestamp = format(new Date(), 'yyyy-MM-dd-HHmmss');
-  const filename = `BioSketch_Users_${timestamp}.xlsx`;
+  const filename = customFilename 
+    ? `${customFilename}_${timestamp}.xlsx`
+    : `BioSketch_Users_${timestamp}.xlsx`;
 
   // Trigger download
   XLSX.writeFile(workbook, filename);
