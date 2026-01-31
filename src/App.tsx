@@ -38,6 +38,8 @@ import RateLimits from "./pages/admin/RateLimits";
 import EmailPreview from "./pages/admin/EmailPreview";
 import ExportIconNames from "./pages/admin/ExportIconNames";
 import CreditsHistory from "./pages/CreditsHistory";
+import IconGlossary from "./pages/IconGlossary";
+import IconDetail from "./pages/IconDetail";
 
 // Configure QueryClient with optimized defaults for caching and performance
 const queryClient = new QueryClient({
@@ -75,6 +77,8 @@ const App = () => (
           <BrowserRouter>
             <Routes>
             <Route path="/" element={<MainLayout><Index /></MainLayout>} />
+            <Route path="/icons" element={<MainLayout><IconGlossary /></MainLayout>} />
+            <Route path="/icons/:iconId" element={<MainLayout><IconDetail /></MainLayout>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/verify-email" element={<VerifyEmail />} />
             <Route path="/projects" element={<MainLayout><ProtectedRoute><Projects /></ProtectedRoute></MainLayout>} />
