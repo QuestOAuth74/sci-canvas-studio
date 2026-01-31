@@ -119,9 +119,10 @@ export const IconShowcase = () => {
         {/* Icons Grid - Clean Minimal Cards */}
         <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
           {activeIcons.map((icon) => (
-            <div
+            <button
               key={icon.id}
-              className="group aspect-square rounded-xl bg-muted/30 border border-border/30 hover:border-border hover:bg-muted/50 transition-all flex items-center justify-center p-3"
+              onClick={() => navigate(`/icons/${icon.id}`)}
+              className="group aspect-square rounded-xl bg-muted/30 border border-border/30 hover:border-primary/50 hover:bg-muted/50 hover:shadow-lg hover:shadow-primary/10 transition-all flex items-center justify-center p-3 cursor-pointer"
             >
               {icon.thumbnail ? (
                 <div
@@ -135,7 +136,7 @@ export const IconShowcase = () => {
               ) : (
                 <Atom className="h-8 w-8 text-muted-foreground/50" />
               )}
-            </div>
+            </button>
           ))}
         </div>
 
@@ -143,7 +144,7 @@ export const IconShowcase = () => {
         <div className="text-center pt-4">
           <Button
             variant="ghost"
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/icons")}
             className="text-muted-foreground hover:text-foreground group"
           >
             View all icons
