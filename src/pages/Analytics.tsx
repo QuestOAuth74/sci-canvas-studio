@@ -3,15 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye, User, Globe, GraduationCap, Download } from "lucide-react";
+import { Users, FolderOpen, TrendingUp, Crown, ArrowLeft, Loader2, Eye, User, Globe, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
-import { exportUsersToExcel } from "@/lib/excelExport";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { useState, useMemo } from "react";
 import { UserProjectsDialog } from "@/components/admin/UserProjectsDialog";
 import { UserProfileDialog } from "@/components/admin/UserProfileDialog";
+import { ExportUsersDialog } from "@/components/admin/ExportUsersDialog";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { useUserAnalytics } from "@/hooks/useUserAnalytics";
 
@@ -90,52 +90,6 @@ const Analytics = () => {
       setSortDirection("desc");
     }
     setCurrentPage(1); // Reset to first page on sort
-  };
-
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleExportToExcel = async () => {
-    if (totalUsers === 0) return;
-    
-    setIsExporting(true);
-    try {
-      // Fetch ALL users for export (not just current page)
-      const { data: allUsers, error } = await supabase
-        .rpc('get_user_analytics', {
-          limit_count: totalUsers,
-          offset_count: 0
-        });
-      
-      if (error) throw error;
-      
-      if (!allUsers || allUsers.length === 0) {
-        toast.error("No users to export");
-        return;
-      }
-
-      const formattedUsers = allUsers.map(row => ({
-        id: row.id,
-        email: row.email,
-        full_name: row.full_name,
-        country: row.country,
-        field_of_study: row.field_of_study,
-        created_at: row.created_at,
-        last_login_at: row.last_login_at,
-        project_count: Number(row.project_count),
-      }));
-
-      exportUsersToExcel(formattedUsers);
-      toast.success("Export successful", {
-        description: `Exported ${formattedUsers.length} users to Excel`,
-      });
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error("Export failed", {
-        description: "Failed to export user data. Please try again.",
-      });
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   // Data is already paginated from server, just use sortedData directly
@@ -362,18 +316,7 @@ const Analytics = () => {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-semibold">User Details</CardTitle>
-              <Button
-                onClick={handleExportToExcel}
-                disabled={isExporting || totalUsers === 0}
-                className="gap-2"
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="h-4 w-4" />
-                )}
-                {isExporting ? 'Exporting...' : `Export to Excel (${totalUsers} users)`}
-              </Button>
+              <ExportUsersDialog totalUsers={totalUsers} />
             </div>
           </CardHeader>
           <CardContent>
