@@ -142,6 +142,20 @@ export {
   DiagramManager,
 } from './ops';
 
+// AI Figure Bridge
+export {
+  // Types
+  type AIGeneratedObject,
+  type AIGeneratedConnector,
+  type AIGeneratedLayout,
+  type AIGenerationResponse,
+  type ConversionOptions,
+  
+  // Conversion functions
+  aiResponseToDiagramScene,
+  editableElementsToDiagramScene,
+} from './aiToDiagram';
+
 // ============ Convenience Functions ============
 
 import { Canvas as FabricCanvas } from 'fabric';
