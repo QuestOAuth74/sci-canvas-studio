@@ -13,11 +13,12 @@ export default {
     },
     extend: {
       fontFamily: {
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'display': ['Source Serif 4', 'Georgia', 'serif'],
-        'serif': ['Source Serif 4', 'Georgia', 'serif'],
-        'body': ['Inter', 'system-ui', 'sans-serif'],
+        'sans': ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+        'display': ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+        'serif': ['IBM Plex Serif', 'Georgia', 'serif'],
+        'body': ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
         'mono': ['JetBrains Mono', 'SF Mono', 'Consolas', 'monospace'],
+        'scientific': ['JetBrains Mono', 'SF Mono', 'monospace'],
       },
       fontSize: {
         'xs': ['var(--font-size-xs)', { lineHeight: 'var(--line-height-normal)' }],
@@ -88,14 +89,15 @@ export default {
         },
       },
       borderRadius: {
-        '4xl': "2rem",
-        '3xl': "1.5rem",
-        '2xl': "1.25rem",
-        xl: "1rem",
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 4px)",
-        sm: "calc(var(--radius) - 8px)",
-        full: "9999px",
+        '4xl': "0px",
+        '3xl': "0px",
+        '2xl': "0px",
+        xl: "0px",
+        lg: "0px",
+        md: "0px",
+        sm: "0px",
+        full: "0px",
+        none: "0px",
       },
       keyframes: {
         "accordion-down": {

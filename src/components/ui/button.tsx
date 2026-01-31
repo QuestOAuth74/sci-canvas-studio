@@ -5,27 +5,27 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-bold uppercase tracking-wide transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border-2 border-foreground",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md active:scale-[0.98]",
-        destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-        outline: "border-2 border-border bg-background text-foreground hover:bg-muted hover:border-primary/30",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-muted hover:text-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        glass: "bg-background/80 backdrop-blur-lg border border-border shadow-sm hover:bg-muted",
-        sticky: "bg-accent text-accent-foreground shadow-md hover:bg-accent/90",
-        ink: "bg-foreground text-background hover:bg-foreground/90",
-        pencil: "border-2 border-dashed border-primary/30 bg-background text-muted-foreground hover:bg-primary/5 hover:text-primary hover:border-primary/50",
-        bubble: "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 hover:border-primary/30",
+        default: "bg-primary text-primary-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] hover:translate-x-[2px] hover:translate-y-[2px] active:shadow-none active:translate-x-[4px] active:translate-y-[4px]",
+        destructive: "bg-destructive text-destructive-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] hover:translate-x-[2px] hover:translate-y-[2px]",
+        outline: "bg-background text-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:bg-secondary hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] hover:translate-x-[2px] hover:translate-y-[2px]",
+        secondary: "bg-secondary text-secondary-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] hover:translate-x-[2px] hover:translate-y-[2px]",
+        ghost: "border-transparent hover:bg-muted hover:border-foreground",
+        link: "border-transparent text-primary underline-offset-4 hover:underline",
+        glass: "bg-background/90 backdrop-blur-sm shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] hover:translate-x-[2px] hover:translate-y-[2px]",
+        sticky: "bg-accent text-accent-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] hover:translate-x-[2px] hover:translate-y-[2px]",
+        ink: "bg-foreground text-background shadow-[4px_4px_0px_0px_hsl(var(--primary))] hover:shadow-[2px_2px_0px_0px_hsl(var(--primary))] hover:translate-x-[2px] hover:translate-y-[2px]",
+        pencil: "border-2 border-dashed bg-background text-foreground hover:bg-secondary",
+        bubble: "bg-primary/20 text-primary shadow-[4px_4px_0px_0px_hsl(var(--primary))] hover:shadow-[2px_2px_0px_0px_hsl(var(--primary))] hover:translate-x-[2px] hover:translate-y-[2px]",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-8 px-4 text-xs",
-        lg: "h-12 px-8 text-base",
-        icon: "h-10 w-10",
+        default: "h-11 px-6 py-2",
+        sm: "h-9 px-4 text-xs",
+        lg: "h-13 px-10 text-base",
+        icon: "h-11 w-11",
       },
     },
     defaultVariants: {
