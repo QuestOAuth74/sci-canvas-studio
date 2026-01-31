@@ -16,6 +16,7 @@ import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 import { useAIGenerationUsage } from "@/hooks/useAIGenerationUsage";
 import { useNavigate } from "react-router-dom";
 import { getCanvasFontFamily } from "@/lib/fontLoader";
+import { aiResponseToDiagramScene, importDiagramScene } from "@/lib/diagram";
 
 interface AIFigureGeneratorProps {
   canvas: FabricCanvas | null;
@@ -865,6 +866,96 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange, onOpenAIStudio }
       console.error("Apply to canvas error:", error);
       toast.error(error.message || "Failed to apply layout to canvas");
     }
+  };
+
+  /**
+   * New diagram-based apply function that converts AI response to DiagramScene JSON
+   * and uses the diagram importer for rendering
+   */
+  const applyLayoutViaDiagram = async (useProposed = false) => {
+    if (!response || !canvas) return;
+
+    try {
+      // Convert AI response to DiagramScene format
+      const diagramScene = aiResponseToDiagramScene(
+        {
+          ...response,
+          layout: useProposed && response.proposed_layout 
+            ? response.proposed_layout 
+            : response.layout,
+        },
+        {
+          canvasWidth: canvas.width || 800,
+          canvasHeight: canvas.height || 600,
+          sceneMetadata: {
+            name: 'AI Generated Figure',
+            description: description || response.diagramDescription,
+          },
+        }
+      );
+
+      console.log('Generated DiagramScene JSON:', diagramScene);
+
+      // Import using diagram system
+      const importResult = await importDiagramScene(diagramScene, {
+        canvas,
+        clearCanvas: false, // Don't clear - let user decide
+        onProgress: (progress, message) => {
+          console.log(`Import progress: ${(progress * 100).toFixed(0)}% - ${message}`);
+        },
+      });
+
+      if (!importResult.success) {
+        console.error('Diagram import errors:', importResult.errors);
+        toast.error(`Import failed: ${importResult.errors[0]}`);
+        return;
+      }
+
+      // Show warnings if any
+      if (importResult.warnings.length > 0) {
+        console.warn('Import warnings:', importResult.warnings);
+      }
+
+      canvas.renderAll();
+      
+      const { nodesImported, connectorsImported, textsImported } = importResult.stats;
+      const parts: string[] = [];
+      if (nodesImported > 0) parts.push(`${nodesImported} nodes`);
+      if (connectorsImported > 0) parts.push(`${connectorsImported} connectors`);
+      if (textsImported > 0) parts.push(`${textsImported} texts`);
+      
+      toast.success(`Added ${parts.join(', ')} to canvas via Diagram JSON`);
+      onOpenChange(false);
+      
+      setImage(null);
+      setDescription("");
+      setResponse(null);
+    } catch (error: any) {
+      console.error("Diagram-based apply error:", error);
+      toast.error(error.message || "Failed to apply layout via diagram system");
+    }
+  };
+
+  /**
+   * Get the generated DiagramScene JSON for external use
+   */
+  const getDiagramSceneJson = (useProposed = false): string | null => {
+    if (!response || !canvas) return null;
+
+    const diagramScene = aiResponseToDiagramScene(
+      {
+        ...response,
+        layout: useProposed && response.proposed_layout 
+          ? response.proposed_layout 
+          : response.layout,
+      },
+      {
+        canvasWidth: canvas.width || 800,
+        canvasHeight: canvas.height || 600,
+      }
+    );
+
+    return JSON.stringify(diagramScene, null, 2);
   };
 
   const handleReset = () => {

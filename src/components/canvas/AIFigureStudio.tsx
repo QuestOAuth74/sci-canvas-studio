@@ -47,6 +47,7 @@ import { ReconstructionProvider, useReconstruction } from './reconstruction/Reco
 import { ElementsSidebar } from './reconstruction/ElementsSidebar';
 import { PropertiesSidebar } from './reconstruction/PropertiesSidebar';
 import { convertElementsToFabricObjects } from '@/lib/figureToFabric';
+import { editableElementsToDiagramScene, type DiagramScene } from '@/lib/diagram';
 
 type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match' | 'reconstruct';
 type StyleType = 'flat' | '3d' | 'sketch';
@@ -56,6 +57,7 @@ interface AIFigureStudioProps {
   onOpenChange: (open: boolean) => void;
   onInsertImage: (imageUrl: string) => void;
   onInsertEditableElements?: (elements: FabricObject[]) => void;
+  onInsertDiagramScene?: (scene: DiagramScene) => void;
 }
 
 const modeConfig = {
@@ -330,6 +332,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
   onOpenChange,
   onInsertImage,
   onInsertEditableElements,
+  onInsertDiagramScene,
 }) => {
   const { toast } = useToast();
   const { saveGeneration } = useAIGenerationHistory();
@@ -432,7 +435,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
       }
 
       // Use editable figure endpoint if editable mode is on and we're in prompt_to_visual mode
-      if (editableMode && mode === 'prompt_to_visual' && onInsertEditableElements) {
+      if (editableMode && mode === 'prompt_to_visual' && (onInsertEditableElements || onInsertDiagramScene)) {
         const { data, error } = await supabase.functions.invoke('generate-editable-figure', {
           body: {
             prompt: prompt.trim(),
@@ -449,6 +452,19 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
         }
 
         setEditableElements(data.elements);
+        
+        // If diagram scene callback is provided, convert and send
+        if (onInsertDiagramScene && data.elements) {
+          const diagramScene = editableElementsToDiagramScene(data.elements, {
+            canvasWidth: 1920,
+            canvasHeight: 1080,
+            sceneMetadata: {
+              name: 'AI Generated Editable Figure',
+              description: prompt.trim(),
+            },
+          });
+          console.log('Generated DiagramScene from editable elements:', diagramScene);
+        }
         
         toast({
           title: 'Editable figure generated',
