@@ -353,92 +353,92 @@ All colors MUST be HSL.
     --letter-spacing-normal: -0.011em;
     --letter-spacing-wide: 0.025em;
     
-    /* Nature/Cell Journal Theme - Blues & Teals */
-    --background: 200 20% 98%;
-    --foreground: 200 25% 10%;
+    /* Professional Scientific Blue Theme */
+    --background: 216 30% 98%;
+    --foreground: 220 25% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 200 25% 10%;
+    --card-foreground: 220 25% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 200 25% 10%;
+    --popover-foreground: 220 25% 12%;
     
-    /* Primary - Deep Teal/Blue (Nature journal inspired) */
-    --primary: 192 70% 30%;
+    /* Primary - Professional Blue */
+    --primary: 217 91% 50%;
     --primary-foreground: 0 0% 100%;
     
     /* Secondary - Light Blue-Grey */
-    --secondary: 200 15% 94%;
-    --secondary-foreground: 200 25% 15%;
+    --secondary: 214 20% 94%;
+    --secondary-foreground: 220 25% 15%;
     
     /* Muted - Soft Blue-Grey */
-    --muted: 200 15% 96%;
-    --muted-foreground: 200 10% 45%;
+    --muted: 214 20% 96%;
+    --muted-foreground: 215 15% 45%;
     
-    /* Accent - Teal */
-    --accent: 175 50% 40%;
+    /* Accent - Vibrant Blue */
+    --accent: 217 85% 55%;
     --accent-foreground: 0 0% 100%;
     
-    /* Destructive - Muted Red */
-    --destructive: 0 65% 50%;
+    /* Destructive - Professional Red */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     
-    /* Success - Scientific Green */
-    --success: 160 60% 40%;
+    /* Success - Professional Green */
+    --success: 142 71% 40%;
     --success-foreground: 0 0% 100%;
     
     /* UI Elements */
-    --border: 200 15% 88%;
+    --border: 214 20% 88%;
     --input: 0 0% 100%;
-    --ring: 192 70% 30%;
-    --radius: 0.5rem;
+    --ring: 217 91% 50%;
+    --radius: 0.75rem;
     
     /* Brand Colors for Glow Effects */
-    --brand: 192 70% 40%;
-    --brand-foreground: 185 60% 55%;
+    --brand: 217 91% 55%;
+    --brand-foreground: 217 85% 65%;
     
     /* Sidebar - Clean & Professional */
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 200 25% 15%;
-    --sidebar-primary: 192 70% 30%;
+    --sidebar-foreground: 220 25% 15%;
+    --sidebar-primary: 217 91% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 175 50% 40%;
+    --sidebar-accent: 217 85% 55%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 200 15% 90%;
-    --sidebar-ring: 192 70% 30%;
+    --sidebar-border: 214 20% 90%;
+    --sidebar-ring: 217 91% 50%;
   }
 
   .dark {
-    --background: 200 20% 8%;
-    --foreground: 200 10% 95%;
-    --card: 200 20% 10%;
-    --card-foreground: 200 10% 95%;
-    --popover: 200 20% 10%;
-    --popover-foreground: 200 10% 95%;
-    --primary: 185 60% 50%;
-    --primary-foreground: 200 20% 8%;
-    --secondary: 200 15% 18%;
-    --secondary-foreground: 200 10% 90%;
-    --muted: 200 15% 15%;
-    --muted-foreground: 200 10% 60%;
-    --accent: 175 45% 45%;
+    --background: 222 30% 8%;
+    --foreground: 214 15% 95%;
+    --card: 222 25% 10%;
+    --card-foreground: 214 15% 95%;
+    --popover: 222 25% 10%;
+    --popover-foreground: 214 15% 95%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 30% 8%;
+    --secondary: 217 20% 18%;
+    --secondary-foreground: 214 15% 90%;
+    --muted: 217 20% 15%;
+    --muted-foreground: 215 15% 60%;
+    --accent: 217 80% 55%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 60% 55%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 200 15% 20%;
-    --input: 200 20% 12%;
-    --ring: 185 60% 50%;
+    --border: 217 20% 20%;
+    --input: 222 25% 12%;
+    --ring: 217 91% 60%;
     
     /* Brand Colors for Glow Effects - Dark Mode */
-    --brand: 185 60% 55%;
-    --brand-foreground: 192 70% 40%;
+    --brand: 217 85% 60%;
+    --brand-foreground: 217 91% 50%;
     
-    --sidebar-background: 200 20% 10%;
-    --sidebar-foreground: 200 10% 90%;
-    --sidebar-primary: 185 60% 50%;
-    --sidebar-primary-foreground: 200 20% 8%;
-    --sidebar-accent: 175 45% 45%;
+    --sidebar-background: 222 25% 10%;
+    --sidebar-foreground: 214 15% 90%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 30% 8%;
+    --sidebar-accent: 217 80% 55%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 200 15% 18%;
-    --sidebar-ring: 185 60% 50%;
+    --sidebar-border: 217 20% 18%;
+    --sidebar-ring: 217 91% 60%;
   }
 
 }

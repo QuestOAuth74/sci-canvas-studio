@@ -88,9 +88,10 @@ export default {
         },
       },
       borderRadius: {
+        '4xl': "2rem",
         '3xl': "1.5rem",
-        '2xl': "1rem",
-        xl: "0.875rem",
+        '2xl': "1.25rem",
+        xl: "1rem",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 4px)",
         sm: "calc(var(--radius) - 8px)",
