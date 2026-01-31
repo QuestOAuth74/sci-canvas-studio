@@ -441,7 +441,7 @@
     --border: 0 0% 10%;
     --input: 60 40% 98%;
     --ring: 175 80% 40%;
-    --radius: 0px;
+    --radius: 0.625rem;
     
     /* Brand Colors */
     --brand: 175 80% 40%;
