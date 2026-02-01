@@ -22,6 +22,7 @@ import {
   ArrowsClockwise,
   MagicWand,
   ChartBar,
+  Flask,
 } from "@phosphor-icons/react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 
@@ -33,9 +34,10 @@ interface MenuBarProps {
   onStyleTransferClick?: () => void;
   onAIFigureStudioClick?: () => void;
   onDataVisualizationClick?: () => void;
+  onChemicalStructureClick?: () => void;
 }
 
-export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick, onAIFigureStudioClick, onDataVisualizationClick }: MenuBarProps = {}) => {
+export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick, onAIFigureStudioClick, onDataVisualizationClick, onChemicalStructureClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
@@ -208,6 +210,10 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
             <MenubarItem onClick={onDataVisualizationClick}>
               <ChartBar size={16} weight="regular" className="mr-2" />
               Charts & Graphs
+            </MenubarItem>
+            <MenubarItem onClick={onChemicalStructureClick}>
+              <Flask size={16} weight="regular" className="mr-2" />
+              Chemical Structures
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={onTemplatesClick}>

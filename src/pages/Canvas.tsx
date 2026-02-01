@@ -2,7 +2,33 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Loader2, HelpCircle, ChevronLeft, ChevronRight, Sparkles, Square, Image, Layers } from "lucide-react";
+import {
+  IconArrowLeft,
+  IconDeviceFloppy,
+  IconLoader2,
+  IconHelp,
+  IconChevronLeft,
+  IconChevronRight,
+  IconSparkles,
+  IconSquare,
+  IconPhoto,
+  IconStack2,
+  IconPlus,
+  IconWand,
+  IconTemplate,
+  IconPhotoAi,
+  IconChartBar,
+  IconMessage,
+  IconUsers,
+} from "@tabler/icons-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { UserMenu } from "@/components/auth/UserMenu";
 import { FabricCanvas } from "@/components/canvas/FabricCanvas";
@@ -42,12 +68,17 @@ import { ScaleBarTool } from "@/components/canvas/ScaleBarTool";
 import { OnboardingTutorial } from "@/components/canvas/OnboardingTutorial";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
+import { MandatoryVideoPopup } from "@/components/canvas/MandatoryVideoPopup";
+import { MembraneTool } from "@/components/canvas/MembraneTool";
+import { ChemicalStructureRenderer } from "@/components/canvas/ChemicalStructureRenderer";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group, FabricObject } from "fabric";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useTheme } from "@/contexts/ThemeContext";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { CollaboratorPresence } from "@/components/canvas/collaboration/CollaboratorPresence";
+import { CommentsPanel } from "@/components/canvas/comments/CommentsPanel";
 
 const CanvasContent = () => {
   const navigate = useNavigate();
@@ -59,7 +90,7 @@ const CanvasContent = () => {
   const [selectedIconCategory, setSelectedIconCategory] = useState<string>("");
   const [isIconLibraryCollapsed, setIsIconLibraryCollapsed] = useState(false);
   const [isPropertiesPanelCollapsed, setIsPropertiesPanelCollapsed] = useState(false);
-  const [leftSidebarTab, setLeftSidebarTab] = useState<"icons" | "assets">("icons");
+  const [leftSidebarTab, setLeftSidebarTab] = useState<"icons" | "assets" | "ai">("icons");
   const [rightSidebarTab, setRightSidebarTab] = useState<"properties" | "layers">("properties");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [aiIconGeneratorOpen, setAiIconGeneratorOpen] = useState(false);
@@ -77,6 +108,19 @@ const CanvasContent = () => {
   const [hasHiddenObjects, setHasHiddenObjects] = useState(false);
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [dataVisualizationOpen, setDataVisualizationOpen] = useState(false);
+  const [chemicalStructureOpen, setChemicalStructureOpen] = useState(false);
+  const [showMandatoryVideo, setShowMandatoryVideo] = useState(() => {
+    // Check if user has already watched the mandatory video
+    const hasWatched = localStorage.getItem('mandatory_video_watched') === 'true';
+    return !hasWatched;
+  });
+
+  // Collaboration state
+  const [commentsPanelOpen, setCommentsPanelOpen] = useState(false);
+  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null);
+  const [isAddingComment, setIsAddingComment] = useState(false);
+  const [pendingCommentPosition, setPendingCommentPosition] = useState<{ x: number; y: number } | null>(null);
+
   const { isAdmin } = useAuth();
   const { startOnboarding } = useOnboarding();
   
@@ -130,6 +174,11 @@ const CanvasContent = () => {
     showAllHidden,
     rotateSelected,
     duplicateBelow,
+    // Page functions
+    pages,
+    currentPageIndex,
+    addPage,
+    switchToPage,
     loadTemplate,
   } = useCanvas();
 
@@ -183,22 +232,22 @@ const CanvasContent = () => {
     }
   }, [searchParams, canvas, loadProject]);
 
-  // Show welcome dialog for new/blank canvases
-  useEffect(() => {
-    const projectId = searchParams.get("project");
-    const isHidden = localStorage.getItem('canvas_welcome_hidden') === 'true';
-    
-    // Show welcome dialog if:
-    // 1. User hasn't hidden it permanently
-    // 2. No specific project is being loaded (new canvas)
-    // 3. Canvas exists and is empty
-    if (!isHidden && !projectId && canvas) {
-      const isEmpty = canvas.getObjects().length === 0;
-      if (isEmpty) {
-        setShowWelcomeDialog(true);
-      }
-    }
-  }, [canvas, searchParams]);
+  // Show welcome dialog for new/blank canvases - DISABLED
+  // useEffect(() => {
+  //   const projectId = searchParams.get("project");
+  //   const isHidden = localStorage.getItem('canvas_welcome_hidden') === 'true';
+  //
+  //   // Show welcome dialog if:
+  //   // 1. User hasn't hidden it permanently
+  //   // 2. No specific project is being loaded (new canvas)
+  //   // 3. Canvas exists and is empty
+  //   if (!isHidden && !projectId && canvas) {
+  //     const isEmpty = canvas.getObjects().length === 0;
+  //     if (isEmpty) {
+  //       setShowWelcomeDialog(true);
+  //     }
+  //   }
+  // }, [canvas, searchParams]);
 
   // Check for recovery on load
   useEffect(() => {
@@ -212,20 +261,21 @@ const CanvasContent = () => {
       return;
     }
 
-    const recovery = checkForRecovery();
-    if (recovery) {
-      toast.info(
-        `Found unsaved work from ${recovery.ageMinutes} minute${recovery.ageMinutes !== 1 ? 's' : ''} ago`,
-        {
-          duration: 10000,
-          action: {
-            label: 'Recover',
-            onClick: () => recoverCanvas(recovery.data),
-          },
-        }
-      );
-    }
-  }, [canvas, checkForRecovery, recoverCanvas, searchParams]);
+    // Recovery toast disabled - can be re-enabled if needed
+    // const recovery = checkForRecovery();
+    // if (recovery) {
+    //   toast.info(
+    //     `Found unsaved work from ${recovery.ageMinutes} minute${recovery.ageMinutes !== 1 ? 's' : ''} ago`,
+    //     {
+    //       duration: 10000,
+    //       action: {
+    //         label: 'Recover',
+    //         onClick: () => recoverCanvas(recovery.data),
+    //       },
+    //     }
+    //   );
+    // }
+  }, [canvas, searchParams]);
 
 
   const handleExport = () => {
@@ -384,6 +434,32 @@ const CanvasContent = () => {
         canvas?.renderAll();
         
         toast.success(`Selected: ${nextObject.type}`, { duration: 800 });
+        return;
+      }
+
+      // Page Navigation Shortcuts
+      // New Page (Ctrl/Cmd + Shift + N)
+      if (modifier && e.shiftKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        addPage();
+        return;
+      }
+
+      // Next Page (Ctrl/Cmd + PageDown)
+      if (modifier && e.key === 'PageDown') {
+        e.preventDefault();
+        if (currentPageIndex < pages.length - 1) {
+          switchToPage(currentPageIndex + 1);
+        }
+        return;
+      }
+
+      // Previous Page (Ctrl/Cmd + PageUp)
+      if (modifier && e.key === 'PageUp') {
+        e.preventDefault();
+        if (currentPageIndex > 0) {
+          switchToPage(currentPageIndex - 1);
+        }
         return;
       }
 
@@ -562,11 +638,18 @@ const CanvasContent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow]);
+  }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow, pages, currentPageIndex, addPage, switchToPage]);
 
   return (
       <>
-      <OnboardingTutorial />
+      {/* Mandatory Video Popup - must watch before accessing canvas */}
+      <MandatoryVideoPopup
+        open={showMandatoryVideo}
+        onComplete={() => setShowMandatoryVideo(false)}
+      />
+
+      {/* OnboardingTutorial disabled - can be triggered manually from help menu */}
+      {/* <OnboardingTutorial /> */}
       <div className="h-screen bg-gradient-to-br from-background via-muted/30 to-background flex flex-col relative">
       {/* Subtle dot pattern background */}
       <div
@@ -576,8 +659,8 @@ const CanvasContent = () => {
           backgroundSize: '20px 20px'
         }}
       />
-      {/* Mobile Warning Dialog */}
-      <MobileWarningDialog />
+      {/* Mobile Warning Dialog - disabled */}
+      {/* <MobileWarningDialog /> */}
       
       {/* Keyboard Shortcuts Dialog */}
       <KeyboardShortcutsDialog 
@@ -639,10 +722,37 @@ const CanvasContent = () => {
         onOpenChange={setDataVisualizationOpen}
       />
 
+      {/* Chemical Structure Renderer */}
+      <ChemicalStructureRenderer
+        open={chemicalStructureOpen}
+        onOpenChange={setChemicalStructureOpen}
+        onInsertStructure={(imageUrl, moleculeName) => {
+          if (canvas) {
+            FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' }).then((img) => {
+              img.set({
+                left: (canvas.width || 800) / 2,
+                top: (canvas.height || 600) / 2,
+                originX: 'center',
+                originY: 'center',
+              });
+              const maxDim = Math.min(canvas.width || 800, canvas.height || 600) * 0.5;
+              const scale = Math.min(1, maxDim / Math.max(img.width || 1, img.height || 1));
+              img.scale(scale);
+              // Store molecule name as custom property
+              (img as any).moleculeName = moleculeName;
+              canvas.add(img);
+              canvas.setActiveObject(img);
+              canvas.renderAll();
+            });
+          }
+        }}
+      />
+
       {/* AI Figure Studio */}
       <AIFigureStudio
         open={aiFigureStudioOpen}
         onOpenChange={setAiFigureStudioOpen}
+        fabricCanvas={canvas}
         onInsertImage={(imageUrl) => {
           if (canvas) {
             FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' }).then((img) => {
@@ -778,26 +888,27 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-card/80 backdrop-blur-sm border-b border-border/50 shadow-sm">
-        <div className="px-3 py-1.5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img 
+      <header className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="px-4 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
               src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
-              alt="BioSketch" 
-              className="h-7 object-contain"
+              alt="BioSketch"
+              className="h-8 object-contain"
             />
+            <div className="w-px h-6 bg-slate-200" />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => navigate("/")} 
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate("/")}
+                  className="h-9 w-9 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
                 >
-                  <ArrowLeft className="h-4 w-4" />
+                  <IconArrowLeft size={18} stroke={1.5} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Back to Projects</TooltipContent>
+              <TooltipContent className="bg-slate-900 text-white border-0 shadow-lg">Back to Projects</TooltipContent>
             </Tooltip>
             {isEditingName ? (
               <Input
@@ -807,13 +918,13 @@ const CanvasContent = () => {
                 onKeyDown={handleNameKeyDown}
                 onBlur={saveName}
                 autoFocus
-                className="h-7 text-sm font-medium max-w-[200px]"
+                className="h-7 text-sm font-medium max-w-[200px] bg-slate-100 border-slate-200 text-slate-900 placeholder:text-slate-400"
                 maxLength={100}
               />
             ) : (
               <button
                 onClick={startEditingName}
-                className="text-sm font-medium text-foreground hover:bg-muted px-2 py-1 rounded transition-colors"
+                className="text-sm font-medium text-slate-800 hover:bg-slate-100 px-2 py-1 rounded transition-colors"
                 title="Click to rename"
               >
                 {projectName}
@@ -822,12 +933,12 @@ const CanvasContent = () => {
           </div>
           <div className="flex items-center gap-1.5">
             {isSaving && (
-              <span className="text-xs flex items-center gap-1.5 px-2 py-1 text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                Saving...
+              <span className="text-xs flex items-center gap-2 px-3 py-1.5 bg-amber-50 rounded-full border border-amber-200">
+                <IconLoader2 size={14} className="animate-spin text-amber-500" />
+                <span className="text-amber-700 font-medium">Saving...</span>
               </span>
             )}
-            <MenuBar 
+            <MenuBar
               onTemplatesClick={() => setTemplatesDialogOpen(true)}
               onPanelLabelClick={() => setPanelLabelToolOpen(true)}
               onVersionHistoryClick={() => setVersionHistoryOpen(true)}
@@ -835,41 +946,106 @@ const CanvasContent = () => {
               onStyleTransferClick={() => setStyleTransferOpen(true)}
               onAIFigureStudioClick={() => setAiFigureStudioOpen(true)}
               onDataVisualizationClick={() => setDataVisualizationOpen(true)}
+              onChemicalStructureClick={() => setChemicalStructureOpen(true)}
             />
+            {/* Create Menu - Quick access to AI and creation tools */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  className="h-9 px-4 bg-blue-500 hover:bg-blue-600 text-white shadow-sm rounded-xl transition-all duration-200"
+                >
+                  <IconPlus size={16} stroke={2} className="mr-1.5" />
+                  Create
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-64 p-2 bg-white border-slate-200 shadow-xl rounded-xl">
+                <DropdownMenuLabel className="text-xs text-slate-500 uppercase tracking-wider px-2">AI Tools</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setAiFigureStudioOpen(true)} className="cursor-pointer rounded-lg p-3 focus:bg-slate-100 text-slate-700">
+                  <div className="p-2 rounded-lg bg-violet-100 mr-3">
+                    <IconWand size={18} className="text-violet-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-900">AI Figure Studio</div>
+                    <div className="text-xs text-slate-500">Generate scientific figures</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAiIconGeneratorOpen(true)} className="cursor-pointer rounded-lg p-3 focus:bg-slate-100 text-slate-700">
+                  <div className="p-2 rounded-lg bg-pink-100 mr-3">
+                    <IconSparkles size={18} className="text-pink-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-900">AI Icon Generator</div>
+                    <div className="text-xs text-slate-500">Create custom icons</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="my-2 bg-slate-200" />
+                <DropdownMenuLabel className="text-xs text-slate-500 uppercase tracking-wider px-2">Templates & Data</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setTemplatesDialogOpen(true)} className="cursor-pointer rounded-lg p-3 focus:bg-slate-100 text-slate-700">
+                  <div className="p-2 rounded-lg bg-sky-100 mr-3">
+                    <IconTemplate size={18} className="text-sky-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-900">Templates</div>
+                    <div className="text-xs text-slate-500">Browse community templates</div>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDataVisualizationOpen(true)} className="cursor-pointer rounded-lg p-3 focus:bg-slate-100 text-slate-700">
+                  <div className="p-2 rounded-lg bg-emerald-100 mr-3">
+                    <IconChartBar size={18} className="text-emerald-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-900">Data Visualization</div>
+                    <div className="text-xs text-slate-500">Create charts & graphs</div>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowShortcuts(true)}
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="h-9 w-9 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
                 >
-                  <HelpCircle className="h-4 w-4" />
+                  <IconHelp size={18} stroke={1.5} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Shortcuts (?)</TooltipContent>
+              <TooltipContent className="bg-slate-900 text-white border-0 shadow-lg">Shortcuts (?)</TooltipContent>
             </Tooltip>
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAiFigureStudioOpen(true)}
-                className="h-8 text-muted-foreground hover:text-foreground"
-              >
-                <Sparkles className="h-4 w-4 mr-1.5" />
-                AI Studio
-              </Button>
-            )}
-            <Button 
-              onClick={() => saveProject(true)} 
-              disabled={isSaving} 
-              size="sm" 
-              className="h-8 bg-primary hover:bg-primary/90"
+            <Button
+              onClick={() => saveProject(true)}
+              disabled={isSaving}
+              size="sm"
+              className="h-9 px-4 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm rounded-xl transition-all duration-200"
               data-action="save"
             >
-              <Save className="h-3.5 w-3.5 mr-1.5" />
+              <IconDeviceFloppy size={16} stroke={2} className="mr-1.5" />
               Save
             </Button>
+
+            {/* Collaboration Features */}
+            {currentProjectId && (
+              <div className="flex items-center gap-2 ml-3 pl-3 border-l border-slate-200">
+                <CollaboratorPresence projectId={currentProjectId} />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setCommentsPanelOpen(!commentsPanelOpen)}
+                      className={`h-9 w-9 rounded-xl transition-all duration-150 ${commentsPanelOpen ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
+                    >
+                      <IconMessage size={18} stroke={commentsPanelOpen ? 2 : 1.5} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-slate-900 text-white border-0 shadow-lg">Comments</TooltipContent>
+                </Tooltip>
+              </div>
+            )}
+
             <UserMenu />
           </div>
         </div>
@@ -885,75 +1061,165 @@ const CanvasContent = () => {
         {/* Main Editor Area */}
         <ResizablePanelGroup direction="horizontal" className="flex-1 min-h-0">
           {/* Left Sidebar - Icon Categories & Assets */}
-          <ResizablePanel 
-            defaultSize={isIconLibraryCollapsed ? 3 : 16} 
-            minSize={3} 
+          <ResizablePanel
+            defaultSize={isIconLibraryCollapsed ? 3 : 16}
+            minSize={3}
             maxSize={20}
             className="min-h-0"
           >
-            <div className={`bg-card/60 backdrop-blur-sm border-r border-border/40 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
+            <div className={`bg-white border-r border-slate-200 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
             {isIconLibraryCollapsed ? (
-              <div className="p-2 flex flex-col items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsIconLibraryCollapsed(false)}
-                  className="w-full text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+              <div className="p-3 flex flex-col items-center gap-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsIconLibraryCollapsed(false)}
+                      className="w-full h-9 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200"
+                    >
+                      <IconChevronRight size={18} stroke={1.5} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="bg-slate-900 text-white border-0 shadow-lg">Expand Panel</TooltipContent>
+                </Tooltip>
                 {/* Vertical label when collapsed */}
-                <span className="text-[10px] font-medium text-muted-foreground writing-mode-vertical transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
-                  {leftSidebarTab === "icons" ? "Icons" : "Assets"}
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest writing-mode-vertical transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
+                  {leftSidebarTab === "icons" ? "Icons" : leftSidebarTab === "assets" ? "Assets" : "AI"}
                 </span>
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-2 border-b border-border/40 bg-muted/30 flex items-center justify-between">
-                  <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-2 h-9 bg-muted/50 p-0.5 rounded-lg">
-                      <TabsTrigger 
-                        value="icons" 
-                        className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                  <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets" | "ai")} className="flex-1">
+                    <TabsList className="grid w-full grid-cols-3 h-10 bg-slate-100 p-1 rounded-xl">
+                      <TabsTrigger
+                        value="icons"
+                        className="text-xs font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all duration-200 rounded-lg flex items-center gap-1.5"
                       >
-                        <Square className="h-3 w-3" />
+                        <IconSquare size={14} stroke={1.5} />
                         Icons
                       </TabsTrigger>
-                      <TabsTrigger 
-                        value="assets" 
-                        className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                      <TabsTrigger
+                        value="assets"
+                        className="text-xs font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all duration-200 rounded-lg flex items-center gap-1.5"
                       >
-                        <Image className="h-3 w-3" />
+                        <IconPhoto size={14} stroke={1.5} />
                         Assets
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="ai"
+                        className="text-xs font-semibold text-slate-600 data-[state=active]:bg-violet-500 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 rounded-lg flex items-center gap-1.5"
+                      >
+                        <IconSparkles size={14} stroke={1.5} />
+                        AI
                       </TabsTrigger>
                     </TabsList>
                   </Tabs>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsIconLibraryCollapsed(true)}
-                    className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsIconLibraryCollapsed(true)}
+                        className="h-9 w-9 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200"
+                      >
+                        <IconChevronLeft size={18} stroke={1.5} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="bg-slate-900 text-white border-0 shadow-lg">Collapse Panel</TooltipContent>
+                  </Tooltip>
                 </div>
                 <div className="flex-1 overflow-hidden">
                   {leftSidebarTab === "icons" ? (
-                    <IconLibrary 
-                      selectedCategory={selectedIconCategory} 
+                    <IconLibrary
+                      selectedCategory={selectedIconCategory}
                       onCategoryChange={setSelectedIconCategory}
                       isCollapsed={false}
                       onToggleCollapse={() => {}}
                       onAIIconGenerate={() => setAiIconGeneratorOpen(true)}
                     />
-                  ) : (
-                    <UserAssetsLibrary 
+                  ) : leftSidebarTab === "assets" ? (
+                    <UserAssetsLibrary
                       onAssetSelect={async (assetId, content) => {
                         window.dispatchEvent(new CustomEvent('addAssetToCanvas', {
                           detail: { content, assetId }
                         }));
                       }}
                     />
+                  ) : (
+                    /* AI Tab Content */
+                    <div className="p-4 space-y-5">
+                      <div className="text-center space-y-3 py-4">
+                        <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                          <IconSparkles size={28} className="text-white" stroke={1.5} />
+                        </div>
+                        <h3 className="font-bold text-slate-800">AI Creation Tools</h3>
+                        <p className="text-xs text-slate-500">Generate figures and icons with AI</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <button
+                          onClick={() => setAiFigureStudioOpen(true)}
+                          className="w-full p-4 rounded-2xl border border-slate-200/60 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 hover:shadow-md transition-all duration-200 text-left group"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2.5 rounded-xl bg-violet-500/20 group-hover:bg-violet-500/30 transition-colors shadow-sm">
+                              <IconWand size={20} className="text-violet-600" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-slate-800">Figure Studio</div>
+                              <div className="text-xs text-slate-500 mt-0.5">Create scientific diagrams from text prompts</div>
+                            </div>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => setAiIconGeneratorOpen(true)}
+                          className="w-full p-4 rounded-2xl border border-slate-200/60 bg-gradient-to-br from-pink-50 to-rose-50 hover:from-pink-100 hover:to-rose-100 hover:shadow-md transition-all duration-200 text-left group"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2.5 rounded-xl bg-pink-500/20 group-hover:bg-pink-500/30 transition-colors shadow-sm">
+                              <IconPhotoAi size={20} className="text-pink-600" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-slate-800">Icon Generator</div>
+                              <div className="text-xs text-slate-500 mt-0.5">Transform images into scientific icons</div>
+                            </div>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => setDataVisualizationOpen(true)}
+                          className="w-full p-4 rounded-2xl border border-slate-200/60 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 hover:shadow-md transition-all duration-200 text-left group"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2.5 rounded-xl bg-emerald-500/20 group-hover:bg-emerald-500/30 transition-colors shadow-sm">
+                              <IconChartBar size={20} className="text-emerald-600" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-slate-800">Data Charts</div>
+                              <div className="text-xs text-slate-500 mt-0.5">Visualize data with charts & graphs</div>
+                            </div>
+                          </div>
+                        </button>
+
+                        <button
+                          onClick={() => setTemplatesDialogOpen(true)}
+                          className="w-full p-4 rounded-2xl border border-slate-200/60 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 hover:shadow-md transition-all duration-200 text-left group"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="p-2.5 rounded-xl bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors shadow-sm">
+                              <IconTemplate size={20} className="text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-slate-800">Templates</div>
+                              <div className="text-xs text-slate-500 mt-0.5">Start from community templates</div>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
@@ -1008,6 +1274,17 @@ const CanvasContent = () => {
             >
               <FabricCanvas activeTool={activeTool} onShapeCreated={handleShapeCreated} onToolChange={setActiveTool} />
             </CanvasContextMenu>
+
+            {/* Membrane Tool - handles its own drawing state */}
+            <MembraneTool
+              canvas={canvas}
+              active={activeTool === "membrane-draw"}
+              onComplete={() => {
+                setActiveTool("select");
+                handleShapeCreated();
+              }}
+              onCancel={() => setActiveTool("select")}
+            />
           </div>
               <AlignmentGuides />
               <ScrollBar orientation="horizontal" />
@@ -1034,51 +1311,61 @@ const CanvasContent = () => {
             }}
             className="min-h-0"
           >
-            <div className={`bg-card/60 backdrop-blur-sm border-l border-border/40 flex flex-col overflow-hidden min-h-0 h-full`}>
+            <div className={`bg-white border-l border-slate-200 flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
-            <div className="p-2 flex flex-col items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsPropertiesPanelCollapsed(false)}
-                className="w-full text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
+            <div className="p-3 flex flex-col items-center gap-3">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsPropertiesPanelCollapsed(false)}
+                    className="w-full h-9 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200"
+                  >
+                    <IconChevronLeft size={18} stroke={1.5} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="bg-slate-900 text-white border-0 shadow-lg">Expand Panel</TooltipContent>
+              </Tooltip>
               {/* Vertical label when collapsed */}
-              <span className="text-[10px] font-medium text-muted-foreground" style={{ writingMode: 'vertical-rl' }}>
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest" style={{ writingMode: 'vertical-rl' }}>
                 {rightSidebarTab === "properties" ? "Properties" : "Layers"}
               </span>
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-2 border-b border-border/40 bg-muted/30 flex items-center justify-between">
+              <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-9 bg-muted/50 p-0.5 rounded-lg">
-                    <TabsTrigger 
-                      value="properties" 
-                      className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                  <TabsList className="grid w-full grid-cols-2 h-10 bg-slate-100 p-1 rounded-xl">
+                    <TabsTrigger
+                      value="properties"
+                      className="text-xs font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all duration-200 rounded-lg flex items-center gap-1.5"
                     >
-                      <Square className="h-3 w-3" />
+                      <IconSquare size={14} stroke={1.5} />
                       Properties
                     </TabsTrigger>
-                    <TabsTrigger 
-                      value="layers" 
-                      className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all duration-200 rounded-md flex items-center gap-1.5"
+                    <TabsTrigger
+                      value="layers"
+                      className="text-xs font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all duration-200 rounded-lg flex items-center gap-1.5"
                     >
-                      <Layers className="h-3 w-3" />
+                      <IconStack2 size={14} stroke={1.5} />
                       Layers
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsPropertiesPanelCollapsed(true)}
-                  className="ml-1 h-8 w-8 text-muted-foreground hover:text-foreground hover:scale-105 transition-all duration-200"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsPropertiesPanelCollapsed(true)}
+                      className="h-9 w-9 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all duration-200"
+                    >
+                      <IconChevronRight size={18} stroke={1.5} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="bg-slate-900 text-white border-0 shadow-lg">Collapse Panel</TooltipContent>
+                </Tooltip>
               </div>
               <div className="flex-1 overflow-hidden" data-panel="properties">
                 {rightSidebarTab === "properties" ? (
@@ -1097,11 +1384,26 @@ const CanvasContent = () => {
           </ResizablePanel>
         </ResizablePanelGroup>
 
+        {/* Comments Panel - Slides in from right */}
+        {currentProjectId && (
+          <CommentsPanel
+            projectId={currentProjectId}
+            isOpen={commentsPanelOpen}
+            onClose={() => setCommentsPanelOpen(false)}
+            selectedCommentId={selectedCommentId}
+            onCommentSelect={setSelectedCommentId}
+            isAddingComment={isAddingComment}
+            onAddCommentModeChange={setIsAddingComment}
+            pendingCommentPosition={pendingCommentPosition}
+            onClearPendingPosition={() => setPendingCommentPosition(null)}
+          />
+        )}
+
       {/* Bottom Bar */}
       <BottomBar activeTool={activeTool} hasSelection={!!selectedObject} />
 
-      {/* Rating Widget */}
-      <ToolRatingWidget />
+      {/* Rating Widget - disabled */}
+      {/* <ToolRatingWidget /> */}
 
       {/* Contextual Toolbar - Appears when object is selected */}
       <ContextualToolbar />
