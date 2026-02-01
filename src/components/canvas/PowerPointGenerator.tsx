@@ -9,6 +9,7 @@ import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { AICreditsAccessPopup } from './AICreditsAccessPopup';
 
 interface PowerPointGeneratorProps {
   open: boolean;
@@ -20,6 +21,7 @@ export const PowerPointGenerator = ({ open, onOpenChange }: PowerPointGeneratorP
   const { usage, isLoading: quotaLoading, refetch: refetchQuota } = useAIGenerationUsage();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showAccessPopup, setShowAccessPopup] = useState(false);
   const navigate = useNavigate();
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -29,13 +31,8 @@ export const PowerPointGenerator = ({ open, onOpenChange }: PowerPointGeneratorP
     maxSize: 10 * 1024 * 1024,
     multiple: false,
     onDrop: (files) => {
-      if (!hasAccess) {
-        toast.error(`Share ${remaining} more approved project${remaining !== 1 ? 's' : ''} to unlock PowerPoint Maker`, {
-          action: {
-            label: 'View Projects',
-            onClick: () => navigate('/projects')
-          }
-        });
+      if (!hasAccess || (usage && !usage.isAdmin && !usage.canGenerate)) {
+        setShowAccessPopup(true);
         return;
       }
       if (files.length > 0) {
@@ -45,22 +42,9 @@ export const PowerPointGenerator = ({ open, onOpenChange }: PowerPointGeneratorP
   });
 
   const handleGenerate = async () => {
-    if (!hasAccess) {
-      toast.error(`Share ${remaining} more approved project${remaining !== 1 ? 's' : ''} to unlock PowerPoint Maker`, {
-        action: {
-          label: 'View Projects',
-          onClick: () => navigate('/projects')
-        }
-      });
-      return;
-    }
-
-    // Check monthly quota
-    if (usage && !usage.isAdmin && !usage.canGenerate) {
-      toast.error('Monthly generation limit reached', {
-        description: 'Your quota resets on the 1st of each month.',
-        duration: 5000
-      });
+    // Check feature access or credit availability
+    if (!hasAccess || (usage && !usage.isAdmin && !usage.canGenerate)) {
+      setShowAccessPopup(true);
       return;
     }
 
@@ -193,6 +177,12 @@ export const PowerPointGenerator = ({ open, onOpenChange }: PowerPointGeneratorP
           </Button>
         )}
       </DialogContent>
+
+      {/* AI Credits Access Popup */}
+      <AICreditsAccessPopup
+        open={showAccessPopup}
+        onOpenChange={setShowAccessPopup}
+      />
     </Dialog>
   );
 };

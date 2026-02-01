@@ -22,6 +22,7 @@ import MySubmissions from "./pages/MySubmissions";
 import ReleaseNotes from "./pages/ReleaseNotes";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 import Share from "./pages/Share";
 import Analytics from "./pages/Analytics";
@@ -40,6 +41,9 @@ import ExportIconNames from "./pages/admin/ExportIconNames";
 import CreditsHistory from "./pages/CreditsHistory";
 import IconGlossary from "./pages/IconGlossary";
 import IconDetail from "./pages/IconDetail";
+import Labs from "./pages/Labs";
+import LabDetail from "./pages/LabDetail";
+import AcceptLabInvite from "./pages/AcceptLabInvite";
 
 // Configure QueryClient with optimized defaults for caching and performance
 const queryClient = new QueryClient({
@@ -88,10 +92,14 @@ const App = () => (
             <Route path="/canvas" element={<ProtectedRoute><Canvas /></ProtectedRoute>} />
             <Route path="/my-submissions" element={<MainLayout><ProtectedRoute><MySubmissions /></ProtectedRoute></MainLayout>} />
             <Route path="/credits-history" element={<MainLayout><ProtectedRoute><CreditsHistory /></ProtectedRoute></MainLayout>} />
+            <Route path="/labs" element={<MainLayout><ProtectedRoute><Labs /></ProtectedRoute></MainLayout>} />
+            <Route path="/labs/:labId" element={<MainLayout><ProtectedRoute><LabDetail /></ProtectedRoute></MainLayout>} />
+            <Route path="/lab/invite/:token" element={<MainLayout><AcceptLabInvite /></MainLayout>} />
             <Route path="/testimonials" element={<MainLayout><Testimonials /></MainLayout>} />
             <Route path="/release-notes" element={<MainLayout><ReleaseNotes /></MainLayout>} />
             <Route path="/terms" element={<MainLayout><Terms /></MainLayout>} />
             <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
+            <Route path="/pricing" element={<MainLayout><Pricing /></MainLayout>} />
             <Route path="/share" element={<MainLayout><Share /></MainLayout>} />
             <Route path="/blog" element={<MainLayout><ProtectedRoute><Blog /></ProtectedRoute></MainLayout>} />
             <Route path="/blog/:slug" element={<MainLayout><ProtectedRoute><BlogPost /></ProtectedRoute></MainLayout>} />

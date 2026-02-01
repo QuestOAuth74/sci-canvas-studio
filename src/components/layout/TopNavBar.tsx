@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Menu, Home, LayoutGrid, Users, BookOpen, Settings } from 'lucide-react';
+import { Menu, Home, LayoutGrid, Users, BookOpen, Settings, CreditCard } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/auth/UserMenu';
@@ -20,6 +20,7 @@ export const TopNavBar = () => {
     { name: 'Home', url: '/', icon: Home },
     { name: 'Gallery', url: '/projects', icon: LayoutGrid, authRequired: true },
     { name: 'Community', url: '/community', icon: Users },
+    { name: 'Pricing', url: '/pricing', icon: CreditCard },
     { name: 'Blog', url: '/blog', icon: BookOpen },
     ...(isAdmin ? [{ name: 'Admin', url: '/admin', icon: Settings }] : []),
   ];

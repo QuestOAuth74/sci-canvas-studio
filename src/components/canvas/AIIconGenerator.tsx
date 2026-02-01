@@ -20,6 +20,8 @@ import { cn } from '@/lib/utils';
 import pencilExample from '@/assets/ai-icon-styles/pencil-example.jpg';
 import biomedicalExample from '@/assets/ai-icon-styles/biomedical-example.jpg';
 import oilExample from '@/assets/ai-icon-styles/oil-example.jpg';
+import { isLocalAIEnabled, generateIconLocal } from '@/services/localAI';
+import { AICreditsAccessPopup } from './AICreditsAccessPopup';
 
 interface AIIconGeneratorProps {
   open: boolean;
@@ -112,6 +114,7 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   const [refinementFeedback, setRefinementFeedback] = useState('');
   const [refinementHistory, setRefinementHistory] = useState<Array<{ feedback: string; timestamp: Date; imageUrl: string; version: number }>>([]);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
+  const [showAccessPopup, setShowAccessPopup] = useState(false);
 
   const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -131,6 +134,12 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
   }, [toast]);
 
   const handleGenerate = async (isRefinement = false) => {
+    // Check if user can generate (has credits/access)
+    if (usage && !usage.isAdmin && !usage.canGenerate) {
+      setShowAccessPopup(true);
+      return;
+    }
+
     const effectivePrompt = isRefinement && refinementFeedback.trim() ? `${prompt}\n\nRefinement: ${refinementFeedback.trim()}` : prompt;
     if (!referenceImage || !effectivePrompt.trim()) {
       toast({ title: 'Missing information', description: 'Please upload a reference image and enter a prompt', variant: 'destructive' });
@@ -145,12 +154,6 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
     try {
       setStage('generating');
       setProgress(10);
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (!session || sessionError) {
-        toast({ title: 'Session expired', description: 'Please sign in again', variant: 'destructive' });
-        setStage('idle');
-        return;
-      }
 
       const startTime = Date.now();
       progressInterval = setInterval(() => {
@@ -158,13 +161,42 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
         setProgress(Math.min(90, 10 + (elapsed / 60) * 80));
       }, 1000);
 
-      const { data, error } = await supabase.functions.invoke('generate-icon-from-reference', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-        body: { image: referenceImage, prompt: effectivePrompt.trim(), style, backgroundType, creativityLevel }
-      });
+      let data: { success: boolean; generatedImage?: string; imageUrl?: string; error?: string };
+
+      if (isLocalAIEnabled()) {
+        // Use local AI for icon generation
+        const result = await generateIconLocal({
+          prompt: effectivePrompt.trim(),
+          referenceImage,
+          style,
+          creativityLevel,
+          backgroundColor: backgroundType,
+        });
+        data = {
+          success: result.success,
+          generatedImage: result.imageUrl,
+          error: result.error
+        };
+      } else {
+        // Use Supabase edge function
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (!session || sessionError) {
+          toast({ title: 'Session expired', description: 'Please sign in again', variant: 'destructive' });
+          setStage('idle');
+          if (progressInterval) clearInterval(progressInterval);
+          return;
+        }
+
+        const result = await supabase.functions.invoke('generate-icon-from-reference', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          body: { image: referenceImage, prompt: effectivePrompt.trim(), style, backgroundType, creativityLevel }
+        });
+
+        if (result.error) throw result.error;
+        data = result.data;
+      }
 
       if (progressInterval) clearInterval(progressInterval);
-      if (error) throw error;
       if (!data?.success) throw new Error(data?.error || 'Generation failed');
 
       setProgress(90);
@@ -622,6 +654,12 @@ export const AIIconGenerator = ({ open, onOpenChange, onIconGenerated }: AIIconG
           )}
         </div>
       </DialogContent>
+
+      {/* AI Credits Access Popup */}
+      <AICreditsAccessPopup
+        open={showAccessPopup}
+        onOpenChange={setShowAccessPopup}
+      />
     </Dialog>
   );
 };

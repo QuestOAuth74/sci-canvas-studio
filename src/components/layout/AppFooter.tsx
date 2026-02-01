@@ -34,6 +34,7 @@ export const AppFooter = () => {
   const navLinks = [
     { label: "Home", href: "/" },
     { label: "Community", href: "/community" },
+    { label: "Pricing", href: "/pricing" },
     { label: "Blog", href: "/blog" },
     { label: "Testimonials", href: "/testimonials" },
     { label: "Contact", href: "/contact" },

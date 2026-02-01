@@ -17,6 +17,7 @@ import { useAIGenerationUsage } from "@/hooks/useAIGenerationUsage";
 import { useNavigate } from "react-router-dom";
 import { getCanvasFontFamily } from "@/lib/fontLoader";
 import { aiResponseToDiagramScene, importDiagramScene } from "@/lib/diagram";
+import { AICreditsAccessPopup } from "./AICreditsAccessPopup";
 
 interface AIFigureGeneratorProps {
   canvas: FabricCanvas | null;
@@ -193,6 +194,7 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange, onOpenAIStudio }
   const { hasAccess, remaining, approvedCount } = useFeatureAccess();
   const { usage, isLoading: quotaLoading, refetch: refetchQuota } = useAIGenerationUsage();
   const navigate = useNavigate();
+  const [showAccessPopup, setShowAccessPopup] = useState(false);
 
   // Helper to infer category from text content
   const inferCategory = (text: string): string => {
@@ -258,26 +260,9 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange, onOpenAIStudio }
   }, []);
 
   const handleGenerate = async (strictMode = false) => {
-    if (!hasAccess) {
-      toast.error(
-        `Share ${remaining} more approved project${remaining !== 1 ? 's' : ''} to unlock AI Figure Generator`,
-        { 
-          duration: 4000,
-          action: {
-            label: 'View Projects',
-            onClick: () => navigate('/projects')
-          }
-        }
-      );
-      return;
-    }
-
-    // Check monthly quota
-    if (usage && !usage.isAdmin && !usage.canGenerate) {
-      toast.error('Monthly generation limit reached', {
-        description: 'Your quota resets on the 1st of each month.',
-        duration: 5000
-      });
+    // Check feature access or credit availability
+    if (!hasAccess || (usage && !usage.isAdmin && !usage.canGenerate)) {
+      setShowAccessPopup(true);
       return;
     }
 
@@ -1383,6 +1368,12 @@ export const AIFigureGenerator = ({ canvas, open, onOpenChange, onOpenAIStudio }
           )}
         </div>
       </DialogContent>
+
+      {/* AI Credits Access Popup */}
+      <AICreditsAccessPopup
+        open={showAccessPopup}
+        onOpenChange={setShowAccessPopup}
+      />
     </Dialog>
   );
 };
