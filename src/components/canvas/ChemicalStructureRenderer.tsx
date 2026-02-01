@@ -9,7 +9,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
@@ -38,11 +37,10 @@ import {
   ZoomOut,
   RotateCcw,
   Sparkles,
-  Info,
+  AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import SmilesDrawer from 'smiles-drawer';
 
 interface ChemicalStructureRendererProps {
   open: boolean;
@@ -96,15 +94,12 @@ const moleculePresets: MoleculePreset[] = [
 
   // Cofactors & Vitamins
   { name: 'ATP', smiles: 'Nc1ncnc2c1ncn2[C@@H]1O[C@H](COP(O)(=O)OP(O)(=O)OP(O)(O)=O)[C@@H](O)[C@H]1O', category: 'Cofactors' },
-  { name: 'NAD+', smiles: 'NC(=O)c1ccc[n+](c1)[C@@H]1O[C@H](COP(O)(=O)OP(O)(=O)OC[C@H]2O[C@H]([C@H](O)[C@@H]2O)n2cnc3c(N)ncnc23)[C@@H](O)[C@H]1O', category: 'Cofactors' },
-  { name: 'FAD', smiles: 'Cc1cc2nc3c(=O)[nH]c(=O)nc-3n(C[C@H](O)[C@H](O)[C@H](O)COP(O)(=O)OP(O)(=O)OC[C@H]3O[C@H]([C@H](O)[C@@H]3O)n3cnc4c(N)ncnc34)c2cc1C', category: 'Cofactors' },
-  { name: 'Coenzyme A', smiles: 'CC(C)(COP(O)(=O)OP(O)(=O)OC[C@H]1O[C@H]([C@H](O)[C@@H]1OP(O)(O)=O)n1cnc2c(N)ncnc12)[C@@H](O)C(=O)NCCC(=O)NCCS', category: 'Cofactors' },
   { name: 'Vitamin C', smiles: 'OC[C@H](O)[C@H]1OC(=O)C(O)=C1O', category: 'Cofactors' },
 
   // Lipids
   { name: 'Cholesterol', smiles: 'C[C@H](CCCC(C)C)[C@H]1CC[C@@H]2[C@@]1(CC[C@H]1[C@H]2CC=C2C[C@@H](O)CC[C@]12C)C', category: 'Lipids' },
   { name: 'Palmitic Acid', smiles: 'CCCCCCCCCCCCCCCC(=O)O', category: 'Lipids' },
-  { name: 'Oleic Acid', smiles: 'CCCCCCCC/C=C\\CCCCCCCC(=O)O', category: 'Lipids' },
+  { name: 'Oleic Acid', smiles: 'CCCCCCCCC=CCCCCCCCC(=O)O', category: 'Lipids' },
 
   // Common Drugs
   { name: 'Aspirin', smiles: 'CC(=O)Oc1ccccc1C(=O)O', category: 'Drugs' },
@@ -129,6 +124,9 @@ const moleculePresets: MoleculePreset[] = [
   { name: 'Water', smiles: 'O', category: 'Simple' },
   { name: 'Ammonia', smiles: 'N', category: 'Simple' },
   { name: 'Urea', smiles: 'NC(N)=O', category: 'Simple' },
+  { name: 'Methanol', smiles: 'CO', category: 'Simple' },
+  { name: 'Formaldehyde', smiles: 'C=O', category: 'Simple' },
+  { name: 'Acetone', smiles: 'CC(=O)C', category: 'Simple' },
 ];
 
 // Color themes for molecule rendering
@@ -144,6 +142,7 @@ const colorThemes = {
     Cl: '#2ecc71',
     Br: '#c0392b',
     I: '#9b59b6',
+    H: '#666666',
     background: '#ffffff',
   },
   dark: {
@@ -157,6 +156,7 @@ const colorThemes = {
     Cl: '#51cf66',
     Br: '#ff6b6b',
     I: '#cc5de8',
+    H: '#888888',
     background: '#1a1a2e',
   },
   publication: {
@@ -170,6 +170,7 @@ const colorThemes = {
     Cl: '#000000',
     Br: '#000000',
     I: '#000000',
+    H: '#000000',
     background: '#ffffff',
   },
   colorful: {
@@ -183,6 +184,7 @@ const colorThemes = {
     Cl: '#1e90ff',
     Br: '#a55eea',
     I: '#6c5ce7',
+    H: '#95a5a6',
     background: '#ffffff',
   },
 };
@@ -194,19 +196,18 @@ export const ChemicalStructureRenderer = ({
 }: ChemicalStructureRendererProps) => {
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawerRef = useRef<any>(null);
+  const smilesDrawerRef = useRef<any>(null);
 
   const [smilesInput, setSmilesInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [colorTheme, setColorTheme] = useState<keyof typeof colorThemes>('default');
-  const [scale, setScale] = useState(1.5);
+  const [scale, setScale] = useState(1.0);
   const [isRendering, setIsRendering] = useState(false);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [currentMoleculeName, setCurrentMoleculeName] = useState<string>('');
-  const [showHydrogens, setShowHydrogens] = useState(false);
-  const [compactMode, setCompactMode] = useState(false);
+  const [isLibraryLoaded, setIsLibraryLoaded] = useState(false);
 
   // Get unique categories
   const categories = ['all', ...Array.from(new Set(moleculePresets.map(m => m.category)))];
@@ -220,81 +221,148 @@ export const ChemicalStructureRenderer = ({
     return matchesSearch && matchesCategory;
   });
 
-  // Initialize SmilesDrawer
+  // Load SmilesDrawer library dynamically
   useEffect(() => {
-    const theme = colorThemes[colorTheme];
-    drawerRef.current = new SmilesDrawer.SmiDrawer({
-      width: 500,
-      height: 500,
-      bondThickness: 1.5,
-      bondLength: 25,
-      shortBondLength: 0.8,
-      bondSpacing: 4,
-      atomVisualization: 'default',
-      isomeric: true,
-      debug: false,
-      terminalCarbons: showHydrogens,
-      explicitHydrogens: showHydrogens,
-      overlapSensitivity: 0.42,
-      overlapResolutionIterations: 1,
-      compactDrawing: compactMode,
-      fontSizeLarge: 10,
-      fontSizeSmall: 6,
-      themes: {
-        custom: theme,
-      },
-    });
-  }, [colorTheme, showHydrogens, compactMode]);
+    const loadSmilesDrawer = async () => {
+      try {
+        const SmilesDrawer = await import('smiles-drawer');
+        smilesDrawerRef.current = SmilesDrawer.default || SmilesDrawer;
+        setIsLibraryLoaded(true);
+        console.log('SmilesDrawer loaded successfully');
+      } catch (error) {
+        console.error('Failed to load SmilesDrawer:', error);
+        setRenderError('Failed to load molecule rendering library');
+      }
+    };
+
+    if (open && !isLibraryLoaded) {
+      loadSmilesDrawer();
+    }
+  }, [open, isLibraryLoaded]);
 
   // Render SMILES to canvas
-  const renderSmiles = useCallback(async (smiles: string) => {
-    if (!smiles.trim() || !canvasRef.current || !drawerRef.current) return;
+  const renderSmiles = useCallback((smiles: string) => {
+    if (!smiles.trim()) {
+      setRenderError(null);
+      return;
+    }
+
+    if (!canvasRef.current) {
+      console.error('Canvas ref not available');
+      return;
+    }
+
+    if (!smilesDrawerRef.current) {
+      console.error('SmilesDrawer not loaded yet');
+      setRenderError('Molecule renderer is loading...');
+      return;
+    }
 
     setIsRendering(true);
     setRenderError(null);
 
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      setRenderError('Canvas context not available');
+      setIsRendering(false);
+      return;
+    }
+
+    // Clear canvas with background color
+    const theme = colorThemes[colorTheme];
+    ctx.fillStyle = theme.background;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     try {
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+      const SmilesDrawer = smilesDrawerRef.current;
 
-      // Clear canvas
-      const theme = colorThemes[colorTheme];
-      ctx.fillStyle = theme.background;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Configure drawer options
+      const options = {
+        width: canvas.width,
+        height: canvas.height,
+        bondThickness: 1.5,
+        bondLength: 30,
+        shortBondLength: 0.85,
+        bondSpacing: 4.5,
+        atomVisualization: 'default',
+        isomeric: true,
+        debug: false,
+        terminalCarbons: false,
+        explicitHydrogens: false,
+        overlapSensitivity: 0.42,
+        overlapResolutionIterations: 2,
+        compactDrawing: false,
+        fontSizeLarge: 11,
+        fontSizeSmall: 7,
+        padding: 30,
+        themes: {
+          light: {
+            C: theme.C,
+            O: theme.O,
+            N: theme.N,
+            S: theme.S,
+            P: theme.P,
+            F: theme.F,
+            Cl: theme.Cl,
+            Br: theme.Br,
+            I: theme.I,
+            H: theme.H,
+            BACKGROUND: theme.background,
+          },
+        },
+      };
 
-      // Parse and draw
+      // Create drawer instance
+      const drawer = new SmilesDrawer.SmiDrawer(options);
+
+      // Parse and draw the SMILES
       SmilesDrawer.parse(smiles, (tree: any) => {
-        drawerRef.current.draw(tree, canvas, 'custom');
+        drawer.draw(tree, canvas, 'light', false);
+        setIsRendering(false);
+        setRenderError(null);
       }, (err: any) => {
-        setRenderError(`Invalid SMILES: ${err.message || 'Unable to parse structure'}`);
+        console.error('SMILES parse error:', err);
+        setRenderError(`Invalid SMILES: ${err?.message || 'Could not parse molecule'}`);
+        setIsRendering(false);
       });
-    } catch (error) {
-      setRenderError('Failed to render structure');
+
+    } catch (error: any) {
       console.error('Render error:', error);
-    } finally {
+      setRenderError(`Render error: ${error?.message || 'Unknown error'}`);
       setIsRendering(false);
     }
   }, [colorTheme]);
 
   // Re-render when settings change
   useEffect(() => {
-    if (smilesInput) {
-      renderSmiles(smilesInput);
+    if (smilesInput && isLibraryLoaded) {
+      // Small delay to ensure canvas is ready
+      const timer = setTimeout(() => {
+        renderSmiles(smilesInput);
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [smilesInput, scale, colorTheme, showHydrogens, compactMode, renderSmiles]);
+  }, [smilesInput, colorTheme, isLibraryLoaded, renderSmiles]);
 
   // Handle preset selection
   const handlePresetSelect = (preset: MoleculePreset) => {
     setSmilesInput(preset.smiles);
     setCurrentMoleculeName(preset.name);
-    renderSmiles(preset.smiles);
+    setRenderError(null);
   };
 
   // Handle manual SMILES input
   const handleSmilesChange = (value: string) => {
     setSmilesInput(value);
     setCurrentMoleculeName('');
+  };
+
+  // Trigger render on button click
+  const handleRenderClick = () => {
+    if (smilesInput) {
+      renderSmiles(smilesInput);
+    }
   };
 
   // Copy SMILES to clipboard
@@ -408,7 +476,7 @@ export const ChemicalStructureRenderer = ({
                     )}
                   >
                     <div className="font-medium text-sm">{preset.name}</div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-xs text-muted-foreground truncate font-mono">
                       {preset.smiles}
                     </div>
                   </button>
@@ -437,7 +505,15 @@ export const ChemicalStructureRenderer = ({
                       value={smilesInput}
                       onChange={(e) => handleSmilesChange(e.target.value)}
                       className="font-mono text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleRenderClick();
+                        }
+                      }}
                     />
+                    <Button onClick={handleRenderClick} disabled={!smilesInput || !isLibraryLoaded}>
+                      Render
+                    </Button>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -485,25 +561,12 @@ export const ChemicalStructureRenderer = ({
                   </Select>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Label className="text-xs text-muted-foreground">Options:</Label>
-                  <Button
-                    variant={showHydrogens ? 'secondary' : 'outline'}
-                    size="sm"
-                    onClick={() => setShowHydrogens(!showHydrogens)}
-                    className="h-8 text-xs"
-                  >
-                    Show H
-                  </Button>
-                  <Button
-                    variant={compactMode ? 'secondary' : 'outline'}
-                    size="sm"
-                    onClick={() => setCompactMode(!compactMode)}
-                    className="h-8 text-xs"
-                  >
-                    Compact
-                  </Button>
-                </div>
+                {!isLibraryLoaded && (
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading renderer...
+                  </div>
+                )}
               </div>
             </div>
 
@@ -511,15 +574,15 @@ export const ChemicalStructureRenderer = ({
             <div className="flex-1 flex items-center justify-center p-6 bg-muted/10 overflow-auto">
               <div className="relative">
                 {isRendering && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10 rounded-lg">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                   </div>
                 )}
 
                 {renderError ? (
-                  <div className="flex flex-col items-center justify-center p-8 text-center">
+                  <div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg bg-destructive/5">
                     <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-                      <Info className="h-8 w-8 text-destructive" />
+                      <AlertCircle className="h-8 w-8 text-destructive" />
                     </div>
                     <p className="text-destructive font-medium">{renderError}</p>
                     <p className="text-sm text-muted-foreground mt-2">
@@ -527,21 +590,27 @@ export const ChemicalStructureRenderer = ({
                     </p>
                   </div>
                 ) : (
-                  <canvas
-                    ref={canvasRef}
-                    width={500}
-                    height={500}
-                    className="border rounded-lg shadow-sm"
+                  <div
+                    className="border rounded-lg shadow-sm overflow-hidden"
                     style={{
                       transform: `scale(${scale})`,
                       transformOrigin: 'center',
-                      background: colorThemes[colorTheme].background,
                     }}
-                  />
+                  >
+                    <canvas
+                      ref={canvasRef}
+                      width={500}
+                      height={500}
+                      style={{
+                        background: colorThemes[colorTheme].background,
+                        display: 'block',
+                      }}
+                    />
+                  </div>
                 )}
 
                 {!smilesInput && !renderError && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground pointer-events-none">
                     <FlaskConical className="h-16 w-16 mb-4 opacity-20" />
                     <p>Enter a SMILES string or select a molecule</p>
                     <p className="text-sm mt-1">from the library on the left</p>
@@ -559,7 +628,7 @@ export const ChemicalStructureRenderer = ({
                     value={[scale]}
                     onValueChange={([v]) => setScale(v)}
                     min={0.5}
-                    max={2.5}
+                    max={2.0}
                     step={0.1}
                     className="w-32"
                   />
