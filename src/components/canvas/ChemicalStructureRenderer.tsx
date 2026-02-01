@@ -242,7 +242,7 @@ export const ChemicalStructureRenderer = ({
 
   // Render SMILES to canvas
   const renderSmiles = useCallback((smiles: string) => {
-    if (!smiles.trim()) {
+    if (!smiles || typeof smiles !== 'string' || !smiles.trim()) {
       setRenderError(null);
       return;
     }
@@ -276,26 +276,27 @@ export const ChemicalStructureRenderer = ({
 
     try {
       const SmilesDrawer = smilesDrawerRef.current;
+      const smilesString = String(smiles).trim();
 
       // Configure drawer options
       const options = {
         width: canvas.width,
         height: canvas.height,
         bondThickness: 1.5,
-        bondLength: 30,
+        bondLength: 25,
         shortBondLength: 0.85,
-        bondSpacing: 4.5,
+        bondSpacing: 0.18 * 25,
         atomVisualization: 'default',
         isomeric: true,
         debug: false,
         terminalCarbons: false,
         explicitHydrogens: false,
         overlapSensitivity: 0.42,
-        overlapResolutionIterations: 2,
-        compactDrawing: false,
-        fontSizeLarge: 11,
-        fontSizeSmall: 7,
-        padding: 30,
+        overlapResolutionIterations: 1,
+        compactDrawing: true,
+        fontSizeLarge: 6,
+        fontSizeSmall: 4,
+        padding: 20.0,
         themes: {
           light: {
             C: theme.C,
@@ -304,8 +305,8 @@ export const ChemicalStructureRenderer = ({
             S: theme.S,
             P: theme.P,
             F: theme.F,
-            Cl: theme.Cl,
-            Br: theme.Br,
+            CL: theme.Cl,
+            BR: theme.Br,
             I: theme.I,
             H: theme.H,
             BACKGROUND: theme.background,
@@ -313,12 +314,13 @@ export const ChemicalStructureRenderer = ({
         },
       };
 
-      // Create drawer instance
-      const drawer = new SmilesDrawer.SmiDrawer(options);
+      // Create drawer instance using the correct API
+      const drawer = new SmilesDrawer.Drawer(options);
 
-      // Parse and draw the SMILES
-      SmilesDrawer.parse(smiles, (tree: any) => {
-        drawer.draw(tree, canvas, 'light', false);
+      // Parse and draw the SMILES - use canvas ID
+      SmilesDrawer.parse(smilesString, (tree: any) => {
+        // Draw to canvas element directly
+        drawer.draw(tree, 'smiles-canvas', 'light', false);
         setIsRendering(false);
         setRenderError(null);
       }, (err: any) => {
@@ -598,6 +600,7 @@ export const ChemicalStructureRenderer = ({
                     }}
                   >
                     <canvas
+                      id="smiles-canvas"
                       ref={canvasRef}
                       width={500}
                       height={500}
