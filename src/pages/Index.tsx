@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { 
-  Microscope, Palette, FolderOpen, Sparkles, Zap, Shield, Users, Share2, 
-  ArrowRight, ChevronRight, Download, Layers, PenTool,
-  FileImage, Grid3X3, Wand2, BookOpen, GraduationCap, Play,
-  CheckCircle, Star, Globe, MousePointerClick, Atom, Image
+import { motion } from "framer-motion";
+import {
+  Microscope, Palette, FolderOpen, Zap, Users, Clock,
+  ArrowRight, Download, Layers, PenTool,
+  FileImage, CheckCircle, Globe, Atom, Play
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
@@ -18,10 +18,8 @@ import { getWebApplicationSchema, getOrganizationSchema } from "@/components/SEO
 import { useRecentSignups } from "@/hooks/useRecentSignups";
 import { SignupToast } from "@/components/SignupToast";
 import { InstitutionCarousel } from "@/components/InstitutionCarousel";
-import { BlogPostsCarousel } from "@/components/blog/BlogPostsCarousel";
-import { CommunityCarousel } from "@/components/community/CommunityCarousel";
 import { MaintenanceBanner } from "@/components/MaintenanceBanner";
-import { IconShowcase } from "@/components/home/IconShowcase";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -54,42 +52,35 @@ const Index = () => {
   };
 
   const features = [
-    { 
-      icon: Wand2, 
-      title: "AI Figure Generation", 
-      desc: "Transform text descriptions into professional scientific illustrations. Our AI understands pathways, cells, and molecular structures.",
-      size: "large",
-      tag: "NEW"
+    {
+      icon: Clock,
+      title: "Hours → Minutes",
+      desc: "What used to take hours now takes minutes. Drag, drop, done.",
     },
-    { 
-      icon: Microscope, 
-      title: "6,000+ Scientific Icons", 
-      desc: "Curated library covering molecular biology, biochemistry, anatomy, and more.",
-      size: "medium"
+    {
+      icon: Microscope,
+      title: "6,000+ Scientific Icons",
+      desc: "Comprehensive library for biology, chemistry, medicine, and more.",
     },
-    { 
-      icon: PenTool, 
-      title: "Precision Tools", 
-      desc: "Scale bars, annotations, and connectors designed for scientific accuracy.",
-      size: "medium"
+    {
+      icon: FileImage,
+      title: "Publication Ready",
+      desc: "Export at 300+ DPI in PNG, SVG, or PDF. Meet any journal's requirements.",
     },
-    { 
-      icon: FileImage, 
-      title: "Publication-Ready Export", 
-      desc: "High-res PNG, SVG, PDF at 300+ DPI. Meet any journal's requirements.",
-      size: "small"
+    {
+      icon: PenTool,
+      title: "Precision Tools",
+      desc: "Scale bars, annotations, and connectors for scientific accuracy.",
     },
-    { 
-      icon: Layers, 
-      title: "Smart Layers", 
-      desc: "Organize complex diagrams with layer management.",
-      size: "small"
+    {
+      icon: Layers,
+      title: "Smart Layers",
+      desc: "Organize complex diagrams with intuitive layer management.",
     },
-    { 
-      icon: Share2, 
-      title: "Team Collaboration", 
-      desc: "Share and co-edit with your research group.",
-      size: "small"
+    {
+      icon: Download,
+      title: "Instant Export",
+      desc: "One-click export in multiple formats and resolutions.",
     },
   ];
 
@@ -100,305 +91,231 @@ const Index = () => {
     { value: "500K+", label: "Downloads", icon: Download },
   ];
 
-  const steps = [
-    { num: "01", title: "Sign Up Free", desc: "Create your account in seconds", icon: MousePointerClick },
-    { num: "02", title: "Choose Icons", desc: "Browse our extensive library", icon: Grid3X3 },
-    { num: "03", title: "Design & Export", desc: "Create and download your figure", icon: Image },
-  ];
-
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <div className="min-h-screen bg-white">
       <MaintenanceBanner />
 
       <SEOHead
-        title="BioSketch - Free Scientific Illustration Tool for Researchers"
-        description="Create stunning scientific illustrations with BioSketch - a free drag-and-drop tool for scientists and researchers. Build publication-ready figures with our extensive biomedical icon library."
+        title="BioSketch - Create Scientific Figures in Minutes"
+        description="Create publication-ready scientific illustrations in minutes, not hours. Free drag-and-drop tool with 6,000+ icons for researchers."
         canonical="https://biosketch.art/"
-        keywords="scientific illustration, biomedical graphics, research illustration software, free science graphics, publication figures, scientific diagrams, biology illustration, medical graphics creator"
+        keywords="scientific illustration, publication figures, research graphics, scientific diagrams, biology illustration, medical graphics"
         structuredData={structuredData}
       />
 
-      {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center">
-        {/* Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
-        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
-        
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:60px_60px] dark:bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)]" />
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      {/* Hero Section - Clean & Minimal */}
+      <section className="relative min-h-[85vh] flex items-center bg-gradient-to-b from-slate-50 to-white">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
             <div className="space-y-8">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 shadow-sm">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-primary text-primary" />
-                  ))}
-                </div>
-                <span className="text-sm text-muted-foreground">Trusted by 10,000+ researchers</span>
-              </div>
+              {/* Time Badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200"
+              >
+                <Clock className="h-4 w-4 text-slate-600" />
+                <span className="text-sm font-medium text-slate-700">From hours to minutes</span>
+              </motion.div>
 
               {/* Title */}
               <div className="space-y-4">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight text-foreground leading-[1.1]">
-                  Scientific figures
-                  <span className="block bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    made simple
-                  </span>
-                </h1>
-                <p className="text-lg text-muted-foreground max-w-lg leading-relaxed">
-                  Create publication-ready illustrations in minutes. 
-                  Drag, drop, and export—no design skills needed.
-                </p>
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.1]"
+                >
+                  Scientific figures,
+                  <span className="block text-slate-600">made simple.</span>
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="text-lg text-slate-600 max-w-lg leading-relaxed"
+                >
+                  Create publication-ready illustrations in minutes.
+                  6,000+ icons. Drag and drop. Export at 300+ DPI.
+                </motion.p>
               </div>
-
-              {/* User Welcome */}
-              {user && (
-                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <span className="text-foreground">
-                    Welcome back, <span className="font-semibold text-primary">{user.user_metadata?.full_name?.split(" ")[0] || "Researcher"}</span>
-                  </span>
-                </div>
-              )}
 
               {/* CTA Buttons */}
-              <div className="flex flex-wrap gap-4">
-                <Button 
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="flex flex-wrap gap-4"
+              >
+                <Button
                   size="lg"
-                  onClick={() => navigate(user ? "/canvas" : "/auth")} 
-                  className="h-12 px-6 text-base font-medium shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all group"
+                  onClick={() => navigate(user ? "/canvas" : "/auth")}
+                  className="h-12 px-6 text-base font-medium bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition-all"
                 >
                   <Palette className="h-5 w-5 mr-2" />
-                  {user ? "Open Canvas" : "Start Creating — It's Free"}
-                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  {user ? "Open Canvas" : "Start Free"}
+                  <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
-                
-                {user ? (
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    onClick={() => navigate("/projects")}
-                    className="h-12 px-6"
-                  >
-                    <FolderOpen className="h-4 w-4 mr-2" />
-                    My Projects
-                  </Button>
-                ) : (
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    onClick={() => navigate("/community")}
-                    className="h-12 px-6"
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    See Examples
-                  </Button>
-                )}
-              </div>
+
+                <Button
+                  size="lg"
+                  variant="ghost"
+                  onClick={() => navigate(user ? "/projects" : "/community")}
+                  className="h-12 px-6 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                >
+                  {user ? (
+                    <>
+                      <FolderOpen className="h-4 w-4 mr-2" />
+                      My Projects
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-2" />
+                      See Examples
+                    </>
+                  )}
+                </Button>
+              </motion.div>
 
               {/* Trust Indicators */}
               <div className="flex items-center gap-6 pt-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-slate-400" />
                   <span>Free forever</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-slate-400" />
                   <span>No credit card</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span>Instant access</span>
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <CheckCircle className="h-4 w-4 text-slate-400" />
+                  <span>Publication ready</span>
                 </div>
               </div>
             </div>
 
             {/* Right - Product Preview */}
-            <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden border border-border/50 shadow-2xl bg-card">
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="relative"
+            >
+              <div className="relative rounded-xl overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/50 bg-white">
                 {/* Browser Chrome */}
-                <div className="flex items-center gap-2 px-4 py-3 bg-muted/50 border-b border-border/50">
+                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
                   <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-400/80" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-400/80" />
-                    <div className="w-3 h-3 rounded-full bg-green-400/80" />
+                    <div className="w-3 h-3 rounded-full bg-slate-300" />
+                    <div className="w-3 h-3 rounded-full bg-slate-300" />
+                    <div className="w-3 h-3 rounded-full bg-slate-300" />
                   </div>
                   <div className="flex-1 flex justify-center">
-                    <div className="px-4 py-1 rounded-md bg-background/50 text-xs text-muted-foreground">
+                    <div className="px-4 py-1 rounded-md bg-slate-100 text-xs text-slate-500">
                       biosketch.art/canvas
                     </div>
                   </div>
                 </div>
                 {/* Screenshot */}
-                <div className="relative">
-                  <img 
-                    src={currentSlide === 0 ? carousel1 : carousel2} 
-                    alt="BioSketch Canvas" 
-                    className="w-full h-auto transition-opacity duration-500"
-                  />
-                </div>
+                <img
+                  src={currentSlide === 0 ? carousel1 : carousel2}
+                  alt="BioSketch Canvas"
+                  className="w-full h-auto transition-opacity duration-500"
+                />
               </div>
-              
-              {/* Floating Elements */}
-              <div className="absolute -bottom-6 -left-6 p-4 rounded-xl bg-card/95 backdrop-blur-sm border border-border/50 shadow-xl">
+
+              {/* Floating Badge */}
+              <div className="absolute -bottom-4 -left-4 p-4 rounded-xl bg-white border border-slate-200 shadow-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Microscope className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-slate-600" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-foreground">6,000+</p>
-                    <p className="text-xs text-muted-foreground">Scientific Icons</p>
+                    <p className="text-xl font-bold text-slate-900">5 min</p>
+                    <p className="text-xs text-slate-500">Avg. figure time</p>
                   </div>
                 </div>
               </div>
-              
-              <div className="absolute -top-4 -right-4 p-3 rounded-xl bg-card/95 backdrop-blur-sm border border-border/50 shadow-xl">
-                <div className="flex items-center gap-2">
-                  <Wand2 className="h-5 w-5 text-accent" />
-                  <span className="text-sm font-medium text-foreground">AI-Powered</span>
-                </div>
-              </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Trusted By */}
-      <section className="py-16 border-y border-border/50 bg-muted/30">
+      <section className="py-16 border-y border-slate-100 bg-slate-50/50">
         <div className="container mx-auto px-4">
-          <p className="text-center text-sm font-medium text-muted-foreground uppercase tracking-widest mb-8 flex items-center justify-center gap-2">
-            <GraduationCap className="h-4 w-4" />
+          <p className="text-center text-sm font-medium text-slate-500 uppercase tracking-widest mb-8">
             Trusted by researchers at leading institutions
           </p>
           <InstitutionCarousel />
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-20">
+      {/* Stats - Minimal */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
             {stats.map((stat, i) => (
-              <div 
+              <motion.div
                 key={i}
-                className="group relative p-6 rounded-2xl bg-gradient-to-br from-card to-muted/30 border border-border/50 hover:border-primary/30 transition-all hover:shadow-lg"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="text-center"
               >
-                <stat.icon className="h-6 w-6 text-primary/60 mb-3 group-hover:scale-110 transition-transform" />
-                <p className="text-3xl lg:text-4xl font-bold text-foreground">{stat.value}</p>
-                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-              </div>
+                <p className="text-4xl font-bold text-slate-900">{stat.value}</p>
+                <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features Bento Grid - Redesigned */}
-      <section className="py-24 relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 lab-grid opacity-50" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-        
-        <div className="container mx-auto px-4 relative z-10">
-          {/* Section Header */}
-          <div className="max-w-3xl mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary/20 border-2 border-foreground text-foreground text-sm font-bold mb-6">
-              <Zap className="h-4 w-4" />
-              POWERFUL TOOLKIT
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-display font-bold text-foreground mb-4 leading-tight">
-              Everything you need to create{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10">stunning figures</span>
-                <span className="absolute bottom-2 left-0 right-0 h-3 bg-secondary/60 -z-0" />
-              </span>
+      {/* Features - Clean Grid */}
+      <section className="py-24 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+              Everything you need
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Professional-grade tools designed specifically for scientific illustration.
+            <p className="text-lg text-slate-600">
+              Professional tools for publication-ready scientific figures.
             </p>
           </div>
 
-          {/* Bento Grid - New Layout */}
-          <div className="grid grid-cols-12 gap-4 max-w-6xl">
-            {/* Large Feature - AI */}
-            <div className="col-span-12 lg:col-span-7 group">
-              <div className="h-full p-8 rounded-2xl border-2 border-foreground bg-gradient-to-br from-primary to-primary/80 text-primary-foreground relative overflow-hidden transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] shadow-[6px_6px_0px_0px_hsl(var(--foreground))] hover:shadow-[8px_8px_0px_0px_hsl(var(--foreground))]">
-                {/* Background decoration */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-                
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-14 h-14 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-                      <Wand2 className="h-7 w-7" />
-                    </div>
-                    <span className="px-3 py-1 rounded-full bg-white/20 text-xs font-bold uppercase tracking-wider">
-                      New Feature
-                    </span>
-                  </div>
-                  <h3 className="text-2xl lg:text-3xl font-bold mb-3">{features[0].title}</h3>
-                  <p className="text-primary-foreground/80 text-lg leading-relaxed max-w-lg">
-                    {features[0].desc}
-                  </p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {features.map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="p-6 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-100 transition-all duration-200 group"
+              >
+                <div className="w-12 h-12 rounded-lg bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center mb-4 transition-colors">
+                  <feature.icon className="h-6 w-6 text-slate-600" />
                 </div>
-              </div>
-            </div>
-
-            {/* Medium Feature 1 */}
-            <div className="col-span-12 sm:col-span-6 lg:col-span-5 group">
-              <div className="h-full p-6 rounded-2xl border-2 border-foreground bg-card transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] shadow-[5px_5px_0px_0px_hsl(var(--foreground))] hover:shadow-[7px_7px_0px_0px_hsl(var(--foreground))]">
-                <div className="w-12 h-12 rounded-xl bg-accent/15 border-2 border-foreground flex items-center justify-center mb-4">
-                  <Microscope className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">{features[1].title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{features[1].desc}</p>
-              </div>
-            </div>
-
-            {/* Medium Feature 2 */}
-            <div className="col-span-12 sm:col-span-6 lg:col-span-5 group">
-              <div className="h-full p-6 rounded-2xl border-2 border-foreground bg-card transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] shadow-[5px_5px_0px_0px_hsl(var(--foreground))] hover:shadow-[7px_7px_0px_0px_hsl(var(--foreground))]">
-                <div className="w-12 h-12 rounded-xl bg-secondary/30 border-2 border-foreground flex items-center justify-center mb-4">
-                  <PenTool className="h-6 w-6 text-foreground" />
-                </div>
-                <h3 className="text-xl font-bold text-foreground mb-2">{features[2].title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{features[2].desc}</p>
-              </div>
-            </div>
-
-            {/* Small Features Row */}
-            <div className="col-span-12 lg:col-span-7 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {features.slice(3).map((feature, i) => (
-                <div 
-                  key={i}
-                  className="group p-5 rounded-xl border-2 border-foreground bg-card transition-all duration-200 hover:translate-x-[-2px] hover:translate-y-[-2px] shadow-[4px_4px_0px_0px_hsl(var(--foreground))] hover:shadow-[6px_6px_0px_0px_hsl(var(--foreground))]"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-muted border-2 border-foreground flex items-center justify-center mb-3">
-                    <feature.icon className="h-5 w-5 text-foreground" />
-                  </div>
-                  <h3 className="font-bold text-foreground mb-1">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">{feature.desc}</p>
-                </div>
-              ))}
-            </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{feature.title}</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">{feature.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Video Demo - Minimal */}
-      <section className="py-24">
+      <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center space-y-2">
-              <p className="text-sm text-muted-foreground uppercase tracking-wide">Quick demo</p>
-              <h2 className="text-2xl font-semibold text-foreground">See how it works</h2>
+              <p className="text-sm text-slate-500 uppercase tracking-wide">Quick Demo</p>
+              <h2 className="text-2xl font-semibold text-slate-900">See how it works</h2>
             </div>
-            
-            <div className="rounded-2xl overflow-hidden border border-border/50 shadow-lg">
+
+            <div className="rounded-xl overflow-hidden border border-slate-200 shadow-lg">
               <video
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
                 className="w-full h-auto"
@@ -412,88 +329,51 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Icon Showcase */}
-      <section className="bg-muted/20">
+      {/* Final CTA */}
+      <section className="py-24 bg-slate-900">
         <div className="container mx-auto px-4">
-          <IconShowcase />
+          <div className="max-w-2xl mx-auto text-center space-y-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+              Stop spending hours on figures.
+              <span className="block text-slate-400 mt-2">Start creating in minutes.</span>
+            </h2>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                onClick={() => navigate(user ? "/canvas" : "/auth")}
+                className="h-12 px-8 text-base font-medium bg-white hover:bg-slate-100 text-slate-900 rounded-lg transition-all"
+              >
+                <Palette className="h-5 w-5 mr-2" />
+                {user ? "Open Canvas" : "Get Started Free"}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+
+            <p className="text-sm text-slate-500">
+              Free forever · No credit card required · Publication ready
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Community Section */}
-      {user ? (
-        <section className="py-24">
-          <div className="container mx-auto px-4">
-            <CommunityCarousel />
-          </div>
-        </section>
-      ) : (
-        <section className="py-24">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
-              <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-foreground to-foreground/90 p-12 md:p-16">
-                {/* Subtle Pattern */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,white_1px,transparent_1px)] bg-[size:24px_24px]" />
-                </div>
-                
-                <div className="relative z-10 text-center space-y-6">
-                  <h3 className="text-2xl md:text-3xl font-semibold text-background">
-                    Ready to create your first figure?
-                  </h3>
-                  <p className="text-background/70 max-w-md mx-auto">
-                    Join researchers from 150+ countries using BioSketch.
-                  </p>
-                  <Button 
-                    size="lg"
-                    variant="secondary"
-                    onClick={() => navigate("/auth")} 
-                    className="h-11 px-6 font-medium"
-                  >
-                    Get started free
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                </div>
-              </div>
+      {/* Footer */}
+      <footer className="py-8 bg-slate-950 border-t border-slate-800">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <img
+                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
+                alt="BioSketch"
+                className="h-6 object-contain brightness-0 invert"
+              />
             </div>
+            <p className="text-sm text-slate-500">
+              © {new Date().getFullYear()} BioSketch. Free scientific illustration tool.
+            </p>
           </div>
-        </section>
-      )}
-
-      {/* Blog Section */}
-      {user && (
-        <section className="py-24 bg-muted/20">
-          <div className="container mx-auto px-4">
-            <BlogPostsCarousel />
-          </div>
-        </section>
-      )}
-
-      {/* Final CTA - Ultra Minimal */}
-      {!user && (
-        <section className="py-32">
-          <div className="container mx-auto px-4">
-            <div className="max-w-xl mx-auto text-center space-y-8">
-              <h2 className="text-3xl md:text-4xl font-semibold text-foreground leading-tight">
-                Start creating publication-ready figures today
-              </h2>
-              
-              <Button 
-                size="lg" 
-                onClick={() => navigate("/auth")} 
-                className="h-12 px-8 text-base font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/25 transition-all"
-              >
-                <Palette className="h-5 w-5 mr-2" />
-                Create free account
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-              
-              <p className="text-sm text-muted-foreground">
-                Free forever · No credit card required
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+        </div>
+      </footer>
 
       <IconSubmissionDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} categories={categories} />
       <ProjectPreviewModal project={selectedProject} isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} />
