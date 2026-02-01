@@ -32,13 +32,16 @@ import {
   Copy,
   Check,
   Loader2,
-  Palette,
   ZoomIn,
   ZoomOut,
   RotateCcw,
   Sparkles,
   AlertCircle,
+  Circle,
+  Minus,
+  Settings2,
 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -340,6 +343,12 @@ export const ChemicalStructureRenderer = ({
   const [copied, setCopied] = useState(false);
   const [currentMoleculeName, setCurrentMoleculeName] = useState<string>('');
 
+  // Display mode options
+  const [displayMode, setDisplayMode] = useState<'default' | 'balls'>('default');
+  const [showTerminalCarbons, setShowTerminalCarbons] = useState(false);
+  const [showExplicitHydrogens, setShowExplicitHydrogens] = useState(false);
+  const [compactDrawing, setCompactDrawing] = useState(true);
+
   // Get unique categories
   const categories = ['all', ...Array.from(new Set(moleculePresets.map(m => m.category)))];
 
@@ -352,9 +361,9 @@ export const ChemicalStructureRenderer = ({
     return matchesSearch && matchesCategory;
   });
 
-  // Initialize drawer when dialog opens
+  // Initialize/reinitialize drawer when dialog opens or display options change
   useEffect(() => {
-    if (open && !drawerRef.current) {
+    if (open) {
       try {
         drawerRef.current = new SmilesDrawer.Drawer({
           width: 500,
@@ -363,24 +372,29 @@ export const ChemicalStructureRenderer = ({
           bondLength: 20,
           shortBondLength: 0.85,
           bondSpacing: 3.6,
-          atomVisualization: 'default',
+          atomVisualization: displayMode,
           isomeric: true,
           debug: false,
-          terminalCarbons: false,
-          explicitHydrogens: false,
+          terminalCarbons: showTerminalCarbons,
+          explicitHydrogens: showExplicitHydrogens,
           overlapSensitivity: 0.42,
           overlapResolutionIterations: 1,
-          compactDrawing: true,
+          compactDrawing: compactDrawing,
           fontSizeLarge: 6,
           fontSizeSmall: 4,
           padding: 30.0,
         });
-        console.log('SmilesDrawer initialized');
+        console.log('SmilesDrawer initialized with mode:', displayMode);
+
+        // Re-render current molecule if one is selected
+        if (smilesInput) {
+          setTimeout(() => renderMolecule(smilesInput), 100);
+        }
       } catch (err) {
         console.error('Failed to initialize SmilesDrawer:', err);
       }
     }
-  }, [open]);
+  }, [open, displayMode, showTerminalCarbons, showExplicitHydrogens, compactDrawing]);
 
   // Render function
   const renderMolecule = (smiles: string) => {
@@ -602,6 +616,99 @@ export const ChemicalStructureRenderer = ({
                     </Button>
                   </div>
                 </div>
+              </div>
+
+              {/* Display Mode Controls */}
+              <div className="flex items-center gap-6 pt-2 border-t">
+                <div className="flex items-center gap-2">
+                  <Settings2 className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-xs font-medium text-muted-foreground">Display Mode:</Label>
+                </div>
+
+                {/* Skeletal vs Ball-and-Stick */}
+                <div className="flex items-center gap-2">
+                  <Select value={displayMode} onValueChange={(v) => setDisplayMode(v as 'default' | 'balls')}>
+                    <SelectTrigger className="w-[140px] h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">
+                        <div className="flex items-center gap-2">
+                          <Minus className="h-3 w-3" />
+                          <span>Skeletal</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="balls">
+                        <div className="flex items-center gap-2">
+                          <Circle className="h-3 w-3" />
+                          <span>Ball & Stick</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="h-4 w-px bg-border" />
+
+                {/* Terminal Carbons */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="terminal-carbons"
+                          checked={showTerminalCarbons}
+                          onCheckedChange={setShowTerminalCarbons}
+                          className="scale-75"
+                        />
+                        <Label htmlFor="terminal-carbons" className="text-xs cursor-pointer">
+                          CH₃
+                        </Label>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>Show terminal carbons (CH₃ groups)</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                {/* Explicit Hydrogens */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="explicit-hydrogens"
+                          checked={showExplicitHydrogens}
+                          onCheckedChange={setShowExplicitHydrogens}
+                          className="scale-75"
+                        />
+                        <Label htmlFor="explicit-hydrogens" className="text-xs cursor-pointer">
+                          H atoms
+                        </Label>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>Show all hydrogen atoms explicitly</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                {/* Compact Drawing */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          id="compact-drawing"
+                          checked={compactDrawing}
+                          onCheckedChange={setCompactDrawing}
+                          className="scale-75"
+                        />
+                        <Label htmlFor="compact-drawing" className="text-xs cursor-pointer">
+                          Compact
+                        </Label>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>Compact drawing mode</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
 
