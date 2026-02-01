@@ -42,8 +42,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-// Import SmilesDrawer directly
-import * as SmilesDrawer from 'smiles-drawer';
+// Import SmilesDrawer - use default export which contains all classes
+import SmilesDrawer from 'smiles-drawer';
 
 interface ChemicalStructureRendererProps {
   open: boolean;
