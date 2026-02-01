@@ -144,8 +144,8 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
     <>
       <Menubar className="border-none bg-transparent shadow-none" data-onboarding="menu-bar">
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">File</MenubarTrigger>
-          <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+          <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">File</MenubarTrigger>
+          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
             <MenubarItem onClick={handleNew}>
               New <MenubarShortcut>⌘N</MenubarShortcut>
             </MenubarItem>
@@ -171,8 +171,8 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Edit</MenubarTrigger>
-          <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+          <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Edit</MenubarTrigger>
+          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
             <MenubarItem onClick={undo}>
               Undo <MenubarShortcut>⌘Z</MenubarShortcut>
             </MenubarItem>
@@ -198,8 +198,8 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Insert</MenubarTrigger>
-          <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+          <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Insert</MenubarTrigger>
+          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
             <MenubarItem onClick={onPanelLabelClick}>
               Figure Panel Labels (A, B, C...)
             </MenubarItem>
@@ -223,8 +223,8 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Tools</MenubarTrigger>
-          <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+          <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Tools</MenubarTrigger>
+          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
             <MenubarItem onClick={onAIFigureStudioClick}>
               <MagicWand size={16} weight="regular" className="mr-2" />
               AI Figure Studio
@@ -238,8 +238,8 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">View</MenubarTrigger>
-          <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+          <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">View</MenubarTrigger>
+          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
             <MenubarItem onClick={() => setGridEnabled(!gridEnabled)}>
               {gridEnabled ? "✓ " : ""}Grid
             </MenubarItem>
@@ -264,8 +264,8 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Arrange</MenubarTrigger>
-          <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+          <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Arrange</MenubarTrigger>
+          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
             <MenubarItem onClick={bringToFront}>Bring to Front</MenubarItem>
             <MenubarItem onClick={sendToBack}>Send to Back</MenubarItem>
             <MenubarItem onClick={bringForward}>Bring Forward</MenubarItem>
@@ -278,8 +278,8 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
         </MenubarMenu>
 
         <MenubarMenu>
-          <MenubarTrigger className="font-medium hover:bg-blue-200/60 transition-all duration-200 hover:border-b-2 hover:border-primary">Help</MenubarTrigger>
-          <MenubarContent className="bg-gradient-to-br from-background to-muted/30 shadow-2xl border-2 border-border/50 backdrop-blur-xl">
+          <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Help</MenubarTrigger>
+          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
             <MenubarItem onClick={startOnboarding}>
               <GraduationCap size={16} weight="regular" className="mr-2" />
               Restart Tutorial

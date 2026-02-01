@@ -22,7 +22,7 @@ export const FeatureAccessBadge = () => {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge variant="default" className="gap-1.5 cursor-pointer">
+          <Badge variant="secondary" className="gap-1.5 cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-all duration-200">
             <Unlock className="h-3 w-3" />
             Premium Unlocked
           </Badge>

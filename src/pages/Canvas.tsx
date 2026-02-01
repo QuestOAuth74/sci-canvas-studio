@@ -953,7 +953,8 @@ const CanvasContent = () => {
               <DropdownMenuTrigger asChild>
                 <Button
                   size="sm"
-                  className="h-9 px-4 bg-blue-500 hover:bg-blue-600 text-white shadow-sm rounded-xl transition-all duration-200"
+                  variant="ghost"
+                  className="h-9 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition-all duration-200"
                 >
                   <IconPlus size={16} stroke={2} className="mr-1.5" />
                   Create
@@ -1019,7 +1020,8 @@ const CanvasContent = () => {
               onClick={() => saveProject(true)}
               disabled={isSaving}
               size="sm"
-              className="h-9 px-4 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm rounded-xl transition-all duration-200"
+              variant="ghost"
+              className="h-9 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition-all duration-200"
               data-action="save"
             >
               <IconDeviceFloppy size={16} stroke={2} className="mr-1.5" />
