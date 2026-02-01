@@ -361,44 +361,38 @@ export const ChemicalStructureRenderer = ({
     return matchesSearch && matchesCategory;
   });
 
-  // Initialize/reinitialize drawer when dialog opens or display options change
-  useEffect(() => {
-    if (open) {
-      try {
-        drawerRef.current = new SmilesDrawer.Drawer({
-          width: 500,
-          height: 500,
-          bondThickness: 1.0,
-          bondLength: 20,
-          shortBondLength: 0.85,
-          bondSpacing: 3.6,
-          atomVisualization: displayMode,
-          isomeric: true,
-          debug: false,
-          terminalCarbons: showTerminalCarbons,
-          explicitHydrogens: showExplicitHydrogens,
-          overlapSensitivity: 0.42,
-          overlapResolutionIterations: 1,
-          compactDrawing: compactDrawing,
-          fontSizeLarge: 6,
-          fontSizeSmall: 4,
-          padding: 30.0,
-        });
-        console.log('SmilesDrawer initialized with mode:', displayMode);
+  // Create drawer options based on current settings
+  const getDrawerOptions = () => ({
+    width: 500,
+    height: 500,
+    bondThickness: 1.0,
+    bondLength: 20,
+    shortBondLength: 0.85,
+    bondSpacing: 3.6,
+    atomVisualization: displayMode,
+    isomeric: true,
+    debug: false,
+    terminalCarbons: showTerminalCarbons,
+    explicitHydrogens: showExplicitHydrogens,
+    overlapSensitivity: 0.42,
+    overlapResolutionIterations: 1,
+    compactDrawing: compactDrawing,
+    fontSizeLarge: 6,
+    fontSizeSmall: 4,
+    padding: 30.0,
+  });
 
-        // Re-render current molecule if one is selected
-        if (smilesInput) {
-          setTimeout(() => renderMolecule(smilesInput), 100);
-        }
-      } catch (err) {
-        console.error('Failed to initialize SmilesDrawer:', err);
-      }
-    }
-  }, [open, displayMode, showTerminalCarbons, showExplicitHydrogens, compactDrawing]);
-
-  // Render function
+  // Render function - creates fresh drawer each time to ensure options are applied
   const renderMolecule = (smiles: string) => {
-    if (!smiles || !canvasRef.current || !drawerRef.current) {
+    if (!smiles || !canvasRef.current) {
+      return;
+    }
+
+    // Verify canvas element exists in DOM
+    const canvasElement = document.getElementById('smiles-preview-canvas');
+    if (!canvasElement) {
+      console.error('Canvas element not found in DOM');
+      setRenderError('Canvas not ready. Please try again.');
       return;
     }
 
@@ -406,17 +400,36 @@ export const ChemicalStructureRenderer = ({
     setRenderError(null);
 
     try {
-      // Use SmilesDrawer.parse to parse the SMILES string
+      // Create a fresh drawer with current options
+      const drawer = new SmilesDrawer.Drawer(getDrawerOptions());
+
+      // Parse the SMILES string
       SmilesDrawer.parse(
         smiles,
         (tree: any) => {
           try {
-            // Draw to canvas using the canvas ID (as per SmilesDrawer API)
-            drawerRef.current.draw(tree, 'smiles-preview-canvas', 'light', false);
+            // Clear canvas first
+            const ctx = canvasRef.current?.getContext('2d');
+            if (ctx) {
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, 500, 500);
+            }
+
+            // Draw to canvas using the canvas ID
+            drawer.draw(tree, 'smiles-preview-canvas', 'light', false);
             setRenderError(null);
+            console.log('Molecule rendered successfully');
           } catch (drawErr: any) {
             console.error('Draw error:', drawErr);
-            setRenderError('Failed to draw molecule');
+            // Try alternative: draw directly to canvas element
+            try {
+              drawer.draw(tree, canvasRef.current, 'light', false);
+              setRenderError(null);
+              console.log('Molecule rendered with direct canvas ref');
+            } catch (fallbackErr: any) {
+              console.error('Fallback draw error:', fallbackErr);
+              setRenderError(`Draw failed: ${drawErr?.message || 'Unknown error'}`);
+            }
           }
           setIsRendering(false);
         },
@@ -432,6 +445,16 @@ export const ChemicalStructureRenderer = ({
       setIsRendering(false);
     }
   };
+
+  // Re-render when display options change
+  useEffect(() => {
+    if (open && smilesInput) {
+      const timer = setTimeout(() => {
+        renderMolecule(smilesInput);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [displayMode, showTerminalCarbons, showExplicitHydrogens, compactDrawing]);
 
   // Render when input changes
   useEffect(() => {
