@@ -103,8 +103,8 @@ const Index = () => {
         structuredData={structuredData}
       />
 
-      {/* Hero Section - Clean & Minimal */}
-      <section className="relative min-h-[85vh] flex items-center bg-gradient-to-b from-slate-50 to-white">
+      {/* Hero Section - Neo-Brutalism */}
+      <section className="relative min-h-[85vh] flex items-center bg-white">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left Content */}
@@ -114,10 +114,10 @@ const Index = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 border border-slate-200"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-secondary border-3 border-black brutal-shadow-sm"
               >
-                <Clock className="h-4 w-4 text-slate-600" />
-                <span className="text-sm font-medium text-slate-700">From hours to minutes</span>
+                <Clock className="h-4 w-4 text-black" />
+                <span className="text-sm font-bold text-black">From hours to minutes</span>
               </motion.div>
 
               {/* Title */}
@@ -126,16 +126,16 @@ const Index = () => {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-[1.1]"
+                  className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.1]"
                 >
                   Scientific figures,
-                  <span className="block text-slate-600">made simple.</span>
+                  <span className="block text-black">made simple.</span>
                 </motion.h1>
                 <motion.p
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-lg text-slate-600 max-w-lg leading-relaxed"
+                  className="text-lg text-muted-foreground max-w-lg leading-relaxed"
                 >
                   Create publication-ready illustrations in minutes.
                   6,000+ icons. Drag and drop. Export at 300+ DPI.
@@ -152,7 +152,7 @@ const Index = () => {
                 <Button
                   size="lg"
                   onClick={() => navigate(user ? "/canvas" : "/auth")}
-                  className="h-12 px-6 text-base font-medium bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition-all"
+                  className="h-12 px-6 text-base"
                 >
                   <Palette className="h-5 w-5 mr-2" />
                   {user ? "Open Canvas" : "Start Free"}
@@ -161,9 +161,9 @@ const Index = () => {
 
                 <Button
                   size="lg"
-                  variant="ghost"
+                  variant="outline"
                   onClick={() => navigate(user ? "/projects" : "/community")}
-                  className="h-12 px-6 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all"
+                  className="h-12 px-6"
                 >
                   {user ? (
                     <>
@@ -181,16 +181,16 @@ const Index = () => {
 
               {/* Trust Indicators */}
               <div className="flex items-center gap-6 pt-4">
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <CheckCircle className="h-4 w-4 text-slate-400" />
+                <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                  <CheckCircle className="h-4 w-4 text-black" />
                   <span>Free forever</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <CheckCircle className="h-4 w-4 text-slate-400" />
+                <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                  <CheckCircle className="h-4 w-4 text-black" />
                   <span>No credit card</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <CheckCircle className="h-4 w-4 text-slate-400" />
+                <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
+                  <CheckCircle className="h-4 w-4 text-black" />
                   <span>Publication ready</span>
                 </div>
               </div>
@@ -203,16 +203,16 @@ const Index = () => {
               transition={{ duration: 0.8, delay: 0.3 }}
               className="relative"
             >
-              <div className="relative rounded-xl overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/50 bg-white">
+              <div className="relative overflow-hidden border-4 border-black brutal-shadow-lg bg-white">
                 {/* Browser Chrome */}
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
+                <div className="flex items-center gap-2 px-4 py-3 bg-secondary border-b-3 border-black">
                   <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-slate-300" />
-                    <div className="w-3 h-3 rounded-full bg-slate-300" />
-                    <div className="w-3 h-3 rounded-full bg-slate-300" />
+                    <div className="w-3 h-3 border-2 border-black bg-white" />
+                    <div className="w-3 h-3 border-2 border-black bg-white" />
+                    <div className="w-3 h-3 border-2 border-black bg-white" />
                   </div>
                   <div className="flex-1 flex justify-center">
-                    <div className="px-4 py-1 rounded-md bg-slate-100 text-xs text-slate-500">
+                    <div className="px-4 py-1 border-2 border-black bg-white text-xs font-bold text-black">
                       biosketch.art/canvas
                     </div>
                   </div>
@@ -226,14 +226,14 @@ const Index = () => {
               </div>
 
               {/* Floating Badge */}
-              <div className="absolute -bottom-4 -left-4 p-4 rounded-xl bg-white border border-slate-200 shadow-lg">
+              <div className="absolute -bottom-4 -left-4 p-4 bg-white border-3 border-black brutal-shadow">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-slate-600" />
+                  <div className="w-10 h-10 bg-secondary border-2 border-black flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-black" />
                   </div>
                   <div>
-                    <p className="text-xl font-bold text-slate-900">5 min</p>
-                    <p className="text-xs text-slate-500">Avg. figure time</p>
+                    <p className="text-xl font-bold text-black">5 min</p>
+                    <p className="text-xs font-medium text-muted-foreground">Avg. figure time</p>
                   </div>
                 </div>
               </div>
@@ -243,16 +243,16 @@ const Index = () => {
       </section>
 
       {/* Trusted By */}
-      <section className="py-16 border-y border-slate-100 bg-slate-50/50">
+      <section className="py-16 border-y-3 border-black bg-secondary">
         <div className="container mx-auto px-4">
-          <p className="text-center text-sm font-medium text-slate-500 uppercase tracking-widest mb-8">
+          <p className="text-center text-sm font-bold text-black uppercase tracking-widest mb-8">
             Trusted by researchers at leading institutions
           </p>
           <InstitutionCarousel />
         </div>
       </section>
 
-      {/* Stats - Minimal */}
+      {/* Stats - Neo-Brutalism */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
@@ -263,24 +263,24 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="text-center"
+                className="text-center p-6 bg-white border-3 border-black brutal-shadow"
               >
-                <p className="text-4xl font-bold text-slate-900">{stat.value}</p>
-                <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
+                <p className="text-4xl font-bold text-black">{stat.value}</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1">{stat.label}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features - Clean Grid */}
-      <section className="py-24 bg-slate-50">
+      {/* Features - Neo-Brutalism Grid */}
+      <section className="py-24 bg-secondary">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold text-black mb-4">
               Everything you need
             </h2>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-muted-foreground">
               Professional tools for publication-ready scientific figures.
             </p>
           </div>
@@ -293,29 +293,29 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="p-6 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg hover:shadow-slate-100 transition-all duration-200 group"
+                className="p-6 bg-white border-3 border-black brutal-shadow transition-all duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#000000] group"
               >
-                <div className="w-12 h-12 rounded-lg bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center mb-4 transition-colors">
-                  <feature.icon className="h-6 w-6 text-slate-600" />
+                <div className="w-12 h-12 bg-secondary border-2 border-black group-hover:bg-accent flex items-center justify-center mb-4 transition-colors">
+                  <feature.icon className="h-6 w-6 text-black" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">{feature.title}</h3>
-                <p className="text-slate-600 text-sm leading-relaxed">{feature.desc}</p>
+                <h3 className="text-lg font-bold text-black mb-2">{feature.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Video Demo - Minimal */}
+      {/* Video Demo - Neo-Brutalism */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto space-y-8">
             <div className="text-center space-y-2">
-              <p className="text-sm text-slate-500 uppercase tracking-wide">Quick Demo</p>
-              <h2 className="text-2xl font-semibold text-slate-900">See how it works</h2>
+              <p className="text-sm text-muted-foreground uppercase tracking-wide font-bold">Quick Demo</p>
+              <h2 className="text-2xl font-bold text-black">See how it works</h2>
             </div>
 
-            <div className="rounded-xl overflow-hidden border border-slate-200 shadow-lg">
+            <div className="overflow-hidden border-4 border-black brutal-shadow-lg">
               <video
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
                 className="w-full h-auto"
@@ -329,20 +329,20 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 bg-slate-900">
+      {/* Final CTA - Neo-Brutalism Black Section */}
+      <section className="py-24 bg-black border-y-4 border-black">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto text-center space-y-8">
             <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
               Stop spending hours on figures.
-              <span className="block text-slate-400 mt-2">Start creating in minutes.</span>
+              <span className="block text-secondary mt-2">Start creating in minutes.</span>
             </h2>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
                 onClick={() => navigate(user ? "/canvas" : "/auth")}
-                className="h-12 px-8 text-base font-medium bg-white hover:bg-slate-100 text-slate-900 rounded-lg transition-all"
+                className="h-12 px-8 text-base bg-white text-black border-3 border-white hover:bg-secondary hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#ffffff]"
               >
                 <Palette className="h-5 w-5 mr-2" />
                 {user ? "Open Canvas" : "Get Started Free"}
@@ -350,7 +350,7 @@ const Index = () => {
               </Button>
             </div>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-secondary font-medium">
               Free forever · No credit card required · Publication ready
             </p>
           </div>
@@ -358,7 +358,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-slate-950 border-t border-slate-800">
+      <footer className="py-8 bg-black border-t-3 border-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -368,7 +368,7 @@ const Index = () => {
                 className="h-6 object-contain brightness-0 invert"
               />
             </div>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-secondary font-medium">
               © {new Date().getFullYear()} BioSketch. Free scientific illustration tool.
             </p>
           </div>

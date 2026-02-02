@@ -20,6 +20,7 @@ import {
   IconChartBar,
   IconMessage,
   IconUsers,
+  IconShare,
 } from "@tabler/icons-react";
 import {
   DropdownMenu,
@@ -71,6 +72,8 @@ import { WelcomeDialog } from "@/components/canvas/WelcomeDialog";
 import { MandatoryVideoPopup } from "@/components/canvas/MandatoryVideoPopup";
 import { MembraneTool } from "@/components/canvas/MembraneTool";
 import { ChemicalStructureRenderer } from "@/components/canvas/ChemicalStructureRenderer";
+import { ProteinStructureRenderer } from "@/components/canvas/ProteinStructureRenderer";
+import { ShareWithColleagueDialog } from "@/components/canvas/ShareWithColleagueDialog";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { FabricImage, Group, FabricObject } from "fabric";
@@ -109,6 +112,8 @@ const CanvasContent = () => {
   const [showWelcomeDialog, setShowWelcomeDialog] = useState(false);
   const [dataVisualizationOpen, setDataVisualizationOpen] = useState(false);
   const [chemicalStructureOpen, setChemicalStructureOpen] = useState(false);
+  const [proteinStructureOpen, setProteinStructureOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [showMandatoryVideo, setShowMandatoryVideo] = useState(() => {
     // Check if user has already watched the mandatory video
     const hasWatched = localStorage.getItem('mandatory_video_watched') === 'true';
@@ -748,6 +753,32 @@ const CanvasContent = () => {
         }}
       />
 
+      {/* Protein Structure Renderer (PDB) */}
+      <ProteinStructureRenderer
+        open={proteinStructureOpen}
+        onOpenChange={setProteinStructureOpen}
+        onInsertStructure={(imageUrl, proteinName) => {
+          if (canvas) {
+            FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' }).then((img) => {
+              img.set({
+                left: (canvas.width || 800) / 2,
+                top: (canvas.height || 600) / 2,
+                originX: 'center',
+                originY: 'center',
+              });
+              const maxDim = Math.min(canvas.width || 800, canvas.height || 600) * 0.6;
+              const scale = Math.min(1, maxDim / Math.max(img.width || 1, img.height || 1));
+              img.scale(scale);
+              // Store protein name as custom property
+              (img as any).proteinName = proteinName;
+              canvas.add(img);
+              canvas.setActiveObject(img);
+              canvas.renderAll();
+            });
+          }
+        }}
+      />
+
       {/* AI Figure Studio */}
       <AIFigureStudio
         open={aiFigureStudioOpen}
@@ -835,11 +866,17 @@ const CanvasContent = () => {
       />
 
       {/* Scale Bar Tool */}
-      <ScaleBarTool 
+      <ScaleBarTool
         open={scaleBarToolOpen}
         onOpenChange={setScaleBarToolOpen}
       />
-      
+
+      {/* Share with Colleague Dialog */}
+      <ShareWithColleagueDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+      />
+
       {/* Export Dialog */}
       <ExportDialog
         open={exportDialogOpen}
@@ -947,6 +984,7 @@ const CanvasContent = () => {
               onAIFigureStudioClick={() => setAiFigureStudioOpen(true)}
               onDataVisualizationClick={() => setDataVisualizationOpen(true)}
               onChemicalStructureClick={() => setChemicalStructureOpen(true)}
+              onProteinStructureClick={() => setProteinStructureOpen(true)}
             />
             {/* Create Menu - Quick access to AI and creation tools */}
             <DropdownMenu>
@@ -1027,6 +1065,20 @@ const CanvasContent = () => {
               <IconDeviceFloppy size={16} stroke={2} className="mr-1.5" />
               Save
             </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => setShareDialogOpen(true)}
+                  size="sm"
+                  variant="ghost"
+                  className="h-9 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition-all duration-200"
+                >
+                  <IconShare size={16} stroke={2} className="mr-1.5" />
+                  Share
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-slate-900 text-white border-0 shadow-lg">Share with Colleague</TooltipContent>
+            </Tooltip>
 
             {/* Collaboration Features */}
             {currentProjectId && (

@@ -45,8 +45,12 @@ import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
-// Import SmilesDrawer - use default export which contains all classes
-import SmilesDrawer from 'smiles-drawer';
+// Declare global SmilesDrawer for CDN fallback
+declare global {
+  interface Window {
+    SmilesDrawer: any;
+  }
+}
 
 interface ChemicalStructureRendererProps {
   open: boolean;
@@ -332,7 +336,6 @@ export const ChemicalStructureRenderer = ({
 }: ChemicalStructureRendererProps) => {
   const { toast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const drawerRef = useRef<any>(null);
 
   const [smilesInput, setSmilesInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -342,12 +345,42 @@ export const ChemicalStructureRenderer = ({
   const [renderError, setRenderError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [currentMoleculeName, setCurrentMoleculeName] = useState<string>('');
+  const [libLoaded, setLibLoaded] = useState(false);
 
-  // Display mode options
+  // Display mode options - 'default' for skeletal, 'balls' for ball representation
   const [displayMode, setDisplayMode] = useState<'default' | 'balls'>('default');
   const [showTerminalCarbons, setShowTerminalCarbons] = useState(false);
   const [showExplicitHydrogens, setShowExplicitHydrogens] = useState(false);
   const [compactDrawing, setCompactDrawing] = useState(true);
+
+  // Load SmilesDrawer library from CDN
+  useEffect(() => {
+    if (!open) return;
+
+    // Check if already loaded
+    if (window.SmilesDrawer) {
+      setLibLoaded(true);
+      return;
+    }
+
+    // Load the script from CDN
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/smiles-drawer@2.1.7/dist/smiles-drawer.min.js';
+    script.async = true;
+    script.onload = () => {
+      console.log('SmilesDrawer loaded from CDN');
+      setLibLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('Failed to load SmilesDrawer from CDN');
+      setRenderError('Failed to load chemical drawing library');
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      // Don't remove script - it can be reused
+    };
+  }, [open]);
 
   // Get unique categories
   const categories = ['all', ...Array.from(new Set(moleculePresets.map(m => m.category)))];
@@ -365,10 +398,10 @@ export const ChemicalStructureRenderer = ({
   const getDrawerOptions = () => ({
     width: 500,
     height: 500,
-    bondThickness: 1.0,
-    bondLength: 20,
+    bondThickness: 1.5,
+    bondLength: 25,
     shortBondLength: 0.85,
-    bondSpacing: 3.6,
+    bondSpacing: 4.0,
     atomVisualization: displayMode,
     isomeric: true,
     debug: false,
@@ -377,65 +410,99 @@ export const ChemicalStructureRenderer = ({
     overlapSensitivity: 0.42,
     overlapResolutionIterations: 1,
     compactDrawing: compactDrawing,
-    fontSizeLarge: 6,
-    fontSizeSmall: 4,
-    padding: 30.0,
+    fontSizeLarge: 8,
+    fontSizeSmall: 5,
+    padding: 40.0,
   });
 
-  // Render function - creates fresh drawer each time to ensure options are applied
+  // Render function using SvgDrawer for better control
   const renderMolecule = (smiles: string) => {
-    if (!smiles || !canvasRef.current) {
+    if (!smiles) {
       return;
     }
 
-    // Verify canvas element exists in DOM
-    const canvasElement = document.getElementById('smiles-preview-canvas');
-    if (!canvasElement) {
-      console.error('Canvas element not found in DOM');
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      console.error('Canvas ref not available');
       setRenderError('Canvas not ready. Please try again.');
+      return;
+    }
+
+    if (!window.SmilesDrawer) {
+      console.error('SmilesDrawer not loaded');
+      setRenderError('Chemical drawing library not loaded. Please wait and try again.');
       return;
     }
 
     setIsRendering(true);
     setRenderError(null);
 
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      setRenderError('Could not get canvas context');
+      setIsRendering(false);
+      return;
+    }
+
+    // Clear canvas first with white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     try {
-      // Create a fresh drawer with current options
-      const drawer = new SmilesDrawer.Drawer(getDrawerOptions());
+      const SD = window.SmilesDrawer;
+      const options = getDrawerOptions();
+
+      // Use SvgDrawer to generate SVG, then convert to canvas manually
+      const svgDrawer = new SD.SvgDrawer(options);
 
       // Parse the SMILES string
-      SmilesDrawer.parse(
+      SD.parse(
         smiles,
         (tree: any) => {
           try {
-            // Clear canvas first
-            const ctx = canvasRef.current?.getContext('2d');
-            if (ctx) {
-              ctx.fillStyle = '#ffffff';
-              ctx.fillRect(0, 0, 500, 500);
-            }
+            // Create SVG element
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            svg.setAttributeNS(null, 'viewBox', `0 0 ${options.width} ${options.height}`);
+            svg.setAttributeNS(null, 'width', String(options.width));
+            svg.setAttributeNS(null, 'height', String(options.height));
 
-            // Draw to canvas using the canvas ID
-            drawer.draw(tree, 'smiles-preview-canvas', 'light', false);
-            setRenderError(null);
-            console.log('Molecule rendered successfully');
+            // Draw to SVG
+            svgDrawer.draw(tree, svg, 'light', false);
+
+            // Convert SVG to canvas via Image
+            const svgString = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            const img = new Image();
+            img.onload = () => {
+              // Clear and draw
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(img, 0, 0, options.width, options.height);
+              URL.revokeObjectURL(url);
+              setRenderError(null);
+              setIsRendering(false);
+              console.log('Molecule rendered successfully:', smiles);
+            };
+            img.onerror = (err) => {
+              console.error('Image load error:', err);
+              URL.revokeObjectURL(url);
+              setRenderError('Failed to render molecule image');
+              setIsRendering(false);
+            };
+            img.src = url;
+
           } catch (drawErr: any) {
             console.error('Draw error:', drawErr);
-            // Try alternative: draw directly to canvas element
-            try {
-              drawer.draw(tree, canvasRef.current, 'light', false);
-              setRenderError(null);
-              console.log('Molecule rendered with direct canvas ref');
-            } catch (fallbackErr: any) {
-              console.error('Fallback draw error:', fallbackErr);
-              setRenderError(`Draw failed: ${drawErr?.message || 'Unknown error'}`);
-            }
+            setRenderError(`Draw failed: ${drawErr?.message || 'Unknown error'}`);
+            setIsRendering(false);
           }
-          setIsRendering(false);
         },
         (parseErr: any) => {
           console.error('Parse error:', parseErr);
-          setRenderError(`Invalid SMILES: ${parseErr?.message || 'Parse failed'}`);
+          setRenderError(`Invalid SMILES: ${parseErr?.message || 'Could not parse molecule'}`);
           setIsRendering(false);
         }
       );
@@ -448,23 +515,23 @@ export const ChemicalStructureRenderer = ({
 
   // Re-render when display options change
   useEffect(() => {
-    if (open && smilesInput) {
+    if (open && smilesInput && libLoaded) {
       const timer = setTimeout(() => {
         renderMolecule(smilesInput);
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [displayMode, showTerminalCarbons, showExplicitHydrogens, compactDrawing]);
+  }, [displayMode, showTerminalCarbons, showExplicitHydrogens, compactDrawing, libLoaded]);
 
   // Render when input changes
   useEffect(() => {
-    if (smilesInput && open && drawerRef.current) {
+    if (smilesInput && open && libLoaded) {
       const timer = setTimeout(() => {
         renderMolecule(smilesInput);
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [smilesInput, open]);
+  }, [smilesInput, open, libLoaded]);
 
   // Handle preset selection
   const handlePresetSelect = (preset: MoleculePreset) => {
@@ -615,9 +682,10 @@ export const ChemicalStructureRenderer = ({
                     />
                     <Button
                       onClick={() => renderMolecule(smilesInput)}
-                      disabled={!smilesInput}
+                      disabled={!smilesInput || !libLoaded}
                     >
-                      Render
+                      {!libLoaded ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                      {libLoaded ? 'Render' : 'Loading...'}
                     </Button>
                     <TooltipProvider>
                       <Tooltip>
@@ -664,7 +732,7 @@ export const ChemicalStructureRenderer = ({
                       <SelectItem value="balls">
                         <div className="flex items-center gap-2">
                           <Circle className="h-3 w-3" />
-                          <span>Ball & Stick</span>
+                          <span>Ball Representation</span>
                         </div>
                       </SelectItem>
                     </SelectContent>

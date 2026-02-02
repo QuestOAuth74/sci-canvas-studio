@@ -19,11 +19,81 @@ import { ConnectorVisualFeedback } from "@/lib/connectorVisualFeedback";
 import { loadImageWithCORS } from "@/lib/utils";
 import { ObjectCullingManager, createThrottledCuller } from "@/lib/objectCulling";
 import { calculateObjectComplexity, applyComplexityOptimizations, shouldSimplifyControls } from "@/lib/objectComplexity";
+import { CanvasPerformanceManager } from "@/lib/canvasPerformance";
 import { isTextBox, handleTextBoxResize, getTextBoxTextElement } from "@/lib/textBoxTool";
 
 // Default shape styling constants
 const DEFAULT_SHAPE_FILL = 'rgba(134, 239, 172, 0.5)';  // Light green at 50% opacity
 const DEFAULT_SHAPE_STROKE = '#9ca3af';                   // Light grey (gray-400)
+
+// Apply default line gradient (fade-in with reverse direction)
+const applyDefaultLineGradient = (lineObj: any, canvas: Canvas) => {
+  if (!lineObj || !canvas) return;
+
+  // Get the target path object
+  let targetObj: any = lineObj;
+  if (lineObj.type === 'group') {
+    if (lineObj.mainPath) {
+      targetObj = lineObj.mainPath;
+    } else {
+      targetObj = lineObj._objects?.find((obj: any) => obj.type === 'path' || obj.type === 'line') || lineObj._objects?.[0];
+    }
+  }
+
+  if (!targetObj) return;
+
+  // Default gradient config: fade-in with reverse direction
+  const gradientConfig = {
+    type: 'fade-in',
+    direction: 'reverse',
+    solidStartPercent: 0,
+    solidEndPercent: 40,
+    startColor: '#000000',
+    endColor: '#000000',
+    endOpacity: 0,
+    stops: [
+      { color: '#000000', offset: 0, opacity: 1 },
+      { color: '#000000', offset: 0, opacity: 1 },
+      { color: '#000000', offset: 0.6, opacity: 0 },
+      { color: '#000000', offset: 1, opacity: 0 },
+    ],
+  };
+
+  // Store gradient config on both wrapper and target
+  lineObj.gradientConfig = gradientConfig;
+  targetObj.gradientConfig = gradientConfig;
+
+  // Get path dimensions for gradient coordinates
+  const pathBounds = targetObj._getTransformedDimensions ? targetObj._getTransformedDimensions() : { x: targetObj.width || 100, y: targetObj.height || 2 };
+  const width = pathBounds.x || targetObj.width || 100;
+  const height = pathBounds.y || targetObj.height || 2;
+  const isHorizontal = width >= height;
+
+  // Gradient coordinates (reverse direction)
+  const gradientCoords = isHorizontal
+    ? { x1: width / 2, y1: 0, x2: -width / 2, y2: 0 }
+    : { x1: 0, y1: height / 2, x2: 0, y2: -height / 2 };
+
+  const gradient = new Gradient({
+    type: 'linear',
+    gradientUnits: 'pixels',
+    coords: gradientCoords,
+    colorStops: gradientConfig.stops.map(stop => ({
+      offset: stop.offset,
+      color: stop.color,
+      opacity: stop.opacity ?? 1,
+    })),
+  });
+
+  targetObj.set('stroke', gradient);
+  targetObj.set('dirty', true);
+
+  if (lineObj.type === 'group') {
+    lineObj.set('dirty', true);
+  }
+
+  canvas.requestRenderAll();
+};
 
 // Sanitize SVG namespace issues before parsing with Fabric.js
 const sanitizeSVGNamespaces = (svgContent: string): string => {
@@ -110,7 +180,15 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
   const membraneBrushToolRef = useRef<MembraneBrushTool | null>(null);
   const connectorFeedbackRef = useRef<ConnectorVisualFeedback | null>(null);
 
-  // Object culling manager for viewport-based performance optimization
+  // Centralized performance manager for viewport culling, batch operations, and interaction optimization
+  const performanceManagerRef = useRef<CanvasPerformanceManager>(new CanvasPerformanceManager({
+    enableCulling: true,
+    enableBatchMode: true,
+    enableInteractionOptimization: true,
+    objectCountThreshold: 30,  // Start optimizing at 30+ objects
+  }));
+
+  // Legacy refs for backward compatibility (some code may still reference these)
   const cullingManagerRef = useRef<ObjectCullingManager>(new ObjectCullingManager());
   const throttledCullRef = useRef<(() => void) | null>(null);
 
@@ -373,6 +451,10 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         controlsAboveOverlay: true,
         centeredScaling: false,
         centeredRotation: true,
+        // Performance optimizations
+        skipOffscreen: true,           // Skip rendering objects outside viewport
+        enableRetinaScaling: true,     // Better quality on high-DPI displays
+        imageSmoothingEnabled: true,   // Smooth images (disabled during interactions)
       });
       
       // Check again after canvas creation
@@ -381,10 +463,11 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
         return;
       }
 
-    // Apply control styling to all objects added to canvas (grip-style handles)
+    // Apply control styling and performance optimizations to all objects added to canvas
     fabricCanvas.on('object:added', (e) => {
       if (e.target) {
         e.target.set({
+          // Control styling (grip-style handles)
           cornerColor: '#3B82F6',
           cornerStrokeColor: '#ffffff',
           cornerStyle: 'rect',
@@ -396,6 +479,9 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
           padding: 4,
           hasControls: true,
           hasRotatingPoint: true,
+          // Performance: enable object caching (renders object to bitmap)
+          objectCaching: true,
+          statefullCache: false,  // Don't check all properties for cache invalidation
         });
         
         // Apply custom arrow renderers to this object's controls
@@ -659,17 +745,13 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     
     // Initialize connector visual feedback
     connectorFeedbackRef.current = new ConnectorVisualFeedback(fabricCanvas);
-    
-    // Initialize object culling manager
+
+    // Initialize centralized performance manager (handles culling, batch ops, interaction optimization)
+    performanceManagerRef.current.initialize(fabricCanvas);
+
+    // Also set legacy refs for backward compatibility
     cullingManagerRef.current.setCanvas(fabricCanvas);
     throttledCullRef.current = createThrottledCuller(cullingManagerRef.current, 100);
-    
-    // Apply culling on viewport changes (pan/zoom)
-    fabricCanvas.on('after:render', () => {
-      if (throttledCullRef.current) {
-        throttledCullRef.current();
-      }
-    });
     
     // Apply control styles to any existing objects on canvas (grip-style handles)
     fabricCanvas.getObjects().forEach((obj) => {
@@ -1418,6 +1500,8 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (handleAddAsset) {
         window.removeEventListener("addAssetToCanvas", handleAddAsset as EventListener);
       }
+      // Clean up performance manager
+      performanceManagerRef.current.dispose();
       setCanvas(null);
       if (fabricCanvas) {
         fabricCanvas.dispose();
@@ -2097,6 +2181,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       const pointer = canvas.getPointer(e.e);
       const line = straightLineToolRef.current?.finishDragLine(pointer.x, pointer.y);
       if (line) {
+        applyDefaultLineGradient(line, canvas);
         toast.success("Straight line created!");
         if (onShapeCreated) onShapeCreated();
         // Re-initialize tool for drawing more lines
@@ -2213,6 +2298,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       if (e.key === "Enter") {
         const line = orthogonalLineToolRef.current?.finish();
         if (line) {
+          applyDefaultLineGradient(line, canvas);
           toast.success("Orthogonal line created!");
           if (onShapeCreated) onShapeCreated();
         }
@@ -2315,6 +2401,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
       } else {
         const curve = curvedLineToolRef.current?.setEndPoint(pointer.x, pointer.y);
         if (curve) {
+          applyDefaultLineGradient(curve, canvas);
           toast.success("Curved line created! Drag the control point to adjust.");
           if (onShapeCreated) onShapeCreated();
           // Re-initialize for next line
@@ -2467,7 +2554,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     } else if (activeTool === "eraser") {
       canvas.defaultCursor = "crosshair";
       canvas.hoverCursor = "crosshair";
-    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-') || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line') || activeTool.startsWith('curved-line') || activeTool.startsWith('membrane-brush')) {
+    } else if (activeTool.startsWith('connector-') || activeTool.startsWith('line-') || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line') || activeTool.startsWith('curved-line') || activeTool.startsWith('membrane-brush') || activeTool === 'membrane-draw') {
       canvas.defaultCursor = "crosshair";
       canvas.hoverCursor = "crosshair";
     } else {
@@ -2476,7 +2563,7 @@ export const FabricCanvas = ({ activeTool, onShapeCreated, onToolChange }: Fabri
     }
 
     const handleCanvasClick = (e: any) => {
-      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image" || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line') || activeTool.startsWith('curved-line') || activeTool.startsWith('membrane-brush')) return;
+      if (activeTool === "select" || activeTool === "freeform-line" || activeTool === "pen" || activeTool === "eraser" || activeTool === "image" || activeTool.startsWith('straight-line') || activeTool.startsWith('orthogonal-line') || activeTool.startsWith('curved-line') || activeTool.startsWith('membrane-brush') || activeTool === 'membrane-draw') return;
 
       const pointer = canvas.getPointer(e.e);
       
