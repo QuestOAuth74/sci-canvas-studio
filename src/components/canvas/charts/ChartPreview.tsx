@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import {
   BarChart,
   Bar,
@@ -38,6 +38,10 @@ interface ChartPreviewProps {
   showLegend?: boolean;
   showGrid?: boolean;
   showDataLabels?: boolean;
+  // Heatmap-specific options
+  heatmapCellRounding?: number;
+  heatmapShowValues?: boolean;
+  heatmapCellGap?: number;
 }
 
 // Custom Box Plot shape
@@ -121,23 +125,188 @@ const BoxPlotShape = (props: any) => {
   );
 };
 
-// Heatmap cell component
-const HeatmapCell = ({ cx, cy, payload, colorScale }: any) => {
-  if (!payload || typeof payload.value !== 'number') return null;
-  
-  const color = colorScale(payload.value);
-  const size = 30;
-  
+// Color interpolation utilities for smooth gradients
+const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 0, g: 0, b: 0 };
+};
+
+const rgbToHex = (r: number, g: number, b: number): string => {
+  return '#' + [r, g, b].map(x => {
+    const hex = Math.round(Math.max(0, Math.min(255, x))).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('');
+};
+
+const interpolateColor = (color1: string, color2: string, factor: number): string => {
+  const c1 = hexToRgb(color1);
+  const c2 = hexToRgb(color2);
+  return rgbToHex(
+    c1.r + (c2.r - c1.r) * factor,
+    c1.g + (c2.g - c1.g) * factor,
+    c1.b + (c2.b - c1.b) * factor
+  );
+};
+
+const createSmoothColorScale = (colors: string[], minVal: number, maxVal: number) => {
+  return (value: number): string => {
+    if (colors.length === 0) return '#cccccc';
+    if (colors.length === 1) return colors[0];
+
+    const ratio = Math.max(0, Math.min(1, (value - minVal) / (maxVal - minVal || 1)));
+    const scaledPos = ratio * (colors.length - 1);
+    const lowerIdx = Math.floor(scaledPos);
+    const upperIdx = Math.min(lowerIdx + 1, colors.length - 1);
+    const localRatio = scaledPos - lowerIdx;
+
+    return interpolateColor(colors[lowerIdx], colors[upperIdx], localRatio);
+  };
+};
+
+// Heatmap color legend component
+const HeatmapColorLegend = ({
+  colors,
+  minVal,
+  maxVal,
+  height = 200,
+  width = 20
+}: {
+  colors: string[];
+  minVal: number;
+  maxVal: number;
+  height?: number;
+  width?: number;
+}) => {
+  const gradientId = `heatmap-gradient-${Date.now()}`;
+  const stops = colors.map((color, idx) => ({
+    offset: `${(idx / (colors.length - 1)) * 100}%`,
+    color
+  }));
+
   return (
-    <Rectangle
-      x={cx - size / 2}
-      y={cy - size / 2}
-      width={size}
-      height={size}
-      fill={color}
-      stroke="#fff"
-      strokeWidth={1}
-    />
+    <svg width={width + 40} height={height + 20} style={{ marginLeft: 8 }}>
+      <defs>
+        <linearGradient id={gradientId} x1="0%" y1="100%" x2="0%" y2="0%">
+          {stops.map((stop, idx) => (
+            <stop key={idx} offset={stop.offset} stopColor={stop.color} />
+          ))}
+        </linearGradient>
+      </defs>
+      <rect
+        x={0}
+        y={10}
+        width={width}
+        height={height}
+        fill={`url(#${gradientId})`}
+        rx={3}
+        ry={3}
+        stroke="#e0e0e0"
+        strokeWidth={1}
+      />
+      <text x={width + 4} y={16} fontSize={9} fill="#666">{maxVal.toFixed(1)}</text>
+      <text x={width + 4} y={height / 2 + 10} fontSize={9} fill="#666">
+        {((minVal + maxVal) / 2).toFixed(1)}
+      </text>
+      <text x={width + 4} y={height + 10} fontSize={9} fill="#666">{minVal.toFixed(1)}</text>
+    </svg>
+  );
+};
+
+// Enhanced Heatmap cell component with animations and styling
+const HeatmapCell = ({
+  cx,
+  cy,
+  payload,
+  colorScale,
+  cellWidth,
+  cellHeight,
+  gap = 1,
+  rounding = 2,
+  showValue = false,
+  minVal,
+  maxVal,
+  isHovered = false,
+  onHover,
+  cellIndex
+}: any) => {
+  if (!payload || typeof payload.value !== 'number') return null;
+
+  const color = colorScale(payload.value);
+  const width = cellWidth - gap * 2;
+  const height = cellHeight - gap * 2;
+
+  // Calculate text color based on background luminance
+  const rgb = hexToRgb(color);
+  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+  const textColor = luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+
+  // Hover effect scale
+  const scale = isHovered ? 1.05 : 1;
+  const offsetX = isHovered ? (width * 0.05) / 2 : 0;
+  const offsetY = isHovered ? (height * 0.05) / 2 : 0;
+
+  return (
+    <g
+      style={{
+        cursor: 'pointer',
+        transition: 'transform 0.15s ease-out'
+      }}
+      onMouseEnter={() => onHover?.(cellIndex)}
+      onMouseLeave={() => onHover?.(null)}
+    >
+      {/* Cell background with shadow on hover */}
+      {isHovered && (
+        <rect
+          x={cx - width / 2 - offsetX + 2}
+          y={cy - height / 2 - offsetY + 2}
+          width={width * scale}
+          height={height * scale}
+          fill="rgba(0,0,0,0.15)"
+          rx={rounding}
+          ry={rounding}
+        />
+      )}
+      {/* Main cell */}
+      <rect
+        x={cx - width / 2 - offsetX}
+        y={cy - height / 2 - offsetY}
+        width={width * scale}
+        height={height * scale}
+        fill={color}
+        rx={rounding}
+        ry={rounding}
+        stroke={isHovered ? '#333' : 'rgba(255,255,255,0.3)'}
+        strokeWidth={isHovered ? 2 : 0.5}
+        style={{
+          filter: isHovered ? 'brightness(1.1)' : 'none',
+          transition: 'all 0.15s ease-out'
+        }}
+      />
+      {/* Value label */}
+      {showValue && width > 25 && height > 20 && (
+        <text
+          x={cx}
+          y={cy}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize={Math.min(10, width / 4)}
+          fontWeight={500}
+          fill={textColor}
+          style={{
+            pointerEvents: 'none',
+            textShadow: luminance > 0.5 ? 'none' : '0 1px 2px rgba(0,0,0,0.3)'
+          }}
+        >
+          {payload.value.toFixed(1)}
+        </text>
+      )}
+    </g>
   );
 };
 
@@ -151,7 +320,16 @@ export const ChartPreview = ({
   showLegend = true,
   showGrid = true,
   showDataLabels = false,
+  heatmapCellRounding = 2,
+  heatmapShowValues = false,
+  heatmapCellGap = 1,
 }: ChartPreviewProps) => {
+  const [hoveredCell, setHoveredCell] = useState<number | null>(null);
+
+  const handleCellHover = useCallback((cellIndex: number | null) => {
+    setHoveredCell(cellIndex);
+  }, []);
+
   const chartElement = useMemo(() => {
     if (!data || data.length === 0) {
       return (
@@ -280,66 +458,171 @@ export const ChartPreview = ({
         const values = heatmapData.map(d => d.value);
         const minVal = Math.min(...values);
         const maxVal = Math.max(...values);
-        
-        // Create color scale
-        const colorScale = (value: number) => {
-          const ratio = (value - minVal) / (maxVal - minVal || 1);
-          const colorIdx = Math.floor(ratio * (colors.length - 1));
-          return colors[colorIdx] || colors[0];
-        };
-        
+
+        // Create smooth color scale
+        const colorScale = createSmoothColorScale(colors, minVal, maxVal);
+
         // Get unique x and y values
         const xLabels = [...new Set(heatmapData.map(d => d.x))];
         const yLabels = [...new Set(heatmapData.map(d => d.y))];
-        
+
+        // Calculate dynamic cell size based on data dimensions
+        const chartWidth = 340; // Approximate available width
+        const chartHeight = 260; // Approximate available height
+        const cellWidth = Math.max(20, Math.min(50, chartWidth / xLabels.length));
+        const cellHeight = Math.max(20, Math.min(50, chartHeight / yLabels.length));
+
         // Transform data for scatter chart representation
-        const scatterData = heatmapData.map(d => ({
+        const scatterData = heatmapData.map((d, idx) => ({
           x: xLabels.indexOf(d.x),
           y: yLabels.indexOf(d.y),
           value: d.value,
+          xLabel: d.x,
+          yLabel: d.y,
+          cellIndex: idx,
         }));
-        
+
         return (
-          <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart margin={{ top: 20, right: 60, left: 20, bottom: 60 }}>
-              {showGrid && <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />}
-              <XAxis 
-                type="number"
-                dataKey="x"
-                domain={[-0.5, xLabels.length - 0.5]}
-                ticks={xLabels.map((_, i) => i)}
-                tickFormatter={(i) => xLabels[i] || ''}
-                tick={{ fontSize: 10 }}
-                angle={-45}
-                textAnchor="end"
-              />
-              <YAxis 
-                type="number"
-                dataKey="y"
-                domain={[-0.5, yLabels.length - 0.5]}
-                ticks={yLabels.map((_, i) => i)}
-                tickFormatter={(i) => yLabels[i] || ''}
-                tick={{ fontSize: 10 }}
-              />
-              <ZAxis dataKey="value" range={[400, 400]} />
-              <Tooltip 
-                content={({ payload }) => {
-                  if (!payload?.[0]) return null;
-                  const d = payload[0].payload;
-                  return (
-                    <div className="bg-background border rounded p-2 text-xs shadow-lg">
-                      <p>{xLabels[d.x]} × {yLabels[d.y]}</p>
-                      <p className="font-semibold">Value: {d.value}</p>
-                    </div>
-                  );
-                }}
-              />
-              <Scatter
-                data={scatterData}
-                shape={(props: any) => <HeatmapCell {...props} colorScale={colorScale} />}
-              />
-            </ScatterChart>
-          </ResponsiveContainer>
+          <div className="flex h-full">
+            <div className="flex-1">
+              <ResponsiveContainer width="100%" height="100%">
+                <ScatterChart
+                  margin={{
+                    top: 20,
+                    right: 20,
+                    left: 60,
+                    bottom: 60
+                  }}
+                >
+                  {showGrid && (
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#e0e0e0"
+                      opacity={0.5}
+                    />
+                  )}
+                  <XAxis
+                    type="number"
+                    dataKey="x"
+                    domain={[-0.5, xLabels.length - 0.5]}
+                    ticks={xLabels.map((_, i) => i)}
+                    tickFormatter={(i) => xLabels[i] || ''}
+                    tick={{ fontSize: 10, fill: '#666' }}
+                    angle={-45}
+                    textAnchor="end"
+                    axisLine={{ stroke: '#ccc' }}
+                    tickLine={{ stroke: '#ccc' }}
+                    label={
+                      xAxisLabel
+                        ? {
+                            value: xAxisLabel,
+                            position: 'bottom',
+                            offset: 45,
+                            style: { fontSize: 11, fill: '#444' }
+                          }
+                        : undefined
+                    }
+                  />
+                  <YAxis
+                    type="number"
+                    dataKey="y"
+                    domain={[-0.5, yLabels.length - 0.5]}
+                    ticks={yLabels.map((_, i) => i)}
+                    tickFormatter={(i) => yLabels[i] || ''}
+                    tick={{ fontSize: 10, fill: '#666' }}
+                    axisLine={{ stroke: '#ccc' }}
+                    tickLine={{ stroke: '#ccc' }}
+                    label={
+                      yAxisLabel
+                        ? {
+                            value: yAxisLabel,
+                            angle: -90,
+                            position: 'insideLeft',
+                            offset: -10,
+                            style: { fontSize: 11, fill: '#444' }
+                          }
+                        : undefined
+                    }
+                  />
+                  <ZAxis dataKey="value" range={[400, 400]} />
+                  <Tooltip
+                    cursor={false}
+                    content={({ payload }) => {
+                      if (!payload?.[0]) return null;
+                      const d = payload[0].payload;
+                      const color = colorScale(d.value);
+                      return (
+                        <div
+                          className="rounded-lg p-3 text-xs shadow-xl border"
+                          style={{
+                            background: 'rgba(255,255,255,0.98)',
+                            backdropFilter: 'blur(8px)'
+                          }}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <div
+                              className="w-3 h-3 rounded"
+                              style={{ backgroundColor: color }}
+                            />
+                            <span className="font-semibold text-gray-800">
+                              {d.value.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="space-y-0.5 text-gray-600">
+                            <p>
+                              <span className="text-gray-400">Row:</span>{' '}
+                              {d.xLabel}
+                            </p>
+                            <p>
+                              <span className="text-gray-400">Col:</span>{' '}
+                              {d.yLabel}
+                            </p>
+                          </div>
+                          <div className="mt-2 pt-2 border-t border-gray-100">
+                            <div className="flex justify-between text-gray-500">
+                              <span>Min: {minVal.toFixed(1)}</span>
+                              <span>Max: {maxVal.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                  <Scatter
+                    data={scatterData}
+                    shape={(props: any) => (
+                      <HeatmapCell
+                        {...props}
+                        colorScale={colorScale}
+                        cellWidth={cellWidth}
+                        cellHeight={cellHeight}
+                        gap={heatmapCellGap}
+                        rounding={heatmapCellRounding}
+                        showValue={heatmapShowValues}
+                        minVal={minVal}
+                        maxVal={maxVal}
+                        isHovered={hoveredCell === props.payload?.cellIndex}
+                        onHover={handleCellHover}
+                        cellIndex={props.payload?.cellIndex}
+                      />
+                    )}
+                  />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Color Legend */}
+            {showLegend && (
+              <div className="flex-shrink-0">
+                <HeatmapColorLegend
+                  colors={colors}
+                  minVal={minVal}
+                  maxVal={maxVal}
+                  height={180}
+                  width={16}
+                />
+              </div>
+            )}
+          </div>
         );
       }
 
@@ -441,7 +724,7 @@ export const ChartPreview = ({
       default:
         return null;
     }
-  }, [type, data, colors, title, xAxisLabel, yAxisLabel, showLegend, showGrid, showDataLabels]);
+  }, [type, data, colors, title, xAxisLabel, yAxisLabel, showLegend, showGrid, showDataLabels, heatmapCellRounding, heatmapShowValues, heatmapCellGap, hoveredCell, handleCellHover]);
 
   return (
     <div className="w-full h-full flex flex-col">

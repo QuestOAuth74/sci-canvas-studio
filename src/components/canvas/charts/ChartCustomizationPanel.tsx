@@ -24,6 +24,13 @@ interface ChartCustomizationPanelProps {
   onPresetChange: (preset: string) => void;
   binCount: number;
   onBinCountChange: (count: number) => void;
+  // Heatmap-specific options
+  heatmapCellRounding?: number;
+  onHeatmapCellRoundingChange?: (value: number) => void;
+  heatmapShowValues?: boolean;
+  onHeatmapShowValuesChange?: (show: boolean) => void;
+  heatmapCellGap?: number;
+  onHeatmapCellGapChange?: (value: number) => void;
 }
 
 export const ChartCustomizationPanel = ({
@@ -44,6 +51,12 @@ export const ChartCustomizationPanel = ({
   onPresetChange,
   binCount,
   onBinCountChange,
+  heatmapCellRounding = 2,
+  onHeatmapCellRoundingChange,
+  heatmapShowValues = false,
+  onHeatmapShowValuesChange,
+  heatmapCellGap = 1,
+  onHeatmapCellGapChange,
 }: ChartCustomizationPanelProps) => {
   return (
     <div className="space-y-6">
@@ -140,6 +153,50 @@ export const ChartCustomizationPanel = ({
               className="w-full"
             />
           </div>
+        )}
+
+        {/* Heatmap-specific options */}
+        {chartType === 'heatmap' && (
+          <>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="heatmap-values" className="text-xs cursor-pointer">
+                Show Values on Cells
+              </Label>
+              <Switch
+                id="heatmap-values"
+                checked={heatmapShowValues}
+                onCheckedChange={onHeatmapShowValuesChange}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Cell Rounding: {heatmapCellRounding}px</Label>
+              </div>
+              <Slider
+                value={[heatmapCellRounding]}
+                onValueChange={(v) => onHeatmapCellRoundingChange?.(v[0])}
+                min={0}
+                max={12}
+                step={1}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Cell Gap: {heatmapCellGap}px</Label>
+              </div>
+              <Slider
+                value={[heatmapCellGap]}
+                onValueChange={(v) => onHeatmapCellGapChange?.(v[0])}
+                min={0}
+                max={4}
+                step={0.5}
+                className="w-full"
+              />
+            </div>
+          </>
         )}
       </div>
 

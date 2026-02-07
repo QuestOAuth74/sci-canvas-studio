@@ -79,10 +79,10 @@ export default function Community() {
 
   const loadProjects = async () => {
     setLoading(true);
-    
+
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE - 1;
-    
+
     let projectsQuery = supabase
       .from('canvas_projects')
       .select('*', { count: 'exact' })
@@ -149,10 +149,10 @@ export default function Community() {
     setCurrentPage(1);
   }, [searchQuery, sortBy]);
 
-  const totalPages = searchQuery 
+  const totalPages = searchQuery
     ? Math.ceil(filteredProjects.length / ITEMS_PER_PAGE)
     : Math.ceil(totalCount / ITEMS_PER_PAGE);
-  
+
   const displayProjects = searchQuery ? filteredProjects : projects;
 
   const sortOptions: { value: SortOption; label: string; icon: React.ElementType }[] = [
@@ -163,26 +163,34 @@ export default function Community() {
   ];
 
   return (
-    <div className="min-h-screen bg-background" data-testid={CommunityTestIds.PAGE_CONTAINER}>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-violet-50/20 relative overflow-hidden" data-testid={CommunityTestIds.PAGE_CONTAINER}>
+      {/* Background Blobs */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="blob-1 top-[-100px] right-[-100px] opacity-40" />
+        <div className="blob-2 bottom-[30%] left-[-50px] opacity-30" />
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
+      </div>
+
       <MobileWarningDialog />
-      <SEOHead 
-        title="Community Gallery - BioSketch" 
+      <SEOHead
+        title="Community Gallery - BioSketch"
         description="Discover and share scientific diagrams with the BioSketch community."
       />
       <FeatureUnlockBanner />
 
-      <main className="container mx-auto px-4 py-12 max-w-7xl">
+      <main className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
         {/* Header Section */}
         <section className="mb-12">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
             <div>
-              <div className="inline-block bg-accent text-accent-foreground px-4 py-1 text-sm font-bold uppercase tracking-wider mb-4 border-2 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 text-sm font-medium mb-4">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                 Explore & Discover
               </div>
-              <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight mb-3">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-3">
                 Community Gallery
               </h1>
-              <p className="text-lg text-muted-foreground max-w-xl">
+              <p className="text-lg text-slate-600 max-w-xl">
                 Browse scientific illustrations shared by researchers worldwide
               </p>
             </div>
@@ -191,21 +199,22 @@ export default function Community() {
           {/* Stats Bar */}
           <div className="flex flex-wrap gap-3 mb-8">
             {[
-              { label: 'Projects', value: stats.totalProjects, icon: Library, color: 'bg-primary text-primary-foreground' },
-              { label: 'Views', value: stats.totalViews, icon: Eye, color: 'bg-secondary' },
-              { label: 'Likes', value: stats.totalLikes, icon: Heart, color: 'bg-accent' },
+              { label: 'Projects', value: stats.totalProjects, icon: Library, gradient: 'from-cyan-500 to-teal-500' },
+              { label: 'Views', value: stats.totalViews, icon: Eye, gradient: 'from-emerald-500 to-teal-500' },
+              { label: 'Likes', value: stats.totalLikes, icon: Heart, gradient: 'from-pink-500 to-rose-500' },
             ].map((stat) => (
-              <div 
+              <div
                 key={stat.label}
-                className={cn(
-                  "inline-flex items-center gap-3 px-4 py-2 border-2 border-foreground rounded-lg",
-                  "shadow-[3px_3px_0px_0px_hsl(var(--foreground))]",
-                  stat.color
-                )}
+                className="glass-card inline-flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 hover:shadow-soft"
               >
-                <stat.icon className="w-4 h-4" />
-                <span className="font-mono font-bold">{stat.value.toLocaleString()}</span>
-                <span className="text-sm uppercase tracking-wide opacity-80">{stat.label}</span>
+                <div className={cn(
+                  "w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br text-white",
+                  stat.gradient
+                )}>
+                  <stat.icon className="w-4 h-4" />
+                </div>
+                <span className="font-semibold tabular-nums text-slate-900">{stat.value.toLocaleString()}</span>
+                <span className="text-sm text-slate-500">{stat.label}</span>
               </div>
             ))}
           </div>
@@ -213,13 +222,13 @@ export default function Community() {
           {/* Search and Sort */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <Input
                 type="text"
                 placeholder="Search by title, description, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-base border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_hsl(var(--foreground))] focus:shadow-[1px_1px_0px_0px_hsl(var(--foreground))] focus:translate-x-[2px] focus:translate-y-[2px] transition-all rounded-lg"
+                className="pl-12 h-12 text-base bg-white/80 backdrop-blur-sm border-slate-200/80 rounded-xl shadow-soft-sm focus:shadow-soft focus:border-blue-300 transition-all"
               />
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -228,10 +237,10 @@ export default function Community() {
                   key={option.value}
                   onClick={() => setSortBy(option.value)}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-3 text-sm font-bold uppercase tracking-wide border-2 border-foreground rounded-lg transition-all",
-                    sortBy === option.value 
-                      ? 'bg-foreground text-background shadow-none translate-x-[2px] translate-y-[2px]' 
-                      : 'bg-card shadow-[3px_3px_0px_0px_hsl(var(--foreground))] hover:shadow-[1px_1px_0px_0px_hsl(var(--foreground))] hover:translate-x-[2px] hover:translate-y-[2px]'
+                    "flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                    sortBy === option.value
+                      ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25'
+                      : 'glass-card text-slate-600 hover:text-slate-900 hover:shadow-soft'
                   )}
                 >
                   <option.icon className="w-4 h-4" />
@@ -244,11 +253,11 @@ export default function Community() {
 
         {/* Loading State */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="border-2 border-foreground bg-card rounded-lg overflow-hidden">
+              <div key={i} className="glass-card rounded-2xl overflow-hidden">
                 <Skeleton className="w-full aspect-[4/3]" />
-                <div className="p-4 space-y-2">
+                <div className="p-5 space-y-3">
                   <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
                 </div>
@@ -258,12 +267,14 @@ export default function Community() {
         ) : displayProjects.length === 0 ? (
           /* Empty State */
           <div className="text-center py-20">
-            <div className="inline-block p-8 bg-secondary border-2 border-foreground rounded-lg shadow-[6px_6px_0px_0px_hsl(var(--foreground))]">
-              <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold text-foreground mb-2">
+            <div className="inline-block p-10 glass-card rounded-3xl">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center">
+                <Users className="w-10 h-10 text-cyan-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
                 {searchQuery ? 'No projects found' : 'No community projects yet'}
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-slate-600">
                 {searchQuery
                   ? 'Try adjusting your search terms'
                   : 'Be the first to share your work'}
@@ -272,95 +283,97 @@ export default function Community() {
           </div>
         ) : (
           <>
-            {/* Project Grid - Masonry-style cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
+            {/* Project Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
               {displayProjects.map((project, index) => {
                 const isFeatured = index < 2;
-                
+
                 return (
                   <div
                     key={project.id}
                     className={cn(
-                      "group cursor-pointer transition-all duration-150",
-                      "bg-card border-2 border-foreground rounded-lg overflow-hidden",
-                      "shadow-[5px_5px_0px_0px_hsl(var(--foreground))]",
-                      "hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] hover:translate-x-[3px] hover:translate-y-[3px]",
+                      "group cursor-pointer transition-all duration-300",
+                      "glass-card rounded-2xl overflow-hidden",
+                      "hover:shadow-soft hover:-translate-y-1",
                       isFeatured && "sm:col-span-2 lg:col-span-2"
                     )}
                     onClick={() => setSelectedProject(project)}
                   >
                     {/* Image */}
                     <div className={cn(
-                      "relative overflow-hidden bg-muted border-b-2 border-foreground",
+                      "relative overflow-hidden bg-slate-100",
                       isFeatured ? "aspect-[16/9]" : "aspect-[4/3]"
                     )}>
                       <img
                         src={project.thumbnail_url || noPreviewImage}
                         alt={project.title || project.name}
-                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                       />
-                      
+
+                      {/* Gradient overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
                       {/* Featured badge */}
                       {isFeatured && (
                         <div className="absolute top-3 left-3">
-                          <Badge className="bg-accent text-accent-foreground border-2 border-foreground font-bold uppercase text-xs shadow-[2px_2px_0px_0px_hsl(var(--foreground))]">
+                          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium text-xs shadow-lg border-0">
                             <Star className="w-3 h-3 mr-1 fill-current" />
                             Featured
                           </Badge>
                         </div>
                       )}
-                      
+
                       {/* Hover arrow */}
-                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <div className="w-10 h-10 bg-foreground text-background rounded-lg flex items-center justify-center border-2 border-foreground">
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                        <div className="w-10 h-10 bg-white/90 backdrop-blur-sm text-slate-900 rounded-xl flex items-center justify-center shadow-lg">
                           <ArrowUpRight className="w-5 h-5" />
                         </div>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <div className="p-4">
+                    <div className="p-5">
                       <h3 className={cn(
-                        "font-bold text-foreground mb-2 line-clamp-2",
+                        "font-semibold text-slate-900 mb-2 line-clamp-2 group-hover:text-cyan-600 transition-colors",
                         isFeatured ? "text-xl" : "text-base"
                       )}>
                         {project.title || project.name}
                       </h3>
-                      
+
                       {project.profiles?.full_name && (
-                        <p className="text-sm text-muted-foreground mb-3 font-medium">
+                        <p className="text-sm text-slate-500 mb-3">
                           by {project.profiles.full_name}
                         </p>
                       )}
-                      
+
                       {/* Stats row */}
                       <div className="flex items-center gap-4 text-sm">
-                        <span className="flex items-center gap-1.5 text-muted-foreground font-mono">
+                        <span className="flex items-center gap-1.5 text-slate-500">
                           <Eye className="w-4 h-4" />
                           {(project.view_count || 0).toLocaleString()}
                         </span>
-                        <span className="flex items-center gap-1.5 text-muted-foreground font-mono">
+                        <span className="flex items-center gap-1.5 text-slate-500">
                           <Heart className="w-4 h-4" />
                           {(project.like_count || 0).toLocaleString()}
                         </span>
-                        <span className="text-muted-foreground text-xs">
+                        <span className="text-slate-400 text-xs ml-auto">
                           {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
                         </span>
                       </div>
-                      
+
                       {/* Keywords */}
                       {project.keywords && project.keywords.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3">
+                        <div className="flex flex-wrap gap-1.5 mt-4">
                           {project.keywords.slice(0, 3).map((keyword, idx) => (
-                            <span 
+                            <span
                               key={idx}
-                              className="px-2 py-0.5 text-xs font-medium bg-secondary border border-foreground rounded"
+                              className="px-2.5 py-1 text-xs font-medium bg-slate-100 text-slate-600 rounded-lg"
                             >
                               {keyword}
                             </span>
                           ))}
                           {project.keywords.length > 3 && (
-                            <span className="px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                            <span className="px-2.5 py-1 text-xs text-slate-400">
                               +{project.keywords.length - 3}
                             </span>
                           )}
@@ -375,44 +388,44 @@ export default function Community() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center">
-                <div className="inline-flex items-center gap-2 p-3 bg-card border-2 border-foreground rounded-lg shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+                <div className="inline-flex items-center gap-2 p-2 glass-card rounded-2xl">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="font-bold"
+                    className="font-medium rounded-xl"
                   >
-                    Prev
+                    Previous
                   </Button>
-                  
-                  <div className="flex gap-1">
+
+                  <div className="flex gap-1 px-2">
                     {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
                         className={cn(
-                          "w-10 h-10 text-sm font-bold border-2 border-foreground rounded-lg transition-all",
-                          currentPage === page 
-                            ? 'bg-foreground text-background' 
-                            : 'bg-card hover:bg-secondary'
+                          "w-10 h-10 text-sm font-medium rounded-xl transition-all duration-200",
+                          currentPage === page
+                            ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         )}
                       >
                         {page}
                       </button>
                     ))}
                   </div>
-                  
+
                   {totalPages > 5 && (
-                    <span className="px-2 font-mono text-muted-foreground">...</span>
+                    <span className="px-2 text-slate-400">...</span>
                   )}
-                  
+
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="font-bold"
+                    className="font-medium rounded-xl"
                   >
                     Next
                   </Button>

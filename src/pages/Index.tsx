@@ -2,24 +2,14 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Microscope, Palette, FolderOpen, Zap, Users, Clock,
-  ArrowRight, Download, Layers, PenTool,
-  FileImage, CheckCircle, Globe, Atom, Play
-} from "lucide-react";
+import { ArrowRight, Microscope, Shapes, Download, Users, CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
 import { ProjectPreviewModal } from "@/components/community/ProjectPreviewModal";
 import { supabase } from "@/integrations/supabase/client";
-import carousel1 from "@/assets/carousel-1.png";
-import carousel2 from "@/assets/carousel-2.png";
 import { SEOHead } from "@/components/SEO/SEOHead";
 import { getWebApplicationSchema, getOrganizationSchema } from "@/components/SEO/StructuredData";
-import { useRecentSignups } from "@/hooks/useRecentSignups";
-import { SignupToast } from "@/components/SignupToast";
-import { InstitutionCarousel } from "@/components/InstitutionCarousel";
 import { MaintenanceBanner } from "@/components/MaintenanceBanner";
-import { cn } from "@/lib/utils";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -28,8 +18,6 @@ const Index = () => {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const { data: signupData } = useRecentSignups();
 
   useEffect(() => {
     supabase
@@ -39,345 +27,238 @@ const Index = () => {
       .then(({ data }) => setCategories(data || []));
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev === 0 ? 1 : 0));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [getWebApplicationSchema(), getOrganizationSchema()],
   };
 
   const features = [
-    {
-      icon: Clock,
-      title: "Hours → Minutes",
-      desc: "What used to take hours now takes minutes. Drag, drop, done.",
-    },
-    {
-      icon: Microscope,
-      title: "6,000+ Scientific Icons",
-      desc: "Comprehensive library for biology, chemistry, medicine, and more.",
-    },
-    {
-      icon: FileImage,
-      title: "Publication Ready",
-      desc: "Export at 300+ DPI in PNG, SVG, or PDF. Meet any journal's requirements.",
-    },
-    {
-      icon: PenTool,
-      title: "Precision Tools",
-      desc: "Scale bars, annotations, and connectors for scientific accuracy.",
-    },
-    {
-      icon: Layers,
-      title: "Smart Layers",
-      desc: "Organize complex diagrams with intuitive layer management.",
-    },
-    {
-      icon: Download,
-      title: "Instant Export",
-      desc: "One-click export in multiple formats and resolutions.",
-    },
-  ];
-
-  const stats = [
-    { value: "10K+", label: "Researchers", icon: Users },
-    { value: "6K+", label: "Icons", icon: Atom },
-    { value: "150+", label: "Countries", icon: Globe },
-    { value: "500K+", label: "Downloads", icon: Download },
+    { icon: Shapes, title: "6,000+ Scientific Icons", desc: "Cells, molecules, organs & more" },
+    { icon: Download, title: "Export Anywhere", desc: "PNG, SVG, PDF for publications" },
+    { icon: Users, title: "Free Forever", desc: "No credit card required" },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-cyan-50/50 via-white to-white">
       <MaintenanceBanner />
 
       <SEOHead
-        title="BioSketch - Create Scientific Figures in Minutes"
-        description="Create publication-ready scientific illustrations in minutes, not hours. Free drag-and-drop tool with 6,000+ icons for researchers."
+        title="BioSketch - Scientific Figure Design Tool"
+        description="Create publication-ready scientific illustrations in minutes. Free drag-and-drop tool with 6,000+ icons for researchers."
         canonical="https://biosketch.art/"
-        keywords="scientific illustration, publication figures, research graphics, scientific diagrams, biology illustration, medical graphics"
+        keywords="scientific illustration, publication figures, research graphics, scientific diagrams"
         structuredData={structuredData}
       />
 
-      {/* Hero Section - Neo-Brutalism */}
-      <section className="relative min-h-[85vh] flex items-center bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left Content */}
-            <div className="space-y-8">
-              {/* Time Badge */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-secondary border-3 border-black brutal-shadow-sm"
-              >
-                <Clock className="h-4 w-4 text-black" />
-                <span className="text-sm font-bold text-black">From hours to minutes</span>
-              </motion.div>
+      {/* Subtle Background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-teal-100/30 rounded-full blur-3xl" />
+      </div>
 
-              {/* Title */}
-              <div className="space-y-4">
-                <motion.h1
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
-                  className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.1]"
-                >
-                  Scientific figures,
-                  <span className="block text-black">made simple.</span>
-                </motion.h1>
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="text-lg text-muted-foreground max-w-lg leading-relaxed"
-                >
-                  Create publication-ready illustrations in minutes.
-                  6,000+ icons. Drag and drop. Export at 300+ DPI.
-                </motion.p>
-              </div>
-
-              {/* CTA Buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="flex flex-wrap gap-4"
-              >
-                <Button
-                  size="lg"
-                  onClick={() => navigate(user ? "/canvas" : "/auth")}
-                  className="h-12 px-6 text-base"
-                >
-                  <Palette className="h-5 w-5 mr-2" />
-                  {user ? "Open Canvas" : "Start Free"}
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => navigate(user ? "/projects" : "/community")}
-                  className="h-12 px-6"
-                >
-                  {user ? (
-                    <>
-                      <FolderOpen className="h-4 w-4 mr-2" />
-                      My Projects
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-4 w-4 mr-2" />
-                      See Examples
-                    </>
-                  )}
-                </Button>
-              </motion.div>
-
-              {/* Trust Indicators */}
-              <div className="flex items-center gap-6 pt-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
-                  <CheckCircle className="h-4 w-4 text-black" />
-                  <span>Free forever</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
-                  <CheckCircle className="h-4 w-4 text-black" />
-                  <span>No credit card</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium">
-                  <CheckCircle className="h-4 w-4 text-black" />
-                  <span>Publication ready</span>
-                </div>
-              </div>
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-cyan-100">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-cyan-600 to-teal-600 rounded-xl flex items-center justify-center">
+              <Microscope className="w-5 h-5 text-white" />
             </div>
+            <span className="font-bold text-slate-800 text-lg">BioSketch</span>
+          </div>
 
-            {/* Right - Product Preview */}
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="relative"
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/community")}
+              className="text-slate-600 hover:text-cyan-700"
             >
-              <div className="relative overflow-hidden border-4 border-black brutal-shadow-lg bg-white">
-                {/* Browser Chrome */}
-                <div className="flex items-center gap-2 px-4 py-3 bg-secondary border-b-3 border-black">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 border-2 border-black bg-white" />
-                    <div className="w-3 h-3 border-2 border-black bg-white" />
-                    <div className="w-3 h-3 border-2 border-black bg-white" />
-                  </div>
-                  <div className="flex-1 flex justify-center">
-                    <div className="px-4 py-1 border-2 border-black bg-white text-xs font-bold text-black">
-                      biosketch.art/canvas
-                    </div>
-                  </div>
-                </div>
-                {/* Screenshot */}
-                <img
-                  src={currentSlide === 0 ? carousel1 : carousel2}
-                  alt="BioSketch Canvas"
-                  className="w-full h-auto transition-opacity duration-500"
-                />
-              </div>
-
-              {/* Floating Badge */}
-              <div className="absolute -bottom-4 -left-4 p-4 bg-white border-3 border-black brutal-shadow">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-secondary border-2 border-black flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-black" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold text-black">5 min</p>
-                    <p className="text-xs font-medium text-muted-foreground">Avg. figure time</p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+              Gallery
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/pricing")}
+              className="text-slate-600 hover:text-cyan-700"
+            >
+              Pricing
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => navigate(user ? "/canvas" : "/auth")}
+              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-lg px-5"
+            >
+              {user ? "Open Canvas" : "Get Started"}
+            </Button>
           </div>
         </div>
-      </section>
+      </nav>
 
-      {/* Trusted By */}
-      <section className="py-16 border-y-3 border-black bg-secondary">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-sm font-bold text-black uppercase tracking-widest mb-8">
-            Trusted by researchers at leading institutions
-          </p>
-          <InstitutionCarousel />
-        </div>
-      </section>
-
-      {/* Stats - Neo-Brutalism */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 max-w-4xl mx-auto">
-            {stats.map((stat, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="text-center p-6 bg-white border-3 border-black brutal-shadow"
-              >
-                <p className="text-4xl font-bold text-black">{stat.value}</p>
-                <p className="text-sm font-medium text-muted-foreground mt-1">{stat.label}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features - Neo-Brutalism Grid */}
-      <section className="py-24 bg-secondary">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-black mb-4">
-              Everything you need
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Professional tools for publication-ready scientific figures.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {features.map((feature, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className="p-6 bg-white border-3 border-black brutal-shadow transition-all duration-150 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#000000] group"
-              >
-                <div className="w-12 h-12 bg-secondary border-2 border-black group-hover:bg-accent flex items-center justify-center mb-4 transition-colors">
-                  <feature.icon className="h-6 w-6 text-black" />
-                </div>
-                <h3 className="text-lg font-bold text-black mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">{feature.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Video Demo - Neo-Brutalism */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="text-center space-y-2">
-              <p className="text-sm text-muted-foreground uppercase tracking-wide font-bold">Quick Demo</p>
-              <h2 className="text-2xl font-bold text-black">See how it works</h2>
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-6"
+          >
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-sm font-medium">
+              <span className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+              Free scientific illustration tool
             </div>
 
-            <div className="overflow-hidden border-4 border-black brutal-shadow-lg">
+            {/* Headline */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight">
+              Create publication-ready
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
+                scientific figures
+              </span>
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Design professional diagrams for your research papers, presentations, and posters. No design skills required.
+            </p>
+
+            {/* CTA */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <Button
+                size="lg"
+                onClick={() => navigate(user ? "/canvas" : "/auth")}
+                className="h-13 px-8 text-base bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl shadow-lg shadow-cyan-500/25 hover:shadow-xl hover:shadow-cyan-500/30 transition-all"
+              >
+                Start Creating Free
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => navigate("/community")}
+                className="h-13 px-8 text-base border-slate-200 hover:border-cyan-300 hover:bg-cyan-50 rounded-xl transition-all"
+              >
+                View Gallery
+              </Button>
+            </div>
+
+            {/* Trust Indicators */}
+            <div className="flex items-center justify-center gap-6 pt-6 text-sm text-slate-500">
+              {["No signup required", "Free forever", "Export in any format"].map((text, i) => (
+                <div key={i} className="flex items-center gap-1.5">
+                  <CheckCircle className="w-4 h-4 text-cyan-600" />
+                  <span>{text}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Product Preview */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-16 relative"
+          >
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/50 bg-white">
               <video
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
-                className="w-full h-auto"
+                className="w-full"
                 autoPlay
                 muted
                 loop
                 playsInline
               />
             </div>
+            {/* Decorative elements */}
+            <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-cyan-400/20 to-teal-400/20 rounded-full blur-2xl" />
+            <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-br from-teal-400/20 to-cyan-400/20 rounded-full blur-2xl" />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 px-6 bg-gradient-to-b from-white to-slate-50">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6">
+            {features.map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:border-cyan-100 transition-all"
+              >
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center mb-4">
+                  <feature.icon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-1">{feature.title}</h3>
+                <p className="text-slate-600">{feature.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA - Neo-Brutalism Black Section */}
-      <section className="py-24 bg-black border-y-4 border-black">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center space-y-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
-              Stop spending hours on figures.
-              <span className="block text-secondary mt-2">Start creating in minutes.</span>
-            </h2>
+      {/* Final CTA */}
+      <section className="py-20 px-6">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-br from-cyan-600 to-teal-600 rounded-3xl p-10 md:p-14 text-center text-white relative overflow-hidden"
+          >
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 left-0 w-40 h-40 border border-white rounded-full" />
+              <div className="absolute bottom-0 right-0 w-60 h-60 border border-white rounded-full" />
+            </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="relative space-y-6">
+              <h2 className="text-3xl md:text-4xl font-bold">
+                Ready to create your first figure?
+              </h2>
+              <p className="text-lg text-cyan-100 max-w-xl mx-auto">
+                Join thousands of researchers using BioSketch for their publications.
+              </p>
               <Button
                 size="lg"
                 onClick={() => navigate(user ? "/canvas" : "/auth")}
-                className="h-12 px-8 text-base bg-white text-black border-3 border-white hover:bg-secondary hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#ffffff]"
+                className="h-13 px-10 text-base bg-white text-cyan-700 hover:bg-cyan-50 rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
-                <Palette className="h-5 w-5 mr-2" />
-                {user ? "Open Canvas" : "Get Started Free"}
-                <ArrowRight className="h-4 w-4 ml-2" />
+                Get Started Free
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </div>
-
-            <p className="text-sm text-secondary font-medium">
-              Free forever · No credit card required · Publication ready
-            </p>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 bg-black border-t-3 border-white">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <img
-                src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODgyOTg3LCJleHAiOjIwNzYyNDI5ODd9.Z1uz-_XoJro6NP3bm6Ehexf5wAqUMfg03lRo73WPr1g"
-                alt="BioSketch"
-                className="h-6 object-contain brightness-0 invert"
-              />
+      <footer className="py-10 px-6 border-t border-slate-100">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-600 to-teal-600 rounded-lg flex items-center justify-center">
+              <Microscope className="w-4 h-4 text-white" />
             </div>
-            <p className="text-sm text-secondary font-medium">
-              © {new Date().getFullYear()} BioSketch. Free scientific illustration tool.
-            </p>
+            <span className="font-semibold text-slate-700">BioSketch</span>
           </div>
+          <div className="flex items-center gap-6 text-sm text-slate-500">
+            <button onClick={() => navigate("/community")} className="hover:text-cyan-600 transition-colors">Community</button>
+            <button onClick={() => navigate("/pricing")} className="hover:text-cyan-600 transition-colors">Pricing</button>
+            <button onClick={() => navigate("/blog")} className="hover:text-cyan-600 transition-colors">Blog</button>
+            <button onClick={() => navigate("/terms")} className="hover:text-cyan-600 transition-colors">Terms</button>
+          </div>
+          <p className="text-sm text-slate-400">
+            © {new Date().getFullYear()} BioSketch
+          </p>
         </div>
       </footer>
 
       <IconSubmissionDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} categories={categories} />
       <ProjectPreviewModal project={selectedProject} isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} />
-      {signupData && <SignupToast count={signupData.count} topCountries={signupData.topCountries} totalWithLocation={signupData.totalWithLocation} />}
     </div>
   );
 };

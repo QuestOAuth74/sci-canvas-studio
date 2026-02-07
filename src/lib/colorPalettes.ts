@@ -74,6 +74,46 @@ export const sequentialPalettes: ColorPalette[] = [
     name: "Purple to Green",
     description: "Diverging data visualization",
     colors: ["#762a83", "#9970ab", "#c2a5cf", "#e7d4e8", "#f7f7f7", "#d9f0d3", "#a6dba0", "#5aae61", "#1b7837"]
+  },
+  {
+    name: "Inferno",
+    description: "Perceptually uniform, high contrast",
+    colors: ["#000004", "#1b0c41", "#4a0c6b", "#781c6d", "#a52c60", "#cf4446", "#ed6925", "#fb9b06", "#f7d13d", "#fcffa4"]
+  },
+  {
+    name: "Plasma",
+    description: "Perceptually uniform, vibrant",
+    colors: ["#0d0887", "#46039f", "#7201a8", "#9c179e", "#bd3786", "#d8576b", "#ed7953", "#fb9f3a", "#fdca26", "#f0f921"]
+  },
+  {
+    name: "Magma",
+    description: "Perceptually uniform, warm tones",
+    colors: ["#000004", "#180f3d", "#440f76", "#721f81", "#9e2f7f", "#cd4071", "#f1605d", "#fd9668", "#feca8d", "#fcfdbf"]
+  },
+  {
+    name: "Turbo",
+    description: "Rainbow-like, high contrast",
+    colors: ["#30123b", "#4662d7", "#35aaf9", "#1ae4b6", "#72fe5e", "#c8ef34", "#faba39", "#f66b19", "#ca2a04", "#7a0403"]
+  },
+  {
+    name: "Cool Warm",
+    description: "Blue to red diverging",
+    colors: ["#3b4cc0", "#5977e3", "#7b9ff9", "#9ebeff", "#c0d4f5", "#f2cbb7", "#f7ac8e", "#ee8468", "#d65244", "#b40426"]
+  },
+  {
+    name: "Ocean",
+    description: "Deep ocean blues",
+    colors: ["#081d58", "#253494", "#225ea8", "#1d91c0", "#41b6c4", "#7fcdbb", "#c7e9b4", "#edf8b1", "#ffffd9"]
+  },
+  {
+    name: "Sunset",
+    description: "Warm sunset gradient",
+    colors: ["#0d0887", "#5b02a3", "#9c179e", "#cb4679", "#eb7852", "#fcb43a", "#f0f921"]
+  },
+  {
+    name: "Forest",
+    description: "Natural green tones",
+    colors: ["#00441b", "#006d2c", "#238b45", "#41ae76", "#66c2a4", "#99d8c9", "#ccece6", "#e5f5f9", "#f7fcfd"]
   }
 ];
 

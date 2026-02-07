@@ -23,6 +23,7 @@ import {
   MagicWand,
   ChartBar,
   Flask,
+  Dna,
 } from "@phosphor-icons/react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 
@@ -35,9 +36,10 @@ interface MenuBarProps {
   onAIFigureStudioClick?: () => void;
   onDataVisualizationClick?: () => void;
   onChemicalStructureClick?: () => void;
+  onProteinStructureClick?: () => void;
 }
 
-export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick, onAIFigureStudioClick, onDataVisualizationClick, onChemicalStructureClick }: MenuBarProps = {}) => {
+export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryClick, onScaleBarClick, onStyleTransferClick, onAIFigureStudioClick, onDataVisualizationClick, onChemicalStructureClick, onProteinStructureClick }: MenuBarProps = {}) => {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [iconSubmissionOpen, setIconSubmissionOpen] = useState(false);
   const [iconCategories, setIconCategories] = useState<{ id: string; name: string }[]>([]);
@@ -145,7 +147,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
       <Menubar className="border-none bg-transparent shadow-none" data-onboarding="menu-bar">
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">File</MenubarTrigger>
-          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
+          <MenubarContent className="floating-panel rounded-xl">
             <MenubarItem onClick={handleNew}>
               New <MenubarShortcut>⌘N</MenubarShortcut>
             </MenubarItem>
@@ -172,7 +174,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
 
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Edit</MenubarTrigger>
-          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
+          <MenubarContent className="floating-panel rounded-xl">
             <MenubarItem onClick={undo}>
               Undo <MenubarShortcut>⌘Z</MenubarShortcut>
             </MenubarItem>
@@ -199,7 +201,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
 
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Insert</MenubarTrigger>
-          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
+          <MenubarContent className="floating-panel rounded-xl">
             <MenubarItem onClick={onPanelLabelClick}>
               Figure Panel Labels (A, B, C...)
             </MenubarItem>
@@ -215,6 +217,10 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
               <Flask size={16} weight="regular" className="mr-2" />
               Chemical Structures
             </MenubarItem>
+            <MenubarItem onClick={onProteinStructureClick}>
+              <Dna size={16} weight="regular" className="mr-2" />
+              Protein Structures (PDB)
+            </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={onTemplatesClick}>
               Templates
@@ -224,7 +230,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
 
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Tools</MenubarTrigger>
-          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
+          <MenubarContent className="floating-panel rounded-xl">
             <MenubarItem onClick={onAIFigureStudioClick}>
               <MagicWand size={16} weight="regular" className="mr-2" />
               AI Figure Studio
@@ -239,7 +245,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
 
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">View</MenubarTrigger>
-          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
+          <MenubarContent className="floating-panel rounded-xl">
             <MenubarItem onClick={() => setGridEnabled(!gridEnabled)}>
               {gridEnabled ? "✓ " : ""}Grid
             </MenubarItem>
@@ -265,7 +271,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
 
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Arrange</MenubarTrigger>
-          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
+          <MenubarContent className="floating-panel rounded-xl">
             <MenubarItem onClick={bringToFront}>Bring to Front</MenubarItem>
             <MenubarItem onClick={sendToBack}>Send to Back</MenubarItem>
             <MenubarItem onClick={bringForward}>Bring Forward</MenubarItem>
@@ -279,7 +285,7 @@ export const MenuBar = ({ onTemplatesClick, onPanelLabelClick, onVersionHistoryC
 
         <MenubarMenu>
           <MenubarTrigger className="font-medium hover:bg-slate-100 text-slate-700 hover:text-slate-900 transition-all duration-200 rounded-lg">Help</MenubarTrigger>
-          <MenubarContent className="bg-white shadow-lg border border-slate-200 rounded-xl">
+          <MenubarContent className="floating-panel rounded-xl">
             <MenubarItem onClick={startOnboarding}>
               <GraduationCap size={16} weight="regular" className="mr-2" />
               Restart Tutorial

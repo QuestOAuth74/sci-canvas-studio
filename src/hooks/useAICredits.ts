@@ -2,6 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Check if local auth mode is enabled (no limits)
+const isLocalAuthEnabled = () => import.meta.env.VITE_LOCAL_AUTH === 'true';
+
 export interface AICreditsInfo {
   credits: number;
   bonusCredits: number;
@@ -35,10 +38,28 @@ export const useAICredits = () => {
         throw new Error('User not authenticated');
       }
 
+      // If local auth is enabled, give unlimited access to all signed-in users
+      if (isLocalAuthEnabled()) {
+        return {
+          credits: 999999,
+          bonusCredits: 999999,
+          purchasedCredits: 0,
+          totalCredits: 999999,
+          creditsUsed: 0,
+          remainingCredits: 999999,
+          canGenerate: true,
+          sharedProjectsCount: 999,
+          hasBonusCredits: true,
+          creditsResetDate: null,
+          isAdmin: true,
+          generationsRemaining: 999999,
+        };
+      }
+
       // Check if user is admin
       const { data: roleData } = await supabase
         .rpc('has_role', { _user_id: user.id, _role: 'admin' });
-      
+
       const isAdmin = roleData === true;
 
       if (isAdmin) {
@@ -141,7 +162,12 @@ export const useAICredits = () => {
   const useCredits = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('User not authenticated');
-      
+
+      // Skip credit checks and recording in local auth mode
+      if (isLocalAuthEnabled()) {
+        return { success: true };
+      }
+
       // First verify user can generate
       if (creditsInfo && !creditsInfo.canGenerate && !creditsInfo.isAdmin) {
         throw new Error('Not enough credits for generation');

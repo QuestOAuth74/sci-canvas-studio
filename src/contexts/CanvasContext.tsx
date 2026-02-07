@@ -11,6 +11,16 @@ import { safeDownloadDataUrl, reloadCanvasImagesWithCORS } from "@/lib/utils";
 import { removeBackground } from "@/lib/backgroundRemoval";
 import { HistoryManager } from "@/lib/historyManager";
 import { createVersion, isSignificantChange, cleanupVersions } from "@/lib/versionManager";
+import {
+  PageData,
+  getProjectPages,
+  createPage,
+  updatePage,
+  deletePage as deletePageFromDb,
+  duplicatePage as duplicatePageInDb,
+  reorderPages,
+  initializePagesFromProject
+} from "@/lib/pageManager";
 
 interface CanvasContextType {
   canvas: FabricCanvas | null;
@@ -90,7 +100,12 @@ interface CanvasContextType {
   exportAsJPG: (dpi?: 150 | 300 | 600, selectionOnly?: boolean) => void;
   exportAsSVG: (selectionOnly?: boolean) => void;
   cleanExport: () => void;
-  
+
+  // Performance batch operations
+  startBatchMode: () => void;
+  endBatchMode: () => void;
+  batchOperation: <T>(fn: () => T) => T;
+
   // Recent colors
   recentColors: string[];
   addToRecentColors: (color: string) => void;
@@ -195,6 +210,17 @@ interface CanvasContextType {
   editingCurvedLine: FabricObject | null;
   setEditingCurvedLine: (line: FabricObject | null) => void;
   exitCurvedLineEditMode: () => void;
+
+  // Multi-page support
+  pages: PageData[];
+  currentPageIndex: number;
+  currentPageId: string | null;
+  addPage: () => Promise<void>;
+  switchToPage: (index: number) => Promise<void>;
+  deleteCurrentPage: () => Promise<void>;
+  renamePage: (pageId: string, name: string) => Promise<void>;
+  duplicateCurrentPage: () => Promise<void>;
+  movePage: (fromIndex: number, toIndex: number) => Promise<void>;
 }
 
 const CanvasContext = createContext<CanvasContextType | undefined>(undefined);
@@ -288,6 +314,11 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
   const [isCurvedLineEditMode, setIsCurvedLineEditMode] = useState(false);
   const [editingCurvedLine, setEditingCurvedLine] = useState<FabricObject | null>(null);
   const curvedLineEditModeRef = useRef<any>(null);
+
+  // Multi-page state
+  const [pages, setPages] = useState<PageData[]>([]);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [currentPageId, setCurrentPageId] = useState<string | null>(null);
 
   // History management with differential compression
   const saveState = useCallback(() => {
@@ -1240,6 +1271,33 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     exportAsPNGTransparent(300, false);
   }, [exportAsPNGTransparent]);
 
+  // Performance batch operations - reduces re-renders when adding/removing many objects
+  const startBatchMode = useCallback(() => {
+    if (!canvas) return;
+    canvas.renderOnAddRemove = false;
+  }, [canvas]);
+
+  const endBatchMode = useCallback(() => {
+    if (!canvas) return;
+    canvas.renderOnAddRemove = true;
+    canvas.requestRenderAll();
+  }, [canvas]);
+
+  const batchOperation = useCallback(<T,>(fn: () => T): T => {
+    if (!canvas) return fn();
+
+    const previousRenderOnAddRemove = canvas.renderOnAddRemove;
+    canvas.renderOnAddRemove = false;
+
+    try {
+      const result = fn();
+      return result;
+    } finally {
+      canvas.renderOnAddRemove = previousRenderOnAddRemove;
+      canvas.requestRenderAll();
+    }
+  }, [canvas]);
+
   // Pin/Lock operations
   const pinObject = useCallback(() => {
     if (!canvas || !selectedObject) return;
@@ -1667,14 +1725,30 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         if (error) throw error;
         
         // Cleanup old versions in the background
-        cleanupVersions(currentProjectId).catch(err => 
+        cleanupVersions(currentProjectId).catch(err =>
           console.error('Version cleanup failed:', err)
         );
-        
+
+        // Also save to current page if pages exist
+        if (currentPageId && pages.length > 0) {
+          try {
+            await updatePage(currentPageId, {
+              canvasData,
+              canvasWidth: canvasDimensions.width,
+              canvasHeight: canvasDimensions.height,
+              paperSize,
+              backgroundColor,
+            });
+          } catch (pageError) {
+            console.error('Failed to save current page:', pageError);
+            // Don't fail the main save if page save fails
+          }
+        }
+
         setSaveStatus('saved');
-        toast.success("Project saved", { 
-          duration: 1000, 
-          className: 'success-pulse animate-fade-in' 
+        toast.success("Project saved", {
+          duration: 1000,
+          className: 'success-pulse animate-fade-in'
         });
       } else {
         // Create new project
@@ -1717,7 +1791,7 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     } finally {
       setIsSaving(false);
     }
-  }, [canvas, user, projectName, paperSize, canvasDimensions, currentProjectId]);
+  }, [canvas, user, projectName, paperSize, canvasDimensions, currentProjectId, currentPageId, pages, backgroundColor]);
 
   const loadProject = useCallback(async (id: string) => {
     if (!canvas || !user) return;
@@ -1765,8 +1839,30 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
         height: data.canvas_height
       });
 
+      // Load pages for this project (if any exist)
+      try {
+        const projectPages = await getProjectPages(data.id);
+        if (projectPages.length > 0) {
+          setPages(projectPages);
+          setCurrentPageIndex(0);
+          setCurrentPageId(projectPages[0].id);
+          console.log(`Loaded ${projectPages.length} pages for project`);
+        } else {
+          // No pages yet - reset page state
+          setPages([]);
+          setCurrentPageIndex(0);
+          setCurrentPageId(null);
+        }
+      } catch (pageError) {
+        console.error('Error loading pages:', pageError);
+        // Continue even if page loading fails
+        setPages([]);
+        setCurrentPageIndex(0);
+        setCurrentPageId(null);
+      }
+
       toast.success("Project loaded");
-      
+
       // Clear any stale recovery data since we just loaded fresh from database
       localStorage.removeItem('canvas_recovery');
     } catch (error: any) {
@@ -2373,6 +2469,303 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     }
   }, [canvas]);
 
+  // ============ Multi-Page Functions ============
+
+  // Save current page data to project_pages table
+  const saveCurrentPageData = useCallback(async () => {
+    if (!canvas || !currentPageId) return;
+
+    try {
+      const canvasData = canvas.toJSON();
+      await updatePage(currentPageId, {
+        canvasData,
+        canvasWidth: canvasDimensions.width,
+        canvasHeight: canvasDimensions.height,
+        paperSize,
+        backgroundColor,
+      });
+    } catch (error) {
+      console.error('Error saving current page:', error);
+      throw error;
+    }
+  }, [canvas, currentPageId, canvasDimensions, paperSize, backgroundColor]);
+
+  // Add a new page
+  const addPage = useCallback(async () => {
+    if (!canvas || !user) {
+      toast.error("Please sign in to add pages");
+      return;
+    }
+
+    // If project hasn't been saved yet, save it first
+    let projectId = currentProjectId;
+    if (!projectId) {
+      toast.info("Saving project first...");
+
+      // Save the project to get an ID
+      const canvasData = canvas.toJSON();
+      const insertData = {
+        name: projectName,
+        canvas_data: canvasData,
+        paper_size: paperSize,
+        canvas_width: canvasDimensions.width,
+        canvas_height: canvasDimensions.height,
+        user_id: user.id,
+      };
+
+      const { data: newProject, error: saveError } = await supabase
+        .from('canvas_projects')
+        .insert([insertData])
+        .select()
+        .single();
+
+      if (saveError || !newProject) {
+        toast.error("Failed to save project. Please save manually first.");
+        console.error('Save error:', saveError);
+        return;
+      }
+
+      projectId = newProject.id;
+      setCurrentProjectId(projectId);
+    }
+
+    try {
+      // First, ensure pages exist - initialize if needed
+      if (pages.length === 0) {
+        const canvasData = canvas.toJSON();
+        const firstPage = await initializePagesFromProject(
+          projectId,
+          canvasData,
+          canvasDimensions.width,
+          canvasDimensions.height,
+          paperSize,
+          backgroundColor
+        );
+        setPages([firstPage]);
+        setCurrentPageIndex(0);
+        setCurrentPageId(firstPage.id);
+      } else if (currentPageId) {
+        // Save current page before creating new one
+        await saveCurrentPageData();
+      }
+
+      // Create new page
+      const newPageNumber = pages.length + 1;
+      const newPage = await createPage({
+        projectId: projectId,
+        pageName: `Page ${newPageNumber}`,
+        pageNumber: newPageNumber,
+        canvasWidth: canvasDimensions.width,
+        canvasHeight: canvasDimensions.height,
+        paperSize,
+        backgroundColor,
+      });
+
+      // Update state
+      setPages(prev => [...prev, newPage]);
+      setCurrentPageIndex(pages.length); // New page index
+      setCurrentPageId(newPage.id);
+
+      // Clear canvas for new page
+      canvas.clear();
+      canvas.backgroundColor = backgroundColor;
+      canvas.requestRenderAll();
+
+      historyManager.current.clear();
+      saveState();
+
+      toast.success(`Page ${newPageNumber} created`);
+    } catch (error: any) {
+      console.error('Error adding page:', error);
+      toast.error(error.message || 'Failed to add page');
+    }
+  }, [canvas, currentProjectId, user, pages, currentPageId, canvasDimensions, paperSize, backgroundColor, saveCurrentPageData, saveState, projectName]);
+
+  // Switch to a different page
+  const switchToPage = useCallback(async (index: number) => {
+    if (!canvas || index < 0 || index >= pages.length || index === currentPageIndex) return;
+
+    try {
+      // Save current page first
+      if (currentPageId) {
+        await saveCurrentPageData();
+      }
+
+      const targetPage = pages[index];
+
+      // Load the target page data
+      await loadAllFonts();
+      await canvas.loadFromJSON(targetPage.canvas_data as Record<string, any>);
+
+      // Reload images with CORS to prevent tainting
+      reloadCanvasImagesWithCORS(canvas);
+      normalizeCanvasTextFonts(canvas);
+
+      // Cleanup orphan handles
+      const { cleanupOrphanHandles, reconnectCurvedLines } = await import('@/lib/curvedLineTool');
+      cleanupOrphanHandles(canvas);
+      reconnectCurvedLines(canvas);
+
+      // Update dimensions if different
+      if (targetPage.canvas_width !== canvasDimensions.width || targetPage.canvas_height !== canvasDimensions.height) {
+        setCanvasDimensions({
+          width: targetPage.canvas_width,
+          height: targetPage.canvas_height,
+        });
+      }
+
+      // Update paper size and background
+      if (targetPage.paper_size) {
+        setPaperSize(targetPage.paper_size);
+      }
+      if (targetPage.background_color) {
+        setBackgroundColor(targetPage.background_color);
+        canvas.backgroundColor = targetPage.background_color;
+      }
+
+      // Update current page state
+      setCurrentPageIndex(index);
+      setCurrentPageId(targetPage.id);
+
+      // Reset history for the new page
+      historyManager.current.clear();
+      saveState();
+
+      toast.success(`Switched to ${targetPage.page_name}`);
+    } catch (error: any) {
+      console.error('Error switching page:', error);
+      toast.error(error.message || 'Failed to switch page');
+    }
+  }, [canvas, pages, currentPageIndex, currentPageId, canvasDimensions, saveCurrentPageData, saveState]);
+
+  // Delete the current page
+  const deleteCurrentPage = useCallback(async () => {
+    if (!canvas || pages.length <= 1 || !currentPageId) {
+      toast.error('Cannot delete the only page');
+      return;
+    }
+
+    try {
+      // Delete from database
+      await deletePageFromDb(currentPageId);
+
+      // Update local state
+      const newPages = pages.filter(p => p.id !== currentPageId);
+
+      // Renumber remaining pages
+      const reorderedPages = newPages.map((p, i) => ({ ...p, page_number: i + 1 }));
+
+      // Switch to previous page or first page
+      const newIndex = Math.max(0, currentPageIndex - 1);
+      const targetPage = reorderedPages[newIndex];
+
+      // Update page numbers in database
+      await reorderPages(currentProjectId!, reorderedPages.map(p => p.id));
+
+      // Load target page
+      await loadAllFonts();
+      await canvas.loadFromJSON(targetPage.canvas_data as Record<string, any>);
+      reloadCanvasImagesWithCORS(canvas);
+      normalizeCanvasTextFonts(canvas);
+
+      const { cleanupOrphanHandles, reconnectCurvedLines } = await import('@/lib/curvedLineTool');
+      cleanupOrphanHandles(canvas);
+      reconnectCurvedLines(canvas);
+
+      // Update state
+      setPages(reorderedPages);
+      setCurrentPageIndex(newIndex);
+      setCurrentPageId(targetPage.id);
+
+      historyManager.current.clear();
+      saveState();
+
+      toast.success('Page deleted');
+    } catch (error: any) {
+      console.error('Error deleting page:', error);
+      toast.error(error.message || 'Failed to delete page');
+    }
+  }, [canvas, pages, currentPageId, currentPageIndex, currentProjectId, saveState]);
+
+  // Rename a page
+  const renamePage = useCallback(async (pageId: string, name: string) => {
+    if (!name.trim()) {
+      toast.error('Page name cannot be empty');
+      return;
+    }
+
+    try {
+      await updatePage(pageId, { pageName: name.trim() });
+
+      setPages(prev => prev.map(p =>
+        p.id === pageId ? { ...p, page_name: name.trim() } : p
+      ));
+
+      toast.success('Page renamed');
+    } catch (error: any) {
+      console.error('Error renaming page:', error);
+      toast.error(error.message || 'Failed to rename page');
+    }
+  }, []);
+
+  // Duplicate current page
+  const duplicateCurrentPage = useCallback(async () => {
+    if (!canvas || !currentPageId) return;
+
+    try {
+      // Save current page first to ensure we duplicate latest
+      await saveCurrentPageData();
+
+      // Duplicate in database
+      const duplicated = await duplicatePageInDb(currentPageId);
+
+      // Update local state
+      setPages(prev => [...prev, duplicated]);
+
+      toast.success(`Page duplicated as "${duplicated.page_name}"`);
+    } catch (error: any) {
+      console.error('Error duplicating page:', error);
+      toast.error(error.message || 'Failed to duplicate page');
+    }
+  }, [canvas, currentPageId, saveCurrentPageData]);
+
+  // Move page (reorder)
+  const movePage = useCallback(async (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 ||
+        fromIndex >= pages.length || toIndex >= pages.length) {
+      return;
+    }
+
+    try {
+      const newPages = [...pages];
+      const [movedPage] = newPages.splice(fromIndex, 1);
+      newPages.splice(toIndex, 0, movedPage);
+
+      // Update page numbers
+      const reorderedPages = newPages.map((p, i) => ({ ...p, page_number: i + 1 }));
+
+      // Save to database
+      await reorderPages(currentProjectId!, reorderedPages.map(p => p.id));
+
+      // Update state
+      setPages(reorderedPages);
+
+      // Update current index if needed
+      if (currentPageIndex === fromIndex) {
+        setCurrentPageIndex(toIndex);
+      } else if (fromIndex < currentPageIndex && toIndex >= currentPageIndex) {
+        setCurrentPageIndex(currentPageIndex - 1);
+      } else if (fromIndex > currentPageIndex && toIndex <= currentPageIndex) {
+        setCurrentPageIndex(currentPageIndex + 1);
+      }
+
+      toast.success('Page moved');
+    } catch (error: any) {
+      console.error('Error moving page:', error);
+      toast.error(error.message || 'Failed to move page');
+    }
+  }, [pages, currentPageIndex, currentProjectId]);
+
   const value: CanvasContextType = {
     canvas,
     setCanvas,
@@ -2437,6 +2830,9 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     exportAsJPG,
     exportAsSVG,
     cleanExport,
+    startBatchMode,
+    endBatchMode,
+    batchOperation,
     exportDialogOpen,
     setExportDialogOpen,
     textFont,
@@ -2503,6 +2899,17 @@ export const CanvasProvider = ({ children }: CanvasProviderProps) => {
     editingCurvedLine,
     setEditingCurvedLine,
     exitCurvedLineEditMode,
+
+    // Multi-page support
+    pages,
+    currentPageIndex,
+    currentPageId,
+    addPage,
+    switchToPage,
+    deleteCurrentPage,
+    renamePage,
+    duplicateCurrentPage,
+    movePage,
   };
 
   return <CanvasContext.Provider value={value}>{children}</CanvasContext.Provider>;

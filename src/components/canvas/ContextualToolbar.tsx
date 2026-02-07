@@ -111,7 +111,7 @@ export const ContextualToolbar = () => {
     return (
       <>
         <TextFormattingPanel />
-        <Separator orientation="vertical" className="h-8 bg-black" />
+        <Separator orientation="vertical" className="h-8 bg-border" />
       </>
     );
   }, [isTextObject, selectedObject]);
@@ -121,7 +121,7 @@ export const ContextualToolbar = () => {
     return (
       <>
         <LinePropertiesPanel />
-        <Separator orientation="vertical" className="h-8 bg-black" />
+        <Separator orientation="vertical" className="h-8 bg-border" />
       </>
     );
   }, [isConnector, selectedObject]);
@@ -237,24 +237,24 @@ export const ContextualToolbar = () => {
   return (
     <div
       ref={toolbarRef}
-      className="fixed z-40 bg-white border-3 border-black brutal-shadow p-3 flex items-center gap-3"
+      className="fixed z-40 floating-panel rounded-xl p-3 flex items-center gap-3"
       style={{
         transform: `translate(${position.x}px, ${position.y}px)`,
-        transition: isDragging ? 'none' : 'opacity 0.3s',
+        transition: isDragging ? 'none' : 'opacity 0.3s, box-shadow 0.2s',
         cursor: isDragging ? 'grabbing' : 'default',
         willChange: 'transform',
       }}
     >
       {/* Drag Handle */}
       <div
-        className="drag-handle cursor-grab active:cursor-grabbing hover:bg-secondary px-1 py-2 -ml-1 flex items-center transition-colors"
+        className="drag-handle cursor-grab active:cursor-grabbing hover:bg-slate-100 px-1.5 py-2 -ml-1 rounded-md flex items-center transition-all duration-150"
         onMouseDown={handleMouseDown}
         title="Drag to reposition"
       >
-        <GripVertical className="h-4 w-4 text-black" />
+        <GripVertical className="h-4 w-4 text-slate-400" />
       </div>
 
-      <Separator orientation="vertical" className="h-8 bg-black w-[2px]" />
+      <Separator orientation="vertical" className="h-8 bg-border" />
 
       {/* Text Controls */}
       {textControls}
@@ -275,7 +275,7 @@ export const ContextualToolbar = () => {
                 selectedObject.set({ fill: e.target.value });
                 canvas.requestRenderAll();
               }}
-              className="w-10 h-8 p-0 border-2 border-black cursor-pointer"
+              className="w-10 h-8 p-0 border border-border rounded-lg cursor-pointer"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -288,10 +288,10 @@ export const ContextualToolbar = () => {
                 selectedObject.set({ stroke: e.target.value });
                 canvas.requestRenderAll();
               }}
-              className="w-10 h-8 p-0 border-2 border-black cursor-pointer"
+              className="w-10 h-8 p-0 border border-border rounded-lg cursor-pointer"
             />
           </div>
-          <Separator orientation="vertical" className="h-8 bg-black w-[2px]" />
+          <Separator orientation="vertical" className="h-8 bg-border" />
         </>
       )}
 
@@ -306,7 +306,7 @@ export const ContextualToolbar = () => {
                 type="number"
                 value={dimensions.width}
                 onChange={handleWidthChange}
-                className="w-16 h-8 text-xs px-2 border-2 border-black"
+                className="w-16 h-8 text-xs px-2 border border-border rounded-lg"
               />
             </div>
             <Button
@@ -324,12 +324,12 @@ export const ContextualToolbar = () => {
                 type="number"
                 value={dimensions.height}
                 onChange={handleHeightChange}
-                className="w-16 h-8 text-xs px-2 border-2 border-black"
+                className="w-16 h-8 text-xs px-2 border border-border rounded-lg"
               />
             </div>
           </div>
 
-          <Separator orientation="vertical" className="h-8 bg-black w-[2px]" />
+          <Separator orientation="vertical" className="h-8 bg-border" />
 
           {/* Color Presets */}
           <div className="flex items-center gap-1">
@@ -339,7 +339,7 @@ export const ContextualToolbar = () => {
                 <button
                   key={color}
                   onClick={() => applyColorToGroup(color)}
-                  className="w-5 h-5 border-2 border-black hover:scale-110 transition-transform"
+                  className="w-5 h-5 border border-border rounded-lg hover:scale-110 transition-transform"
                   style={{ backgroundColor: color }}
                   title={color}
                 />
@@ -347,7 +347,7 @@ export const ContextualToolbar = () => {
             </div>
           </div>
 
-          <Separator orientation="vertical" className="h-8 bg-black w-[2px]" />
+          <Separator orientation="vertical" className="h-8 bg-border" />
 
           {/* Transform Controls */}
           <div className="flex items-center gap-1">
@@ -380,7 +380,7 @@ export const ContextualToolbar = () => {
             </Button>
           </div>
 
-          <Separator orientation="vertical" className="h-8 bg-black w-[2px]" />
+          <Separator orientation="vertical" className="h-8 bg-border" />
         </>
       )}
 
@@ -400,7 +400,7 @@ export const ContextualToolbar = () => {
         </span>
       </div>
 
-      <Separator orientation="vertical" className="h-8 bg-black w-[2px]" />
+      <Separator orientation="vertical" className="h-8 bg-border" />
 
       {/* Action Buttons */}
       <div className="flex items-center gap-1">
@@ -417,7 +417,7 @@ export const ContextualToolbar = () => {
           variant="ghost"
           size="sm"
           onClick={handleDelete}
-          className="h-8 w-8 p-0 hover:bg-black hover:text-white"
+          className="h-8 w-8 p-0 hover:bg-destructive hover:text-destructive-foreground"
           title="Delete"
         >
           <Trash2 className="h-4 w-4" />

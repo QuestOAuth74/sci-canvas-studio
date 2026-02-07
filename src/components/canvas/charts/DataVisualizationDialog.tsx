@@ -79,7 +79,12 @@ export const DataVisualizationDialog = ({
   const [showDataLabels, setShowDataLabels] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<string>('nature');
   const [binCount, setBinCount] = useState(10);
-  
+
+  // Heatmap-specific state
+  const [heatmapCellRounding, setHeatmapCellRounding] = useState(2);
+  const [heatmapShowValues, setHeatmapShowValues] = useState(false);
+  const [heatmapCellGap, setHeatmapCellGap] = useState(1);
+
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Parse and process data based on chart type
@@ -215,6 +220,9 @@ export const DataVisualizationDialog = ({
     setShowGrid(true);
     setShowDataLabels(false);
     setBinCount(10);
+    setHeatmapCellRounding(2);
+    setHeatmapShowValues(false);
+    setHeatmapCellGap(1);
   };
 
   return (
@@ -292,6 +300,9 @@ export const DataVisualizationDialog = ({
                 showLegend={showLegend}
                 showGrid={showGrid}
                 showDataLabels={showDataLabels}
+                heatmapCellRounding={heatmapCellRounding}
+                heatmapShowValues={heatmapShowValues}
+                heatmapCellGap={heatmapCellGap}
               />
             </div>
           </div>
@@ -321,6 +332,12 @@ export const DataVisualizationDialog = ({
                   onPresetChange={setSelectedPreset}
                   binCount={binCount}
                   onBinCountChange={setBinCount}
+                  heatmapCellRounding={heatmapCellRounding}
+                  onHeatmapCellRoundingChange={setHeatmapCellRounding}
+                  heatmapShowValues={heatmapShowValues}
+                  onHeatmapShowValuesChange={setHeatmapShowValues}
+                  heatmapCellGap={heatmapCellGap}
+                  onHeatmapCellGapChange={setHeatmapCellGap}
                 />
               </div>
             </ScrollArea>

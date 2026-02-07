@@ -1431,6 +1431,291 @@ export type Database = {
         }
         Relationships: []
       }
+      labs: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          owner_id: string
+          avatar_url: string | null
+          settings: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          owner_id: string
+          avatar_url?: string | null
+          settings?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          owner_id?: string
+          avatar_url?: string | null
+          settings?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lab_members: {
+        Row: {
+          id: string
+          lab_id: string
+          user_id: string
+          role: Database["public"]["Enums"]["lab_role"]
+          status: Database["public"]["Enums"]["lab_member_status"]
+          joined_at: string
+          invited_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          lab_id: string
+          user_id: string
+          role?: Database["public"]["Enums"]["lab_role"]
+          status?: Database["public"]["Enums"]["lab_member_status"]
+          joined_at?: string
+          invited_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          lab_id?: string
+          user_id?: string
+          role?: Database["public"]["Enums"]["lab_role"]
+          status?: Database["public"]["Enums"]["lab_member_status"]
+          joined_at?: string
+          invited_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_members_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_invitations: {
+        Row: {
+          id: string
+          lab_id: string
+          email: string
+          role: Database["public"]["Enums"]["lab_role"]
+          token: string
+          personal_message: string | null
+          invited_by: string
+          expires_at: string
+          status: string
+          responded_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          lab_id: string
+          email: string
+          role?: Database["public"]["Enums"]["lab_role"]
+          token?: string
+          personal_message?: string | null
+          invited_by: string
+          expires_at?: string
+          status?: string
+          responded_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          lab_id?: string
+          email?: string
+          role?: Database["public"]["Enums"]["lab_role"]
+          token?: string
+          personal_message?: string | null
+          invited_by?: string
+          expires_at?: string
+          status?: string
+          responded_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_invitations_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_collections: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          description: string | null
+          is_public: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          description?: string | null
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          description?: string | null
+          is_public?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_collection_items: {
+        Row: {
+          id: string
+          collection_id: string
+          project_id: string
+          added_at: string
+          display_order: number
+        }
+        Insert: {
+          id?: string
+          collection_id: string
+          project_id: string
+          added_at?: string
+          display_order?: number
+        }
+        Update: {
+          id?: string
+          collection_id?: string
+          project_id?: string
+          added_at?: string
+          display_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "project_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_collection_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_projects: {
+        Row: {
+          id: string
+          lab_id: string
+          project_id: string
+          shared_by: string
+          permission_level: Database["public"]["Enums"]["collaboration_role"]
+          shared_at: string
+        }
+        Insert: {
+          id?: string
+          lab_id: string
+          project_id: string
+          shared_by: string
+          permission_level?: Database["public"]["Enums"]["collaboration_role"]
+          shared_at?: string
+        }
+        Update: {
+          id?: string
+          lab_id?: string
+          project_id?: string
+          shared_by?: string
+          permission_level?: Database["public"]["Enums"]["collaboration_role"]
+          shared_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_projects_lab_id_fkey"
+            columns: ["lab_id"]
+            isOneToOne: false
+            referencedRelation: "labs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_projects_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      canvas_presence: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          cursor_x: number | null
+          cursor_y: number | null
+          viewport_x: number | null
+          viewport_y: number | null
+          viewport_zoom: number | null
+          color: string | null
+          last_seen_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          user_id: string
+          cursor_x?: number | null
+          cursor_y?: number | null
+          viewport_x?: number | null
+          viewport_y?: number | null
+          viewport_zoom?: number | null
+          color?: string | null
+          last_seen_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          user_id?: string
+          cursor_x?: number | null
+          cursor_y?: number | null
+          viewport_x?: number | null
+          viewport_y?: number | null
+          viewport_zoom?: number | null
+          color?: string | null
+          last_seen_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "canvas_presence_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "canvas_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1559,11 +1844,54 @@ export type Database = {
         Args: { check_project_id: string; check_user_id: string }
         Returns: boolean
       }
+      user_is_lab_member: {
+        Args: {
+          check_user_id: string
+          check_lab_id: string
+          required_role?: Database["public"]["Enums"]["lab_role"] | null
+        }
+        Returns: boolean
+      }
+      accept_lab_invitation: {
+        Args: { invitation_token: string }
+        Returns: {
+          lab_id: string
+          lab_name: string
+          role: Database["public"]["Enums"]["lab_role"]
+        }[]
+      }
+      get_user_labs: {
+        Args: { check_user_id?: string | null }
+        Returns: {
+          lab_id: string
+          lab_name: string
+          lab_description: string | null
+          lab_avatar_url: string | null
+          user_role: Database["public"]["Enums"]["lab_role"]
+          member_count: number
+          project_count: number
+          joined_at: string
+        }[]
+      }
+      user_can_access_project_via_lab: {
+        Args: {
+          check_user_id: string
+          check_project_id: string
+          required_permission?: Database["public"]["Enums"]["collaboration_role"]
+        }
+        Returns: boolean
+      }
+      cleanup_expired_lab_invitations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
       collaboration_role: "viewer" | "editor" | "admin"
       invitation_status: "pending" | "accepted" | "declined" | "expired"
+      lab_role: "owner" | "admin" | "member"
+      lab_member_status: "active" | "suspended" | "removed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1694,6 +2022,8 @@ export const Constants = {
       app_role: ["admin", "user"],
       collaboration_role: ["viewer", "editor", "admin"],
       invitation_status: ["pending", "accepted", "declined", "expired"],
+      lab_role: ["owner", "admin", "member"],
+      lab_member_status: ["active", "suspended", "removed"],
     },
   },
 } as const

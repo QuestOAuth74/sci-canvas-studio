@@ -33,6 +33,7 @@ export const NodeSchema = z.object({
   id: z.string(),
   kind: z.enum(['icon', 'group', 'shape']),
   iconId: z.string().optional(), // For icon nodes - references internal icon library
+  generatedIconUrl: z.string().optional(), // AI-generated icon as data URL (when no icon in library)
   shapeType: z.enum(['rect', 'ellipse', 'diamond', 'hexagon', 'triangle', 'star']).optional(),
   x: z.number().optional(), // Optional if using auto-layout
   y: z.number().optional(),

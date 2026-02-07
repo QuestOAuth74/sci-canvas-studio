@@ -739,15 +739,15 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
 
 
   return (
-    <div className="w-full h-full bg-white flex flex-col overflow-auto" data-onboarding="properties-panel">
+    <div className="w-full h-full bg-white/95 flex flex-col overflow-auto sleek-scroll" data-onboarding="properties-panel">
       {/* Toggle button - always visible */}
-      <div className="p-4 border-b border-slate-200/80 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-900">Properties</h3>
+      <div className="panel-header">
+        <h3 className="text-sm font-semibold text-slate-800">Properties</h3>
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggleCollapse}
-          className="h-7 w-7"
+          className="h-7 w-7 text-slate-500 hover:text-slate-800 hover:bg-slate-100"
           title={isCollapsed ? "Expand properties panel" : "Collapse properties panel"}
         >
           {isCollapsed ? <CaretLeft size={18} weight="regular" /> : <CaretRight size={18} weight="regular" />}
@@ -764,9 +764,9 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
             <ScrollArea type="always" className="flex-1 min-h-0">
               {/* Pin Object Section - shown when object is selected */}
               {selectedObject && (
-            <div className="p-3 border-b border-border/40 bg-accent/10 smooth-transition hover:bg-accent/20">
+            <div className="p-3 border-b border-slate-200 bg-slate-50 smooth-transition hover:bg-slate-100">
               <div className="flex items-center justify-between mb-2">
-                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pin Object</Label>
+                <Label className="text-xs font-semibold uppercase tracking-wider text-slate-500">Pin Object</Label>
                 <Button
                   variant={isPinned ? "default" : "outline"}
                   size="sm"
@@ -795,34 +795,34 @@ export const PropertiesPanel = ({ isCollapsed, onToggleCollapse, activeTool }: {
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full m-3 bg-accent/20" style={{ gridTemplateColumns: `repeat(${
-              !selectedObject ? 2 : 
+            <TabsList className="grid w-full m-3 bg-slate-100" style={{ gridTemplateColumns: `repeat(${
+              !selectedObject ? 2 :
               (
-               isTextObject(selectedObject) ? 3 : 
+               isTextObject(selectedObject) ? 3 :
                isLineObject(selectedObject) ? 3 : 2)
             }, minmax(0, 1fr))` }}>
-              {!selectedObject && <TabsTrigger value="diagram" className="text-xs">Diagram</TabsTrigger>}
-              
+              {!selectedObject && <TabsTrigger value="diagram" className="text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Diagram</TabsTrigger>}
+
               {selectedObject && (
                 <>
-                
+
                   {(isShapeObject(selectedObject) || isImageObject(selectedObject) || selectedObject.type === 'group') && (
-                    <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
+                    <TabsTrigger value="style" className="text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Style</TabsTrigger>
                   )}
-                  
+
                   {isTextObject(selectedObject) && (
-                    <TabsTrigger value="text" className="text-xs">Text</TabsTrigger>
+                    <TabsTrigger value="text" className="text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Text</TabsTrigger>
                   )}
-                  
+
                   {isLineObject(selectedObject) && (
-                    <TabsTrigger value="line" className="text-xs">Line</TabsTrigger>
+                    <TabsTrigger value="line" className="text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Line</TabsTrigger>
                   )}
-                  
-                  <TabsTrigger value="arrange" className="text-xs">Arrange</TabsTrigger>
+
+                  <TabsTrigger value="arrange" className="text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Arrange</TabsTrigger>
                 </>
               )}
-              
-              {!selectedObject && <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>}
+
+              {!selectedObject && <TabsTrigger value="style" className="text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">Style</TabsTrigger>}
             </TabsList>
           
           <div className="px-3 pb-4">

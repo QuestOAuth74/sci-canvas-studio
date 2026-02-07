@@ -118,7 +118,7 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
               src={node.attrs?.src}
               alt={node.attrs?.alt || ''}
               title={node.attrs?.title}
-              className="max-w-full h-auto cursor-zoom-in hover:opacity-90 transition-opacity border-4 border-foreground shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+              className="max-w-full h-auto cursor-zoom-in hover:opacity-90 transition-all duration-200 border border-border rounded-xl shadow-soft hover:shadow-soft-md"
               onClick={() => setZoomImage({ src: node.attrs?.src, alt: node.attrs?.alt || '' })}
             />
             {node.attrs?.title && (
@@ -145,7 +145,7 @@ export const BlogContentRenderer = ({ content }: BlogContentRendererProps) => {
             <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
               <iframe
                 src={embedUrl}
-                className="absolute top-0 left-0 w-full h-full border-4 border-foreground shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] rounded-none"
+                className="absolute top-0 left-0 w-full h-full border border-border rounded-xl shadow-soft-lg"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 title="YouTube video"

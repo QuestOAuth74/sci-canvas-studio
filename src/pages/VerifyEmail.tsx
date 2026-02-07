@@ -7,6 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { showSuccessToast, showErrorToast } from '@/lib/toast-helpers';
 import { SEOHead } from '@/components/SEO/SEOHead';
 import { VerifyEmailTestIds, ToastTestIds } from '@/lib/test-ids';
+import { motion } from 'framer-motion';
+import DotPattern from '@/components/ui/dot-pattern';
+import { cn } from '@/lib/utils';
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -37,14 +40,42 @@ export default function VerifyEmail() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="relative min-h-screen flex items-center justify-center bg-background p-4 overflow-hidden">
       <SEOHead
         title="Verify Email - BioSketch"
         description="Verify your email address to complete your BioSketch registration"
         noindex={true}
       />
 
-      <Card className="w-full max-w-md border border-border shadow-lg">
+      {/* Background Pattern */}
+      <DotPattern
+        className={cn(
+          "[mask-image:radial-gradient(30vw_circle_at_center,white,transparent)]",
+          "opacity-40"
+        )}
+      />
+
+      {/* Animated Gradient Blurs */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 0.3, scale: 1 }}
+        transition={{ duration: 1.4 }}
+        className="absolute top-20 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={{ opacity: 0.2, scale: 1 }}
+        transition={{ duration: 1.6, delay: 0.3 }}
+        className="absolute bottom-20 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-3xl"
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative z-10 w-full max-w-md"
+      >
+        <Card className="w-full border border-border shadow-lg">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
             <div className="p-4 rounded-full bg-primary/10">
@@ -90,6 +121,7 @@ export default function VerifyEmail() {
           </Button>
         </CardContent>
       </Card>
+      </motion.div>
     </div>
   );
 }

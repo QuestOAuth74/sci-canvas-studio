@@ -205,34 +205,37 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-violet-50/20 relative overflow-hidden">
       <SEOHead
         title="Pricing - BioSketch"
         description="Choose the perfect plan for your scientific illustration needs. Free forever tier, Pro with AI credits, or Enterprise for teams."
       />
 
-      {/* Hero Section */}
-      <section className="relative py-24 overflow-hidden">
-        <DotPattern
-          className={cn(
-            "[mask-image:radial-gradient(40vw_circle_at_center,white,transparent)]",
-            "opacity-40"
-          )}
+      {/* Background Blobs */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: 0.4, scale: 1 }}
+          transition={{ duration: 1.4 }}
+          className="blob-1 top-[-100px] left-[10%]"
         />
-
         <motion.div
           initial={{ opacity: 0, scale: 0.6 }}
           animate={{ opacity: 0.3, scale: 1 }}
-          transition={{ duration: 1.4 }}
-          className="absolute top-20 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-3xl"
+          transition={{ duration: 1.6, delay: 0.3 }}
+          className="blob-2 bottom-[20%] right-[-50px]"
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.6 }}
-          animate={{ opacity: 0.2, scale: 1 }}
-          transition={{ duration: 1.6, delay: 0.3 }}
-          className="absolute bottom-0 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-3xl"
+          animate={{ opacity: 0.25, scale: 1 }}
+          transition={{ duration: 1.8, delay: 0.5 }}
+          className="blob-3 top-[60%] left-[-100px]"
         />
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
+      </div>
 
+      {/* Hero Section */}
+      <section className="relative py-24 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -240,14 +243,14 @@ export default function Pricing() {
             transition={{ duration: 0.5 }}
             className="text-center max-w-3xl mx-auto space-y-4"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-violet-500/10 border border-blue-500/20 text-cyan-600 text-sm font-medium">
               <Sparkles className="h-4 w-4" />
               Simple, transparent pricing
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
               Choose your plan
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-lg text-slate-600">
               Start free and upgrade when you need more power. No hidden fees.
             </p>
           </motion.div>
@@ -255,7 +258,7 @@ export default function Pricing() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="py-12 -mt-12">
+      <section className="py-12 -mt-12 relative z-10">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {pricingTiers.map((tier, index) => (
@@ -270,76 +273,83 @@ export default function Pricing() {
                 )}
               >
                 {tier.highlighted && (
-                  <div className="absolute -top-4 left-0 right-0 flex justify-center">
-                    <span className="px-4 py-1 bg-primary text-primary-foreground text-sm font-medium rounded-full">
+                  <div className="absolute -top-4 left-0 right-0 flex justify-center z-10">
+                    <span className="px-4 py-1.5 bg-gradient-to-r from-cyan-600 to-teal-600 text-white text-sm font-medium rounded-full shadow-lg shadow-cyan-500/25">
                       Most Popular
                     </span>
                   </div>
                 )}
-                <Card
+                <div
                   className={cn(
-                    "h-full flex flex-col transition-all duration-300 hover:shadow-xl",
+                    "h-full flex flex-col rounded-3xl p-6 transition-all duration-300",
                     tier.highlighted
-                      ? "border-primary shadow-lg shadow-primary/10"
-                      : "border-border hover:border-primary/30"
+                      ? "glass-card shadow-soft border-blue-200/50 hover:shadow-lg shadow-cyan-500/25"
+                      : "glass-card hover:shadow-soft hover:-translate-y-1"
                   )}
                 >
-                  <CardHeader className="space-y-4">
+                  <div className="space-y-4 mb-6">
                     <div
                       className={cn(
                         "w-12 h-12 rounded-xl flex items-center justify-center",
                         tier.highlighted
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted text-foreground"
+                          ? "bg-gradient-to-br from-blue-500 to-violet-500 text-white shadow-lg shadow-cyan-500/25"
+                          : "bg-slate-100 text-slate-600"
                       )}
                     >
                       {tier.icon}
                     </div>
                     <div>
-                      <CardTitle className="text-xl">{tier.name}</CardTitle>
-                      <CardDescription className="mt-1">
+                      <h3 className="text-xl font-bold text-slate-900">{tier.name}</h3>
+                      <p className="mt-1 text-sm text-slate-500">
                         {tier.description}
-                      </CardDescription>
+                      </p>
                     </div>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-foreground">
+                      <span className="text-4xl font-bold text-slate-900">
                         {tier.price}
                       </span>
                       {tier.period && (
-                        <span className="text-muted-foreground">
+                        <span className="text-slate-500">
                           {tier.period}
                         </span>
                       )}
                     </div>
-                  </CardHeader>
-                  <CardContent className="flex-1 flex flex-col">
+                  </div>
+                  <div className="flex-1 flex flex-col">
                     <ul className="space-y-3 flex-1">
                       {tier.features.map((feature, i) => (
                         <li key={i} className="flex items-start gap-3">
-                          <Check
-                            className={cn(
-                              "h-5 w-5 shrink-0 mt-0.5",
-                              tier.highlighted
-                                ? "text-primary"
-                                : "text-muted-foreground"
-                            )}
-                          />
-                          <span className="text-sm text-foreground">
+                          <div className={cn(
+                            "w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                            tier.highlighted
+                              ? "bg-blue-100 text-cyan-600"
+                              : "bg-slate-100 text-slate-500"
+                          )}>
+                            <Check className="h-3 w-3" />
+                          </div>
+                          <span className="text-sm text-slate-700">
                             {feature}
                           </span>
                         </li>
                       ))}
                     </ul>
                     <Button
-                      className="w-full mt-6"
-                      variant={tier.buttonVariant}
+                      className={cn(
+                        "w-full mt-6 rounded-xl h-12",
+                        tier.highlighted
+                          ? "bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white shadow-lg shadow-cyan-500/25 border-0"
+                          : tier.buttonVariant === "outline"
+                            ? "border-slate-200 text-slate-700 hover:bg-slate-50"
+                            : ""
+                      )}
+                      variant={tier.highlighted ? "default" : tier.buttonVariant}
                       size="lg"
                       onClick={() => handleTierClick(tier)}
                     >
                       {tier.buttonText}
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -347,7 +357,7 @@ export default function Pricing() {
       </section>
 
       {/* Community Credits Callout */}
-      <section className="py-12">
+      <section className="py-12 relative z-10">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -355,16 +365,17 @@ export default function Pricing() {
             viewport={{ once: true }}
             className="max-w-3xl mx-auto"
           >
-            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 p-8">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center shrink-0">
-                  <Sparkles className="h-8 w-8 text-primary" />
+            <div className="relative glass-card rounded-3xl overflow-hidden p-8">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-violet-500/5 to-blue-500/5" />
+              <div className="relative flex flex-col md:flex-row items-center gap-6">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/25">
+                  <Sparkles className="h-8 w-8 text-white" />
                 </div>
                 <div className="text-center md:text-left">
-                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">
                     Earn AI Credits for Free
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p className="text-slate-600">
                     Share your scientific illustrations with our community gallery and earn AI credits.
                     Help fellow researchers while unlocking AI-powered figure generation at no cost.
                   </p>
@@ -376,7 +387,7 @@ export default function Pricing() {
       </section>
 
       {/* Feature Comparison */}
-      <section className="py-24 bg-muted/30">
+      <section className="py-24 relative z-10">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -384,10 +395,10 @@ export default function Pricing() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">
               What's included
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-slate-600">
               Compare features across all plans
             </p>
           </motion.div>
@@ -400,6 +411,7 @@ export default function Pricing() {
                 free: "Full Access",
                 pro: "Full Access",
                 enterprise: "Full Access",
+                gradient: "from-amber-500 to-orange-500",
               },
               {
                 icon: <HardDrive className="h-6 w-6" />,
@@ -407,6 +419,7 @@ export default function Pricing() {
                 free: "200 MB",
                 pro: "2 GB",
                 enterprise: "Unlimited",
+                gradient: "from-emerald-500 to-teal-500",
               },
               {
                 icon: <Sparkles className="h-6 w-6" />,
@@ -414,6 +427,7 @@ export default function Pricing() {
                 free: "Earn via sharing",
                 pro: "1,500/mo",
                 enterprise: "Unlimited",
+                gradient: "from-blue-500 to-violet-500",
               },
               {
                 icon: <Users className="h-6 w-6" />,
@@ -421,6 +435,7 @@ export default function Pricing() {
                 free: "—",
                 pro: "Real-time",
                 enterprise: "Advanced",
+                gradient: "from-pink-500 to-rose-500",
               },
               {
                 icon: <Shield className="h-6 w-6" />,
@@ -428,6 +443,7 @@ export default function Pricing() {
                 free: "Community",
                 pro: "Priority",
                 enterprise: "Dedicated",
+                gradient: "from-indigo-500 to-purple-500",
               },
             ].map((feature, i) => (
               <motion.div
@@ -436,28 +452,31 @@ export default function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="p-6 rounded-xl bg-card border border-border"
+                className="glass-card rounded-2xl p-6 hover:shadow-soft transition-all duration-300 hover:-translate-y-1"
               >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <div className="text-primary">{feature.icon}</div>
+                <div className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br text-white",
+                  feature.gradient
+                )}>
+                  {feature.icon}
                 </div>
-                <h3 className="font-semibold text-foreground mb-3">
+                <h3 className="font-semibold text-slate-900 mb-3">
                   {feature.title}
                 </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Free</span>
-                    <span className="text-foreground">{feature.free}</span>
+                    <span className="text-slate-500">Free</span>
+                    <span className="text-slate-700">{feature.free}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Pro</span>
-                    <span className="text-primary font-medium">
+                    <span className="text-slate-500">Pro</span>
+                    <span className="text-cyan-600 font-medium">
                       {feature.pro}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Enterprise</span>
-                    <span className="text-foreground">{feature.enterprise}</span>
+                    <span className="text-slate-500">Enterprise</span>
+                    <span className="text-slate-700">{feature.enterprise}</span>
                   </div>
                 </div>
               </motion.div>
@@ -467,7 +486,7 @@ export default function Pricing() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24">
+      <section className="py-24 relative z-10">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -475,10 +494,10 @@ export default function Pricing() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-3xl font-bold text-foreground mb-4">
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">
               Frequently asked questions
             </h2>
-            <p className="text-muted-foreground">
+            <p className="text-slate-600">
               Everything you need to know about our pricing
             </p>
           </motion.div>
@@ -491,10 +510,10 @@ export default function Pricing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="p-6 rounded-xl bg-card border border-border"
+                className="glass-card rounded-2xl p-6 hover:shadow-soft transition-all duration-300"
               >
-                <h3 className="font-semibold text-foreground mb-2">{faq.q}</h3>
-                <p className="text-sm text-muted-foreground">{faq.a}</p>
+                <h3 className="font-semibold text-slate-900 mb-2">{faq.q}</h3>
+                <p className="text-sm text-slate-600">{faq.a}</p>
               </motion.div>
             ))}
           </div>
@@ -502,31 +521,42 @@ export default function Pricing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-muted/30">
+      <section className="py-24 relative z-10">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-2xl mx-auto text-center space-y-6"
+            className="max-w-2xl mx-auto"
           >
-            <h2 className="text-3xl font-bold text-foreground">
-              Ready to create stunning figures?
-            </h2>
-            <p className="text-muted-foreground">
-              Join thousands of researchers already using BioSketch
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" onClick={() => navigate(user ? "/canvas" : "/auth")}>
-                {user ? "Open Canvas" : "Start Free"}
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => setEnterpriseDialogOpen(true)}
-              >
-                Contact Sales
-              </Button>
+            <div className="glass-card rounded-3xl p-10 text-center space-y-6 relative overflow-hidden">
+              <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-500/20 to-violet-500/20 rounded-full blur-3xl" />
+              <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-br from-violet-500/20 to-pink-500/20 rounded-full blur-3xl" />
+              <div className="relative">
+                <h2 className="text-3xl font-bold text-slate-900">
+                  Ready to create stunning figures?
+                </h2>
+                <p className="text-slate-600 mt-3">
+                  Join thousands of researchers already using BioSketch
+                </p>
+                <div className="flex flex-wrap justify-center gap-4 mt-8">
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white shadow-lg shadow-cyan-500/25 rounded-xl border-0 h-12 px-8"
+                    onClick={() => navigate(user ? "/canvas" : "/auth")}
+                  >
+                    {user ? "Open Canvas" : "Start Free"}
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="rounded-xl h-12 px-8 border-slate-200 hover:bg-slate-50"
+                    onClick={() => setEnterpriseDialogOpen(true)}
+                  >
+                    Contact Sales
+                  </Button>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>

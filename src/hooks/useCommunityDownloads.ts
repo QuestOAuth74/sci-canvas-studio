@@ -2,6 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Check if local auth mode is enabled (no limits)
+const isLocalAuthEnabled = () => import.meta.env.VITE_LOCAL_AUTH === 'true';
+
 export interface DownloadQuota {
   downloadsUsed: number;
   sharedProjects: number;
@@ -19,14 +22,26 @@ export const useCommunityDownloads = () => {
   const { data: quota, isLoading } = useQuery({
     queryKey: ['download-quota', user?.id],
     queryFn: async (): Promise<DownloadQuota> => {
-      if (!user) return { 
-        downloadsUsed: 0, 
-        sharedProjects: 0, 
+      if (!user) return {
+        downloadsUsed: 0,
+        sharedProjects: 0,
         hasUnlimited: false,
-        remainingDownloads: 3, 
+        remainingDownloads: 3,
         canDownload: true,
         projectsUntilUnlimited: 3
       };
+
+      // If local auth is enabled, give unlimited downloads
+      if (isLocalAuthEnabled()) {
+        return {
+          downloadsUsed: 0,
+          sharedProjects: 999,
+          hasUnlimited: true,
+          remainingDownloads: null,
+          canDownload: true,
+          projectsUntilUnlimited: 0,
+        };
+      }
 
       const { data, error } = await supabase
         .rpc('get_user_download_quota', { check_user_id: user.id })
@@ -82,15 +97,24 @@ export const useCommunityDownloads = () => {
     },
   });
 
+  const defaultQuota = isLocalAuthEnabled() ? {
+    downloadsUsed: 0,
+    sharedProjects: 999,
+    hasUnlimited: true,
+    remainingDownloads: null,
+    canDownload: true,
+    projectsUntilUnlimited: 0,
+  } : {
+    downloadsUsed: 0,
+    sharedProjects: 0,
+    hasUnlimited: false,
+    remainingDownloads: 3,
+    canDownload: true,
+    projectsUntilUnlimited: 3
+  };
+
   return {
-    quota: quota || { 
-      downloadsUsed: 0, 
-      sharedProjects: 0, 
-      hasUnlimited: false,
-      remainingDownloads: 3, 
-      canDownload: true,
-      projectsUntilUnlimited: 3
-    },
+    quota: quota || defaultQuota,
     isLoading,
     checkOwnership,
     recordDownload: recordDownload.mutate,

@@ -165,28 +165,58 @@ export const SCIENTIFIC_PRESETS = {
   },
   viridis: {
     name: 'Viridis',
-    colors: ['#440154', '#414487', '#2A788E', '#22A884', '#7AD151', '#FDE725'],
+    colors: ['#440154', '#482878', '#3e4989', '#31688e', '#26838f', '#1f9e89', '#35b779', '#6ece58', '#b5de2b', '#fde725'],
     description: 'Perceptually uniform colormap'
   },
   plasma: {
     name: 'Plasma',
-    colors: ['#0D0887', '#6A00A8', '#B12A90', '#E16462', '#FCA636', '#F0F921'],
+    colors: ['#0d0887', '#46039f', '#7201a8', '#9c179e', '#bd3786', '#d8576b', '#ed7953', '#fb9f3a', '#fdca26', '#f0f921'],
     description: 'High contrast sequential'
+  },
+  inferno: {
+    name: 'Inferno',
+    colors: ['#000004', '#1b0c41', '#4a0c6b', '#781c6d', '#a52c60', '#cf4446', '#ed6925', '#fb9b06', '#f7d13d', '#fcffa4'],
+    description: 'High contrast, warm tones'
+  },
+  magma: {
+    name: 'Magma',
+    colors: ['#000004', '#180f3d', '#440f76', '#721f81', '#9e2f7f', '#cd4071', '#f1605d', '#fd9668', '#feca8d', '#fcfdbf'],
+    description: 'Warm perceptually uniform'
   },
   colorblindSafe: {
     name: 'Colorblind Safe',
     colors: ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#D55E00', '#56B4E9'],
     description: 'Accessible to colorblind viewers'
   },
-  grayscale: {
-    name: 'Grayscale',
-    colors: ['#1a1a1a', '#4d4d4d', '#808080', '#b3b3b3', '#cccccc', '#e6e6e6'],
-    description: 'Print-friendly monochrome'
-  },
   coolWarm: {
     name: 'Cool-Warm',
-    colors: ['#3B4CC0', '#6B8DF4', '#ADC8E8', '#F7B799', '#E26952', '#B40426'],
-    description: 'Diverging for +/- values'
+    colors: ['#3b4cc0', '#5977e3', '#7b9ff9', '#9ebeff', '#c0d4f5', '#f2cbb7', '#f7ac8e', '#ee8468', '#d65244', '#b40426'],
+    description: 'Diverging blue to red'
+  },
+  blueRed: {
+    name: 'Blue-Red',
+    colors: ['#2166ac', '#4393c3', '#92c5de', '#d1e5f0', '#f7f7f7', '#fddbc7', '#f4a582', '#d6604d', '#b2182b'],
+    description: 'Classic diverging heatmap'
+  },
+  ocean: {
+    name: 'Ocean',
+    colors: ['#081d58', '#253494', '#225ea8', '#1d91c0', '#41b6c4', '#7fcdbb', '#c7e9b4', '#edf8b1', '#ffffd9'],
+    description: 'Deep ocean blues'
+  },
+  sunset: {
+    name: 'Sunset',
+    colors: ['#0d0887', '#5b02a3', '#9c179e', '#cb4679', '#eb7852', '#fcb43a', '#f0f921'],
+    description: 'Warm sunset gradient'
+  },
+  forest: {
+    name: 'Forest',
+    colors: ['#00441b', '#006d2c', '#238b45', '#41ae76', '#66c2a4', '#99d8c9', '#ccece6', '#e5f5f9', '#f7fcfd'],
+    description: 'Natural green tones'
+  },
+  grayscale: {
+    name: 'Grayscale',
+    colors: ['#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080', '#999999', '#b3b3b3', '#cccccc', '#e6e6e6'],
+    description: 'Print-friendly monochrome'
   }
 };
 

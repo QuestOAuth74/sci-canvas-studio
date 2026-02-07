@@ -7,6 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, ArrowLeft, Microscope } from 'lucide-react';
+import { motion } from 'framer-motion';
+import DotPattern from '@/components/ui/dot-pattern';
+import { cn } from '@/lib/utils';
 import { z } from 'zod';
 
 import { useToast } from '@/hooks/use-toast';
@@ -221,27 +224,63 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 via-blue-50/30 to-violet-50/20">
       <SEOHead
         title="Sign In - BioSketch"
         description="Sign in to BioSketch to access your scientific illustrations and projects"
         noindex={true}
       />
-      
+
       {/* Left Side - Featured Project (Desktop) */}
-      <div className="hidden lg:flex lg:flex-1 bg-muted/30 items-center justify-center p-12">
-        <FeaturedProjectShowcase />
+      <div className="hidden lg:flex lg:flex-1 items-center justify-center p-12 relative overflow-hidden">
+        {/* Animated Background Blobs */}
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 0.4, scale: 1 }}
+            transition={{ duration: 1.4 }}
+            className="blob-1 top-[-50px] left-[-50px]"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 0.3, scale: 1 }}
+            transition={{ duration: 1.6, delay: 0.3 }}
+            className="blob-2 bottom-[10%] right-[-50px]"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 0.25, scale: 1 }}
+            transition={{ duration: 1.8, delay: 0.5 }}
+            className="blob-3 top-[40%] left-[20%]"
+          />
+          <div className="absolute inset-0 bg-white/30 backdrop-blur-3xl" />
+        </div>
+
+        {/* Background Pattern */}
+        <DotPattern
+          className={cn(
+            "[mask-image:radial-gradient(30vw_circle_at_center,white,transparent)]",
+            "opacity-20"
+          )}
+        />
+
+        <div className="relative z-10">
+          <FeaturedProjectShowcase />
+        </div>
       </div>
 
       {/* Right Side - Auth Form */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen relative">
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-white/80 pointer-events-none" />
+
         {/* Top Bar */}
-        <div className="p-6">
+        <div className="p-6 relative z-10">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="text-muted-foreground hover:text-foreground"
+            className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -249,17 +288,22 @@ export default function Auth() {
         </div>
 
         {/* Auth Content */}
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-sm space-y-8">
+        <div className="flex-1 flex items-center justify-center p-6 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-sm space-y-8"
+          >
             {/* Logo & Title */}
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-foreground mb-4">
-                <Microscope className="h-6 w-6 text-background" />
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-600 to-teal-600 mb-4 shadow-lg shadow-cyan-500/25">
+                <Microscope className="h-7 w-7 text-white" />
               </div>
-              <h1 className="text-2xl font-semibold text-foreground">
+              <h1 className="text-2xl font-bold text-slate-900">
                 {showUpdatePassword ? 'Set new password' : showResetPassword ? 'Reset password' : 'Welcome back'}
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-slate-500">
                 {showUpdatePassword ? 'Enter your new password below' : showResetPassword ? 'We\'ll send you a reset link' : 'Sign in to continue to BioSketch'}
               </p>
             </div>
@@ -343,14 +387,14 @@ export default function Auth() {
             ) : (
               <div className="space-y-6">
                 {/* Tab Switcher */}
-                <div className="flex rounded-lg bg-muted/50 p-1">
+                <div className="flex rounded-2xl glass-card p-1.5">
                   <button
                     type="button"
                     onClick={() => setActiveTab('signin')}
-                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                      activeTab === 'signin' 
-                        ? 'bg-background text-foreground shadow-sm' 
-                        : 'text-muted-foreground hover:text-foreground'
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                      activeTab === 'signin'
+                        ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25'
+                        : 'text-slate-500 hover:text-slate-900'
                     }`}
                     data-testid={AuthTestIds.TAB_SIGNIN}
                   >
@@ -359,10 +403,10 @@ export default function Auth() {
                   <button
                     type="button"
                     onClick={() => setActiveTab('signup')}
-                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${
-                      activeTab === 'signup' 
-                        ? 'bg-background text-foreground shadow-sm' 
-                        : 'text-muted-foreground hover:text-foreground'
+                    className={`flex-1 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                      activeTab === 'signup'
+                        ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25'
+                        : 'text-slate-500 hover:text-slate-900'
                     }`}
                     data-testid={AuthTestIds.TAB_SIGNUP}
                   >
@@ -514,12 +558,12 @@ export default function Auth() {
                 )}
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
         {/* Bottom */}
-        <div className="p-6 text-center">
-          <p className="text-xs text-muted-foreground">
+        <div className="p-6 text-center relative z-10">
+          <p className="text-xs text-slate-400">
             © {new Date().getFullYear()} BioSketch. Free forever.
           </p>
         </div>

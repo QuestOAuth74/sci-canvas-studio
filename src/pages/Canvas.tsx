@@ -21,7 +21,9 @@ import {
   IconMessage,
   IconUsers,
   IconShare,
+  IconLayoutDashboard,
 } from "@tabler/icons-react";
+import { SimpleCanvasLayout } from "@/components/canvas/SimpleCanvasLayout";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,6 +89,21 @@ const CanvasContent = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { setCanvasMode } = useTheme();
+
+  // Layout mode state - persisted in localStorage
+  const [layoutMode, setLayoutMode] = useState<"classic" | "simple">(() => {
+    const saved = localStorage.getItem('canvas_layout_mode');
+    return (saved === 'simple') ? 'simple' : 'classic';
+  });
+
+  const toggleLayoutMode = useCallback(() => {
+    setLayoutMode(prev => {
+      const newMode = prev === 'classic' ? 'simple' : 'classic';
+      localStorage.setItem('canvas_layout_mode', newMode);
+      return newMode;
+    });
+  }, []);
+
   const [activeTool, setActiveTool] = useState<string>("select");
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState("");
@@ -645,6 +662,19 @@ const CanvasContent = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [canvas, selectedObject, undo, redo, cut, copy, paste, selectAll, deleteSelected, bringToFront, sendToBack, bringForward, sendBackward, groupSelected, ungroupSelected, togglePin, cropMode, setCropMode, nudgeObject, duplicateSelected, pasteInPlace, deselectAll, toggleLockSelected, hideSelected, showAllHidden, rotateSelected, duplicateBelow, pages, currentPageIndex, addPage, switchToPage]);
 
+  // Render simple layout if selected
+  if (layoutMode === 'simple') {
+    return (
+      <>
+        <MandatoryVideoPopup
+          open={showMandatoryVideo}
+          onComplete={() => setShowMandatoryVideo(false)}
+        />
+        <SimpleCanvasLayout onLayoutChange={toggleLayoutMode} />
+      </>
+    );
+  }
+
   return (
       <>
       {/* Mandatory Video Popup - must watch before accessing canvas */}
@@ -925,7 +955,7 @@ const CanvasContent = () => {
       })()}
 
       {/* Top Header with Menu */}
-      <header className="bg-white border-b border-slate-200 shadow-sm">
+      <header className="glass-toolbar border-b border-slate-200/80">
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
@@ -992,13 +1022,13 @@ const CanvasContent = () => {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-9 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition-all duration-200"
+                  className="h-9 px-4 bg-slate-50/80 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200/80 rounded-lg hover:-translate-y-0.5 transition-all duration-150"
                 >
                   <IconPlus size={16} stroke={2} className="mr-1.5" />
                   Create
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 p-2 bg-white border-slate-200 shadow-xl rounded-xl">
+              <DropdownMenuContent align="end" className="w-64 p-2 floating-panel rounded-xl">
                 <DropdownMenuLabel className="text-xs text-slate-500 uppercase tracking-wider px-2">AI Tools</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => setAiFigureStudioOpen(true)} className="cursor-pointer rounded-lg p-3 focus:bg-slate-100 text-slate-700">
                   <div className="p-2 rounded-lg bg-violet-100 mr-3">
@@ -1046,6 +1076,19 @@ const CanvasContent = () => {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={toggleLayoutMode}
+                  className="h-9 w-9 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
+                >
+                  <IconLayoutDashboard size={18} stroke={1.5} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-slate-900 text-white border-0 shadow-lg">Switch to Simple Layout</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setShowShortcuts(true)}
                   className="h-9 w-9 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all duration-150"
                 >
@@ -1059,7 +1102,7 @@ const CanvasContent = () => {
               disabled={isSaving}
               size="sm"
               variant="ghost"
-              className="h-9 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition-all duration-200"
+              className="h-9 px-4 bg-slate-50/80 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200/80 rounded-lg hover:-translate-y-0.5 transition-all duration-150"
               data-action="save"
             >
               <IconDeviceFloppy size={16} stroke={2} className="mr-1.5" />
@@ -1071,7 +1114,7 @@ const CanvasContent = () => {
                   onClick={() => setShareDialogOpen(true)}
                   size="sm"
                   variant="ghost"
-                  className="h-9 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition-all duration-200"
+                  className="h-9 px-4 bg-slate-50/80 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200/80 rounded-lg hover:-translate-y-0.5 transition-all duration-150"
                 >
                   <IconShare size={16} stroke={2} className="mr-1.5" />
                   Share
@@ -1121,7 +1164,7 @@ const CanvasContent = () => {
             maxSize={20}
             className="min-h-0"
           >
-            <div className={`bg-white border-r border-slate-200 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
+            <div className={`glass-toolbar border-r border-slate-200/80 flex flex-col overflow-hidden min-h-0 h-full transition-all duration-200`}>
             {isIconLibraryCollapsed ? (
               <div className="p-3 flex flex-col items-center gap-3">
                 <Tooltip>
@@ -1144,9 +1187,9 @@ const CanvasContent = () => {
               </div>
             ) : (
               <div className="flex flex-col h-full">
-                <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                <div className="p-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between gap-2">
                   <Tabs value={leftSidebarTab} onValueChange={(v) => setLeftSidebarTab(v as "icons" | "assets" | "ai")} className="flex-1">
-                    <TabsList className="grid w-full grid-cols-3 h-10 bg-slate-100 p-1 rounded-xl">
+                    <TabsList className="grid w-full grid-cols-3 h-10 bg-slate-100/80 p-1 rounded-lg border border-slate-200/50">
                       <TabsTrigger
                         value="icons"
                         className="text-xs font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all duration-200 rounded-lg flex items-center gap-1.5"
@@ -1215,7 +1258,7 @@ const CanvasContent = () => {
                       <div className="space-y-3">
                         <button
                           onClick={() => setAiFigureStudioOpen(true)}
-                          className="w-full p-4 rounded-2xl border border-slate-200/60 bg-gradient-to-br from-violet-50 to-purple-50 hover:from-violet-100 hover:to-purple-100 hover:shadow-md transition-all duration-200 text-left group"
+                          className="w-full p-4 rounded-xl border border-slate-200/50 bg-gradient-to-br from-violet-50/80 to-purple-50/80 hover:from-violet-100 hover:to-purple-100 hover:shadow-soft hover:-translate-y-0.5 transition-all duration-200 text-left group"
                         >
                           <div className="flex items-start gap-3">
                             <div className="p-2.5 rounded-xl bg-violet-500/20 group-hover:bg-violet-500/30 transition-colors shadow-sm">
@@ -1230,7 +1273,7 @@ const CanvasContent = () => {
 
                         <button
                           onClick={() => setAiIconGeneratorOpen(true)}
-                          className="w-full p-4 rounded-2xl border border-slate-200/60 bg-gradient-to-br from-pink-50 to-rose-50 hover:from-pink-100 hover:to-rose-100 hover:shadow-md transition-all duration-200 text-left group"
+                          className="w-full p-4 rounded-xl border border-slate-200/50 bg-gradient-to-br from-pink-50/80 to-rose-50/80 hover:from-pink-100 hover:to-rose-100 hover:shadow-soft hover:-translate-y-0.5 transition-all duration-200 text-left group"
                         >
                           <div className="flex items-start gap-3">
                             <div className="p-2.5 rounded-xl bg-pink-500/20 group-hover:bg-pink-500/30 transition-colors shadow-sm">
@@ -1245,7 +1288,7 @@ const CanvasContent = () => {
 
                         <button
                           onClick={() => setDataVisualizationOpen(true)}
-                          className="w-full p-4 rounded-2xl border border-slate-200/60 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 hover:shadow-md transition-all duration-200 text-left group"
+                          className="w-full p-4 rounded-xl border border-slate-200/50 bg-gradient-to-br from-emerald-50/80 to-teal-50/80 hover:from-emerald-100 hover:to-teal-100 hover:shadow-soft hover:-translate-y-0.5 transition-all duration-200 text-left group"
                         >
                           <div className="flex items-start gap-3">
                             <div className="p-2.5 rounded-xl bg-emerald-500/20 group-hover:bg-emerald-500/30 transition-colors shadow-sm">
@@ -1260,7 +1303,7 @@ const CanvasContent = () => {
 
                         <button
                           onClick={() => setTemplatesDialogOpen(true)}
-                          className="w-full p-4 rounded-2xl border border-slate-200/60 bg-gradient-to-br from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 hover:shadow-md transition-all duration-200 text-left group"
+                          className="w-full p-4 rounded-xl border border-slate-200/50 bg-gradient-to-br from-blue-50/80 to-cyan-50/80 hover:from-blue-100 hover:to-cyan-100 hover:shadow-soft hover:-translate-y-0.5 transition-all duration-200 text-left group"
                         >
                           <div className="flex items-start gap-3">
                             <div className="p-2.5 rounded-xl bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors shadow-sm">
@@ -1281,7 +1324,7 @@ const CanvasContent = () => {
           </div>
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-border/20 hover:bg-primary/30 transition-colors w-0.5" />
+          <ResizableHandle withHandle className="bg-transparent hover:bg-blue-500/20 transition-all duration-200 w-1 group" />
 
           {/* Middle Section - Toolbar + Canvas */}
           <ResizablePanel defaultSize={65} minSize={40}>
@@ -1347,7 +1390,7 @@ const CanvasContent = () => {
             </div>
           </ResizablePanel>
 
-          <ResizableHandle withHandle className="bg-border/20 hover:bg-primary/30 transition-colors w-0.5" />
+          <ResizableHandle withHandle className="bg-transparent hover:bg-blue-500/20 transition-all duration-200 w-1 group" />
 
           {/* Right Sidebar - Properties & Layers */}
           <ResizablePanel 
@@ -1365,7 +1408,7 @@ const CanvasContent = () => {
             }}
             className="min-h-0"
           >
-            <div className={`bg-white border-l border-slate-200 flex flex-col overflow-hidden min-h-0 h-full`}>
+            <div className={`glass-toolbar border-l border-slate-200/80 flex flex-col overflow-hidden min-h-0 h-full`}>
           {isPropertiesPanelCollapsed ? (
             <div className="p-3 flex flex-col items-center gap-3">
               <Tooltip>
@@ -1388,9 +1431,9 @@ const CanvasContent = () => {
             </div>
           ) : (
             <div className="flex flex-col h-full">
-              <div className="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+              <div className="p-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center justify-between gap-2">
                 <Tabs value={rightSidebarTab} onValueChange={(v) => setRightSidebarTab(v as "properties" | "layers")} className="flex-1">
-                  <TabsList className="grid w-full grid-cols-2 h-10 bg-slate-100 p-1 rounded-xl">
+                  <TabsList className="grid w-full grid-cols-2 h-10 bg-slate-100/80 p-1 rounded-lg border border-slate-200/50">
                     <TabsTrigger
                       value="properties"
                       className="text-xs font-semibold text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm transition-all duration-200 rounded-lg flex items-center gap-1.5"

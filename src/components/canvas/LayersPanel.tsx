@@ -157,12 +157,12 @@ export const LayersPanel = () => {
   );
 
   return (
-    <div className="w-full h-full bg-white flex flex-col overflow-auto">
+    <div className="w-full h-full bg-white/95 flex flex-col overflow-auto sleek-scroll">
       {/* Header */}
-      <div className="p-4 border-b border-slate-200/80">
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Layers</h3>
+      <div className="panel-header flex-col items-start gap-3">
+        <h3 className="text-sm font-semibold text-slate-800">Layers</h3>
         <div className="relative mb-2">
-          <MagnifyingGlass size={14} weight="regular" className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <MagnifyingGlass size={14} weight="regular" className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
             placeholder="Search layers..."
             value={searchQuery}
@@ -171,11 +171,11 @@ export const LayersPanel = () => {
           />
         </div>
       </div>
-      
+
       {/* Bulk Actions */}
       {selectedLayers.length > 0 && (
-        <div className="p-2 border-b bg-accent/10 flex items-center gap-2">
-          <span className="text-xs text-muted-foreground flex-1">
+        <div className="p-2 border-b border-slate-200 bg-slate-50 flex items-center gap-2">
+          <span className="text-xs text-slate-600 flex-1">
             {selectedLayers.length} selected
           </span>
           <Button
@@ -194,16 +194,16 @@ export const LayersPanel = () => {
         <div className="p-2 space-y-1">
           {filteredLayers.length === 0 ? (
             <div className="text-center py-12 px-4">
-              <div className="text-muted-foreground/40 mb-2">
+              <div className="text-slate-300 mb-2">
                 <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
               </div>
-              <p className="text-sm text-muted-foreground font-medium mb-1">
+              <p className="text-sm text-slate-600 font-medium mb-1">
                 {searchQuery ? 'No matching layers' : 'No objects yet'}
               </p>
               {!searchQuery && (
-                <p className="text-xs text-muted-foreground/70">
+                <p className="text-xs text-slate-400">
                   Add shapes, text, or icons to get started
                 </p>
               )}
@@ -216,14 +216,14 @@ export const LayersPanel = () => {
                   handleLayerClick(layer);
                   handleLayerSelect(layer.id, e.ctrlKey || e.metaKey);
                 }}
-                className={`flex items-center gap-2 p-2 rounded hover:bg-accent cursor-pointer group transition-colors ${
-                  isSelected(layer) || isLayerSelected(layer.id) ? 'bg-accent' : ''
+                className={`flex items-center gap-2 p-2 rounded hover:bg-slate-100 cursor-pointer group transition-colors ${
+                  isSelected(layer) || isLayerSelected(layer.id) ? 'bg-blue-50 border border-blue-200' : ''
                 }`}
               >
                 {/* Thumbnail */}
-                <div className="h-8 w-8 rounded bg-muted shrink-0 overflow-hidden border">
-                  <img 
-                    src={generateThumbnail(layer.fabricObject)} 
+                <div className="h-8 w-8 rounded bg-slate-100 shrink-0 overflow-hidden border border-slate-200">
+                  <img
+                    src={generateThumbnail(layer.fabricObject)}
                     alt={layer.name}
                     className="w-full h-full object-contain"
                   />
@@ -235,17 +235,17 @@ export const LayersPanel = () => {
                   onClick={(e) => toggleVisibility(layer.id, e)}
                 >
                   {layer.visible ? (
-                    <Eye size={18} weight="regular" className="text-primary" />
+                    <Eye size={18} weight="regular" className="text-blue-500" />
                   ) : (
-                    <EyeSlash size={18} weight="regular" className="text-muted-foreground" />
+                    <EyeSlash size={18} weight="regular" className="text-slate-400" />
                   )}
                 </Button>
-                
+
                 {layer.locked && (
-                  <Lock size={14} weight="regular" className="text-muted-foreground shrink-0" />
+                  <Lock size={14} weight="regular" className="text-slate-400 shrink-0" />
                 )}
-                
-                <span className={`flex-1 text-sm truncate transition-opacity ${!layer.visible && 'opacity-50'}`}>
+
+                <span className={`flex-1 text-sm truncate transition-opacity text-slate-700 ${!layer.visible && 'opacity-50'}`}>
                   {layer.name}
                 </span>
               </div>

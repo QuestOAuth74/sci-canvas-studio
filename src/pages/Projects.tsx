@@ -128,52 +128,61 @@ export default function Projects() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-12 max-w-7xl">
-        {/* Header Section - Neobrutalist Style */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-violet-50/20 relative overflow-hidden">
+      {/* Background Blobs */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="blob-1 top-[-100px] right-[-100px] opacity-40" />
+        <div className="blob-2 bottom-[20%] left-[-50px] opacity-30" />
+        <div className="absolute inset-0 bg-white/40 backdrop-blur-3xl" />
+      </div>
+
+      <main className="container mx-auto px-4 py-12 max-w-7xl relative z-10">
+        {/* Header Section */}
         <section className="mb-12">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-8">
             <div>
-              <div className="inline-block bg-primary text-primary-foreground px-4 py-1 text-sm font-bold uppercase tracking-wider mb-4 border-2 border-foreground shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-cyan-600 text-sm font-medium mb-4">
+                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                 Your Workspace
               </div>
-              <h1 className="text-5xl md:text-6xl font-bold text-foreground tracking-tight mb-3">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-3">
                 My Projects
               </h1>
-              <p className="text-lg text-muted-foreground max-w-xl">
+              <p className="text-lg text-slate-600 max-w-xl">
                 Create, manage, and share publication-ready scientific illustrations
               </p>
             </div>
-            
-            <Button 
-              onClick={createNewProject} 
+
+            <Button
+              onClick={createNewProject}
               size="lg"
-              className="gap-2 self-start lg:self-auto"
+              className="gap-2 self-start lg:self-auto bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white shadow-lg shadow-cyan-500/25 rounded-xl border-0"
             >
               <Plus className="w-5 h-5" />
               New Project
             </Button>
           </div>
 
-          {/* Stats Cards - Brutalist Style */}
+          {/* Stats Cards - Glass Style */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
-              { label: 'Total', value: stats.total, icon: FileText, color: 'bg-secondary' },
-              { label: 'Public', value: stats.public, icon: Globe, color: 'bg-success text-success-foreground' },
-              { label: 'Private', value: stats.private, icon: Lock, color: 'bg-accent' },
-              { label: 'This Week', value: stats.recent, icon: Clock, color: 'bg-primary text-primary-foreground' },
+              { label: 'Total', value: stats.total, icon: FileText, gradient: 'from-slate-500 to-slate-600' },
+              { label: 'Public', value: stats.public, icon: Globe, gradient: 'from-emerald-500 to-teal-500' },
+              { label: 'Private', value: stats.private, icon: Lock, gradient: 'from-violet-500 to-purple-500' },
+              { label: 'This Week', value: stats.recent, icon: Clock, gradient: 'from-blue-500 to-indigo-500' },
             ].map((stat) => (
-              <div 
+              <div
                 key={stat.label}
-                className={cn(
-                  "p-4 border-2 border-foreground rounded-lg",
-                  "shadow-[4px_4px_0px_0px_hsl(var(--foreground))]",
-                  stat.color
-                )}
+                className="glass-card rounded-2xl p-5 hover:shadow-soft transition-all duration-300 hover:-translate-y-1"
               >
-                <stat.icon className="w-5 h-5 mb-2 opacity-70" />
-                <div className="text-3xl font-bold font-mono">{stat.value}</div>
-                <div className="text-sm font-medium uppercase tracking-wide opacity-80">{stat.label}</div>
+                <div className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center mb-3 bg-gradient-to-br text-white",
+                  stat.gradient
+                )}>
+                  <stat.icon className="w-5 h-5" />
+                </div>
+                <div className="text-3xl font-bold text-slate-900">{stat.value}</div>
+                <div className="text-sm font-medium text-slate-500">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -181,13 +190,13 @@ export default function Projects() {
           {/* Search and Filters */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <Input
                 type="text"
                 placeholder="Search projects..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-base border-2 border-foreground bg-card shadow-[3px_3px_0px_0px_hsl(var(--foreground))] focus:shadow-[1px_1px_0px_0px_hsl(var(--foreground))] focus:translate-x-[2px] focus:translate-y-[2px] transition-all rounded-lg"
+                className="pl-12 h-12 text-base bg-white/80 backdrop-blur-sm border-slate-200/80 rounded-xl shadow-soft-sm focus:shadow-soft focus:border-blue-300 transition-all"
               />
             </div>
             <div className="flex gap-2">
@@ -196,10 +205,10 @@ export default function Projects() {
                   key={status}
                   onClick={() => setFilterStatus(status)}
                   className={cn(
-                    "px-5 py-3 text-sm font-bold uppercase tracking-wide border-2 border-foreground rounded-lg transition-all",
-                    filterStatus === status 
-                      ? 'bg-foreground text-background shadow-none translate-x-[2px] translate-y-[2px]' 
-                      : 'bg-card shadow-[3px_3px_0px_0px_hsl(var(--foreground))] hover:shadow-[1px_1px_0px_0px_hsl(var(--foreground))] hover:translate-x-[2px] hover:translate-y-[2px]'
+                    "px-5 py-3 text-sm font-medium rounded-xl transition-all duration-200 capitalize",
+                    filterStatus === status
+                      ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25'
+                      : 'glass-card text-slate-600 hover:text-slate-900 hover:shadow-soft'
                   )}
                 >
                   {status === 'public' && <Globe className="w-4 h-4 inline mr-2" />}
@@ -215,8 +224,8 @@ export default function Projects() {
         {loading ? (
           <div className="space-y-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex gap-6 p-6 border-2 border-foreground bg-card rounded-lg">
-                <Skeleton className="w-48 h-32 rounded-lg" />
+              <div key={i} className="flex gap-6 p-6 glass-card rounded-2xl">
+                <Skeleton className="w-48 h-32 rounded-xl" />
                 <div className="flex-1 space-y-3">
                   <Skeleton className="h-6 w-1/3" />
                   <Skeleton className="h-4 w-1/2" />
@@ -228,18 +237,20 @@ export default function Projects() {
         ) : filteredProjects.length === 0 ? (
           /* Empty State */
           <div className="text-center py-20">
-            <div className="inline-block p-8 bg-secondary border-2 border-foreground rounded-lg shadow-[6px_6px_0px_0px_hsl(var(--foreground))]">
-              <FolderOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold text-foreground mb-2">
+            <div className="inline-block p-10 glass-card rounded-3xl">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center">
+                <FolderOpen className="w-10 h-10 text-blue-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">
                 {searchQuery || filterStatus !== 'all' ? 'No projects found' : 'Start Creating'}
               </h2>
-              <p className="text-muted-foreground mb-6">
-                {searchQuery || filterStatus !== 'all' 
+              <p className="text-slate-600 mb-6 max-w-sm">
+                {searchQuery || filterStatus !== 'all'
                   ? 'Try adjusting your search or filters'
                   : 'Create your first scientific illustration'}
               </p>
               {!searchQuery && filterStatus === 'all' && (
-                <Button onClick={createNewProject} size="lg" className="gap-2">
+                <Button onClick={createNewProject} size="lg" className="gap-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white shadow-lg shadow-cyan-500/25 rounded-xl border-0">
                   <Plus className="w-5 h-5" />
                   Create Project
                 </Button>
@@ -254,22 +265,21 @@ export default function Projects() {
                 <div
                   key={project.id}
                   className={cn(
-                    "group flex flex-col md:flex-row gap-6 p-5 cursor-pointer transition-all duration-150",
-                    "bg-card border-2 border-foreground rounded-lg",
-                    "shadow-[5px_5px_0px_0px_hsl(var(--foreground))]",
-                    "hover:shadow-[2px_2px_0px_0px_hsl(var(--foreground))] hover:translate-x-[3px] hover:translate-y-[3px]"
+                    "group flex flex-col md:flex-row gap-6 p-5 cursor-pointer transition-all duration-300",
+                    "glass-card rounded-2xl",
+                    "hover:shadow-soft hover:-translate-y-1"
                   )}
                   onClick={() => openProject(project.id)}
                 >
                   {/* Thumbnail */}
-                  <div className="relative w-full md:w-56 h-40 md:h-36 flex-shrink-0 overflow-hidden rounded-lg border-2 border-foreground bg-muted">
+                  <div className="relative w-full md:w-56 h-40 md:h-36 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100">
                     <img
                       src={project.thumbnail_url || noPreviewImage}
                       alt={project.name}
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                     />
                     {/* Index Badge */}
-                    <div className="absolute top-2 left-2 bg-foreground text-background px-2 py-1 text-xs font-mono font-bold rounded">
+                    <div className="absolute top-2 left-2 bg-slate-900/80 backdrop-blur-sm text-white px-2.5 py-1 text-xs font-medium rounded-lg">
                       #{String(index + 1 + (currentPage - 1) * ITEMS_PER_PAGE).padStart(2, '0')}
                     </div>
                   </div>
@@ -278,32 +288,35 @@ export default function Projects() {
                   <div className="flex-1 flex flex-col justify-between min-w-0">
                     <div>
                       <div className="flex items-start justify-between gap-4 mb-2">
-                        <h3 className="text-xl font-bold text-foreground truncate">
+                        <h3 className="text-xl font-semibold text-slate-900 truncate group-hover:text-cyan-600 transition-colors">
                           {project.name}
                         </h3>
-                        <Badge 
+                        <Badge
                           className={cn(
-                            "flex-shrink-0 border-2 border-foreground font-bold uppercase text-xs",
-                            project.is_public 
-                              ? 'bg-success text-success-foreground' 
-                              : 'bg-secondary text-secondary-foreground'
+                            "flex-shrink-0 font-medium text-xs rounded-full px-3",
+                            project.is_public
+                              ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
+                              : 'bg-slate-100 text-slate-600 border-slate-200'
                           )}
                         >
                           {project.is_public ? 'Public' : 'Private'}
                         </Badge>
                       </div>
-                      
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1.5 font-mono">
+
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 mb-3">
+                        <span className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4" />
                           {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
                         </span>
-                        <span className="flex items-center gap-1.5 font-mono">
+                        <span className="flex items-center gap-1.5">
                           <Ruler className="w-4 h-4" />
                           {project.canvas_width} × {project.canvas_height}
                         </span>
                         {project.approval_status && project.approval_status !== 'pending' && (
-                          <Badge variant={project.approval_status === 'approved' ? 'default' : 'destructive'} className="border-2 border-foreground">
+                          <Badge className={cn(
+                            "rounded-full px-3",
+                            project.approval_status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                          )}>
                             {project.approval_status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
                             {project.approval_status === 'rejected' && <XCircle className="w-3 h-3 mr-1" />}
                             {project.approval_status}
@@ -321,7 +334,7 @@ export default function Projects() {
                           e.stopPropagation();
                           openProject(project.id);
                         }}
-                        className="gap-1.5"
+                        className="gap-1.5 rounded-lg border-slate-200 hover:bg-cyan-50 hover:text-cyan-600 hover:border-cyan-200"
                       >
                         <FolderOpen className="w-4 h-4" />
                         Open
@@ -333,6 +346,7 @@ export default function Projects() {
                           e.stopPropagation();
                           setShareDialogProject(project);
                         }}
+                        className="rounded-lg border-slate-200 hover:bg-violet-50 hover:text-violet-600 hover:border-violet-200"
                       >
                         <Share2 className="w-4 h-4" />
                       </Button>
@@ -343,7 +357,7 @@ export default function Projects() {
                           e.stopPropagation();
                           deleteProject(project.id, project.name);
                         }}
-                        className="hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+                        className="rounded-lg border-slate-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -352,7 +366,7 @@ export default function Projects() {
 
                   {/* Arrow indicator */}
                   <div className="hidden md:flex items-center">
-                    <div className="w-12 h-12 rounded-lg border-2 border-foreground bg-secondary flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-gradient-to-br group-hover:from-blue-500 group-hover:to-violet-500 group-hover:text-white transition-all duration-300">
                       <ArrowUpRight className="w-5 h-5" />
                     </div>
                   </div>
@@ -363,44 +377,44 @@ export default function Projects() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-center">
-                <div className="inline-flex items-center gap-2 p-3 bg-card border-2 border-foreground rounded-lg shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+                <div className="inline-flex items-center gap-2 p-2 glass-card rounded-2xl">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="font-bold"
+                    className="font-medium rounded-xl"
                   >
-                    Prev
+                    Previous
                   </Button>
-                  
-                  <div className="flex gap-1">
+
+                  <div className="flex gap-1 px-2">
                     {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
                         className={cn(
-                          "w-10 h-10 text-sm font-bold border-2 border-foreground rounded-lg transition-all",
-                          currentPage === page 
-                            ? 'bg-foreground text-background' 
-                            : 'bg-card hover:bg-secondary'
+                          "w-10 h-10 text-sm font-medium rounded-xl transition-all duration-200",
+                          currentPage === page
+                            ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25'
+                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         )}
                       >
                         {page}
                       </button>
                     ))}
                   </div>
-                  
+
                   {totalPages > 5 && (
-                    <span className="px-2 font-mono text-muted-foreground">...</span>
+                    <span className="px-2 text-slate-400">...</span>
                   )}
-                  
+
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="font-bold"
+                    className="font-medium rounded-xl"
                   >
                     Next
                   </Button>

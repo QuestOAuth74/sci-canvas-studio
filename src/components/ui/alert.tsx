@@ -3,15 +3,15 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const alertVariants = cva("relative border-3 border-black", {
+const alertVariants = cva("relative border border-border rounded-xl", {
   variants: {
     variant: {
-      default: "bg-white text-foreground",
-      destructive: "bg-black text-white",
-      warning: "bg-secondary text-foreground",
-      error: "bg-black text-white",
-      success: "bg-secondary text-foreground",
-      info: "bg-secondary text-foreground",
+      default: "bg-card text-foreground",
+      destructive: "bg-destructive text-destructive-foreground border-destructive",
+      warning: "bg-amber-50 text-amber-900 border-amber-200",
+      error: "bg-red-50 text-red-900 border-red-200",
+      success: "bg-green-50 text-green-900 border-green-200",
+      info: "bg-blue-50 text-blue-900 border-blue-200",
     },
     size: {
       sm: "px-4 py-3",
@@ -19,7 +19,7 @@ const alertVariants = cva("relative border-3 border-black", {
       lg: "p-6",
     },
     isNotification: {
-      true: "z-[100] max-w-[400px] bg-white brutal-shadow",
+      true: "z-[100] max-w-[400px] bg-card shadow-soft-lg",
       false: "",
     },
   },
@@ -94,7 +94,7 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn("mb-1 text-sm font-bold leading-none tracking-tight", className)}
+    className={cn("mb-1 text-sm font-semibold leading-none tracking-tight", className)}
     {...props}
   />
 ));
