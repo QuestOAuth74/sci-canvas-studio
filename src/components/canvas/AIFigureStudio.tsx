@@ -52,7 +52,7 @@ import { isLocalAIEnabled, generateFigureLocal, generateEditableElementsLocal, g
 import type { Canvas as FabricCanvas } from 'fabric';
 import { AICreditsAccessPopup } from './AICreditsAccessPopup';
 
-type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match' | 'reconstruct';
+type GenerationMode = 'prompt_to_visual' | 'sketch_transform' | 'image_enhancer' | 'style_match' | 'reconstruct' | 'biorender_style';
 type StyleType = 'flat' | '3d' | 'sketch';
 
 interface AIFigureStudioProps {
@@ -572,7 +572,7 @@ export const AIFigureStudio: React.FC<AIFigureStudioProps> = ({
           const result = await generateFigureLocal({
             prompt: prompt.trim(),
             style,
-            mode,
+            mode: mode as any,
             referenceImage: referenceImage || libraryImageBase64 || undefined,
             referenceContext: contextImage || undefined,
           });

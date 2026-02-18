@@ -136,7 +136,7 @@ export function LabProjectsList({
         .order('shared_at', { ascending: false });
 
       if (error) throw error;
-      setProjects((data as LabProject[]) || []);
+      setProjects((data as unknown as LabProject[]) || []);
     } catch (error) {
       console.error('Error loading projects:', error);
       toast.error('Failed to load lab projects');

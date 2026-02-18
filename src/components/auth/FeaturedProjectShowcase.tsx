@@ -146,7 +146,7 @@ export function FeaturedProjectShowcase() {
           </div>
 
           <Button
-            variant="pencil"
+            variant="outline"
             className="w-full group"
             onClick={() => navigate('/community')}
           >

@@ -21,7 +21,6 @@ import {
   IconStack2,
   IconWaveSine,
   IconRotate,
-  IconSpacing,
   IconResize,
 } from "@tabler/icons-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -210,12 +209,12 @@ export const MembraneTool = ({ canvas, active, onComplete, onCancel }: MembraneT
         originY: 'center',
         selectable: false,
         evented: false,
-        shadow: {
+        shadow: Object.assign(Object.create(Object.getPrototypeOf({})), {
           color: 'rgba(0,0,0,0.3)',
           blur: 4,
           offsetX: 0,
           offsetY: 2,
-        },
+        }) as any,
       });
       (circle as any).isTemp = true;
       (circle as any).anchorId = newPoint.id;

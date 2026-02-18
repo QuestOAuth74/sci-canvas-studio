@@ -86,8 +86,8 @@ export const SimpleCanvasLayout = ({ onLayoutChange }: SimpleCanvasLayoutProps) 
     if (!canvas) return;
     const updateZoom = () => setZoomLevel(canvas.getZoom());
     updateZoom();
-    canvas.on('zoom', updateZoom);
-    return () => { canvas.off('zoom', updateZoom); };
+    canvas.on('mouse:wheel' as any, updateZoom);
+    return () => { canvas.off('mouse:wheel' as any, updateZoom); };
   }, [canvas]);
 
   const handleShapeCreated = useCallback(() => {

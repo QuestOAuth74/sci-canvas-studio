@@ -110,7 +110,7 @@ export function LabDashboard() {
           .gt('expires_at', new Date().toISOString());
 
         if (invitesError) throw invitesError;
-        setInvitations((invitesData as PendingInvitation[]) || []);
+        setInvitations((invitesData as unknown as PendingInvitation[]) || []);
       }
     } catch (error) {
       console.error('Error loading lab data:', error);
