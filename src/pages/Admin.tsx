@@ -20,6 +20,7 @@ import { CommunityUploader } from "@/components/admin/CommunityUploader";
 import { ContactMessagesManager } from "@/components/admin/ContactMessagesManager";
 import { ToolFeedbackManager } from "@/components/admin/ToolFeedbackManager";
 import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
+import { UserSearch } from "@/components/admin/UserSearch";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { MaintenanceToggle } from "@/components/admin/MaintenanceToggle";
 import { Separator } from "@/components/ui/separator";
@@ -102,6 +103,17 @@ const Admin = () => {
 
           <main className="flex-1 overflow-auto">
             <div className="p-8 space-y-12">
+              {/* User Search */}
+              <section id="user-search">
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold tracking-tight">User Search</h2>
+                  <p className="text-muted-foreground">Search for users by email or registration name</p>
+                </div>
+                <UserSearch />
+              </section>
+
+              <Separator className="my-12" />
+
               {/* Maintenance Mode */}
               <section id="maintenance">
                 <div className="mb-6">
