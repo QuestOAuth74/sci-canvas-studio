@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Menu, Home, LayoutGrid, Users, BookOpen, Settings, CreditCard } from 'lucide-react';
+import { HomeIcon, BoxIcon, UserIcon, FileTextIcon, GearIcon, DollarSignIcon, MenuIcon } from 'raster-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { UserMenu } from '@/components/auth/UserMenu';
@@ -17,12 +17,12 @@ export const TopNavBar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { name: 'Home', url: '/', icon: Home },
-    { name: 'Gallery', url: '/projects', icon: LayoutGrid, authRequired: true },
-    { name: 'Community', url: '/community', icon: Users },
-    { name: 'Pricing', url: '/pricing', icon: CreditCard },
-    { name: 'Blog', url: '/blog', icon: BookOpen },
-    ...(isAdmin ? [{ name: 'Admin', url: '/admin', icon: Settings }] : []),
+    { name: 'Home', url: '/', icon: HomeIcon },
+    { name: 'Gallery', url: '/projects', icon: BoxIcon, authRequired: true },
+    { name: 'Community', url: '/community', icon: UserIcon },
+    { name: 'Pricing', url: '/pricing', icon: DollarSignIcon },
+    { name: 'Blog', url: '/blog', icon: FileTextIcon },
+    ...(isAdmin ? [{ name: 'Admin', url: '/admin', icon: GearIcon }] : []),
   ];
 
   // Filter items based on auth status
@@ -119,7 +119,7 @@ export const TopNavBar = () => {
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
+                  <MenuIcon size={20} />
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-72 bg-card border-l border-border">

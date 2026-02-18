@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Link } from "react-router-dom";
-import { NotepadTextDashed } from "lucide-react";
+import { FileTextIcon } from "raster-react";
 import { cn } from "@/lib/utils";
 
 interface FooterLink {
@@ -44,7 +44,7 @@ export const Footer = ({
             <div className="mb-8">
               <div className="flex items-center justify-center gap-3 mb-4">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25">
-                  {brandIcon || <NotepadTextDashed className="h-5 w-5" />}
+                  {brandIcon || <FileTextIcon size={20} />}
                 </div>
                 <span className="text-xl font-bold text-slate-900">
                   {brandName}
@@ -122,7 +122,7 @@ export const Footer = ({
         <div className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-violet-500/20 text-blue-500/50 shadow-soft backdrop-blur-sm sm:h-24 sm:w-24">
             {brandIcon || (
-              <NotepadTextDashed className="h-8 w-8 sm:h-10 sm:w-10" />
+              <FileTextIcon size={32} />
             )}
           </div>
         </div>
