@@ -206,7 +206,7 @@ export function UserSearch() {
                               variant="ghost"
                               size="sm"
                               className="h-6 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity gap-1"
-                              onClick={() => navigate(`/canvas/${project.id}`)}
+                              onClick={() => navigate(`/canvas?project=${project.id}`)}
                             >
                               <ExternalLink className="h-3 w-3" />
                               Open
