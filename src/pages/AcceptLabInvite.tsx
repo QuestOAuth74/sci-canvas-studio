@@ -129,7 +129,7 @@ export default function AcceptLabInvite() {
         return;
       }
 
-      setInvitation(data as InvitationDetails);
+      setInvitation(data as unknown as InvitationDetails);
     } catch (err: any) {
       console.error('Error loading invitation:', err);
       setError(err.message || 'Failed to load invitation');

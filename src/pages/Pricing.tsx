@@ -166,7 +166,7 @@ export default function Pricing() {
 
     try {
       // Try to store the enterprise inquiry in database
-      const { error } = await supabase.from("enterprise_inquiries").insert({
+      const { error } = await (supabase.from as any)("enterprise_inquiries").insert({
         name: formData.name,
         email: formData.email,
         organization: formData.organization,

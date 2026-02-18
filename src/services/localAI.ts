@@ -2638,8 +2638,7 @@ async function generateWithHuggingFaceAnalysis(params: {
             text: conn.label,
             fontSize: 10,
             color: colors.text,
-            backgroundColor: '#ffffff',
-          } : undefined,
+          } as any : undefined,
         });
       }
     }
@@ -2872,8 +2871,7 @@ async function generateWithSciSketchModel(params: {
           text: inferredConn.label,
           fontSize: 9,
           color: colors.text,
-          backgroundColor: '#ffffff',
-        } : undefined,
+        } as any : undefined,
       });
     }
 

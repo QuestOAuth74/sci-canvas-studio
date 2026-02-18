@@ -108,7 +108,7 @@ export function LabMembersList({ labId, currentUserRole, onMembersChange }: LabM
         return roleOrder[a.role] - roleOrder[b.role];
       });
 
-      setMembers(sortedMembers as LabMember[]);
+      setMembers(sortedMembers as unknown as LabMember[]);
     } catch (error) {
       console.error('Error loading members:', error);
       toast.error('Failed to load members');
