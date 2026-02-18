@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Microscope, Shapes, Download, Users, CheckCircle } from "lucide-react";
+import { ArrowRightIcon, SpaceInvadersIcon, SquareIcon, DownloadIcon, UserIcon, CheckIcon } from "raster-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { IconSubmissionDialog } from "@/components/community/IconSubmissionDialog";
 import { ProjectPreviewModal } from "@/components/community/ProjectPreviewModal";
@@ -33,9 +33,9 @@ const Index = () => {
   };
 
   const features = [
-    { icon: Shapes, title: "6,000+ Scientific Icons", desc: "Cells, molecules, organs & more" },
-    { icon: Download, title: "Export Anywhere", desc: "PNG, SVG, PDF for publications" },
-    { icon: Users, title: "Free Forever", desc: "No credit card required" },
+    { icon: SquareIcon, title: "6,000+ Scientific Icons", desc: "Cells, molecules, organs & more" },
+    { icon: DownloadIcon, title: "Export Anywhere", desc: "PNG, SVG, PDF for publications" },
+    { icon: UserIcon, title: "Free Forever", desc: "No credit card required" },
   ];
 
   return (
@@ -62,7 +62,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
-              <Microscope className="w-5 h-5 text-white" />
+              <SpaceInvadersIcon size={20} color="white" />
             </div>
             <span className="font-bold text-foreground text-lg">BioSketch</span>
           </div>
@@ -131,7 +131,7 @@ const Index = () => {
                 className="h-13 px-8 text-base bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all"
               >
                 Start Creating Free
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRightIcon size={20} className="ml-2" />
               </Button>
               <Button
                 size="lg"
@@ -147,7 +147,7 @@ const Index = () => {
             <div className="flex items-center justify-center gap-6 pt-6 text-sm text-muted-foreground">
               {["No signup required", "Free forever", "Export in any format"].map((text, i) => (
                 <div key={i} className="flex items-center gap-1.5">
-                  <CheckCircle className="w-4 h-4 text-indigo-500" />
+                  <CheckIcon size={16} color="rgb(99, 102, 241)" />
                   <span>{text}</span>
                 </div>
               ))}
@@ -192,7 +192,7 @@ const Index = () => {
                 className="glass-card rounded-2xl p-6 hover:shadow-lg transition-all"
               >
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/20">
-                  <feature.icon className="w-6 h-6 text-white" />
+                  <feature.icon size={24} color="white" />
                 </div>
                 <h3 className="text-lg font-semibold text-foreground mb-1">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.desc}</p>
@@ -230,7 +230,7 @@ const Index = () => {
                 className="h-13 px-10 text-base bg-white/90 backdrop-blur-sm text-indigo-700 hover:bg-white rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
                 Get Started Free
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRightIcon size={20} className="ml-2" />
               </Button>
             </div>
           </motion.div>
@@ -242,7 +242,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center shadow-md shadow-indigo-500/20">
-              <Microscope className="w-4 h-4 text-white" />
+              <SpaceInvadersIcon size={16} color="white" />
             </div>
             <span className="font-semibold text-foreground">BioSketch</span>
           </div>

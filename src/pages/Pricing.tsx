@@ -12,20 +12,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
 import {
-  Check,
-  Sparkles,
-  Users,
-  Building2,
-  Zap,
-  HardDrive,
-  RefreshCw,
-  Shield,
-  HeadphonesIcon,
-  Infinity,
-  Send,
-  Loader2,
-} from "lucide-react";
+  CheckIcon,
+  FlameIcon,
+  UserIcon,
+  BuildingIcon,
+  ThunderIcon,
+  DiscIcon,
+  RefreshCwIcon,
+  LockIcon,
+  SpeakerIcon,
+  RepeatIcon,
+  ArrowRightIcon,
+} from "raster-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import DotPattern from "@/components/ui/dot-pattern";
@@ -52,7 +52,7 @@ const pricingTiers: PricingTier[] = [
     price: "$0",
     period: "forever",
     description: "Full-featured canvas for individual researchers",
-    icon: <Zap className="h-6 w-6" />,
+    icon: <ThunderIcon size={24} />,
     features: [
       "Full access to all canvas tools",
       "6,000+ scientific icons library",
@@ -70,7 +70,7 @@ const pricingTiers: PricingTier[] = [
     price: "$4.99",
     period: "/month",
     description: "For researchers who need AI power and collaboration",
-    icon: <Sparkles className="h-6 w-6" />,
+    icon: <FlameIcon size={24} />,
     highlighted: true,
     features: [
       "2 GB storage",
@@ -89,7 +89,7 @@ const pricingTiers: PricingTier[] = [
     name: "Enterprise",
     price: "Custom",
     description: "For research teams and institutions",
-    icon: <Building2 className="h-6 w-6" />,
+    icon: <BuildingIcon size={24} />,
     features: [
       "Unlimited storage",
       "Unlimited AI credits",
@@ -244,7 +244,7 @@ export default function Pricing() {
             className="text-center max-w-3xl mx-auto space-y-4"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-violet-500/10 border border-blue-500/20 text-cyan-600 text-sm font-medium">
-              <Sparkles className="h-4 w-4" />
+              <FlameIcon size={16} />
               Simple, transparent pricing
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-slate-900">
@@ -325,7 +325,7 @@ export default function Pricing() {
                               ? "bg-blue-100 text-cyan-600"
                               : "bg-slate-100 text-slate-500"
                           )}>
-                            <Check className="h-3 w-3" />
+                            <CheckIcon size={12} />
                           </div>
                           <span className="text-sm text-slate-700">
                             {feature}
@@ -369,7 +369,7 @@ export default function Pricing() {
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-violet-500/5 to-blue-500/5" />
               <div className="relative flex flex-col md:flex-row items-center gap-6">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/25">
-                  <Sparkles className="h-8 w-8 text-white" />
+                  <FlameIcon size={32} color="white" />
                 </div>
                 <div className="text-center md:text-left">
                   <h3 className="text-xl font-bold text-slate-900 mb-2">
@@ -406,7 +406,7 @@ export default function Pricing() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
             {[
               {
-                icon: <Zap className="h-6 w-6" />,
+                icon: <ThunderIcon size={24} />,
                 title: "Canvas Tools",
                 free: "Full Access",
                 pro: "Full Access",
@@ -414,7 +414,7 @@ export default function Pricing() {
                 gradient: "from-amber-500 to-orange-500",
               },
               {
-                icon: <HardDrive className="h-6 w-6" />,
+                icon: <DiscIcon size={24} />,
                 title: "Storage",
                 free: "200 MB",
                 pro: "2 GB",
@@ -422,7 +422,7 @@ export default function Pricing() {
                 gradient: "from-emerald-500 to-teal-500",
               },
               {
-                icon: <Sparkles className="h-6 w-6" />,
+                icon: <FlameIcon size={24} />,
                 title: "AI Credits",
                 free: "Earn via sharing",
                 pro: "1,500/mo",
@@ -430,7 +430,7 @@ export default function Pricing() {
                 gradient: "from-blue-500 to-violet-500",
               },
               {
-                icon: <Users className="h-6 w-6" />,
+                icon: <UserIcon size={24} />,
                 title: "Collaboration",
                 free: "—",
                 pro: "Real-time",
@@ -438,7 +438,7 @@ export default function Pricing() {
                 gradient: "from-pink-500 to-rose-500",
               },
               {
-                icon: <Shield className="h-6 w-6" />,
+                icon: <LockIcon size={24} />,
                 title: "Support",
                 free: "Community",
                 pro: "Priority",
@@ -567,7 +567,7 @@ export default function Pricing() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
+              <BuildingIcon size={20} />
               Contact Enterprise Sales
             </DialogTitle>
             <DialogDescription>
@@ -648,7 +648,7 @@ export default function Pricing() {
                 </>
               ) : (
                 <>
-                  <Send className="mr-2 h-4 w-4" />
+                  <ArrowRightIcon size={16} className="mr-2" />
                   Send Request
                 </>
               )}

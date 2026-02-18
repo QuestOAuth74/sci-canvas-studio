@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, ArrowLeft, Microscope } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { ArrowLeftIcon, SpaceInvadersIcon } from 'raster-react';
 import { motion } from 'framer-motion';
 import DotPattern from '@/components/ui/dot-pattern';
 import { cn } from '@/lib/utils';
@@ -282,7 +283,7 @@ export default function Auth() {
             onClick={() => navigate('/')}
             className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeftIcon size={16} className="mr-2" />
             Back
           </Button>
         </div>
@@ -298,7 +299,7 @@ export default function Auth() {
             {/* Logo & Title */}
             <div className="text-center space-y-2">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 mb-4 shadow-lg shadow-indigo-500/25">
-                <Microscope className="h-7 w-7 text-white" />
+                <SpaceInvadersIcon size={28} color="white" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900">
                 {showUpdatePassword ? 'Set new password' : showResetPassword ? 'Reset password' : 'Welcome back'}
