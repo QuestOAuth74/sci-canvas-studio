@@ -297,7 +297,7 @@ export default function Auth() {
           >
             {/* Logo & Title */}
             <div className="text-center space-y-2">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-600 to-teal-600 mb-4 shadow-lg shadow-cyan-500/25">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 mb-4 shadow-lg shadow-indigo-500/25">
                 <Microscope className="h-7 w-7 text-white" />
               </div>
               <h1 className="text-2xl font-bold text-slate-900">
