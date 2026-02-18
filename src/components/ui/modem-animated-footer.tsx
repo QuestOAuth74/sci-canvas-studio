@@ -37,13 +37,13 @@ export const Footer = ({
   className,
 }: FooterProps) => {
   return (
-    <footer className={cn("relative w-full bg-gradient-to-b from-slate-50/50 to-white overflow-hidden", className)}>
+    <footer className={cn("relative w-full bg-white/30 backdrop-blur-xl overflow-hidden", className)}>
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-16 lg:px-8">
         <div className="relative">
           <div className="flex flex-col items-center text-center">
             <div className="mb-8">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25">
                   {brandIcon || <NotepadTextDashed className="h-5 w-5" />}
                 </div>
                 <span className="text-xl font-bold text-slate-900">

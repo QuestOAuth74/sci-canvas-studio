@@ -46,7 +46,7 @@ export const TopNavBar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-lg border-b border-cyan-100">
+    <nav className="sticky top-0 z-50 w-full bg-white/40 backdrop-blur-2xl border-b border-white/30 shadow-[0_4px_30px_rgba(0,0,0,0.04)]">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Left side - Logo */}
@@ -55,14 +55,14 @@ export const TopNavBar = () => {
               onClick={() => navigate('/')}
               className="flex items-center gap-3 group"
             >
-              <div className="p-1.5 rounded-xl bg-gradient-to-br from-cyan-600 to-teal-600 group-hover:shadow-lg transition-all duration-300">
+              <div className="p-1.5 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 group-hover:shadow-lg shadow-indigo-500/25 transition-all duration-300">
                 <img
                   src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/sign/icon%20site/biosketch%20art-min.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV8zOWUxYTMwMi1lYjJkLTQxOGUtYjdkZS1hZGE0M2NhNTI0NDUiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJpY29uIHNpdGUvYmlvc2tldGNoIGFydC1taW4ucG5nIiwiaWF0IjoxNzYwODM2MjgxLCJleHAiOjIwNzYxOTYyODF9.LDw-xwHK6WmdeLwiG_BwtT0jX3N6fjdOvZmoUcI4FP0"
                   alt="BioSketch Logo"
                   className="h-7 w-7 object-contain"
                 />
               </div>
-              <span className="text-lg font-bold text-slate-800 group-hover:text-cyan-600 transition-colors">
+              <span className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                 BioSketch
               </span>
             </button>
@@ -70,7 +70,7 @@ export const TopNavBar = () => {
 
           {/* Center - Navigation */}
           <div className="hidden md:flex absolute left-1/2 -translate-x-1/2">
-            <div className="flex items-center gap-1 bg-slate-50/80 border border-slate-200/60 py-1.5 px-2 rounded-xl">
+            <div className="flex items-center gap-1 bg-white/40 backdrop-blur-xl border border-white/30 py-1.5 px-2 rounded-xl">
               {filteredNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.name;
@@ -82,8 +82,8 @@ export const TopNavBar = () => {
                     onClick={() => setActiveTab(item.name)}
                     className={cn(
                       "relative cursor-pointer text-sm font-medium px-4 py-2 rounded-lg transition-all duration-200",
-                      "text-slate-500 hover:text-slate-900",
-                      isActive && "bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-md",
+                      "text-muted-foreground hover:text-foreground",
+                      isActive && "bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/25",
                     )}
                   >
                     <span className="flex items-center gap-2">

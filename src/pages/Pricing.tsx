@@ -274,7 +274,7 @@ export default function Pricing() {
               >
                 {tier.highlighted && (
                   <div className="absolute -top-4 left-0 right-0 flex justify-center z-10">
-                    <span className="px-4 py-1.5 bg-gradient-to-r from-cyan-600 to-teal-600 text-white text-sm font-medium rounded-full shadow-lg shadow-cyan-500/25">
+                    <span className="px-4 py-1.5 bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-medium rounded-full shadow-lg shadow-indigo-500/25">
                       Most Popular
                     </span>
                   </div>
@@ -337,7 +337,7 @@ export default function Pricing() {
                       className={cn(
                         "w-full mt-6 rounded-xl h-12",
                         tier.highlighted
-                          ? "bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white shadow-lg shadow-cyan-500/25 border-0"
+                          ? "bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 border-0"
                           : tier.buttonVariant === "outline"
                             ? "border-slate-200 text-slate-700 hover:bg-slate-50"
                             : ""
@@ -542,7 +542,7 @@ export default function Pricing() {
                 <div className="flex flex-wrap justify-center gap-4 mt-8">
                   <Button
                     size="lg"
-                    className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white shadow-lg shadow-cyan-500/25 rounded-xl border-0 h-12 px-8"
+                    className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 rounded-xl border-0 h-12 px-8"
                     onClick={() => navigate(user ? "/canvas" : "/auth")}
                   >
                     {user ? "Open Canvas" : "Start Free"}

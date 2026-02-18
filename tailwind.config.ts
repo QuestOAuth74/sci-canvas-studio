@@ -13,12 +13,12 @@ export default {
     },
     extend: {
       fontFamily: {
-        'sans': ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
-        'display': ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
-        'serif': ['Source Sans 3', 'Georgia', 'serif'],
-        'body': ['Open Sans', 'Roboto', 'system-ui', 'sans-serif'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'display': ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
+        'serif': ['Georgia', 'serif'],
+        'body': ['Inter', 'system-ui', 'sans-serif'],
         'mono': ['JetBrains Mono', 'SF Mono', 'Consolas', 'monospace'],
-        'scientific': ['Source Sans 3', 'Roboto', 'sans-serif'],
+        'scientific': ['Space Grotesk', 'Inter', 'sans-serif'],
       },
       fontSize: {
         'xs': ['var(--font-size-xs)', { lineHeight: 'var(--line-height-normal)' }],

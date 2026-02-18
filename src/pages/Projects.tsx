@@ -156,7 +156,7 @@ export default function Projects() {
             <Button
               onClick={createNewProject}
               size="lg"
-              className="gap-2 self-start lg:self-auto bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white shadow-lg shadow-cyan-500/25 rounded-xl border-0"
+              className="gap-2 self-start lg:self-auto bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 rounded-xl border-0"
             >
               <Plus className="w-5 h-5" />
               New Project
@@ -207,8 +207,8 @@ export default function Projects() {
                   className={cn(
                     "px-5 py-3 text-sm font-medium rounded-xl transition-all duration-200 capitalize",
                     filterStatus === status
-                      ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25'
-                      : 'glass-card text-slate-600 hover:text-slate-900 hover:shadow-soft'
+                      ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25'
+                      : 'glass-card text-muted-foreground hover:text-foreground hover:shadow-soft'
                   )}
                 >
                   {status === 'public' && <Globe className="w-4 h-4 inline mr-2" />}
@@ -250,7 +250,7 @@ export default function Projects() {
                   : 'Create your first scientific illustration'}
               </p>
               {!searchQuery && filterStatus === 'all' && (
-                <Button onClick={createNewProject} size="lg" className="gap-2 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white shadow-lg shadow-cyan-500/25 rounded-xl border-0">
+                <Button onClick={createNewProject} size="lg" className="gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 rounded-xl border-0">
                   <Plus className="w-5 h-5" />
                   Create Project
                 </Button>
@@ -396,8 +396,8 @@ export default function Projects() {
                         className={cn(
                           "w-10 h-10 text-sm font-medium rounded-xl transition-all duration-200",
                           currentPage === page
-                            ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/25'
-                            : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                            ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-500/25'
+                            : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                         )}
                       >
                         {page}

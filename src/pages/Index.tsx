@@ -39,31 +39,32 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-cyan-50/50 via-white to-white">
+    <div className="min-h-screen relative overflow-hidden">
+      <SEOHead
+        title="BioSketch — Create Publication-Ready Scientific Figures"
+        description="Design professional diagrams for your research papers, presentations, and posters. Free scientific illustration tool with no design skills required."
+        structuredData={[
+          JSON.stringify(structuredData),
+          JSON.stringify(getOrganizationSchema()),
+        ]}
+      />
       <MaintenanceBanner />
 
-      <SEOHead
-        title="BioSketch - Scientific Figure Design Tool"
-        description="Create publication-ready scientific illustrations in minutes. Free drag-and-drop tool with 6,000+ icons for researchers."
-        canonical="https://biosketch.art/"
-        keywords="scientific illustration, publication figures, research graphics, scientific diagrams"
-        structuredData={structuredData}
-      />
-
-      {/* Subtle Background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-cyan-100/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-teal-100/30 rounded-full blur-3xl" />
+      {/* Animated glass blobs */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-200/40 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-violet-200/30 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-blue-200/20 rounded-full blur-3xl animate-blob" />
       </div>
 
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-cyan-100">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/40 backdrop-blur-2xl border-b border-white/30 shadow-[0_4px_30px_rgba(0,0,0,0.04)]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-cyan-600 to-teal-600 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
               <Microscope className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-slate-800 text-lg">BioSketch</span>
+            <span className="font-bold text-foreground text-lg">BioSketch</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -71,7 +72,7 @@ const Index = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate("/community")}
-              className="text-slate-600 hover:text-cyan-700"
+              className="text-muted-foreground hover:text-foreground"
             >
               Gallery
             </Button>
@@ -79,14 +80,14 @@ const Index = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate("/pricing")}
-              className="text-slate-600 hover:text-cyan-700"
+              className="text-muted-foreground hover:text-foreground"
             >
               Pricing
             </Button>
             <Button
               size="sm"
               onClick={() => navigate(user ? "/canvas" : "/auth")}
-              className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-lg px-5"
+              className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-lg px-5 shadow-lg shadow-indigo-500/25"
             >
               {user ? "Open Canvas" : "Get Started"}
             </Button>
@@ -104,21 +105,21 @@ const Index = () => {
             className="space-y-6"
           >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-sm font-medium">
-              <span className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 backdrop-blur-xl border border-white/40 text-indigo-600 text-sm font-medium shadow-sm">
+              <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
               Free scientific illustration tool
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
               Create publication-ready
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-teal-600">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-600">
                 scientific figures
               </span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Design professional diagrams for your research papers, presentations, and posters. No design skills required.
             </p>
 
@@ -127,7 +128,7 @@ const Index = () => {
               <Button
                 size="lg"
                 onClick={() => navigate(user ? "/canvas" : "/auth")}
-                className="h-13 px-8 text-base bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-700 hover:to-teal-700 text-white rounded-xl shadow-lg shadow-cyan-500/25 hover:shadow-xl hover:shadow-cyan-500/30 transition-all"
+                className="h-13 px-8 text-base bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all"
               >
                 Start Creating Free
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -136,17 +137,17 @@ const Index = () => {
                 size="lg"
                 variant="outline"
                 onClick={() => navigate("/community")}
-                className="h-13 px-8 text-base border-slate-200 hover:border-cyan-300 hover:bg-cyan-50 rounded-xl transition-all"
+                className="h-13 px-8 text-base bg-white/40 backdrop-blur-xl border-white/40 hover:bg-white/60 rounded-xl transition-all"
               >
                 View Gallery
               </Button>
             </div>
 
             {/* Trust Indicators */}
-            <div className="flex items-center justify-center gap-6 pt-6 text-sm text-slate-500">
+            <div className="flex items-center justify-center gap-6 pt-6 text-sm text-muted-foreground">
               {["No signup required", "Free forever", "Export in any format"].map((text, i) => (
                 <div key={i} className="flex items-center gap-1.5">
-                  <CheckCircle className="w-4 h-4 text-cyan-600" />
+                  <CheckCircle className="w-4 h-4 text-indigo-500" />
                   <span>{text}</span>
                 </div>
               ))}
@@ -160,7 +161,7 @@ const Index = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-16 relative"
           >
-            <div className="relative rounded-2xl overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/50 bg-white">
+            <div className="relative rounded-2xl overflow-hidden border border-white/40 shadow-2xl shadow-indigo-200/30 bg-white/50 backdrop-blur-xl">
               <video
                 src="https://tljsbmpglwmzyaoxsqyj.supabase.co/storage/v1/object/public/blog-media/biosketch%20video.mp4"
                 className="w-full"
@@ -171,14 +172,14 @@ const Index = () => {
               />
             </div>
             {/* Decorative elements */}
-            <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-cyan-400/20 to-teal-400/20 rounded-full blur-2xl" />
-            <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-br from-teal-400/20 to-cyan-400/20 rounded-full blur-2xl" />
+            <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-indigo-400/20 to-violet-400/20 rounded-full blur-2xl" />
+            <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-br from-violet-400/20 to-indigo-400/20 rounded-full blur-2xl" />
           </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-6 bg-gradient-to-b from-white to-slate-50">
+      <section className="py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="grid md:grid-cols-3 gap-6">
             {features.map((feature, i) => (
@@ -188,13 +189,13 @@ const Index = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:border-cyan-100 transition-all"
+                className="glass-card rounded-2xl p-6 hover:shadow-lg transition-all"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-teal-500 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center mb-4 shadow-lg shadow-indigo-500/20">
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-1">{feature.title}</h3>
-                <p className="text-slate-600">{feature.desc}</p>
+                <h3 className="text-lg font-semibold text-foreground mb-1">{feature.title}</h3>
+                <p className="text-muted-foreground">{feature.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -208,7 +209,7 @@ const Index = () => {
             initial={{ opacity: 0, scale: 0.98 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-cyan-600 to-teal-600 rounded-3xl p-10 md:p-14 text-center text-white relative overflow-hidden"
+            className="bg-gradient-to-br from-indigo-500 to-violet-600 rounded-3xl p-10 md:p-14 text-center text-white relative overflow-hidden shadow-2xl shadow-indigo-500/25"
           >
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -220,13 +221,13 @@ const Index = () => {
               <h2 className="text-3xl md:text-4xl font-bold">
                 Ready to create your first figure?
               </h2>
-              <p className="text-lg text-cyan-100 max-w-xl mx-auto">
+              <p className="text-lg text-indigo-100 max-w-xl mx-auto">
                 Join thousands of researchers using BioSketch for their publications.
               </p>
               <Button
                 size="lg"
                 onClick={() => navigate(user ? "/canvas" : "/auth")}
-                className="h-13 px-10 text-base bg-white text-cyan-700 hover:bg-cyan-50 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                className="h-13 px-10 text-base bg-white/90 backdrop-blur-sm text-indigo-700 hover:bg-white rounded-xl shadow-lg hover:shadow-xl transition-all"
               >
                 Get Started Free
                 <ArrowRight className="w-5 h-5 ml-2" />
@@ -237,28 +238,32 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 px-6 border-t border-slate-100">
+      <footer className="py-10 px-6 border-t border-white/30">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-cyan-600 to-teal-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center shadow-md shadow-indigo-500/20">
               <Microscope className="w-4 h-4 text-white" />
             </div>
-            <span className="font-semibold text-slate-700">BioSketch</span>
+            <span className="font-semibold text-foreground">BioSketch</span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-slate-500">
-            <button onClick={() => navigate("/community")} className="hover:text-cyan-600 transition-colors">Community</button>
-            <button onClick={() => navigate("/pricing")} className="hover:text-cyan-600 transition-colors">Pricing</button>
-            <button onClick={() => navigate("/blog")} className="hover:text-cyan-600 transition-colors">Blog</button>
-            <button onClick={() => navigate("/terms")} className="hover:text-cyan-600 transition-colors">Terms</button>
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <button onClick={() => navigate("/community")} className="hover:text-primary transition-colors">Community</button>
+            <button onClick={() => navigate("/pricing")} className="hover:text-primary transition-colors">Pricing</button>
+            <button onClick={() => navigate("/blog")} className="hover:text-primary transition-colors">Blog</button>
+            <button onClick={() => navigate("/terms")} className="hover:text-primary transition-colors">Terms</button>
           </div>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} BioSketch
           </p>
         </div>
       </footer>
 
       <IconSubmissionDialog open={showSubmitDialog} onOpenChange={setShowSubmitDialog} categories={categories} />
-      <ProjectPreviewModal project={selectedProject} isOpen={showPreviewModal} onClose={() => setShowPreviewModal(false)} />
+      <ProjectPreviewModal
+        project={selectedProject}
+        isOpen={showPreviewModal}
+        onClose={() => setShowPreviewModal(false)}
+      />
     </div>
   );
 };
